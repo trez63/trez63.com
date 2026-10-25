@@ -79,8 +79,17 @@ h2{font-size:18px;margin:0;letter-spacing:-.01em}
 .meta a{text-decoration:underline dotted}
 .meta .rate{margin-left:auto;text-decoration:none;color:var(--acc);font-weight:600}
 .meta .rate:hover{text-decoration:underline}
+.share.mini>button{font-size:12px;padding:3px 9px}
 footer{padding-bottom:48px;color:var(--mute);font-size:13px}
 footer a{text-decoration:underline}
+
+.share{position:relative}
+.share>button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:999px;padding:6px 12px;white-space:nowrap}
+.share>button:hover{border-color:var(--mute)}
+.share menu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;margin:0;padding:6px;list-style:none;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 14px 40px rgba(0,0,0,.3);min-width:180px;display:none}
+.share[open] menu{display:block}
+.share menu a,.share menu button{display:block;width:100%;text-align:left;font:inherit;font-size:14px;background:none;border:0;color:var(--fg);padding:8px 10px;border-radius:7px;cursor:pointer;text-decoration:none}
+.share menu a:hover,.share menu button:hover{background:var(--line)}
 </style>
 </head>
 <body>
@@ -123,6 +132,7 @@ footer a{text-decoration:underline}
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/chroma-desk.html" title="Version history on GitHub">v1</a>
           <span>· Image</span>
           <a class="rate" href="rate.html?app=chroma-desk" title="Vote for this app">👍 Vote</a>
+          <span class="share mini" data-url="https://trez63.com/p/chroma-desk.html" data-title="Chroma Desk — trez63" data-text="Chroma Desk — a one-page app built by ChatGPT from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
         </div>
       </div>
     </article>
@@ -140,6 +150,7 @@ footer a{text-decoration:underline}
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/carve.html" title="Version history on GitHub">v1</a>
           <span>· Image</span>
           <a class="rate" href="rate.html?app=carve" title="Vote for this app">👍 Vote</a>
+          <span class="share mini" data-url="https://trez63.com/p/carve.html" data-title="Carve — trez63" data-text="Carve — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
         </div>
       </div>
     </article>
@@ -157,6 +168,7 @@ footer a{text-decoration:underline}
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/budget.html" title="Version history on GitHub">v1</a>
           <span>· Finance</span>
           <a class="rate" href="rate.html?app=budget" title="Vote for this app">👍 Vote</a>
+          <span class="share mini" data-url="https://trez63.com/p/budget.html" data-title="Budget — trez63" data-text="Budget — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
         </div>
       </div>
     </article></div>
@@ -195,6 +207,7 @@ footer a{text-decoration:underline}
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/carve.html" title="Version history on GitHub">v1</a>
           <span>· Image</span>
           <a class="rate" href="rate.html?app=carve" title="Vote for this app">👍 Vote</a>
+          <span class="share mini" data-url="https://trez63.com/p/carve.html" data-title="Carve — trez63" data-text="Carve — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
         </div>
       </div>
     </article>
@@ -212,6 +225,7 @@ footer a{text-decoration:underline}
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/budget.html" title="Version history on GitHub">v1</a>
           <span>· Finance</span>
           <a class="rate" href="rate.html?app=budget" title="Vote for this app">👍 Vote</a>
+          <span class="share mini" data-url="https://trez63.com/p/budget.html" data-title="Budget — trez63" data-text="Budget — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
         </div>
       </div>
     </article>
@@ -229,6 +243,7 @@ footer a{text-decoration:underline}
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/hilbert.html" title="Version history on GitHub">v1</a>
           <span>· Dev tools</span>
           <a class="rate" href="rate.html?app=hilbert" title="Vote for this app">👍 Vote</a>
+          <span class="share mini" data-url="https://trez63.com/p/hilbert.html" data-title="Hilbert — trez63" data-text="Hilbert — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
         </div>
       </div>
     </article>
@@ -246,6 +261,7 @@ footer a{text-decoration:underline}
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/tessera.html" title="Version history on GitHub">v1</a>
           <span>· Generative art</span>
           <a class="rate" href="rate.html?app=tessera" title="Vote for this app">👍 Vote</a>
+          <span class="share mini" data-url="https://trez63.com/p/tessera.html" data-title="Tessera — trez63" data-text="Tessera — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
         </div>
       </div>
     </article>
@@ -263,6 +279,7 @@ footer a{text-decoration:underline}
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/chroma-desk.html" title="Version history on GitHub">v1</a>
           <span>· Image</span>
           <a class="rate" href="rate.html?app=chroma-desk" title="Vote for this app">👍 Vote</a>
+          <span class="share mini" data-url="https://trez63.com/p/chroma-desk.html" data-title="Chroma Desk — trez63" data-text="Chroma Desk — a one-page app built by ChatGPT from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
         </div>
       </div>
     </article>
@@ -280,6 +297,7 @@ footer a{text-decoration:underline}
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/dayblock.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
           <a class="rate" href="rate.html?app=dayblock" title="Vote for this app">👍 Vote</a>
+          <span class="share mini" data-url="https://trez63.com/p/dayblock.html" data-title="Dayblock — trez63" data-text="Dayblock — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
         </div>
       </div>
     </article>
@@ -297,6 +315,7 @@ footer a{text-decoration:underline}
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/pantry-clock.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
           <a class="rate" href="rate.html?app=pantry-clock" title="Vote for this app">👍 Vote</a>
+          <span class="share mini" data-url="https://trez63.com/p/pantry-clock.html" data-title="Pantry Clock — trez63" data-text="Pantry Clock — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
         </div>
       </div>
     </article>
@@ -314,6 +333,7 @@ footer a{text-decoration:underline}
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/ledger.html" title="Version history on GitHub">v1</a>
           <span>· Finance</span>
           <a class="rate" href="rate.html?app=ledger" title="Vote for this app">👍 Vote</a>
+          <span class="share mini" data-url="https://trez63.com/p/ledger.html" data-title="Ledger — trez63" data-text="Ledger — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
         </div>
       </div>
     </article>
@@ -331,6 +351,7 @@ footer a{text-decoration:underline}
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/meadowsong.html" title="Version history on GitHub">v1</a>
           <span>· Audio</span>
           <a class="rate" href="rate.html?app=meadowsong" title="Vote for this app">👍 Vote</a>
+          <span class="share mini" data-url="https://trez63.com/p/meadowsong.html" data-title="Meadowsong — trez63" data-text="Meadowsong — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
         </div>
       </div>
     </article>
@@ -348,6 +369,7 @@ footer a{text-decoration:underline}
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/position.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
           <a class="rate" href="rate.html?app=position" title="Vote for this app">👍 Vote</a>
+          <span class="share mini" data-url="https://trez63.com/p/position.html" data-title="Position — trez63" data-text="Position — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
         </div>
       </div>
     </article>
@@ -365,6 +387,7 @@ footer a{text-decoration:underline}
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/crosslight.html" title="Version history on GitHub">v1</a>
           <span>· Games</span>
           <a class="rate" href="rate.html?app=crosslight" title="Vote for this app">👍 Vote</a>
+          <span class="share mini" data-url="https://trez63.com/p/crosslight.html" data-title="Crosslight — trez63" data-text="Crosslight — a one-page app built by ChatGPT from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
         </div>
       </div>
     </article>
@@ -382,6 +405,7 @@ footer a{text-decoration:underline}
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/kaleido.html" title="Version history on GitHub">v1</a>
           <span>· Generative art</span>
           <a class="rate" href="rate.html?app=kaleido" title="Vote for this app">👍 Vote</a>
+          <span class="share mini" data-url="https://trez63.com/p/kaleido.html" data-title="Kaleido — trez63" data-text="Kaleido — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
         </div>
       </div>
     </article>
@@ -399,6 +423,7 @@ footer a{text-decoration:underline}
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/sonogram.html" title="Version history on GitHub">v1</a>
           <span>· Audio</span>
           <a class="rate" href="rate.html?app=sonogram" title="Vote for this app">👍 Vote</a>
+          <span class="share mini" data-url="https://trez63.com/p/sonogram.html" data-title="Sonogram — trez63" data-text="Sonogram — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
         </div>
       </div>
     </article>
@@ -416,6 +441,7 @@ footer a{text-decoration:underline}
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/tradeoff.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
           <a class="rate" href="rate.html?app=tradeoff" title="Vote for this app">👍 Vote</a>
+          <span class="share mini" data-url="https://trez63.com/p/tradeoff.html" data-title="Tradeoff — trez63" data-text="Tradeoff — a one-page app built by ChatGPT from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
         </div>
       </div>
     </article>
@@ -433,6 +459,7 @@ footer a{text-decoration:underline}
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/foldwork.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
           <a class="rate" href="rate.html?app=foldwork" title="Vote for this app">👍 Vote</a>
+          <span class="share mini" data-url="https://trez63.com/p/foldwork.html" data-title="Foldwork — trez63" data-text="Foldwork — a one-page app built by ChatGPT from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
         </div>
       </div>
     </article>
@@ -450,6 +477,7 @@ footer a{text-decoration:underline}
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/genesis-universe.html" title="Version history on GitHub">v1</a>
           <span>· Generative art</span>
           <a class="rate" href="rate.html?app=genesis-universe" title="Vote for this app">👍 Vote</a>
+          <span class="share mini" data-url="https://trez63.com/p/genesis-universe.html" data-title="Genesis — trez63" data-text="Genesis — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
         </div>
       </div>
     </article>
@@ -467,6 +495,7 @@ footer a{text-decoration:underline}
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/reckon.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
           <a class="rate" href="rate.html?app=reckon" title="Vote for this app">👍 Vote</a>
+          <span class="share mini" data-url="https://trez63.com/p/reckon.html" data-title="Reckon — trez63" data-text="Reckon — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
         </div>
       </div>
     </article>
@@ -484,6 +513,7 @@ footer a{text-decoration:underline}
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/ripple.html" title="Version history on GitHub">v1</a>
           <span>· Simulations</span>
           <a class="rate" href="rate.html?app=ripple" title="Vote for this app">👍 Vote</a>
+          <span class="share mini" data-url="https://trez63.com/p/ripple.html" data-title="Ripple — trez63" data-text="Ripple — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
         </div>
       </div>
     </article>
@@ -501,6 +531,7 @@ footer a{text-decoration:underline}
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/sprout-garden.html" title="Version history on GitHub">v1</a>
           <span>· Generative art</span>
           <a class="rate" href="rate.html?app=sprout-garden" title="Vote for this app">👍 Vote</a>
+          <span class="share mini" data-url="https://trez63.com/p/sprout-garden.html" data-title="Sprout — trez63" data-text="Sprout — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
         </div>
       </div>
     </article>
@@ -518,6 +549,7 @@ footer a{text-decoration:underline}
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/stillpoint.html" title="Version history on GitHub">v1</a>
           <span>· Focus</span>
           <a class="rate" href="rate.html?app=stillpoint" title="Vote for this app">👍 Vote</a>
+          <span class="share mini" data-url="https://trez63.com/p/stillpoint.html" data-title="Stillpoint — trez63" data-text="Stillpoint — a one-page app built by ChatGPT from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
         </div>
       </div>
     </article>
@@ -535,6 +567,7 @@ footer a{text-decoration:underline}
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/labelmaker.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
           <a class="rate" href="rate.html?app=labelmaker" title="Vote for this app">👍 Vote</a>
+          <span class="share mini" data-url="https://trez63.com/p/labelmaker.html" data-title="Label sheets — trez63" data-text="Label sheets — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
         </div>
       </div>
     </article>
@@ -570,6 +603,32 @@ document.querySelectorAll('.card').forEach(c=>{
   c.addEventListener('mouseenter',()=>{ if(v.preload==='none'){v.preload='auto';v.load();} v.play().then(()=>v.classList.add('ready')).catch(()=>{}); });
   c.addEventListener('mouseleave',()=>{ v.pause(); v.classList.remove('ready'); });
 });
+
+(function(){
+  function wire(el){
+    const url=el.dataset.url, title=el.dataset.title, text=el.dataset.text||title;
+    const btn=el.querySelector('button.sb'), menu=el.querySelector('menu'), enc=encodeURIComponent;
+    menu.innerHTML=`<li><button class="copy">Copy link</button></li>
+      <li><a target="_blank" rel="noopener" href="https://x.com/intent/post?text=${enc(text)}&url=${enc(url)}">Post on X</a></li>
+      <li><a target="_blank" rel="noopener" href="https://www.linkedin.com/sharing/share-offsite/?url=${enc(url)}">Share on LinkedIn</a></li>
+      <li><a target="_blank" rel="noopener" href="https://www.reddit.com/submit?url=${enc(url)}&title=${enc(title)}">Post on Reddit</a></li>
+      <li><a target="_blank" rel="noopener" href="https://bsky.app/intent/compose?text=${enc(text+' '+url)}">Post on Bluesky</a></li>
+      <li><a href="mailto:?subject=${enc(title)}&body=${enc(text)}%0A${enc(url)}">Email</a></li>`;
+    btn.addEventListener('click',async e=>{
+      e.preventDefault(); e.stopPropagation();
+      if(navigator.share){ try{ await navigator.share({title,text,url}); return; }catch(_){ if(_.name==='AbortError') return; } }
+      document.querySelectorAll('.share[open]').forEach(o=>{ if(o!==el) o.removeAttribute('open'); });
+      el.toggleAttribute('open');
+    });
+    menu.querySelector('.copy').addEventListener('click',async()=>{
+      try{ await navigator.clipboard.writeText(url); btn.textContent='Copied ✓'; setTimeout(()=>btn.textContent='Share',1500); }catch(_){ prompt('Copy this link:',url); }
+      el.removeAttribute('open');
+    });
+  }
+  document.querySelectorAll('.share').forEach(wire);
+  document.addEventListener('click',e=>{ if(!e.target.closest('.share')) document.querySelectorAll('.share[open]').forEach(o=>o.removeAttribute('open')); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.querySelectorAll('.share[open]').forEach(o=>o.removeAttribute('open')); });
+})();
 </script>
 </body>
 </html>

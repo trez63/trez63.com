@@ -16,6 +16,42 @@ TODAY = date.today()
 ENGINE_CLASS = {"Claude": "claude", "ChatGPT": "chatgpt", "Muse": "muse", "Gemini": "gemini"}
 CAT_LABEL = {"tool": "Tools", "art": "Generative art", "game": "Games", "audio": "Audio", "sim": "Simulations",
              "image": "Image", "finance": "Finance", "dev": "Dev tools", "focus": "Focus", "text": "Text", "edu": "Explainers"}
+SHARE_CSS = """
+.share{position:relative}
+.share>button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:999px;padding:6px 12px;white-space:nowrap}
+.share>button:hover{border-color:var(--mute)}
+.share menu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;margin:0;padding:6px;list-style:none;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 14px 40px rgba(0,0,0,.3);min-width:180px;display:none}
+.share[open] menu{display:block}
+.share menu a,.share menu button{display:block;width:100%;text-align:left;font:inherit;font-size:14px;background:none;border:0;color:var(--fg);padding:8px 10px;border-radius:7px;cursor:pointer;text-decoration:none}
+.share menu a:hover,.share menu button:hover{background:var(--line)}
+"""
+SHARE_JS = """
+(function(){
+  function wire(el){
+    const url=el.dataset.url, title=el.dataset.title, text=el.dataset.text||title;
+    const btn=el.querySelector('button.sb'), menu=el.querySelector('menu'), enc=encodeURIComponent;
+    menu.innerHTML=`<li><button class="copy">Copy link</button></li>
+      <li><a target="_blank" rel="noopener" href="https://x.com/intent/post?text=${enc(text)}&url=${enc(url)}">Post on X</a></li>
+      <li><a target="_blank" rel="noopener" href="https://www.linkedin.com/sharing/share-offsite/?url=${enc(url)}">Share on LinkedIn</a></li>
+      <li><a target="_blank" rel="noopener" href="https://www.reddit.com/submit?url=${enc(url)}&title=${enc(title)}">Post on Reddit</a></li>
+      <li><a target="_blank" rel="noopener" href="https://bsky.app/intent/compose?text=${enc(text+' '+url)}">Post on Bluesky</a></li>
+      <li><a href="mailto:?subject=${enc(title)}&body=${enc(text)}%0A${enc(url)}">Email</a></li>`;
+    btn.addEventListener('click',async e=>{
+      e.preventDefault(); e.stopPropagation();
+      if(navigator.share){ try{ await navigator.share({title,text,url}); return; }catch(_){ if(_.name==='AbortError') return; } }
+      document.querySelectorAll('.share[open]').forEach(o=>{ if(o!==el) o.removeAttribute('open'); });
+      el.toggleAttribute('open');
+    });
+    menu.querySelector('.copy').addEventListener('click',async()=>{
+      try{ await navigator.clipboard.writeText(url); btn.textContent='Copied ✓'; setTimeout(()=>btn.textContent='Share',1500); }catch(_){ prompt('Copy this link:',url); }
+      el.removeAttribute('open');
+    });
+  }
+  document.querySelectorAll('.share').forEach(wire);
+  document.addEventListener('click',e=>{ if(!e.target.closest('.share')) document.querySelectorAll('.share[open]').forEach(o=>o.removeAttribute('open')); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.querySelectorAll('.share[open]').forEach(o=>o.removeAttribute('open')); });
+})();
+"""
 WIN_AFTER_DAYS = 7           # a day's winner is locked this many days after publish
 E = html.escape
 
@@ -56,6 +92,12 @@ def shot(slug, e, lazy=True):
     return (f'<a class="shot" href="p/{slug}.html" aria-label="Open {E(e["title"])}">'
             f'<img src="thumbs/{slug}.webp" alt="" {"loading=lazy" if lazy else ""} width="640" height="400">{v}</a>')
 
+def share_el(slug, e, cls="share"):
+    url = f"{SITE}/p/{slug}.html"
+    text = f"{e['title']} — a one-page app built by {e['engine']} from a single prompt. Play it, vote for it:"
+    return (f'<span class="{cls}" data-url="{url}" data-title="{E(e["title"])} — trez63" data-text="{E(text)}">'
+            f'<button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>')
+
 def card(slug, e, big=False):
     eng = E(e["engine"]); cls = ENGINE_CLASS.get(e["engine"], "other"); u = up(e)
     cat = e.get("category", "")
@@ -75,6 +117,7 @@ def card(slug, e, big=False):
           <a href="{REPO}/commits/main/apps/{slug}.html" title="Version history on GitHub">v{e['version']}</a>
           {f'<span>· {E(CAT_LABEL.get(cat, cat))}</span>' if cat else ''}
           <a class="rate" href="rate.html?app={slug}" title="Vote for this app">👍 {u if u else 'Vote'}</a>
+          {share_el(slug, e, "share mini")}
         </div>
       </div>
     </article>"""
@@ -172,6 +215,7 @@ h2{font-size:18px;margin:0;letter-spacing:-.01em}
 .meta a{text-decoration:underline dotted}
 .meta .rate{margin-left:auto;text-decoration:none;color:var(--acc);font-weight:600}
 .meta .rate:hover{text-decoration:underline}
+.share.mini>button{font-size:12px;padding:3px 9px}
 footer{padding-bottom:48px;color:var(--mute);font-size:13px}
 footer a{text-decoration:underline}
 """
@@ -247,7 +291,7 @@ page = f"""<!doctype html>
 <link rel="canonical" href="{SITE}/">
 <link rel="alternate" type="application/rss+xml" title="trez63 — new apps" href="{SITE}/feed.xml">
 {og("trez63 — one small app a day", SITE_DESC, f"{SITE}/thumbs/{newest_slug}.webp", SITE + "/")}
-<style>{CSS}</style>
+<style>{CSS}{SHARE_CSS}</style>
 </head>
 <body>
 <header>
@@ -274,7 +318,7 @@ page = f"""<!doctype html>
 <main id="grid">{cards}
 </main>
 <footer>Source and full version history on <a href="{REPO}">GitHub</a> · <a href="feed.xml">RSS</a> · Last published {fmt(catalog.get('generated', TODAY.isoformat()))}.</footer>
-<script>{JS}</script>
+<script>{JS}{SHARE_JS}</script>
 </body>
 </html>
 """
@@ -312,6 +356,7 @@ body{{display:flex;flex-direction:column;background:var(--bg);color:var(--fg);fo
 .raw{{color:var(--mute);white-space:nowrap}} .raw:hover{{color:var(--fg)}}
 iframe{{flex:1;border:0;width:100%;background:#fff}}
 @media (max-width:640px){{.desc,.raw{{display:none}}}}
+{SHARE_CSS}
 </style>
 </head>
 <body>
@@ -321,9 +366,11 @@ iframe{{flex:1;border:0;width:100%;background:#fff}}
   <span class="badge {cls}">{eng}</span>
   <span class="desc">{E(desc)}</span>
   <a class="raw" href="../apps/{slug}.html" title="Open the app on its own, full window">open raw ↗</a>
+  {share_el(slug, e)}
   <a class="vote" href="../rate.html?app={slug}">👍 {('Vote · ' + str(u)) if u else 'Vote'}</a>
 </div>
 <iframe src="../apps/{slug}.html" title="{E(e['title'])}" allow="clipboard-write; fullscreen; autoplay" allowfullscreen></iframe>
+<script>{SHARE_JS}</script>
 </body>
 </html>
 """)

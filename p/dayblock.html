@@ -32,6 +32,15 @@ body{display:flex;flex-direction:column;background:var(--bg);color:var(--fg);fon
 .raw{color:var(--mute);white-space:nowrap} .raw:hover{color:var(--fg)}
 iframe{flex:1;border:0;width:100%;background:#fff}
 @media (max-width:640px){.desc,.raw{display:none}}
+
+.share{position:relative}
+.share>button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:999px;padding:6px 12px;white-space:nowrap}
+.share>button:hover{border-color:var(--mute)}
+.share menu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;margin:0;padding:6px;list-style:none;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 14px 40px rgba(0,0,0,.3);min-width:180px;display:none}
+.share[open] menu{display:block}
+.share menu a,.share menu button{display:block;width:100%;text-align:left;font:inherit;font-size:14px;background:none;border:0;color:var(--fg);padding:8px 10px;border-radius:7px;cursor:pointer;text-decoration:none}
+.share menu a:hover,.share menu button:hover{background:var(--line)}
+
 </style>
 </head>
 <body>
@@ -41,8 +50,36 @@ iframe{flex:1;border:0;width:100%;background:#fff}
   <span class="badge muse">Muse</span>
   <span class="desc">A time-block day planner. Drag on the timeline to carve out your day; overlaps are allowed and the totals just add up.</span>
   <a class="raw" href="../apps/dayblock.html" title="Open the app on its own, full window">open raw ↗</a>
+  <span class="share" data-url="https://trez63.com/p/dayblock.html" data-title="Dayblock — trez63" data-text="Dayblock — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
   <a class="vote" href="../rate.html?app=dayblock">👍 Vote</a>
 </div>
 <iframe src="../apps/dayblock.html" title="Dayblock" allow="clipboard-write; fullscreen; autoplay" allowfullscreen></iframe>
+<script>
+(function(){
+  function wire(el){
+    const url=el.dataset.url, title=el.dataset.title, text=el.dataset.text||title;
+    const btn=el.querySelector('button.sb'), menu=el.querySelector('menu'), enc=encodeURIComponent;
+    menu.innerHTML=`<li><button class="copy">Copy link</button></li>
+      <li><a target="_blank" rel="noopener" href="https://x.com/intent/post?text=${enc(text)}&url=${enc(url)}">Post on X</a></li>
+      <li><a target="_blank" rel="noopener" href="https://www.linkedin.com/sharing/share-offsite/?url=${enc(url)}">Share on LinkedIn</a></li>
+      <li><a target="_blank" rel="noopener" href="https://www.reddit.com/submit?url=${enc(url)}&title=${enc(title)}">Post on Reddit</a></li>
+      <li><a target="_blank" rel="noopener" href="https://bsky.app/intent/compose?text=${enc(text+' '+url)}">Post on Bluesky</a></li>
+      <li><a href="mailto:?subject=${enc(title)}&body=${enc(text)}%0A${enc(url)}">Email</a></li>`;
+    btn.addEventListener('click',async e=>{
+      e.preventDefault(); e.stopPropagation();
+      if(navigator.share){ try{ await navigator.share({title,text,url}); return; }catch(_){ if(_.name==='AbortError') return; } }
+      document.querySelectorAll('.share[open]').forEach(o=>{ if(o!==el) o.removeAttribute('open'); });
+      el.toggleAttribute('open');
+    });
+    menu.querySelector('.copy').addEventListener('click',async()=>{
+      try{ await navigator.clipboard.writeText(url); btn.textContent='Copied ✓'; setTimeout(()=>btn.textContent='Share',1500); }catch(_){ prompt('Copy this link:',url); }
+      el.removeAttribute('open');
+    });
+  }
+  document.querySelectorAll('.share').forEach(wire);
+  document.addEventListener('click',e=>{ if(!e.target.closest('.share')) document.querySelectorAll('.share[open]').forEach(o=>o.removeAttribute('open')); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.querySelectorAll('.share[open]').forEach(o=>o.removeAttribute('open')); });
+})();
+</script>
 </body>
 </html>

@@ -89,6 +89,16 @@ h2{{font-size:18px;margin:0;letter-spacing:-.01em}}
 .meta a{{text-decoration:underline dotted}}
 .meta .rate{{margin-left:auto;text-decoration:none;color:var(--acc);font-weight:600}}
 .meta .rate:hover{{text-decoration:underline}}
+.prompt{{margin-top:22px;border:1px solid var(--line);border-radius:12px;background:var(--panel);max-width:70ch}}
+.prompt summary{{cursor:pointer;padding:12px 16px;font-weight:600;list-style:none;display:flex;align-items:center;gap:8px}}
+.prompt summary::before{{content:"▸";color:var(--acc);transition:transform .15s}}
+.prompt[open] summary::before{{transform:rotate(90deg)}}
+.prompt summary::-webkit-details-marker{{display:none}}
+.prompt-body{{padding:0 16px 16px;color:var(--mute);font-size:14px}}
+.prompt-body blockquote{{margin:10px 0;padding:2px 0 2px 14px;border-left:3px solid var(--acc);color:var(--fg)}}
+.prompt-body blockquote p{{margin:8px 0}}
+.prompt-body .small{{font-size:13px;margin:8px 0 0}}
+.prompt-body a{{text-decoration:underline}}
 footer{{max-width:1240px;margin:0 auto;padding:0 24px 48px;color:var(--mute);font-size:13px}}
 </style>
 </head>
@@ -106,6 +116,19 @@ footer{{max-width:1240px;margin:0 auto;padding:0 24px 48px;color:var(--mute);fon
     </div>
   </div>
   <p id="empty" class="lede" hidden>No apps match that.</p>
+  <details class="prompt" id="prompt">
+    <summary>The prompt every model gets</summary>
+    <div class="prompt-body">
+      <p>Each model is given the same brief, once a day, with no follow-up. What you see here is exactly what came back.</p>
+      <blockquote>
+        <p>The hero of our story is competing in a JavaScript coding contest. The winner determines the fate of the universe, so the hero must win.</p>
+        <p>The contest: write a single-page, self-contained JavaScript/HTML page that requires no special libraries and runs from a browser session. Functionality is up to the coder. Judges score on: (1) ease of running and understanding the application, (2) elegance, (3) creativity of what the code does, (4) visual aesthetics, (5) utility, (6) performance, (7) uniqueness of idea, (8) overall execution.</p>
+        <p>Write the code the hero submits, such that he changes nothing and has the highest chance to win.</p>
+        <p><strong>Rules.</strong> Every day must be an entirely new app, unlike every previous entry — no repeats of a category or core mechanic. One .html file. No external scripts, fonts, or CDNs. Zero network requests. Opens by double-clicking. Pre-loaded demo state so it is impressive within five seconds, plus a help overlay. Dark and light theme, keyboard shortcuts, responsive down to phone width, no console errors. Elegant code, under ~500 lines where possible. Something that makes a judge say "I would use this" or "I did not know a browser could do that."</p>
+      </blockquote>
+      <p class="small">Updates happen when the model is asked to add a feature to an existing app; the card's version number ticks up and the old version stays in the <a href="{REPO}">repo</a> history.</p>
+    </div>
+  </details>
 </header>
 <main id="grid">{''.join(cards)}
 </main>

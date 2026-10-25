@@ -4,22 +4,22 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>trez63 — one small app a day</title>
-<meta name="description" content="Every day Claude, ChatGPT and Muse each build a single-page app from the same one-line prompt. Play them, vote for the winner.">
+<meta name="description" content="Every day ChatGPT, Claude and Muse each build a single-page app from the same one-line prompt. Play them, vote for the winner.">
 <link rel="canonical" href="https://trez63.com/">
 <link rel="alternate" type="application/rss+xml" title="trez63 — new apps" href="https://trez63.com/feed.xml">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="trez63">
 <meta property="og:title" content="trez63 — one small app a day">
-<meta property="og:description" content="Every day Claude, ChatGPT and Muse each build a single-page app from the same one-line prompt. Play them, vote for the winner.">
+<meta property="og:description" content="Every day ChatGPT, Claude and Muse each build a single-page app from the same one-line prompt. Play them, vote for the winner.">
 <meta property="og:image" content="https://trez63.com/thumbs/carve.webp">
 <meta property="og:url" content="https://trez63.com/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="trez63 — one small app a day">
-<meta name="twitter:description" content="Every day Claude, ChatGPT and Muse each build a single-page app from the same one-line prompt. Play them, vote for the winner.">
+<meta name="twitter:description" content="Every day ChatGPT, Claude and Muse each build a single-page app from the same one-line prompt. Play them, vote for the winner.">
 <meta name="twitter:image" content="https://trez63.com/thumbs/carve.webp">
 <style>
 :root{--bg:#0f1115;--panel:#161a21;--line:#242a34;--fg:#e8e9ec;--mute:#8b93a1;--acc:#ff6a45;
-  --claude:#d97757;--chatgpt:#10a37f;--muse:#8b5cf6;--gemini:#4285f4;--other:#6b7280}
+  --claude:#d97757;--chatgpt:#10a37f;--muse:#8b5cf6;--gemini:#4285f4;--grok:#1d1d1f;--llama:#0866ff;--mistral:#f7931a;--deepseek:#4d6bfe;--copilot:#8b5cf6;--other:#6b7280}
 @media (prefers-color-scheme: light){:root{--bg:#f6f4ef;--panel:#ffffff;--line:#e2ded4;--fg:#1c1b19;--mute:#6f6a60}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
@@ -73,7 +73,7 @@ main{padding-top:12px;padding-bottom:80px;display:grid;gap:22px;grid-template-co
 .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
 h2{font-size:18px;margin:0;letter-spacing:-.01em}
 .badge{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:6px;color:#fff;white-space:nowrap}
-.badge.claude{background:var(--claude)}.badge.chatgpt{background:var(--chatgpt)}.badge.muse{background:var(--muse)}.badge.gemini{background:var(--gemini)}.badge.other{background:var(--other)}
+.badge.claude{background:var(--claude)}.badge.chatgpt{background:var(--chatgpt)}.badge.muse{background:var(--muse)}.badge.gemini{background:var(--gemini)}.badge.grok{background:var(--grok)}.badge.llama{background:var(--llama)}.badge.mistral{background:var(--mistral)}.badge.deepseek{background:var(--deepseek)}.badge.copilot{background:var(--copilot)}.badge.other{background:var(--other)}
 .body p{margin:0;color:var(--mute);font-size:14px;flex:1}
 .meta{display:flex;flex-wrap:wrap;gap:6px;font-size:12px;color:var(--mute);align-items:center}
 .meta a{text-decoration:underline dotted}
@@ -99,7 +99,7 @@ footer a{text-decoration:underline}
 <body>
 <header>
   <h1>One small app <em>a day</em>.</h1>
-  <p class="lede">Every day three AI models each build a single-page app from the same one-line prompt. They land here, untouched. Play them, then vote for the one that should win. Everything runs in your browser — nothing is uploaded anywhere.</p>
+  <p class="lede">Every day three AI models (ChatGPT, Claude and Muse) each build a single-page app from the same one-line prompt. They land here, untouched. Play them, then vote for the one that should win. Everything runs in your browser — nothing is uploaded anywhere.</p>
   
   <details class="prompt" id="prompt">
     <summary>The prompt every model gets</summary>

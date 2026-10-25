@@ -31,7 +31,8 @@ ENGINE_SUFFIX = {
     "claude": "Claude",
     "codex": "ChatGPT", "chatgpt": "ChatGPT", "gpt": "ChatGPT", "openai": "ChatGPT",
     "muse": "Muse",
-    "gemini": "Gemini",
+    "gemini": "Gemini", "bard": "Gemini", "google": "Gemini",
+    "grok": "Grok", "llama": "Llama", "mistral": "Mistral", "deepseek": "DeepSeek", "copilot": "Copilot",
 }
 
 def slug_and_engine(filename: str):

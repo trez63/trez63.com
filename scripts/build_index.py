@@ -13,7 +13,9 @@ catalog = json.loads((ROOT / "catalog.json").read_text())
 apps = catalog["apps"]
 TODAY = date.today()
 
-ENGINE_CLASS = {"Claude": "claude", "ChatGPT": "chatgpt", "Muse": "muse", "Gemini": "gemini"}
+ENGINE_CLASS = {"Claude": "claude", "ChatGPT": "chatgpt", "Muse": "muse", "Gemini": "gemini", "Grok": "grok",
+                "Llama": "llama", "Mistral": "mistral", "DeepSeek": "deepseek", "Copilot": "copilot"}
+WORDS = {2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight"}
 CAT_LABEL = {"tool": "Tools", "art": "Generative art", "game": "Games", "audio": "Audio", "sim": "Simulations",
              "image": "Image", "finance": "Finance", "dev": "Dev tools", "focus": "Focus", "text": "Text", "edu": "Explainers"}
 SHARE_CSS = """
@@ -155,7 +157,7 @@ score_html = f"""
 
 CSS = """
 :root{--bg:#0f1115;--panel:#161a21;--line:#242a34;--fg:#e8e9ec;--mute:#8b93a1;--acc:#ff6a45;
-  --claude:#d97757;--chatgpt:#10a37f;--muse:#8b5cf6;--gemini:#4285f4;--other:#6b7280}
+  --claude:#d97757;--chatgpt:#10a37f;--muse:#8b5cf6;--gemini:#4285f4;--grok:#1d1d1f;--llama:#0866ff;--mistral:#f7931a;--deepseek:#4d6bfe;--copilot:#8b5cf6;--other:#6b7280}
 @media (prefers-color-scheme: light){:root{--bg:#f6f4ef;--panel:#ffffff;--line:#e2ded4;--fg:#1c1b19;--mute:#6f6a60}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
@@ -209,7 +211,7 @@ main{padding-top:12px;padding-bottom:80px;display:grid;gap:22px;grid-template-co
 .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
 h2{font-size:18px;margin:0;letter-spacing:-.01em}
 .badge{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:6px;color:#fff;white-space:nowrap}
-.badge.claude{background:var(--claude)}.badge.chatgpt{background:var(--chatgpt)}.badge.muse{background:var(--muse)}.badge.gemini{background:var(--gemini)}.badge.other{background:var(--other)}
+.badge.claude{background:var(--claude)}.badge.chatgpt{background:var(--chatgpt)}.badge.muse{background:var(--muse)}.badge.gemini{background:var(--gemini)}.badge.grok{background:var(--grok)}.badge.llama{background:var(--llama)}.badge.mistral{background:var(--mistral)}.badge.deepseek{background:var(--deepseek)}.badge.copilot{background:var(--copilot)}.badge.other{background:var(--other)}
 .body p{margin:0;color:var(--mute);font-size:14px;flex:1}
 .meta{display:flex;flex-wrap:wrap;gap:6px;font-size:12px;color:var(--mute);align-items:center}
 .meta a{text-decoration:underline dotted}
@@ -284,7 +286,10 @@ def og(title, desc, img, url):
 <meta name="twitter:image" content="{img}">"""
 
 newest_slug = items[0][0] if items else ""
-SITE_DESC = "Every day Claude, ChatGPT and Muse each build a single-page app from the same one-line prompt. Play them, vote for the winner."
+n_eng = len(all_engines)
+eng_list = (", ".join(all_engines[:-1]) + " and " + all_engines[-1]) if n_eng > 1 else (all_engines[0] if all_engines else "AI models")
+n_word = WORDS.get(n_eng, str(n_eng))
+SITE_DESC = f"Every day {eng_list} each build a single-page app from the same one-line prompt. Play them, vote for the winner."
 page = f"""<!doctype html>
 <html lang="en">
 <head>
@@ -300,7 +305,7 @@ page = f"""<!doctype html>
 <body>
 <header>
   <h1>One small app <em>a day</em>.</h1>
-  <p class="lede">Every day three AI models each build a single-page app from the same one-line prompt. They land here, untouched. Play them, then vote for the one that should win. Everything runs in your browser — nothing is uploaded anywhere.</p>
+  <p class="lede">Every day {n_word} AI models ({eng_list}) each build a single-page app from the same one-line prompt. They land here, untouched. Play them, then vote for the one that should win. Everything runs in your browser — nothing is uploaded anywhere.</p>
   {PROMPT}
 </header>
 {matchup_html}
@@ -345,7 +350,7 @@ for slug, e in apps.items():
 <link rel="canonical" href="{SITE}/p/{slug}.html">
 {og(e['title'] + ' — built by ' + e['engine'], desc, f"{SITE}/thumbs/{slug}.webp", f"{SITE}/p/{slug}.html")}
 <style>
-:root{{--bg:#0f1115;--panel:#161a21;--line:#242a34;--fg:#e8e9ec;--mute:#8b93a1;--acc:#ff6a45;--claude:#d97757;--chatgpt:#10a37f;--muse:#8b5cf6;--gemini:#4285f4;--other:#6b7280}}
+:root{{--bg:#0f1115;--panel:#161a21;--line:#242a34;--fg:#e8e9ec;--mute:#8b93a1;--acc:#ff6a45;--claude:#d97757;--chatgpt:#10a37f;--muse:#8b5cf6;--gemini:#4285f4;--grok:#1d1d1f;--llama:#0866ff;--mistral:#f7931a;--deepseek:#4d6bfe;--copilot:#8b5cf6;--other:#6b7280}}
 @media (prefers-color-scheme: light){{:root{{--bg:#f6f4ef;--panel:#ffffff;--line:#e2ded4;--fg:#1c1b19;--mute:#6f6a60}}}}
 *{{box-sizing:border-box}}html,body{{height:100%;margin:0}}
 body{{display:flex;flex-direction:column;background:var(--bg);color:var(--fg);font:14px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}}
@@ -354,7 +359,7 @@ body{{display:flex;flex-direction:column;background:var(--bg);color:var(--fg);fo
 .back{{color:var(--mute)}} .back:hover{{color:var(--fg)}}
 .title{{font-weight:600}}
 .badge{{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:5px;color:#fff}}
-.badge.claude{{background:var(--claude)}}.badge.chatgpt{{background:var(--chatgpt)}}.badge.muse{{background:var(--muse)}}.badge.gemini{{background:var(--gemini)}}.badge.other{{background:var(--other)}}
+.badge.claude{{background:var(--claude)}}.badge.chatgpt{{background:var(--chatgpt)}}.badge.muse{{background:var(--muse)}}.badge.gemini{{background:var(--gemini)}}.badge.grok{{background:var(--grok)}}.badge.llama{{background:var(--llama)}}.badge.mistral{{background:var(--mistral)}}.badge.deepseek{{background:var(--deepseek)}}.badge.copilot{{background:var(--copilot)}}.badge.other{{background:var(--other)}}
 .desc{{color:var(--mute);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:1;min-width:0}}
 .vote{{background:var(--acc);color:#fff!important;font-weight:600;padding:6px 12px;border-radius:999px;white-space:nowrap}}
 .raw{{color:var(--mute);white-space:nowrap}} .raw:hover{{color:var(--fg)}}

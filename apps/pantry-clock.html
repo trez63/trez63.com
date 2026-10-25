@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PANTRY CLOCK — What's expiring first?</title>
+<style>
+  /* ---------- 1. Palette & base ---------- */
+  :root{
+    --bg:#eef3f2; --card:#ffffff; --ink:#12211f; --muted:#5d6f6b; --line:#d7e0dd;
+    --teal:#0f766e; --teal-dk:#0b5a53; --amber:#d97706; --red:#c2410c; --green:#15803d;
+    --urgent-bg:#fef2f2; --warn-bg:#fffbeb; --ok-bg:#f0fdf4;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.45}
+  header{max-width:980px;margin:0 auto;padding:28px 18px 8px}
+  h1{margin:0;font-size:clamp(28px,5vw,44px);letter-spacing:-.02em}
+  h1 span{color:var(--teal)}
+  .tagline{margin:6px 0 0;color:var(--muted);font-size:17px}
+  main{max-width:980px;margin:0 auto;padding:14px 18px 40px}
+
+  /* ---------- 2. Stats ---------- */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  .stat b{display:block;font-size:30px;line-height:1}
+  .stat span{color:var(--muted);font-size:13px}
+  .stat.red b{color:var(--red)} .stat.amber b{color:var(--amber)} .stat.green b{color:var(--green)}
+  @media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}}
+
+  /* ---------- 3. Controls ---------- */
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .filters{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 13px;
+    font-size:14px;cursor:pointer}
+  .chip[aria-pressed="true"]{background:var(--teal);border-color:var(--teal);color:#fff}
+  .chip:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #99f6e4;outline-offset:2px}
+  input[type=search],input[type=text],input[type=number],input[type=date],select{
+    border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:15px;background:#fff;color:var(--ink)}
+  input[type=search]{flex:1;min-width:180px}
+  .btn{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;
+    font-size:14px;cursor:pointer}
+  .btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+  .btn.primary:hover{background:var(--teal-dk)}
+  .btn.danger{color:var(--red)}
+  .spacer{flex:1}
+  .msg{min-height:22px;margin:10px 0 0;font-size:14px;color:var(--muted)}
+  .msg.error{color:var(--red)} .msg.ok{color:var(--green)}
+
+  /* ---------- 4. Quick-add ---------- */
+  .quick{margin-top:14px}
+  .quick p{margin:0 0 8px;color:var(--muted);font-size:14px}
+  .quick .chip:hover{border-color:var(--teal)}
+
+  /* ---------- 5. Item cards ---------- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-top:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--green);
+    border-radius:14px;padding:15px 16px}
+  .card.urgent{border-left-color:var(--red);background:var(--urgent-bg)}
+  .card.warn{border-left-color:var(--amber);background:var(--warn-bg)}
+  .card.expired{border-left-color:var(--red);background:var(--urgent-bg)}
+  .card h3{margin:0;font-size:18px}
+  .meta{color:var(--muted);font-size:14px;margin:4px 0 10px}
+  .days{font-size:15px;font-weight:700}
+  .days.red{color:var(--red)} .days.amber{color:var(--amber)} .days.green{color:var(--green)}
+  .bar{height:8px;border-radius:99px;background:#e2e8e7;overflow:hidden;margin:8px 0 12px}
+  .bar i{display:block;height:100%;background:var(--green)}
+  .card.urgent .bar i,.card.expired .bar i{background:var(--red)}
+  .card.warn .bar i{background:var(--amber)}
+  .card .btn{padding:6px 11px;font-size:13px}
+  .empty{background:var(--card);border:1px dashed var(--line);border-radius:16px;
+    padding:36px 20px;text-align:center;color:var(--muted);margin-top:16px}
+  footer{max-width:980px;margin:0 auto;padding:0 18px 30px;color:var(--muted);font-size:13px}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <h1>PANTRY <span>CLOCK</span></h1>
+  <p class="tagline">What's expiring first? Tap an item to use it up — before it becomes waste.</p>
+</header>
+
+<main>
+  <!-- Section: headline counts -->
+  <section class="stats" aria-label="Summary">
+    <div class="stat red"><b id="nExpired">0</b><span>already expired</span></div>
+    <div class="stat amber"><b id="nUrgent">0</b><span>expire within 3 days</span></div>
+    <div class="stat"><b id="nTotal">0</b><span>items tracked</span></div>
+    <div class="stat green"><b id="nUsed">0</b><span>used up (this session)</span></div>
+  </section>
+
+  <!-- Section: filters, search, file actions -->
+  <section class="panel" aria-label="Controls">
+    <div class="row">
+      <div class="filters" role="group" aria-label="Filter by urgency">
+        <button class="chip" data-filter="all" aria-pressed="true">All</button>
+        <button class="chip" data-filter="urgent" aria-pressed="false">Urgent · ≤ 3 days</button>
+        <button class="chip" data-filter="week" aria-pressed="false">This week</button>
+        <button class="chip" data-filter="expired" aria-pressed="false">Expired</button>
+      </div>
+      <input type="search" id="search" placeholder="Search items…" aria-label="Search items">
+      <select id="sort" aria-label="Sort order">
+        <option value="expiry">Sort: expiring first</option>
+        <option value="name">Sort: name A–Z</option>
+        <option value="place">Sort: by location</option>
+      </select>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn" id="saveBtn">Save JSON</button>
+      <button class="btn" id="loadBtn">Load JSON…</button>
+      <button class="btn" id="sampleBtn">Restore samples</button>
+      <span class="spacer"></span>
+      <button class="btn danger" id="clearBtn">Clear all</button>
+      <input type="file" id="fileInput" accept=".json,application/json" hidden>
+    </div>
+    <p class="msg" id="msg" role="status"></p>
+
+    <!-- Section: quick-add (primary interaction: clicking chips) -->
+    <div class="quick">
+      <p><strong>Quick-add — tap an item</strong> and it lands on the right shelf with a sensible use-by date. No typing needed.</p>
+      <div class="filters" id="quickAdd"></div>
+    </div>
+
+    <!-- Section: custom add (secondary; quick-add is the main path) -->
+    <form class="row" id="addForm" style="margin-top:14px">
+      <input type="text" id="fName" placeholder="Item name, e.g. Butter" required aria-label="Item name">
+      <input type="number" id="fQty" value="1" min="1" max="99" aria-label="Quantity">
+      <select id="fPlace" aria-label="Location">
+        <option>Fridge</option><option>Freezer</option><option>Pantry</option>
+      </select>
+      <input type="date" id="fDate" required aria-label="Use-by date">
+      <button class="btn primary" type="submit">Add item</button>
+    </form>
+  </section>
+
+  <!-- Section: item list -->
+  <section id="grid" class="grid" aria-live="polite"></section>
+  <div id="empty" class="empty" hidden>
+    <p style="font-size:18px;color:var(--ink);margin:0 0 6px">Nothing matches this view.</p>
+    <p style="margin:0 0 14px">Try another filter, or tap a quick-add item above.</p>
+    <button class="btn primary" id="showAllBtn">Show everything</button>
+  </div>
+</main>
+
+<footer>Dates are counted in whole days from today. Everything stays in this file's browser storage — nothing leaves your device. Tip: tap “+7 days” on something you froze, instead of throwing it away.</footer>
+
+<script>
+"use strict";
+/* ================================================================
+   PANTRY CLOCK — a fridge / freezer / pantry expiry tracker.
+   Sections: (1) data & dates  (2) rendering  (3) actions
+   (4) quick-add catalogue  (5) save / load  (6) wiring
+   ================================================================ */
+
+/* ---------- 1. Data & dates ---------- */
+const KEY = "pantry-clock-v1";
+const DAY = 86400000;
+let items = [];          // {id, name, qty, place, expiry:"YYYY-MM-DD"}
+let filter = "all", sortMode = "expiry", query = "";
+let usedCount = 0, nextId = 1;
+
+function todayMidnight(){ const d = new Date(); d.setHours(0,0,0,0); return d; }
+function fmtDate(d){ return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0")
+  + "-" + String(d.getDate()).padStart(2,"0"); }
+function datePlus(days){ return fmtDate(new Date(todayMidnight().getTime() + days*DAY)); }
+function daysLeft(iso){
+  const [y,m,d] = iso.split("-").map(Number);
+  const target = new Date(y, m-1, d); // local midnight, no UTC drift
+  return Math.round((target - todayMidnight()) / DAY);
+}
+function prettyDate(iso){
+  const [y,m,d] = iso.split("-").map(Number);
+  return new Date(y, m-1, d).toLocaleDateString(undefined,
+    {weekday:"short", month:"short", day:"numeric"});
+}
+function sampleItems(){
+  // Offsets from TODAY, so the demo is urgent on any date it is opened.
+  const raw = [
+    ["Milk", 1, "Fridge", 1], ["Spinach", 1, "Fridge", 2], ["Chicken thighs", 2, "Fridge", -1],
+    ["Yogurt", 4, "Fridge", 3], ["Eggs", 6, "Fridge", 9], ["Bread", 1, "Pantry", 2],
+    ["Bananas", 5, "Pantry", 4], ["Pasta sauce", 1, "Pantry", 21], ["Frozen peas", 2, "Freezer", 40],
+    ["Ice cream", 1, "Freezer", 12], ["Cheddar", 1, "Fridge", 6], ["Hummus", 1, "Fridge", 0]
+  ];
+  return raw.map(([name, qty, place, offset]) =>
+    ({id: nextId++, name, qty, place, expiry: datePlus(offset)}));
+}
+function persist(){ try { localStorage.setItem(KEY, JSON.stringify(items)); } catch(e){} }
+function restore(){
+  try {
+    const raw = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (Array.isArray(raw) && raw.length) { items = raw; nextId = Math.max(...raw.map(i=>i.id||0)) + 1; return; }
+  } catch(e){}
+  items = sampleItems(); persist();
+}
+
+/* ---------- 2. Rendering ---------- */
+const grid = document.getElementById("grid");
+const emptyBox = document.getElementById("empty");
+const msgEl = document.getElementById("msg");
+
+function showMsg(text, kind){ msgEl.textContent = text; msgEl.className = "msg " + (kind || ""); }
+function urgency(days){
+  if (days < 0) return {cls:"expired", label:"Expired " + (-days) + " day" + (-days===1?"":"s") + " ago", bar:100};
+  if (days === 0) return {cls:"urgent", label:"Use today", bar:95};
+  if (days <= 3) return {cls:"urgent", label: days + " day" + (days===1?"":"s") + " left", bar: 90 - days*15};
+  if (days <= 7) return {cls:"warn", label: days + " days left", bar: 55};
+  return {cls:"", label: days + " days left", bar: Math.min(40, days)};
+}
+function visibleItems(){
+  let list = items.filter(it => {
+    const d = daysLeft(it.expiry);
+    if (filter === "urgent" && !(d >= 0 && d <= 3)) return false;
+    if (filter === "week" && !(d >= 0 && d <= 7)) return false;
+    if (filter === "expired" && d >= 0) return false;
+    if (query && !it.name.toLowerCase().includes(query)) return false;
+    return true;
+  });
+  if (sortMode === "expiry") list.sort((a,b) => daysLeft(a.expiry) - daysLeft(b.expiry));
+  if (sortMode === "name") list.sort((a,b) => a.name.localeCompare(b.name));
+  if (sortMode === "place") list.sort((a,b) => a.place.localeCompare(b.place) || daysLeft(a.expiry) - daysLeft(b.expiry));
+  return list;
+}
+function render(){
+  // Stats are always over ALL items, not the filtered view.
+  const ds = items.map(i => daysLeft(i.expiry));
+  document.getElementById("nExpired").textContent = ds.filter(d => d < 0).length;
+  document.getElementById("nUrgent").textContent = ds.filter(d => d >= 0 && d <= 3).length;
+  document.getElementById("nTotal").textContent = items.length;
+  document.getElementById("nUsed").textContent = usedCount;
+
+  const list = visibleItems();
+  grid.innerHTML = "";
+  emptyBox.hidden = list.length > 0;
+  for (const it of list){
+    const d = daysLeft(it.expiry), u = urgency(d);
+    const card = document.createElement("article");
+    card.className = "card " + u.cls;
+    card.innerHTML =
+      "<h3>" + escapeHtml(it.name) + "</h3>" +
+      "<div class='meta'>" + it.place + " · Qty " + it.qty + " · Use by " + prettyDate(it.expiry) + "</div>" +
+      "<div class='days " + (u.cls === "expired" || u.cls === "urgent" ? "red" : u.cls === "warn" ? "amber" : "green") + "'>" + u.label + "</div>" +
+      "<div class='bar' aria-hidden='true'><i style='width:" + u.bar + "%'></i></div>" +
+      "<div class='row'>" +
+        "<button class='btn primary' data-act='use' title='Use one'>Use one</button>" +
+        "<button class='btn' data-act='all' title='Use all'>Use all</button>" +
+        "<button class='btn' data-act='plus7' title='Extend by a week'>+7 days</button>" +
+        "<button class='btn danger' data-act='del' title='Remove'>Remove</button>" +
+      "</div>";
+    card.querySelectorAll("button").forEach(btn => btn.addEventListener("click", () => {
+      act(btn.dataset.act, it.id);
+    }));
+    grid.appendChild(card);
+  }
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c =>
+  ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+/* ---------- 3. Actions ---------- */
+function act(kind, id){
+  const it = items.find(i => i.id === id);
+  if (!it) return;
+  if (kind === "use"){ it.qty -= 1; usedCount += 1; if (it.qty <= 0) items = items.filter(i => i.id !== id); }
+  if (kind === "all"){ usedCount += it.qty; items = items.filter(i => i.id !== id); }
+  if (kind === "plus7"){ const [y,m,d] = it.expiry.split("-").map(Number);
+    it.expiry = fmtDate(new Date(new Date(y, m-1, d).getTime() + 7*DAY)); }
+  if (kind === "del"){ items = items.filter(i => i.id !== id); }
+  persist(); render();
+}
+function addItem(name, qty, place, expiry){
+  items.push({id: nextId++, name, qty, place, expiry});
+  persist(); render();
+}
+
+/* ---------- 4. Quick-add catalogue ---------- */
+// [name, default shelf life in days, place] — tapping adds instantly.
+const QUICK = [
+  ["Milk", 4, "Fridge"], ["Eggs", 14, "Fridge"], ["Bread", 3, "Pantry"],
+  ["Chicken", 2, "Fridge"], ["Spinach", 3, "Fridge"], ["Yogurt", 7, "Fridge"],
+  ["Bananas", 4, "Pantry"], ["Cheese", 10, "Fridge"], ["Leftovers", 3, "Fridge"],
+  ["Frozen veg", 60, "Freezer"]
+];
+const quickBox = document.getElementById("quickAdd");
+for (const [name, days, place] of QUICK){
+  const b = document.createElement("button");
+  b.className = "chip"; b.type = "button";
+  b.textContent = name + " · " + place;
+  b.addEventListener("click", () => {
+    const existing = items.find(i => i.name === name && i.place === place);
+    if (existing){ existing.qty += 1; persist(); render(); }
+    else addItem(name, 1, place, datePlus(days));
+    showMsg(name + " added — use by " + prettyDate(datePlus(days)) + ".", "ok");
+  });
+  quickBox.appendChild(b);
+}
+
+/* ---------- 5. Save / Load (validated: bad files never wipe data) ---------- */
+function download(filename, text){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], {type:"application/json"}));
+  a.download = filename; a.click(); URL.revokeObjectURL(a.href);
+}
+function validPantry(data){
+  if (!Array.isArray(data)) return false;
+  return data.every(it => it && typeof it.name === "string" && it.name.trim() &&
+    Number.isInteger(it.qty) && it.qty > 0 &&
+    ["Fridge","Freezer","Pantry"].includes(it.place) &&
+    /^\d{4}-\d{2}-\d{2}$/.test(it.expiry || "") && !isNaN(new Date(it.expiry)));
+}
+document.getElementById("saveBtn").addEventListener("click", () => {
+  download("pantry-clock.json", JSON.stringify(items, null, 2));
+  showMsg("Saved " + items.length + " items as pantry-clock.json.", "ok");
+});
+document.getElementById("loadBtn").addEventListener("click", () =>
+  document.getElementById("fileInput").click());
+document.getElementById("fileInput").addEventListener("change", async (e) => {
+  const file = e.target.files[0]; e.target.value = "";
+  if (!file) return;
+  try {
+    const data = JSON.parse(await file.text());
+    if (!validPantry(data)) throw new Error("bad format");
+    items = data.map((it, k) => ({id: k+1, name: it.name.trim(), qty: it.qty,
+      place: it.place, expiry: it.expiry}));
+    nextId = items.length + 1; persist(); render();
+    showMsg("Loaded " + items.length + " items from " + file.name + ".", "ok");
+  } catch(err){ showMsg("That file isn't a valid Pantry Clock export — your current items are untouched.", "error"); }
+});
+
+/* ---------- 6. Wiring ---------- */
+document.querySelectorAll("[data-filter]").forEach(btn => btn.addEventListener("click", () => {
+  filter = btn.dataset.filter;
+  document.querySelectorAll("[data-filter]").forEach(b =>
+    b.setAttribute("aria-pressed", String(b === btn)));
+  render();
+}));
+document.getElementById("search").addEventListener("input", e => { query = e.target.value.trim().toLowerCase(); render(); });
+document.getElementById("sort").addEventListener("change", e => { sortMode = e.target.value; render(); });
+document.getElementById("showAllBtn").addEventListener("click", () => {
+  filter = "all"; query = ""; document.getElementById("search").value = "";
+  document.querySelectorAll("[data-filter]").forEach(b =>
+    b.setAttribute("aria-pressed", String(b.dataset.filter === "all")));
+  render();
+});
+document.getElementById("sampleBtn").addEventListener("click", () => {
+  items = sampleItems(); persist(); render(); showMsg("Sample pantry restored.", "ok");
+});
+document.getElementById("clearBtn").addEventListener("click", () => {
+  if (items.length && !confirm("Remove all " + items.length + " items?")) return;
+  items = []; persist(); render(); showMsg("All cleared. Tap a quick-add item to start again.");
+});
+document.getElementById("addForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const name = document.getElementById("fName").value.trim();
+  const qty = Math.max(1, parseInt(document.getElementById("fQty").value, 10) || 1);
+  const place = document.getElementById("fPlace").value;
+  const expiry = document.getElementById("fDate").value;
+  if (!name || !expiry) return;
+  addItem(name, qty, place, expiry);
+  showMsg(name + " added.", "ok");
+  e.target.reset(); document.getElementById("fQty").value = 1;
+});
+document.getElementById("fDate").value = datePlus(3);
+restore(); render();
+</script>
+</body>
+</html>

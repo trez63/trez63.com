@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ripple</title>
+<style>
+:root{--bg:#0d1017;--panel:#151a24;--line:#263041;--fg:#e6ebf2;--mute:#8793a6;--accent:#5ac8ff;--on-accent:#061018;
+  --font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+[data-theme=light]{--bg:#eef1f6;--panel:#ffffff;--line:#d6dce6;--fg:#1a2130;--mute:#5d6b80;--accent:#0a74d8;--on-accent:#ffffff}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--fg);font:14px/1.4 var(--font);display:flex;flex-direction:column;min-height:100vh}
+header,footer{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding:10px 16px;background:var(--panel)}
+header{border-bottom:1px solid var(--line)}
+footer{border-top:1px solid var(--line);color:var(--mute);font:12px var(--mono);justify-content:space-between}
+h1{font-size:19px;margin:0 4px 0 0;letter-spacing:.4px}
+h1 small{color:var(--mute);font-weight:400;font-size:12px;margin-left:8px}
+.group{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+button,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:5px 10px;cursor:pointer}
+button:hover,select:hover{border-color:var(--accent)}
+button.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+button u{text-decoration:none;opacity:.55;font-size:11px;margin-left:4px}
+label.slider{display:flex;align-items:center;gap:6px;color:var(--mute);font-size:12px}
+input[type=range]{width:110px;accent-color:var(--accent)}
+main{flex:1;display:flex;align-items:center;justify-content:center;padding:14px}
+.stage{position:relative;width:100%;max-width:1200px}
+#tank{width:100%;aspect-ratio:8/5;border-radius:10px;box-shadow:0 12px 40px rgba(0,0,0,.35);touch-action:none;cursor:crosshair;display:block}
+#probe{position:absolute;left:10px;top:10px;background:color-mix(in srgb,var(--panel) 82%,transparent);border:1px solid var(--line);border-radius:8px;padding:6px 8px 4px;pointer-events:none;backdrop-filter:blur(3px)}
+#probe canvas{display:block;width:220px;height:56px}
+#probeText{font:11px var(--mono);color:var(--mute);margin-top:3px;white-space:nowrap}
+@media (max-width:640px){#probe canvas{width:150px;height:40px}#probe{left:6px;top:6px}}
+#help{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+#help.open{display:flex}
+#help .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;max-width:580px;width:100%;padding:22px 26px;max-height:90vh;overflow:auto}
+#help h2{margin:0 0 6px;font-size:20px}
+#help p{margin:8px 0;color:var(--mute)}
+#help table{width:100%;border-collapse:collapse;margin:10px 0}
+#help td{padding:4px 6px;border-top:1px solid var(--line)}
+#help td:first-child{width:45%;font-family:var(--mono);font-size:12px;color:var(--accent)}
+kbd{font:12px var(--mono);background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+@media (max-width:640px){header{padding:8px 10px;gap:6px 10px}h1 small{display:none}input[type=range]{width:80px}main{padding:8px}button{padding:5px 8px}button u{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Ripple<small>a wave tank you can draw in</small></h1>
+  <div class="group" id="tools">
+    <button data-tool="wall" class="on">Wall<u>1</u></button>
+    <button data-tool="glass">Glass<u>2</u></button>
+    <button data-tool="source">Source<u>3</u></button>
+    <button data-tool="erase">Erase<u>4</u></button>
+    <button data-tool="poke">Poke<u>5</u></button>
+  </div>
+  <select id="preset" title="Preset scene"></select>
+  <label class="slider">Frequency <input id="freq" type="range" min="0.02" max="0.09" step="0.0001" value="0.045"></label>
+  <label class="slider">Damping <input id="damp" type="range" min="0" max="0.012" step="0.0005" value="0"></label>
+  <div class="group">
+    <button id="pause">Pause<u>␣</u></button>
+    <button id="clear">Clear waves<u>C</u></button>
+    <button id="inten">Intensity<u>I</u></button>
+    <button id="theme">Theme<u>T</u></button>
+    <button id="save">PNG<u>S</u></button>
+    <button id="helpBtn">?<u>⌘/</u></button>
+  </div>
+</header>
+<main><div class="stage">
+  <canvas id="tank" aria-label="Wave tank simulation"></canvas>
+  <div id="probe" hidden><canvas id="graph" width="220" height="56"></canvas><div id="probeText"></div></div>
+</div></main>
+<footer><span id="status"></span><span id="hint">Draw with the mouse or a finger. Right-drag erases.</span></footer>
+
+<div id="help" role="dialog" aria-modal="true">
+  <div class="card">
+    <h2>Ripple</h2>
+    <p>Every pixel is a patch of water surface. Each step, it is pulled toward the average height of its four neighbours and keeps its momentum — that is the whole wave equation, ten lines of code. <b>Walls</b> pin the height to zero, so waves reflect. <b>Glass</b> halves the wave speed (refractive index 2), which is all a lens or a prism really is. The edges quietly absorb energy so the tank behaves like open water.</p>
+    <p>Switch to <b>Intensity</b> to see time-averaged energy — the interference fringes behind a double slit, the focal point of a lens.</p>
+    <p><b>Ring trap</b> is a resonator experiment: a laser-like line source feeds a loop through a tangent inlet. The meter plots the energy stored in the loop as it climbs and saturates, relative to the incoming wave. The door that lets waves in lets them out, so it saturates within a few laps. Then draw a <b>Wall</b> across the inlet mouth to shut the door: the energy climbs without limit; erase the source and it stays trapped forever. Sweep frequency with <kbd>[</kbd> <kbd>]</kbd> to feel the resonances, and raise Damping to play the part of imperfect mirrors. <b>Spiral trap</b> feeds the loop tangentially; <b>Glass ring</b> drops the walls entirely and couples a glass ring to a glass bus through the evanescent field, the way real microring resonators work — step the frequency by 0.0001 there to walk across its comb of resonances.</p>
+    <table>
+      <tr><td>1 · 2 · 3 · 4 · 5</td><td>Wall, Glass, Source, Erase, Poke</td></tr>
+      <tr><td>Drag / right-drag</td><td>Paint with tool / erase</td></tr>
+      <tr><td>Space</td><td>Pause or resume</td></tr>
+      <tr><td>C</td><td>Clear waves, keep the scene</td></tr>
+      <tr><td>R</td><td>Reset the current preset</td></tr>
+      <tr><td>I</td><td>Toggle intensity view</td></tr>
+      <tr><td>[ &nbsp;]</td><td>Lower / raise source frequency</td></tr>
+      <tr><td>T</td><td>Dark / light theme</td></tr>
+      <tr><td>S</td><td>Save a PNG snapshot</td></tr>
+      <tr><td>Ctrl/⌘ + / &nbsp;or&nbsp; ?</td><td>This help &nbsp;· <kbd>Esc</kbd> closes</td></tr>
+    </table>
+    <p>Self-contained: one file, no libraries, no network. Press <kbd>Esc</kbd> to return to the tank.</p>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ---------------------------------------------------------------- physics core
+// @core-start  (pure; no DOM. Tested separately with node.)
+function makeTank(W, H, opts = {}) {
+  const N = W * H;
+  const C2 = opts.c2 ?? 0.45;            // (c·dt/dx)²; must stay ≤ 0.5 for a stable 2-D grid
+  const SP = opts.sponge ?? 36;          // width of the absorbing border, in cells
+  let u = new Float32Array(N), up = new Float32Array(N), un = new Float32Array(N);
+  const wall = new Uint8Array(N);        // 1 = fixed at zero height
+  const speed = new Float32Array(N).fill(1); // 1/n² per cell; 0.25 is glass with n = 2
+  const sponge = new Float32Array(N);    // per-cell damping, strongest at the edges
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const d = Math.min(x, y, W - 1 - x, H - 1 - y), s = d < SP ? (SP - d) / SP : 0;
+    sponge[y * W + x] = 1 - 0.03 * s * s;   // gentle ramp: a hard edge would reflect
+  }
+  const sponge0 = sponge.slice();          // pristine copy, so scenes may add absorbers and reset() undoes them
+  const T = {
+    W, H, N, C2, SP, wall, speed, sponge, sources: [], t: 0, phase: 0, freq: 0.045, damp: 0,
+    get u() { return u; },
+    step() {
+      const gd = 1 - T.damp;
+      for (let y = 1; y < H - 1; y++) {
+        let i = y * W + 1;
+        for (let x = 1; x < W - 1; x++, i++) {
+          if (wall[i]) { un[i] = 0; continue; }
+          const lap = u[i - 1] + u[i + 1] + u[i - W] + u[i + W] - 4 * u[i];
+          un[i] = (2 * u[i] - up[i] + C2 * speed[i] * lap) * sponge[i] * gd;
+        }
+      }
+      T.t++;
+      T.phase += 2 * Math.PI * T.freq;
+      const v = Math.sin(T.phase) * Math.min(1, T.t / 40); // soft start avoids a click
+      // Sources are "soft" (added, not imposed) so passing waves travel through them instead of
+      // bouncing off. An additive drive radiates an amplitude ∝ 1/frequency, so the strength scales
+      // with frequency to keep a line source emitting a unit plane wave.  {x, y, h}: h = 0 is a point.
+      for (const s of T.sources) {
+        const k = (s.h ? 0.3 : 1.5) * (T.freq / 0.045) * v;
+        for (let y = s.y - s.h; y <= s.y + s.h; y++) { const i = y * W + s.x; if (!wall[i]) un[i] += k; }
+      }
+      const tmp = up; up = u; u = un; un = tmp;
+    },
+    clear() { u.fill(0); up.fill(0); un.fill(0); T.t = 0; T.phase = 0; },
+    reset() { wall.fill(0); speed.fill(1); sponge.set(sponge0); T.sources.length = 0; T.clear(); },
+    disc(cx, cy, r, fn) {
+      for (let y = cy - r; y <= cy + r; y++) for (let x = cx - r; x <= cx + r; x++) {
+        if (x < 1 || y < 1 || x >= W - 1 || y >= H - 1) continue;
+        const dx = x - cx, dy = y - cy;
+        if (dx * dx + dy * dy <= r * r) fn(y * W + x, dx, dy, x, y);
+      }
+    },
+    fill(test, fn) { for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) if (test(x, y)) fn(y * W + x); },
+    poke(x, y, amp = 1.5) {
+      T.disc(x, y, 12, (i, dx, dy) => { const g = amp * Math.exp(-(dx * dx + dy * dy) / 18); u[i] += g; up[i] += g; });
+    },
+    energy() { let e = 0; for (let i = 0; i < N; i++) e += u[i] * u[i]; return e; },
+  };
+  return T;
+}
+// @core-end
+
+// ---------------------------------------------------------------- scenes
+const W = 480, H = 300, tank = makeTank(W, H);
+const { wall, speed } = tank;
+const lineSource = (x = tank.SP + 2) => tank.sources.push({ x, y: H >> 1, h: (H >> 1) - tank.SP - 2 });
+// Carve channels: cells where open(x, y) holds stay water; a wall of thickness t is wrapped around them.
+function carve(open, t = 3) {
+  const mask = new Uint8Array(W * H);
+  tank.fill(open, i => mask[i] = 1);
+  for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
+    const i = y * W + x; if (mask[i]) continue;
+    scan: for (let dy = -t; dy <= t; dy++) for (let dx = -t; dx <= t; dx++) {
+      const xx = x + dx, yy = y + dy;
+      if (dx * dx + dy * dy <= t * t && xx > 0 && yy > 0 && xx < W - 1 && yy < H - 1 && mask[yy * W + xx]) { wall[i] = 1; break scan; }
+    }
+  }
+}
+// A graded absorber across the columns x1..x2 (strongest at x1): lets a channel end in "open water".
+function damper(x1, x2) {
+  for (let y = 0; y < H; y++) for (let x = x1; x <= x2; x++) { const s = (x2 - x) / (x2 - x1); tank.sponge[y * W + x] *= 1 - 0.05 * s * s; }
+}
+// Probes: named regions whose time-averaged energy the meter reports (set by a preset, cleared on load).
+let probes = null;
+const probeCells = test => { const c = []; tank.fill(test, i => c.push(i)); return Int32Array.from(c); };
+const PRESETS = {
+  slit: { name: 'Double slit', build() {
+    lineSource();
+    const sx = Math.round(W * 0.42);
+    for (let y = 1; y < H - 1; y++)
+      if (Math.abs(y - (H / 2 - 45)) > 5 && Math.abs(y - (H / 2 + 45)) > 5) wall[y * W + sx] = wall[y * W + sx + 1] = 1;
+  } },
+  lens: { name: 'Lens', build() {
+    lineSource();
+    const cx = W * 0.45, cy = H / 2, R = 150, o = 120; // two circles of radius R, centres o either side
+    tank.fill((x, y) => Math.hypot(x - cx + o, y - cy) < R && Math.hypot(x - cx - o, y - cy) < R, i => speed[i] = 0.25);
+  } },
+  mirror: { name: 'Parabolic mirror', build() {
+    const x0 = W * 0.7, a = 1 / 180, cy = H / 2;             // x = x0 + a·(y−cy)², focus at x0 + 1/(4a)
+    let prev = Math.round(x0 + a * 130 * 130);
+    for (let y = cy - 130; y <= cy + 130; y++) {
+      const xc = Math.round(x0 + a * (y - cy) ** 2);
+      for (let x = Math.min(prev, xc); x <= Math.max(prev, xc); x++) wall[y * W + x] = 1;
+      prev = xc;
+    }
+    tank.sources.push({ x: Math.round(x0 + 1 / (4 * a)), y: cy, h: 0 });
+  } },
+  prism: { name: 'Refraction', build() {
+    lineSource();
+    tank.fill((x, y) => x > W * 0.52 + (y - H / 2) * 0.6, i => speed[i] = 0.25);
+  } },
+  two: { name: 'Two sources', build() {
+    tank.sources.push({ x: Math.round(W * 0.3), y: H / 2 - 40, h: 0 }, { x: Math.round(W * 0.3), y: H / 2 + 40, h: 0 });
+  } },
+  guide: { name: 'Waveguide', build() {
+    const path = t => H / 2 + 70 * Math.sin((t - 60) / 90);  // a gently snaking channel
+    tank.sources.push({ x: tank.SP + 6, y: Math.round(path(tank.SP + 6)), h: 0 });
+    tank.fill((x, y) => x > tank.SP && Math.abs(y - path(x)) > 18 && Math.abs(y - path(x)) < 22, i => wall[i] = 1);
+  } },
+  ring: { name: 'Ring trap', speed: 8, warm: 0, freq: 0.042, build() {
+    // A loop waveguide fed through a tangent inlet: waves enter, circulate, and can only leave the way
+    // they came. Stored energy climbs until the leak back out the inlet balances what comes in, and
+    // how high it climbs depends on whether the loop is a whole number of wavelengths around.
+    const cx = W * 0.62, cy = H * 0.55, Ro = 96, Ri = 76;
+    const inRing = (x, y) => { const r = Math.hypot(x - cx, y - cy); return r > Ri && r < Ro; };
+    const inInlet = (x, y) => x < cx && y > cy - Ro && y < cy - Ri;
+    carve((x, y) => inRing(x, y) || inInlet(x, y));
+    damper(1, 70);                                  // the inlet's far end swallows whatever comes back
+    tank.sources.push({ x: 80, y: Math.round(cy - (Ro + Ri) / 2), h: (Ro - Ri) / 2 - 2 });
+    probes = { loop: probeCells((x, y) => inRing(x, y) && !inInlet(x, y)), history: [], circ: Math.PI * (Ri + Ro) };
+  } },
+  spiral: { name: 'Spiral trap', speed: 8, warm: 0, freq: 0.04, build() {
+    // Same experiment, but the inlet winds two and a half turns around the loop and merges into it
+    // tangentially, so the wave arrives already travelling the loop's way instead of hitting a corner.
+    const cx = 250, cy = 150, w = 16, p = w + 3, Ri = 48, Ro = Ri + w, Rm = (Ri + Ro) / 2, turns = 2.5;
+    const R0 = Rm + p * turns, phi0 = -Math.PI / 2;                // spiral starts at the top, winds inward
+    const inRing = (x, y) => { const r = Math.hypot(x - cx, y - cy); return r > Ri && r < Ro; };
+    const inSpiral = (x, y) => {
+      const r = Math.hypot(x - cx, y - cy), phi = Math.atan2(y - cy, x - cx);
+      for (let n = 0; n <= turns + 1; n++) {
+        const t = (phi + 2 * Math.PI * n - phi0) / (2 * Math.PI);        // turns travelled from the start
+        if (t >= 0 && t <= turns && Math.abs(r - (R0 - p * t)) < w / 2) return true;
+      }
+      return false;
+    };
+    const inInlet = (x, y) => x < cx && Math.abs(y - (cy - R0)) < w / 2;
+    carve((x, y) => inRing(x, y) || inSpiral(x, y) || inInlet(x, y));
+    damper(1, 70);
+    tank.sources.push({ x: 80, y: Math.round(cy - R0), h: w / 2 - 2 });
+    probes = { loop: probeCells(inRing), history: [], circ: Math.PI * (Ri + Ro) };
+  } },
+  glass: { name: 'Glass ring', speed: 8, warm: 0, freq: 0.0259, fine: true, build() {
+    // The real thing: a glass ring beside a glass bus guide, no walls at all. Light is held by total
+    // internal reflection and hops the gap through its evanescent tail, so it circulates one way only
+    // and whatever leaks out goes forward, down the bus, never back toward the laser.
+    const cx = 300, cy = 170, wc = 6, R = 70, gap = 5, yb = cy - R - wc - gap;
+    const inBus = (x, y) => Math.abs(y - yb) < wc / 2;
+    const inRing = (x, y) => Math.abs(Math.hypot(x - cx, y - cy) - R) < wc / 2;
+    tank.fill((x, y) => inBus(x, y) || inRing(x, y), i => speed[i] = 0.25);
+    tank.sources.push({ x: 50, y: Math.round(yb), h: wc / 2 });
+    probes = { loop: probeCells(inRing), ref: probeCells((x, y) => inBus(x, y) && x > 90 && x < cx - R - 30),
+               history: [], circ: 2 * Math.PI * R * 1.7 };     // × guided index ≈ 1.7, so the count is in guided wavelengths
+  } },
+  empty: { name: 'Empty tank', build() { tank.sources.push({ x: W >> 1, y: H >> 1, h: 0 }); } },
+};
+
+// ---------------------------------------------------------------- UI state
+const $ = s => document.querySelector(s);
+const canvas = $('#tank'), ctx = canvas.getContext('2d');
+canvas.width = W; canvas.height = H;
+const img = ctx.createImageData(W, H), px = img.data;
+const inten = new Float32Array(W * H);
+const ui = { tool: 'wall', paused: false, intensity: false, preset: 'slit', stepsPerFrame: 3, theme: 'dark', fps: 60 };
+
+const PAL = {
+  dark:  { bg: [13, 16, 23],    pos: [90, 200, 255], neg: [255, 122, 89], wall: [205, 212, 224], glass: [125, 110, 235], hot: [255, 236, 150] },
+  light: { bg: [238, 241, 246], pos: [10, 116, 216], neg: [222, 86, 30],  wall: [30, 36, 48],    glass: [110, 90, 220],  hot: [250, 60, 110] },
+};
+
+function loadPreset(key) {
+  const p = PRESETS[key], warm = p.warm ?? 600;
+  ui.preset = key; $('#preset').value = key; ui.stepsPerFrame = p.speed || 3;
+  tank.reset(); inten.fill(0); probes = null;
+  p.build(); if (p.freq) setFreq(p.freq);
+  $('#probe').hidden = !probes;
+  for (let k = 0; k < warm; k++) { tank.step(); if (k % 3 === 0) accumulate(); } // arrive at a scene already in motion
+}
+function accumulate() { const u = tank.u; for (let i = 0; i < inten.length; i++) inten[i] = inten[i] * 0.97 + u[i] * u[i] * 0.03; }
+
+// ---------------------------------------------------------------- rendering
+function paint() {
+  const p = PAL[ui.theme], u = tank.u, gain = 1.6, show = ui.intensity;
+  const [bgR, bgG, bgB] = p.bg, [glR, glG, glB] = p.glass, [wR, wG, wB] = p.wall;
+  const [pR, pG, pB] = p.pos, [nR, nG, nB] = p.neg, [hR, hG, hB] = p.hot;
+  for (let i = 0, j = 0; i < u.length; i++, j += 4) {
+    let r = bgR, g = bgG, b = bgB;
+    if (wall[i]) { r = wR; g = wG; b = wB; }
+    else {
+      if (speed[i] < 1) { r += (glR - r) * 0.3; g += (glG - g) * 0.3; b += (glB - b) * 0.3; } // glass tint
+      if (show) {
+        const k = Math.min(1, Math.sqrt(inten[i]) * 1.1);  // a unit plane wave sits just below the hot stop
+        if (k < 0.6) { const t = k / 0.6; r += (pR - r) * t; g += (pG - g) * t; b += (pB - b) * t; }
+        else { const t = (k - 0.6) / 0.4; r = pR + (hR - pR) * t; g = pG + (hG - pG) * t; b = pB + (hB - pB) * t; }
+      } else {
+        const a = u[i], k = 1 - Math.exp(-gain * Math.abs(a));   // soft clip: no flat bands at full amplitude
+        if (a > 0) { r += (pR - r) * k; g += (pG - g) * k; b += (pB - b) * k; }
+        else { r += (nR - r) * k; g += (nG - g) * k; b += (nB - b) * k; }
+      }
+    }
+    px[j] = r; px[j + 1] = g; px[j + 2] = b; px[j + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+  ctx.strokeStyle = ui.theme === 'dark' ? 'rgba(255,255,255,.75)' : 'rgba(0,0,0,.6)'; ctx.lineWidth = 1.5;
+  for (const s of tank.sources) {
+    ctx.beginPath();
+    if (s.h) { ctx.moveTo(s.x + .5, s.y - s.h); ctx.lineTo(s.x + .5, s.y + s.h); } else ctx.arc(s.x, s.y, 4, 0, 7);
+    ctx.stroke();
+  }
+}
+
+// ---------------------------------------------------------------- energy meter
+const gctx = $('#graph').getContext('2d');
+const meanEnergy = cells => { let e = 0; for (let i = 0; i < cells.length; i++) e += inten[cells[i]]; return e / cells.length; };
+function meter() {
+  const loop = meanEnergy(probes.loop), h = probes.history;
+  h.push(loop); if (h.length > 220) h.shift();
+  const g = gctx, GW = g.canvas.width, GH = g.canvas.height, peak = Math.max(1e-6, ...h);
+  g.clearRect(0, 0, GW, GH);
+  g.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent'); g.lineWidth = 1.5;
+  g.beginPath();
+  h.forEach((v, i) => { const x = i, y = GH - 2 - (GH - 4) * v / peak; i ? g.lineTo(x, y) : g.moveTo(x, y); });
+  g.stroke();
+  // Reference: the measured incoming wave where a scene provides one, else a unit travelling wave (mean u² = ½).
+  const ref = probes.ref ? Math.max(1e-6, meanEnergy(probes.ref)) : 0.5;
+  $('#probeText').textContent = `energy stored in loop · ×${(loop / ref).toFixed(1)} the incoming wave`;
+}
+
+let last = performance.now(), frames = 0;
+function frame(now) {
+  if (!ui.paused) for (let k = 0; k < ui.stepsPerFrame; k++) tank.step();
+  accumulate(); paint();
+  if (probes && frames % 6 === 0) meter();
+  ui.fps = ui.fps * 0.92 + 0.08 * (1000 / Math.max(1, now - last)); last = now;
+  if (++frames % 10 === 0) {
+    const lambda = Math.sqrt(tank.C2) / tank.freq;
+    $('#status').textContent = `${W}×${H} cells · step ${tank.t} · ${ui.fps.toFixed(0)} fps · λ ≈ ${lambda.toFixed(1)} cells · ${tank.sources.length} source${tank.sources.length === 1 ? '' : 's'}`
+      + (probes ? ` · loop ≈ ${(probes.circ / lambda).toFixed(1)} λ` : '') + (ui.paused ? ' · paused' : '');
+  }
+  requestAnimationFrame(frame);
+}
+
+// ---------------------------------------------------------------- tools
+function gridPos(e) {
+  const r = canvas.getBoundingClientRect();
+  return [Math.round((e.clientX - r.left) / r.width * W), Math.round((e.clientY - r.top) / r.height * H)];
+}
+function applyTool(tool, x, y, first) {
+  const u = tank.u;
+  switch (tool) {
+    case 'wall':   tank.disc(x, y, 3, i => { wall[i] = 1; u[i] = 0; }); break;
+    case 'glass':  tank.disc(x, y, 7, i => { speed[i] = 0.25; }); break;
+    case 'erase':
+      tank.disc(x, y, 9, i => { wall[i] = 0; speed[i] = 1; });
+      tank.sources = tank.sources.filter(s => Math.abs(s.x - x) > 9 || Math.abs(s.y - y) > s.h + 9);
+      break;
+    case 'source': if (first && x > 0 && x < W - 1 && y > 0 && y < H - 1) tank.sources.push({ x, y, h: 0 }); break;
+    case 'poke':   if (first) tank.poke(x, y); break;
+  }
+}
+let drag = null;
+canvas.addEventListener('pointerdown', e => {
+  drag = e.button === 2 ? 'erase' : ui.tool;
+  canvas.setPointerCapture(e.pointerId);
+  applyTool(drag, ...gridPos(e), true);
+});
+canvas.addEventListener('pointermove', e => { if (drag) applyTool(drag, ...gridPos(e), false); });
+for (const ev of ['pointerup', 'pointercancel']) canvas.addEventListener(ev, () => drag = null);
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+function setTool(t) {
+  ui.tool = t;
+  document.querySelectorAll('#tools button').forEach(b => b.classList.toggle('on', b.dataset.tool === t));
+}
+function setTheme(t) { ui.theme = t; document.documentElement.dataset.theme = t; }
+function togglePause() { ui.paused = !ui.paused; $('#pause').textContent = ui.paused ? 'Resume' : 'Pause'; }
+function toggleIntensity() { ui.intensity = !ui.intensity; $('#inten').classList.toggle('on', ui.intensity); }
+function toggleHelp(force) { $('#help').classList.toggle('open', force); }
+function setFreq(f) { tank.freq = Math.round(Math.min(0.09, Math.max(0.02, f)) * 1e4) / 1e4; $('#freq').value = tank.freq; }
+function savePNG() { const a = document.createElement('a'); a.download = `ripple-${PRESETS[ui.preset].name.toLowerCase().replace(/\s+/g, '-')}.png`; a.href = canvas.toDataURL('image/png'); a.click(); }
+
+// ---------------------------------------------------------------- wiring
+for (const [k, p] of Object.entries(PRESETS)) $('#preset').append(new Option(p.name, k));
+$('#preset').addEventListener('change', e => { loadPreset(e.target.value); e.target.blur(); }); // give keys back to the tank
+$('#tools').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setTool(b.dataset.tool); });
+$('#freq').addEventListener('input', e => setFreq(+e.target.value));
+$('#damp').addEventListener('input', e => tank.damp = +e.target.value);
+$('#pause').addEventListener('click', togglePause);
+$('#clear').addEventListener('click', () => { tank.clear(); inten.fill(0); });
+$('#inten').addEventListener('click', toggleIntensity);
+$('#theme').addEventListener('click', () => setTheme(ui.theme === 'dark' ? 'light' : 'dark'));
+$('#save').addEventListener('click', savePNG);
+$('#helpBtn').addEventListener('click', () => toggleHelp());
+$('#help').addEventListener('click', e => { if (e.target.id === 'help') toggleHelp(false); });
+
+const TOOL_KEYS = { 1: 'wall', 2: 'glass', 3: 'source', 4: 'erase', 5: 'poke' };
+document.addEventListener('keydown', e => {
+  if (e.target.matches('select')) return;
+  if ((e.ctrlKey || e.metaKey) && e.key === '/') { e.preventDefault(); toggleHelp(); return; }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key;
+  if (k === 'Escape') toggleHelp(false);
+  else if (k === '?') toggleHelp();
+  else if (k === ' ') { e.preventDefault(); togglePause(); }
+  else if (TOOL_KEYS[k]) setTool(TOOL_KEYS[k]);
+  else if (k === 'c' || k === 'C') { tank.clear(); inten.fill(0); }
+  else if (k === 'r' || k === 'R') loadPreset(ui.preset);
+  else if (k === 'i' || k === 'I') toggleIntensity();
+  else if (k === 't' || k === 'T') setTheme(ui.theme === 'dark' ? 'light' : 'dark');
+  else if (k === 's' || k === 'S') savePNG();
+  else if (k === '[' || k === ']') setFreq(tank.freq + (k === ']' ? 1 : -1) * (PRESETS[ui.preset].fine ? 0.0001 : 0.001));
+});
+
+setTheme(matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+loadPreset('slit');
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

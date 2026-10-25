@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KALEIDO — Draw once, see it eight times</title>
+<!--
+  KALEIDO — draw once, see it eight times.
+  ---------------------------------------------------------------
+  HOW TO RUN IT: Save this file, then double-click it. That's it.
+  No build step, no libraries, no network, no install. It runs
+  offline in any modern browser.
+
+  WHAT IT DOES: Draw anywhere on the screen. Every stroke is
+  mirrored around the centre, so a scribble becomes a mandala.
+  There is no right answer, no word to guess, no hidden list
+  and no way to fail — every stroke looks good.
+
+  WHY THIS REPLACES LETTERLOOM (2026-10-22):
+  Letterloom failed because it rejected real words that were not
+  in a small hard-coded list. KALEIDO has no validation at all:
+  drawing is the whole game, so it cannot reject you.
+  Different from the previous days on purpose:
+    GENESIS — typing a phrase into a dark-space solar system
+    SPROUT  — clicking to grow a daylight garden
+    LETTERLOOM (abandoned) — dragging tiles in a word game
+    KALEIDO — drawing freehand in a deep-indigo kaleidoscope
+  Category: generative drawing. Interaction: drawing.
+  Palette: deep indigo with jewel colours, not parchment or daylight.
+  ---------------------------------------------------------------
+  One file, zero dependencies, commented in short sections.
+-->
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden;background:#0f0a1e;color:#f2ecff;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  #pad{position:fixed;inset:0;display:block;cursor:crosshair;touch-action:none;transform-origin:center center}
+  #ripple{position:fixed;inset:0;display:block;pointer-events:none;z-index:4;transform-origin:center center}
+  .anim-row{width:100%;display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center}
+  .anim-row .lbl{font-size:12px;color:#c9bde8;letter-spacing:.06em;text-transform:uppercase}
+  .panel{background:rgba(20,14,40,.78);border:1px solid rgba(255,255,255,.16);border-radius:18px;
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 10px 30px rgba(0,0,0,.4)}
+  .top{position:fixed;top:16px;left:50%;transform:translateX(-50%);width:min(720px,calc(100% - 24px));
+    padding:16px 20px 12px;text-align:center;z-index:5}
+  h1{margin:0;font-family:Georgia,"Times New Roman",serif;letter-spacing:.28em;font-size:clamp(22px,4vw,32px)}
+  h1 span{color:#e8b4ff}
+  .tag{margin:6px 0 4px;color:#c9bde8;font-size:14px}
+  .bar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:5;
+    width:min(880px,calc(100% - 24px));padding:10px 12px;
+    display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center}
+  button{cursor:pointer;border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:9px 14px;
+    background:rgba(255,255,255,.1);color:#f2ecff;font-size:14px}
+  button:hover{background:rgba(255,255,255,.2)}
+  button.active{background:#e8b4ff;border-color:#e8b4ff;color:#2a1233;font-weight:700}
+  button.primary{background:#e8b4ff;border-color:#e8b4ff;color:#2a1233;font-weight:700}
+  .bar label{font-size:13px;color:#c9bde8;display:flex;gap:6px;align-items:center}
+  .bar input[type=range]{accent-color:#e8b4ff}
+  #toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);z-index:9;padding:10px 16px;
+    border-radius:999px;background:#f2ecff;color:#2a1233;font-size:14px;display:none}
+  #showUi{position:fixed;right:16px;bottom:16px;z-index:9;display:none}
+  body.zen .panel{display:none}
+  body.zen #showUi{display:block}
+  .foot{width:100%;text-align:center;font-size:11.5px;color:#9a8fc0}
+  @media (max-width:560px){ .tag{display:none} }
+</style>
+</head>
+<body>
+<canvas id="pad"></canvas>
+<canvas id="ripple"></canvas>
+<noscript><p style="padding:2em">KALEIDO needs JavaScript enabled.</p></noscript>
+
+<header class="panel top">
+  <h1>KALE<span>IDO</span></h1>
+  <p class="tag">Draw anywhere — every stroke mirrors around the centre into a mandala. No right answer, no wrong answer.</p>
+  <p class="tag" style="margin-top:2px">A starter mandala is drawn for you. Clear it and draw your own. Then press Animate and mix modes — any combination works.</p>
+</header>
+
+<div class="panel bar">
+  <div role="group" aria-label="Colour">
+    <button data-mode="rainbow" class="active">Rainbow</button>
+    <button data-mode="sunset">Sunset</button>
+    <button data-mode="ocean">Ocean</button>
+    <button data-mode="violet">Violet</button>
+  </div>
+  <label>Mirrors <input id="sym" type="range" min="3" max="12" step="1" value="8"> <span id="symVal">8</span></label>
+  <label>Brush <input id="brush" type="range" min="2" max="14" step="1" value="5"> <span id="brushVal">5</span></label>
+  <button id="animateBtn" class="primary">Animate</button>
+  <button id="clearBtn">Clear</button>
+  <button id="saveBtn">&#11015; Save image</button>
+  <button id="hideBtn">Hide UI (H)</button>
+  <div class="anim-row" role="group" aria-label="Animation modes — choose any combination">
+    <span class="lbl">Animation modes:</span>
+    <button data-anim="rotation" class="active" title="Spin the mandala around its centre">Rotation</button>
+    <button data-anim="ripple" title="A 3D-style wave starts in the centre and moves outward">Ripple</button>
+    <button data-anim="color" title="Colours cycle through the spectrum each frame">Color</button>
+    <button data-anim="zoom" title="Zooms in and out while it rotates">Zoom</button>
+    <button data-anim="drift" title="The mandala floats in a slow figure-eight">Drift</button>
+    <button data-anim="glow" title="Brightness breathes in and out">Glow</button>
+    <button data-anim="sway" title="Rocks gently side to side instead of spinning fully">Sway</button>
+    <label>Speed <input id="speed" type="range" min="0.25" max="3" step="0.25" value="1"> <span id="speedVal">&times;1</span></label>
+  </div>
+  <span class="foot">One file &middot; No libraries &middot; No network &middot; Works offline &mdash; save it and double-click it. Draw with mouse or touch &middot; A animates &middot; C clears &middot; S saves &middot; H hides the interface</span>
+</div>
+
+<button id="showUi">Show controls (H)</button>
+<div id="toast" role="status"></div>
+<script>
+"use strict";
+/* ================================================================
+   1. STATE — one canvas, one centre, one rule: mirror everything.
+   ================================================================ */
+const canvas = document.getElementById("pad");
+const ctx = canvas.getContext("2d");
+const rippleCanvas = document.getElementById("ripple");
+const rctx = rippleCanvas.getContext("2d");
+let W = 0, H = 0;
+const state = { drawing: false, lastX: 0, lastY: 0,
+  symmetry: 8, brush: 5, mode: "rainbow", distance: 0, strokes: 0,
+  animating: false, animTime: 0, speed: 1, lastTs: 0,
+  // Modes are independent toggles — any combination is allowed.
+  modes: { rotation: true, ripple: false, color: false, zoom: false, drift: false, glow: false, sway: false } };
+const $ = id => document.getElementById(id);
+const TAU = Math.PI * 2;
+function toast(msg) {
+  const t = $("toast"); t.textContent = msg; t.style.display = "block";
+  clearTimeout(t._h); t._h = setTimeout(() => t.style.display = "none", 2400);
+}
+
+/* ================================================================
+   2. COLOUR — four palettes, all by hue. Rainbow cycles with
+   distance travelled, so a long stroke changes colour as it goes.
+   ================================================================ */
+function colour() {
+  const d = state.distance;
+  if (state.mode === "sunset") return `hsl(${15 + (d * 0.15 % 45)},95%,62%)`;
+  if (state.mode === "ocean") return `hsl(${185 + (d * 0.15 % 40)},90%,62%)`;
+  if (state.mode === "violet") return `hsl(${275 + (d * 0.15 % 35)},90%,70%)`;
+  return `hsl(${(d * 0.8) % 360},95%,65%)`; // rainbow
+}
+
+/* ================================================================
+   3. DRAWING — the whole kaleidoscope is this one function.
+   Translate to the centre, then for each mirror: rotate, draw the
+   segment, and draw it again flipped. 'lighter' makes overlapping
+   strokes glow without any per-frame shadowBlur cost.
+   ================================================================ */
+function drawSegment(x1, y1, x2, y2) {
+  const cx = W / 2, cy = H / 2;
+  const dx1 = x1 - cx, dy1 = y1 - cy, dx2 = x2 - cx, dy2 = y2 - cy;
+  const dist = Math.hypot(x2 - x1, y2 - y1);
+  state.distance += dist;
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  ctx.strokeStyle = colour();
+  ctx.lineWidth = state.brush;
+  ctx.lineCap = "round"; ctx.lineJoin = "round";
+  for (let i = 0; i < state.symmetry; i++) {
+    const a = (i / state.symmetry) * TAU;
+    for (const flip of [1, -1]) {
+      ctx.save();
+      ctx.translate(cx, cy); ctx.rotate(a); ctx.scale(flip, 1);
+      ctx.beginPath(); ctx.moveTo(dx1, dy1); ctx.lineTo(dx2, dy2); ctx.stroke();
+      ctx.restore();
+    }
+  }
+  ctx.restore();
+}
+function clearPad() {
+  ctx.save();
+  ctx.globalCompositeOperation = "source-over";
+  ctx.fillStyle = "#0f0a1e"; ctx.fillRect(0, 0, W, H);
+  ctx.restore();
+  // A faint centre mark, so the mirror point is visible even on a blank page.
+  ctx.fillStyle = "rgba(255,255,255,.25)";
+  ctx.beginPath(); ctx.arc(W / 2, H / 2, 3, 0, TAU); ctx.fill();
+  state.distance = 0; state.strokes = 0;
+}
+function drawSpiral() {
+  // One spiral, mirrored, is already a mandala — a good first picture
+  // and a good demo of what a single stroke can do.
+  clearPad();
+  let px = W / 2, py = H / 2;
+  for (let t = 0; t < 420; t++) {
+    const a = t * 0.16, r = t * 0.55;
+    const x = W / 2 + Math.cos(a) * r, y = H / 2 + Math.sin(a) * r;
+    if (t > 0) drawSegment(px, py, x, y);
+    px = x; py = y;
+  }
+  state.strokes++;
+}
+
+/* ================================================================
+   4. INPUT — pointer events cover mouse and touch. A stroke is
+   just a chain of short segments, so fast flicks still mirror well.
+   ================================================================ */
+canvas.addEventListener("pointerdown", e => {
+  if (state.animating) { toast("Pause the animation to draw again."); return; }
+  state.drawing = true; state.lastX = e.clientX; state.lastY = e.clientY;
+  canvas.setPointerCapture(e.pointerId);
+  // A tap alone still makes a dot, mirrored — no stroke required.
+  drawSegment(e.clientX, e.clientY, e.clientX + 0.5, e.clientY + 0.5);
+  state.strokes++;
+});
+canvas.addEventListener("pointermove", e => {
+  if (!state.drawing) return;
+  drawSegment(state.lastX, state.lastY, e.clientX, e.clientY);
+  state.lastX = e.clientX; state.lastY = e.clientY;
+});
+function endStroke() { state.drawing = false; }
+canvas.addEventListener("pointerup", endStroke);
+canvas.addEventListener("pointercancel", endStroke);
+
+/* ================================================================
+   5. CONTROLS + START — resize keeps the picture (copied, then
+   redrawn), the starter mandala means the page is never blank,
+   and reduced-motion users simply get no auto-demo.
+   ================================================================ */
+function resize() {
+  // Preserve the picture across a resize: copy it, resize, redraw it.
+  let old = null;
+  if (canvas.width > 0) {
+    old = document.createElement("canvas");
+    old.width = canvas.width; old.height = canvas.height;
+    old.getContext("2d").drawImage(canvas, 0, 0);
+  }
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  canvas.style.width = W + "px"; canvas.style.height = H + "px";
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = "#0f0a1e"; ctx.fillRect(0, 0, W, H);
+  if (old) ctx.drawImage(old, 0, 0, W, H);
+  rippleCanvas.width = W * dpr; rippleCanvas.height = H * dpr;
+  rippleCanvas.style.width = W + "px"; rippleCanvas.style.height = H + "px";
+  rctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener("resize", resize);
+
+document.querySelectorAll("[data-mode]").forEach(btn =>
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("[data-mode]").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active"); state.mode = btn.dataset.mode;
+  }));
+$("sym").addEventListener("input", e => { state.symmetry = +e.target.value; $("symVal").textContent = e.target.value; });
+$("brush").addEventListener("input", e => { state.brush = +e.target.value; $("brushVal").textContent = e.target.value; });
+/* ================================================================
+   6. ANIMATION — every mode reads the same clock (animTime, scaled
+   by the speed slider), so modes combine cleanly and stay in sync.
+   Rotation / Zoom / Drift / Sway are CSS transforms on the canvas
+   (background colour matches the page, so corners stay seamless).
+   Color / Glow are CSS filters. Ripple is different: it is drawn
+   on a transparent overlay canvas as expanding wavefronts, so the
+   mandala itself is never destroyed — stopping animation leaves
+   the original drawing intact. Drawing is paused while animating,
+   otherwise a stroke would land in the wrong visual place.
+   ================================================================ */
+function drawRipple() {
+  rctx.clearRect(0, 0, W, H);
+  if (!state.modes.ripple) return;
+  const cx = W / 2, cy = H / 2;
+  const maxR = Math.hypot(cx, cy) + 80;
+  // Three wavefronts, staggered, so a new wave starts as the last fades.
+  for (let i = 0; i < 3; i++) {
+    const progress = ((state.animTime * 0.35 + i / 3) % 1 + 1) % 1;
+    const r = progress * maxR;
+    const alpha = (1 - progress) * 0.85;
+    // Soft wave body (3D depth) + bright leading edge.
+    rctx.strokeStyle = `rgba(255,255,255,${alpha * 0.18})`;
+    rctx.lineWidth = 26;
+    rctx.beginPath(); rctx.arc(cx, cy, r, 0, TAU); rctx.stroke();
+    rctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+    rctx.lineWidth = 4;
+    rctx.beginPath(); rctx.arc(cx, cy, r, 0, TAU); rctx.stroke();
+  }
+}
+function applyAnimation() {
+  const t = state.animTime, m = state.modes;
+  // Rotation: Zoom also spins (its definition is zoom + rotate), so
+  // Zoom alone still rotates, and Zoom + Rotation does not double-spin.
+  const spinning = m.rotation || m.zoom;
+  const rot = (spinning ? t * 24 : 0) + (m.sway ? Math.sin(t * 1.2) * 20 : 0);
+  let scale = 1;
+  if (m.zoom) scale = 1 + 0.18 * Math.sin(t * 0.9);
+  if (m.ripple) scale *= 1 + 0.02 * Math.sin(t * 3); // tiny pulse with each wave
+  const dx = m.drift ? Math.sin(t * 0.5) * 22 : 0;
+  const dy = m.drift ? Math.cos(t * 0.4) * 16 : 0;
+  canvas.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg) scale(${scale})`;
+  const filters = [];
+  if (m.color) filters.push(`hue-rotate(${(t * 60) % 360}deg)`);
+  if (m.glow) filters.push(`brightness(${1 + 0.3 * (0.5 + 0.5 * Math.sin(t * 2))})`);
+  canvas.style.filter = filters.join(" ") || "";
+  drawRipple();
+}
+function animateFrame(ts) {
+  if (!state.animating) return;
+  if (state.lastTs) state.animTime += ((ts - state.lastTs) / 1000) * state.speed;
+  state.lastTs = ts;
+  applyAnimation();
+  requestAnimationFrame(animateFrame);
+}
+function stopAnimation() {
+  state.animating = false; state.animTime = 0; state.lastTs = 0;
+  canvas.style.transform = ""; canvas.style.filter = "";
+  rctx.clearRect(0, 0, W, H);
+  $("animateBtn").textContent = "Animate";
+}
+$("animateBtn").addEventListener("click", () => {
+  if (state.animating) { stopAnimation(); return; }
+  state.animating = true; state.lastTs = 0;
+  $("animateBtn").textContent = "Stop animation";
+  toast("Animating — pause it to draw again. Toggle modes live.");
+  requestAnimationFrame(animateFrame);
+});
+document.querySelectorAll("[data-anim]").forEach(btn =>
+  btn.addEventListener("click", () => {
+    const mode = btn.dataset.anim;
+    state.modes[mode] = !state.modes[mode];
+    btn.classList.toggle("active", state.modes[mode]);
+    // If animation is running, the change takes effect on the next frame.
+    if (state.animating) applyAnimation();
+  }));
+$("speed").addEventListener("input", e => { state.speed = +e.target.value; $("speedVal").textContent = "×" + e.target.value; });
+$("clearBtn").addEventListener("click", () => { clearPad(); toast("Blank page — draw something."); });
+$("saveBtn").addEventListener("click", () => {
+  // A snapshot ignores CSS transforms/filters, so pause first and
+  // save the drawing itself — otherwise the file would not match
+  // what you just saw spinning.
+  if (state.animating) stopAnimation();
+  const a = document.createElement("a");
+  a.download = "kaleido.png"; a.href = canvas.toDataURL("image/png"); a.click();
+  toast("Saved — this mandala, as a PNG.");
+});
+function toggleUi() { document.body.classList.toggle("zen"); }
+$("hideBtn").addEventListener("click", toggleUi);
+$("showUi").addEventListener("click", toggleUi);
+document.addEventListener("keydown", e => {
+  if (e.key === "h" || e.key === "H") toggleUi();
+  if (e.key === "c" || e.key === "C") clearPad();
+  if (e.key === "s" || e.key === "S") $("saveBtn").click();
+  if (e.key === "a" || e.key === "A") $("animateBtn").click();
+});
+
+resize();
+drawSpiral();
+</script>
+</body>
+</html>

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BUDGET — Projected income and expenses, on one page, offline</title>
+<!--
+  BUDGET — a one-page, offline budgeting app (evolved from LEDGER).
+  ---------------------------------------------------------------
+  HOW TO RUN IT: Save this file, then double-click it. That's it.
+  No build step, no libraries, no network, no install, no account.
+  It runs offline in any modern browser.
+
+  WHAT IT DOES: Add projected income and expenses, each with how
+  often it occurs — Weekly, Every 2 weeks, Monthly, Quarterly, or
+  Yearly. Every amount is converted to a monthly equivalent, so
+  you can see projected monthly income, projected monthly
+  expenses, monthly surplus, savings rate, and annual totals at
+  a glance, plus spending by category. Save the whole budget as
+  JSON, and load a JSON budget back in, any time.
+
+  FREQUENCY MATH (shown in the app, not hidden):
+    Weekly       -> amount x 52 / 12  per month
+    Every 2 wks  -> amount x 26 / 12  per month
+    Monthly      -> amount x 1       per month
+    Quarterly    -> amount / 3       per month
+    Yearly       -> amount / 12      per month
+  Annual totals are simply monthly x 12.
+
+  DATA: Entries autosave in this browser only (localStorage).
+  Save JSON downloads a portable copy; Load JSON replaces the
+  current budget with the file you choose, after validating it.
+  Nothing leaves your machine unless you download that file.
+  ---------------------------------------------------------------
+  One file, zero dependencies, commented in short sections.
+-->
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#eef1f4;color:#1a2b4a;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  body{padding:24px 16px 48px}
+  main{max-width:920px;margin:0 auto}
+  h1{margin:0;font-family:Georgia,"Times New Roman",serif;font-size:clamp(26px,5vw,38px)}
+  h1 span{color:#1f7a4d}
+  .tag{margin:6px 0 18px;color:#5a6b82}
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
+  .card{background:#fff;border:1px solid #d7dde6;border-radius:14px;padding:14px 16px}
+  .card .lbl{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:#5a6b82}
+  .card .val{font-size:25px;font-weight:700;margin-top:4px}
+  .card .val.in{color:#1f7a4d}.card .val.out{color:#b3402f}
+  .annual{color:#5a6b82;font-size:14px;margin:0 0 16px}
+  .panel{background:#fff;border:1px solid #d7dde6;border-radius:14px;padding:16px;margin-bottom:16px}
+  .panel h2{margin:0 0 12px;font-size:18px}
+  form{display:grid;grid-template-columns:110px 140px 150px 1fr 150px auto;gap:8px;align-items:end}
+  label{font-size:12px;color:#5a6b82;display:block;margin-bottom:4px}
+  input,select{width:100%;padding:10px 12px;border:1px solid #c3ccd8;border-radius:10px;font-size:15px;color:#1a2b4a;background:#fff}
+  input:focus,select:focus{outline:3px solid rgba(31,122,77,.25);border-color:#1f7a4d}
+  button{cursor:pointer;border:1px solid #c3ccd8;border-radius:999px;padding:10px 16px;background:#fff;color:#1a2b4a;font-size:14px}
+  button:hover{background:#f0f3f6}
+  button.primary{background:#1a2b4a;border-color:#1a2b4a;color:#fff;font-weight:700}
+  button.primary:hover{background:#243a5e}
+  button.danger{color:#b3402f;border-color:#e0b8b0}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+  .row input[type=search]{max-width:280px}
+  table{width:100%;border-collapse:collapse;font-size:15px}
+  th{text-align:left;color:#5a6b82;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:8px 6px;border-bottom:2px solid #e2e7ed}
+  td{padding:9px 6px;border-bottom:1px solid #eef1f4;vertical-align:top}
+  td.amt,td.mon{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  td.amt.in,td.mon.in{color:#1f7a4d}td.amt.out,td.mon.out{color:#b3402f}
+  .del{border:none;background:none;color:#8a97ab;font-size:18px;padding:2px 6px}
+  .del:hover{color:#b3402f;background:#fdf0ee}
+  #msg{min-height:1.4em;color:#b3402f;font-size:14px;margin:8px 0 0}
+  #msg.good{color:#1f7a4d}
+  .empty{color:#5a6b82;font-style:italic;padding:12px 0}
+  .note{font-size:13px;color:#5a6b82}
+  canvas{width:100%;height:220px;display:block}
+  @media (max-width:820px){
+    .cards{grid-template-columns:repeat(2,1fr)}
+    form{grid-template-columns:1fr 1fr}
+    form .wide{grid-column:1 / -1}
+    th:nth-child(2),td:nth-child(2),th:nth-child(6),td:nth-child(6){display:none}
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>BUDGET<span>.</span></h1>
+  <p class="tag">Projected income and expenses, with how often each one occurs. Everything is converted to a monthly equivalent, so you can see the surplus at a glance. Save it as JSON, load it back any time — all offline.</p>
+
+  <section class="cards" aria-label="Projected summary">
+    <div class="card"><div class="lbl">Income / month</div><div class="val in" id="totalIn">$0.00</div></div>
+    <div class="card"><div class="lbl">Expenses / month</div><div class="val out" id="totalOut">$0.00</div></div>
+    <div class="card"><div class="lbl">Surplus / month</div><div class="val" id="balance">$0.00</div></div>
+    <div class="card"><div class="lbl">Savings rate</div><div class="val" id="savings">—</div></div>
+  </section>
+  <p class="annual" id="annualLine"></p>
+
+  <section class="panel">
+    <h2>Add a projected item</h2>
+    <form id="addForm">
+      <div><label for="type">Type</label>
+        <select id="type"><option value="expense">Expense</option><option value="income">Income</option></select></div>
+      <div><label for="amount">Amount ($)</label><input id="amount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" required></div>
+      <div><label for="frequency">How often?</label>
+        <select id="frequency">
+          <option value="weekly">Weekly</option>
+          <option value="biweekly">Every 2 weeks</option>
+          <option value="monthly" selected>Monthly</option>
+          <option value="quarterly">Quarterly</option>
+          <option value="yearly">Yearly</option>
+        </select></div>
+      <div><label for="category">Category</label>
+        <select id="category">
+          <option>Housing</option><option>Food</option><option>Transport</option><option>Utilities</option>
+          <option>Health</option><option>Entertainment</option><option>Shopping</option><option>Salary</option>
+          <option>Freelance</option><option>Other</option>
+        </select></div>
+      <div class="wide"><label for="note">Name / note</label><input id="note" type="text" maxlength="80" placeholder="e.g. Rent, salary, groceries"></div>
+      <button class="primary" type="submit">Add item</button>
+    </form>
+    <p id="msg" role="status"></p>
+    <p class="note" id="sampleNote"></p>
+    <p class="note">Monthly equivalent: Weekly &times; 52/12 &middot; Every 2 weeks &times; 26/12 &middot; Monthly &times; 1 &middot; Quarterly &divide; 3 &middot; Yearly &divide; 12.</p>
+  </section>
+
+  <section class="panel">
+    <h2>Projected expenses by category (monthly)</h2>
+    <canvas id="chart" width="860" height="220" aria-label="Bar chart of projected monthly expenses by category"></canvas>
+    <p class="note" id="chartNote"></p>
+  </section>
+
+  <section class="panel">
+    <div class="row">
+      <input id="search" type="search" placeholder="Search names or categories…" aria-label="Search budget items">
+      <select id="filterType" aria-label="Filter by type"><option value="all">All types</option><option value="income">Income only</option><option value="expense">Expenses only</option></select>
+      <button id="saveJsonBtn" class="primary">Save JSON</button>
+      <button id="loadJsonBtn">Load JSON…</button>
+      <input id="fileInput" type="file" accept=".json,application/json" hidden>
+      <button id="sampleBtn">Load sample</button>
+      <button id="clearBtn" class="danger">Clear all</button>
+    </div>
+    <table aria-label="Budget items">
+      <thead><tr><th>Name</th><th>Type</th><th>Category</th><th style="text-align:right">Amount</th><th>Frequency</th><th style="text-align:right">Per month</th><th></th></tr></thead>
+      <tbody id="list"></tbody>
+    </table>
+    <p class="empty" id="emptyMsg" hidden>No budget items yet — add one above, or load the sample to see how it looks.</p>
+  </section>
+
+  <p class="note">One file &middot; No libraries &middot; No network &middot; No account &middot; Data saved in this browser only, plus a portable JSON file you control.</p>
+</main>
+<script>
+"use strict";
+/* ================================================================
+   1. STATE + STORAGE — budget items live in localStorage only,
+   under one key. If storage is unavailable, the app still works
+   in memory for the session. Old LEDGER tracker entries (no
+   frequency) are treated as Monthly, so an earlier save still loads.
+   ================================================================ */
+const KEY = "ledger-entries-v1";
+const $ = id => document.getElementById(id);
+const FREQUENCIES = {
+  weekly:    { label: "Weekly",        perMonth: 52 / 12 },
+  biweekly:  { label: "Every 2 weeks", perMonth: 26 / 12 },
+  monthly:   { label: "Monthly",       perMonth: 1 },
+  quarterly: { label: "Quarterly",     perMonth: 1 / 3 },
+  yearly:    { label: "Yearly",        perMonth: 1 / 12 },
+};
+function monthlyOf(item) {
+  const f = FREQUENCIES[item.frequency] || FREQUENCIES.monthly;
+  return item.amount * f.perMonth;
+}
+function loadEntries() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (Array.isArray(saved)) return saved.filter(e => e && typeof e.amount === "number" && e.category);
+  } catch (e) { /* fall through to sample */ }
+  return null;
+}
+function saveEntries() {
+  try { localStorage.setItem(KEY, JSON.stringify(entries)); } catch (e) { /* in-memory only */ }
+}
+let entries = loadEntries();
+let isSample = false;
+if (entries === null) { entries = sampleEntries(); isSample = true; }
+function sampleEntries() {
+  // A finished default on load: the first screen already shows
+  // projected totals and a chart, with varied frequencies so the
+  // conversion is visible at once. Clear all removes it for real.
+  return [
+    { id: 1, type: "income", amount: 5200, frequency: "monthly", category: "Salary", note: "Salary" },
+    { id: 2, type: "income", amount: 400, frequency: "biweekly", category: "Freelance", note: "Freelance" },
+    { id: 3, type: "expense", amount: 1450, frequency: "monthly", category: "Housing", note: "Rent" },
+    { id: 4, type: "expense", amount: 120, frequency: "weekly", category: "Food", note: "Groceries" },
+    { id: 5, type: "expense", amount: 540, frequency: "quarterly", category: "Utilities", note: "Electric + internet" },
+    { id: 6, type: "expense", amount: 90, frequency: "biweekly", category: "Transport", note: "Fuel" },
+    { id: 7, type: "expense", amount: 1200, frequency: "yearly", category: "Other", note: "Insurance" },
+    { id: 8, type: "expense", amount: 60, frequency: "monthly", category: "Entertainment", note: "Film night" },
+  ];
+}
+let nextId = Math.max(0, ...entries.map(e => e.id || 0)) + 1;
+
+/* ================================================================
+   2. PROJECTED MATH — every total is computed from the items
+   array, never stored separately, so summary, annual line, chart
+   and list can never disagree. Monthly x 12 = annual.
+   ================================================================ */
+const money = n => "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+function totals(list) {
+  let income = 0, out = 0;
+  for (const e of list) { const m = monthlyOf(e); if (e.type === "income") income += m; else out += m; }
+  return { income, out, balance: income - out };
+}
+function filteredEntries() {
+  const q = $("search").value.trim().toLowerCase();
+  const type = $("filterType").value;
+  return entries.filter(e =>
+    (type === "all" || e.type === type) &&
+    (!q || e.note.toLowerCase().includes(q) || e.category.toLowerCase().includes(q)));
+}
+function say(text, good) {
+  const m = $("msg"); m.textContent = text; m.className = good ? "good" : "";
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+/* ================================================================
+   3. RENDER — summary cards, annual line, list, and a canvas
+   bar chart of projected monthly expenses by category.
+   ================================================================ */
+function render() {
+  const t = totals(entries);
+  $("totalIn").textContent = money(t.income);
+  $("totalOut").textContent = money(t.out);
+  $("balance").textContent = money(t.balance);
+  $("balance").style.color = t.balance < 0 ? "#b3402f" : "#1a2b4a";
+  $("savings").textContent = t.income > 0 ? Math.round((t.balance / t.income) * 100) + "%" : "—";
+  $("annualLine").textContent = `Annual projected: income ${money(t.income * 12)} · expenses ${money(t.out * 12)} · surplus ${money(t.balance * 12)}.`;
+  $("sampleNote").textContent = isSample
+    ? "Showing sample data so you can see it working. Add your first real item, or Clear all to start fresh — clearing removes the sample for good."
+    : "";
+  const list = filteredEntries().slice().sort((a, b) => (b.note || "").localeCompare(a.note || "") * 0 + (b.id - a.id));
+  // List order: income first, then expenses, each newest first — stable and readable.
+  list.sort((a, b) => (a.type === b.type ? b.id - a.id : a.type === "income" ? -1 : 1));
+  const tbody = $("list"); tbody.innerHTML = "";
+  $("emptyMsg").hidden = list.length > 0;
+  for (const e of list) {
+    const f = FREQUENCIES[e.frequency] || FREQUENCIES.monthly;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${escapeHtml(e.note || e.category)}</td><td>${e.type === "income" ? "Income" : "Expense"}</td>` +
+      `<td>${escapeHtml(e.category)}</td><td class="amt ${e.type}">${money(e.amount)}</td>` +
+      `<td>${f.label}</td><td class="mon ${e.type}">${money(monthlyOf(e))}</td><td></td>`;
+    const btn = document.createElement("button");
+    btn.className = "del"; btn.textContent = "×"; btn.title = "Delete this item";
+    btn.setAttribute("aria-label", `Delete ${e.note || e.category} item`);
+    btn.addEventListener("click", () => { entries = entries.filter(x => x.id !== e.id); isSample = false; saveEntries(); render(); });
+    tr.lastElementChild.appendChild(btn);
+    tbody.appendChild(tr);
+  }
+  drawChart();
+}
+function drawChart() {
+  const c = $("chart"), ctx = c.getContext("2d");
+  const W = c.width, H = c.height;
+  ctx.clearRect(0, 0, W, H);
+  const byCat = {};
+  for (const e of entries) if (e.type === "expense") byCat[e.category] = (byCat[e.category] || 0) + monthlyOf(e);
+  const rows = Object.entries(byCat).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  if (!rows.length) { ctx.fillStyle = "#5a6b82"; ctx.font = "15px system-ui"; ctx.fillText("No projected expenses yet — add one above.", 16, 30); $("chartNote").textContent = ""; return; }
+  const max = rows[0][1], labelW = 110, barH = 20, gap = 8;
+  ctx.font = "14px system-ui";
+  rows.forEach(([cat, amt], i) => {
+    const y = 10 + i * (barH + gap);
+    ctx.fillStyle = "#1a2b4a"; ctx.fillText(cat, 8, y + 15);
+    ctx.fillStyle = "#d7dde6"; ctx.fillRect(labelW, y, W - labelW - 90, barH);
+    ctx.fillStyle = "#b3402f"; ctx.fillRect(labelW, y, (W - labelW - 90) * (amt / max), barH);
+    ctx.fillStyle = "#1a2b4a"; ctx.fillText(money(amt) + "/mo", W - 82, y + 15);
+  });
+  $("chartNote").textContent = "Projected monthly expenses only, all items, top 8 categories.";
+}
+
+/* ================================================================
+   4. JSON SAVE / LOAD — Save downloads {version, exported, items}.
+   Load reads a file you choose, validates every item, and only
+   then replaces the current budget. A bad file never wipes data.
+   ================================================================ */
+function toJson() {
+  return JSON.stringify({ version: 1, exported: new Date().toISOString(), items: entries }, null, 2);
+}
+function validateItems(data) {
+  const raw = Array.isArray(data) ? data : (data && Array.isArray(data.items) ? data.items : null);
+  if (!raw) throw new Error("That file does not contain a budget list.");
+  const items = [];
+  for (const e of raw) {
+    if (!e || typeof e.amount !== "number" || !(e.amount > 0)) continue;
+    if (e.type !== "income" && e.type !== "expense") continue;
+    items.push({
+      id: 0, type: e.type, amount: Math.round(e.amount * 100) / 100,
+      frequency: FREQUENCIES[e.frequency] ? e.frequency : "monthly",
+      category: typeof e.category === "string" && e.category ? e.category : "Other",
+      note: typeof e.note === "string" ? e.note.slice(0, 80) : (typeof e.name === "string" ? e.name.slice(0, 80) : ""),
+    });
+  }
+  if (!items.length) throw new Error("No valid budget items were found in that file.");
+  return items;
+}
+$("saveJsonBtn").addEventListener("click", () => {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([toJson()], { type: "application/json" }));
+  a.download = "budget.json"; a.click(); URL.revokeObjectURL(a.href);
+  say("Saved budget.json.", true);
+});
+$("loadJsonBtn").addEventListener("click", () => $("fileInput").click());
+$("fileInput").addEventListener("change", () => {
+  const file = $("fileInput").files[0];
+  $("fileInput").value = "";
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const items = validateItems(JSON.parse(reader.result));
+      items.forEach((e, i) => e.id = i + 1);
+      entries = items; nextId = items.length + 1; isSample = false;
+      saveEntries(); render(); say(`Loaded ${items.length} budget item${items.length === 1 ? "" : "s"} from ${file.name}.`, true);
+    } catch (err) {
+      say("Could not load that file: " + err.message + " Your current budget was not changed.", false);
+    }
+  };
+  reader.onerror = () => say("Could not read that file. Your current budget was not changed.", false);
+  reader.readAsText(file);
+});
+
+/* ================================================================
+   5. OTHER ACTIONS + START — add, search/filter, sample, clear.
+   ================================================================ */
+$("addForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const amount = parseFloat($("amount").value);
+  if (!isFinite(amount) || amount <= 0) { say("Enter an amount greater than $0.", false); $("amount").focus(); return; }
+  entries.push({ id: nextId++, type: $("type").value, amount: Math.round(amount * 100) / 100,
+    frequency: $("frequency").value, category: $("category").value, note: $("note").value.trim() || $("category").value });
+  isSample = false; saveEntries(); render();
+  $("amount").value = ""; $("note").value = "";
+  say("Budget item added.", true);
+});
+$("search").addEventListener("input", render);
+$("filterType").addEventListener("change", render);
+$("sampleBtn").addEventListener("click", () => { entries = sampleEntries(); nextId = Math.max(0, ...entries.map(e => e.id || 0)) + 1; isSample = true; saveEntries(); render(); say("Sample budget loaded.", true); });
+$("clearBtn").addEventListener("click", () => {
+  if (!entries.length) return;
+  if (!confirm("Clear all budget items? This cannot be undone.")) return;
+  entries = []; isSample = false; saveEntries(); render(); say("All budget items cleared.", true);
+});
+
+render();
+</script>
+</body>
+</html>

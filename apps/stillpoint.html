@@ -1,0 +1,915 @@
+<!doctype html>
+<!--
+  STILLPOINT — a little universe for your attention.
+  The complete application. Open this file in a modern browser. No build,
+  dependencies, network requests, permissions, or accounts are required.
+  Canvas 2D + Web Audio + ordinary HTML. All artwork is generated locally.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b1418">
+<meta name="description" content="Plant a star. Shape a soundscape. Make room for one thing. A self-contained generative focus instrument.">
+<title>Stillpoint — a little space to focus</title>
+<style>
+  :root{color-scheme:dark;--bg:#0b1418;--panel:#111d21;--line:#29383a;--text:#edf0df;--muted:#a1b0ac;--accent:#d8eea8;--accent-rgb:216,238,168;--serif:Georgia,'Times New Roman',serif;--sans:'Segoe UI',system-ui,-apple-system,BlinkMacSystemFont,sans-serif}
+  *{box-sizing:border-box} [hidden]{display:none!important}
+  body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 var(--sans);min-width:320px}
+  button,input,select{font:inherit}button{color:inherit;cursor:pointer}button,input,select{touch-action:manipulation}
+  button{border:0;background:none}button:disabled{cursor:default;opacity:.4}
+  button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:5px}
+  button,input{ -webkit-tap-highlight-color:transparent }a{color:var(--accent)}
+  .shell{max-width:1600px;padding:0 48px;margin:auto}
+  header{height:94px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);gap:20px}
+  .brand{display:flex;align-items:center;gap:12px;font-size:23px;letter-spacing:-.8px;font-weight:600}
+  .brand-mark{width:29px;height:29px;color:var(--accent)}
+  .header-caption{color:var(--muted);font-size:11px;letter-spacing:2.4px;text-transform:uppercase}
+  .header-actions{display:flex;gap:12px;align-items:center}.pill{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:40px;border:1px solid var(--line);border-radius:30px;padding:8px 15px;font-size:12px;background:#142025;transition:background .2s,border-color .2s}
+  .pill:hover{background:#203034;border-color:#70816c}.pill[aria-pressed=true]{border-color:#92aa7d;color:var(--accent)}
+  .icon{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+  .help-button{border:1px solid var(--line);width:38px;height:38px;border-radius:50%;font:18px var(--serif);color:var(--muted)}.help-button:hover{color:var(--text);border-color:var(--muted)}
+  .intro{display:flex;justify-content:space-between;align-items:flex-end;padding:42px 0 32px;gap:30px}
+  .eyebrow{margin:0 0 15px;text-transform:uppercase;font-size:10px;font-weight:600;letter-spacing:2.6px;color:var(--accent)}
+  h1{font:normal clamp(38px,4.1vw,66px)/1.07 var(--serif);letter-spacing:-2.6px;margin:0}
+  h1 em{font-weight:normal;color:var(--accent)}.intro-copy{color:var(--muted);font-size:14px;max-width:325px;margin:0 0 5px;line-height:1.8}
+  .workspace{display:grid;grid-template-columns:minmax(0,1fr) 314px;gap:24px;align-items:stretch}
+  .garden-card{min-width:0;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#091419;position:relative;display:flex;flex-direction:column}
+  .garden{position:relative;height:442px;flex:1 1 auto;overflow:hidden;isolation:isolate;touch-action:none;background:#091419}
+  .garden canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  #flow{z-index:0}#sky{z-index:1}
+  .garden-top{position:absolute;top:24px;left:25px;right:25px;display:flex;justify-content:space-between;align-items:flex-start;z-index:3;pointer-events:none}
+  .garden-title{font-size:10px;letter-spacing:2px;color:#b1c3bc;text-transform:uppercase;margin:0}.garden-sub{margin:6px 0 0;font:italic 15px var(--serif);color:#a3b4ad}
+  .live-badge{display:flex;gap:7px;align-items:center;color:#c5d8bc;font-size:9px;letter-spacing:1.5px;text-transform:uppercase}.live-dot{width:5px;height:5px;background:var(--accent);border-radius:50%;box-shadow:0 0 12px var(--accent)}.garden-selection{display:flex;flex-direction:column;align-items:flex-end;gap:9px}.remove-star{pointer-events:auto;border:1px solid #6a7b65;background:#112022dd;border-radius:7px;padding:6px 9px;color:#dbe7c6;font-size:10px;min-height:32px}
+  .garden-bottom{position:absolute;bottom:20px;left:25px;right:25px;display:flex;align-items:center;justify-content:space-between;z-index:3;pointer-events:none;gap:8px}
+  .garden-hint{font-size:11px;color:#b3c4bd;margin:0;background:#091419aa;border-radius:10px;padding:5px 8px;margin-left:-8px}.star-count{font-size:10px;color:#b3c4bd;letter-spacing:1px;white-space:nowrap}
+  #star-layer{position:absolute;inset:0;z-index:2;pointer-events:none}
+  .star{position:absolute;width:38px;height:38px;transform:translate(-50%,-50%);border-radius:50%;pointer-events:auto;touch-action:none;padding:0;cursor:grab}
+  .star:active{cursor:grabbing}.star::before{content:'';position:absolute;inset:15px;border-radius:50%;background:#f5f4d9;box-shadow:0 0 12px #e7f0ad,0 0 27px #bbf1bd99}
+  .star::after{content:'';position:absolute;inset:5px;border-radius:50%;border:1px solid #d7ecb661;transition:inset .2s,border-color .2s}
+  .star:hover::after,.star.selected::after{inset:0;border-color:#d7ecb6b5}.star:focus-visible{outline-offset:5px}
+  .star-label{position:absolute;left:50%;top:40px;transform:translateX(-50%);font:9px var(--sans);letter-spacing:1.4px;color:#d5dfc3;white-space:nowrap;opacity:0;transition:opacity .2s}.star:hover .star-label,.star:focus .star-label,.star.selected .star-label{opacity:1}
+  .garden-tools{padding:15px 20px;display:flex;justify-content:space-between;gap:10px;align-items:center;background:#101d21;border-top:1px solid var(--line);flex-shrink:0}
+  .tool-group{display:flex;align-items:center;gap:5px}.tool{min-height:34px;border-radius:7px;color:#b9c6bf;font-size:11px;padding:7px 9px;display:flex;align-items:center;gap:6px}.tool:hover{background:#233338;color:var(--text)}.tool .icon{width:14px;height:14px}.tool[aria-pressed=true]{color:var(--accent)}
+  .divider{height:17px;width:1px;background:var(--line);margin:0 5px}
+  .focus-panel{border:1px solid var(--line);border-radius:18px;background:linear-gradient(155deg,#172326,#101c20);padding:25px 25px 22px;display:flex;flex-direction:column;position:relative}
+  .focus-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}.focus-heading .eyebrow{margin:0;color:#c4d2c4;letter-spacing:1.8px;font-size:9px}.section-num{font:italic 16px var(--serif);color:#778a83}
+  label.intention-label{display:block;font:22px var(--serif);margin-bottom:10px;letter-spacing:-.4px}
+  #intention{width:100%;border:0;border-bottom:1px solid #4b5d58;border-radius:0;padding:9px 0 11px;background:transparent;color:var(--text);font-size:12px;outline-offset:4px}#intention::placeholder{color:#92a29c}#intention:focus{border-color:var(--accent)}
+  .timer-wrap{width:206px;height:206px;position:relative;align-self:center;margin:16px 0 7px}
+  .timer-ring{width:100%;height:100%;transform:rotate(-90deg)}.ring-track{fill:none;stroke:#2d3c3a;stroke-width:1}.ring-progress{fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;stroke-dasharray:565.487;stroke-dashoffset:565.487;transition:stroke-dashoffset .8s linear}
+  .timer-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column}
+  #clock{font:normal 44px/1.2 var(--sans);letter-spacing:-1.7px;font-variant-numeric:tabular-nums;font-weight:200}
+  #timer-state{font-size:9px;letter-spacing:2.5px;color:var(--muted);margin-top:9px;text-transform:uppercase}
+  .durations{display:flex;justify-content:center;gap:7px;margin-bottom:20px}.duration{border:1px solid var(--line);border-radius:7px;padding:6px 12px;font-size:11px;color:#a4b4ab;min-height:34px}.duration[aria-pressed=true]{background:#2a3a2d;border-color:#617651;color:var(--accent)}.duration:hover{border-color:#869777}
+  .primary{background:var(--accent);color:#1a291c;border-radius:9px;font-size:12px;font-weight:600;min-height:44px;display:flex;align-items:center;justify-content:center;gap:10px;padding:10px 16px;transition:background .2s,transform .2s}.primary:hover{background:#e8f7c7}.primary:active{transform:scale(.98)}
+  .session-actions{display:flex;gap:8px}.session-actions .primary{flex:1}.reset-timer{border:1px solid #455b4f;width:44px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#cad9ba}
+  .session-note{text-align:center;color:#a0b0a5;font-size:10px;line-height:1.6;margin:11px 0 0;min-height:16px}.daily{border-top:1px solid var(--line);padding-top:15px;margin-top:auto;display:flex;justify-content:space-between;font-size:10px;color:#a2b2a9;gap:8px}.daily strong{color:#d4decc;font-weight:500}
+  .bottom-bar{display:grid;grid-template-columns:minmax(0,1fr) 314px;gap:24px;margin-top:20px}
+  .scene-settings{display:flex;align-items:center;justify-content:space-between;gap:16px}.scenes{display:flex;gap:8px}.scene{padding:9px 13px;display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;color:#a6b5ad;font-size:11px;min-height:43px}.scene[aria-pressed=true]{border-color:#6c806b;color:#e8edda;background:#1a2926}.scene:hover{border-color:#6c806b}.swatch{width:19px;height:19px;border-radius:50%;box-shadow:inset 0 0 0 1px #ffffff25}.swatch.tide{background:radial-gradient(circle at 30% 30%,#d8e2a3,#3d867f 50%,#163b45)}.swatch.ember{background:radial-gradient(circle at 30% 30%,#f0d69b,#c77b59 50%,#56372e)}.swatch.aurora{background:radial-gradient(circle at 30% 30%,#decefc,#9b8ac5 50%,#244b52)}
+  .motion-control{display:flex;align-items:center;gap:10px;min-width:140px;color:#a8b7ad;font-size:10px}.motion-control input{width:87px;accent-color:var(--accent);height:22px;cursor:pointer}
+  .volume-control{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#a8b7ad;font-size:10px;padding:0 4px}.volume-control input{width:105px;accent-color:var(--accent);height:22px;cursor:pointer}.volume-control span{display:flex;gap:7px;align-items:center}
+  .tone-panel{margin-top:25px;border:1px solid var(--line);border-radius:14px;padding:21px 24px;background:linear-gradient(110deg,#152221,#101b20);transition:border-color .3s}
+  .tone-panel.playing{border-color:#68815b}.tone-main{display:flex;justify-content:space-between;align-items:center;gap:24px}.tone-heading{display:flex;gap:15px;align-items:center;min-width:0}
+  .tone-emblem{flex-shrink:0;width:41px;height:41px;border:1px solid #4b6152;border-radius:50%;display:grid;place-items:center;color:#a0b49c}.tone-emblem svg{width:24px;height:24px}.playing .tone-emblem{color:var(--accent);border-color:#93ad70;background:#243525}
+  .tone-heading h2{font:23px var(--serif);letter-spacing:-.5px;margin:0 0 5px}.tone-heading p{color:#a7b9ac;font-size:11px;margin:0}.tone-controls{display:flex;align-items:center;gap:24px}.tone-picker{display:flex;align-items:center;gap:10px;color:#a7b9ac;font-size:11px}
+  .tone-picker select{background:#0b171b;color:#e5ecd6;border:1px solid #4b6152;border-radius:8px;padding:9px 25px 9px 11px;min-height:42px;min-width:110px;cursor:pointer}
+  .tone-level{display:flex;align-items:center;gap:9px;font-size:11px;color:#a7b9ac}.tone-level input{width:100px;accent-color:var(--accent);cursor:pointer;height:26px}.tone-level output{min-width:28px;color:#c7d6bf;font-variant-numeric:tabular-nums}.tone-toggle{min-width:113px;min-height:42px;white-space:nowrap}
+  .tone-bottom{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;border-top:1px solid #293a33;margin-top:16px;padding-top:12px;font-size:10px;color:#9fb2a4}.tone-status{margin:0;display:flex;align-items:center;gap:7px}.tone-status::before{content:'';height:4px;width:4px;flex-shrink:0;border-radius:50%;background:#728777}.playing .tone-status::before{background:var(--accent)}
+  .tone-about{text-align:right;max-width:440px}.tone-about summary{cursor:pointer;color:#b8c8b7;min-height:20px}.tone-about p{font-size:11px;line-height:1.7;margin:10px 0 0;text-align:left}.tone-about a{color:#caddb3;text-decoration-color:#6e8267}
+  footer{display:flex;justify-content:space-between;align-items:center;gap:20px;border-top:1px solid var(--line);margin-top:30px;padding:20px 0 25px;color:#85998f;font-size:10px}.footer-note{display:flex;align-items:center;gap:8px}.footer-dot{height:4px;width:4px;border-radius:50%;background:#a2b68e}.footer-signature{font:italic 13px var(--serif);color:#a4b69e}
+  .toast{position:fixed;bottom:25px;left:50%;transform:translate(-50%,15px);max-width:calc(100% - 32px);padding:12px 19px;background:#e3edce;color:#1b2b20;box-shadow:0 12px 45px #0006;border-radius:10px;font-size:12px;z-index:20;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}.toast.show{opacity:1;transform:translate(-50%,0)}
+  dialog{color:var(--text);background:#142125;border:1px solid #40534a;border-radius:18px;padding:30px;max-width:510px;width:calc(100% - 32px);box-shadow:0 30px 140px #0009}dialog::backdrop{background:#030c10c9;backdrop-filter:blur(7px)}dialog h2{font:32px var(--serif);letter-spacing:-1px;margin:5px 35px 12px 0}dialog p{color:#b7c7bc;font-size:13px;line-height:1.8}dialog .close{position:absolute;right:18px;top:18px;width:32px;height:32px;border:1px solid var(--line);border-radius:50%;font-size:22px;color:#bac9b8}dialog .eyebrow{margin-top:5px}.help-steps{list-style:none;padding:0;margin:24px 0;counter-reset:steps}.help-steps li{padding:12px 0 12px 38px;position:relative;border-bottom:1px solid var(--line);font-size:12px;color:#adbfb1}.help-steps li:before{counter-increment:steps;content:'0' counter(steps);position:absolute;left:0;top:14px;color:var(--accent);font-size:10px;letter-spacing:1px}.help-steps strong{display:block;color:#e1e9d4;font-weight:500;margin-bottom:4px}kbd{font:10px var(--sans);padding:2px 5px;background:#283831;border:1px solid #4b5d4e;border-radius:4px;color:#d8e5c9}.help-small{font-size:11px!important;color:#95a99b!important}dialog .primary{width:100%;margin-top:20px}
+  .finish-mark{font:55px var(--serif);color:var(--accent);margin:8px 0}.finish-buttons{display:flex;gap:10px;margin-top:25px}.finish-buttons button{flex:1}.finish-buttons .primary{margin:0}.finish-buttons .pill{border-radius:9px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  body.session-running .intro-copy{color:#8da197}body.session-running .garden-card{border-color:#526248}
+  @media(min-width:1450px){.garden{height:490px}.workspace,.bottom-bar{grid-template-columns:minmax(0,1fr) 330px}.focus-panel{padding:28px}.timer-wrap{width:224px;height:224px;margin:22px 0 12px}.intro{padding:48px 0 36px}}
+  @media(max-width:1100px){.shell{padding:0 28px}.header-caption{display:none}.intro-copy{max-width:270px;font-size:12px}.workspace,.bottom-bar{grid-template-columns:minmax(0,1fr) 285px;gap:18px}.focus-panel{padding:22px}.garden-tools{padding:14px 12px}.tool{padding:7px 6px}.scene{padding:8px 10px;gap:7px}.motion-control{min-width:0}.motion-control input{width:60px}.scenes{gap:6px}.garden-hint{font-size:10px}}
+  @media(max-width:820px){.shell{padding:0 22px}header{height:78px}.intro{padding:32px 0 27px}.intro-copy{max-width:235px}.workspace{grid-template-columns:minmax(0,1fr)}.garden{height:390px}.focus-panel{display:grid;grid-template-columns:1fr 1fr;column-gap:25px;padding:23px}.focus-heading{grid-column:1;align-self:start;margin-bottom:15px}.intention-field{grid-column:1;align-self:start}.timer-wrap{grid-column:2;grid-row:1 / span 3;width:174px;height:174px;margin:0;justify-self:center}.durations{grid-column:1;justify-content:flex-start;margin:17px 0}.session-actions{grid-column:2;grid-row:4}.session-note{grid-column:2}.daily{grid-column:1;grid-row:4 / span 2;margin-top:5px;flex-direction:column;justify-content:center;gap:3px;padding:12px 0}.bottom-bar{grid-template-columns:1fr}.volume-control{justify-content:flex-start}.volume-control input{width:150px}.scene-settings{gap:12px}h1{font-size:46px}.garden-tools{padding:13px 17px}.tool{padding:7px 10px}}
+  @media(max-width:520px){.shell{padding:0 15px}header{height:72px}.brand{font-size:21px;gap:8px}.brand-mark{width:25px}.header-actions{gap:8px}.pill{padding:8px 12px;font-size:11px}.intro{display:block;padding:28px 5px 24px}.eyebrow{font-size:9px;letter-spacing:2px;margin-bottom:12px}h1{font-size:44px;letter-spacing:-2px}.intro-copy{max-width:320px;margin:16px 0 0;font-size:12px;line-height:1.7}.garden{height:350px}.garden-top{top:19px;left:19px;right:19px}.garden-bottom{bottom:14px;left:18px;right:18px}.garden-hint{font-size:9px;max-width:230px}.star-count{font-size:9px}.garden-sub{font-size:13px}.garden-tools{padding:10px 9px;gap:1px}.tool{padding:8px 6px;font-size:10px;gap:4px}.tool .icon{width:13px}.divider{margin:0 2px}.focus-panel{padding:20px 18px;column-gap:14px}.timer-wrap{width:147px;height:147px}#clock{font-size:34px}#timer-state{font-size:8px;letter-spacing:1.5px}label.intention-label{font-size:20px}#intention{font-size:11px}.duration{padding:6px 9px;font-size:10px}.durations{gap:5px}.focus-heading .eyebrow{font-size:8px;letter-spacing:1.4px}.section-num{font-size:14px}.session-actions .primary{font-size:11px;padding:10px}.session-note{font-size:9px}.daily{font-size:9px}.scenes{gap:5px}.scene{padding:8px 9px;font-size:10px;gap:6px}.swatch{width:16px;height:16px}.motion-control{gap:5px;font-size:9px}.motion-control input{width:51px}.bottom-bar{margin-top:17px;gap:15px}footer{align-items:flex-start;margin-top:23px;font-size:9px}.footer-signature{font-size:11px}.footer-note{max-width:210px;gap:6px}.help-button{width:34px;height:34px}dialog{padding:25px}}
+  @media(max-width:520px){.duration{padding:6px 7px;white-space:nowrap}.session-actions{gap:5px}.session-actions .primary{white-space:nowrap;font-size:10px;padding:10px 8px;min-width:0}.session-actions .primary .icon{display:none}.reset-timer{width:34px;flex-shrink:0}}
+  @media(max-width:1100px){.tone-controls{gap:14px}.tone-level input{width:75px}.tone-panel{padding:19px}.tone-heading{gap:11px}.tone-picker{gap:7px}}
+  @media(max-width:900px){.tone-main{align-items:flex-start;flex-direction:column;gap:18px}.tone-controls{width:100%;justify-content:space-between;gap:12px}.tone-level input{width:120px}.tone-heading p{font-size:11px}}
+  @media(max-width:520px){.tone-panel{margin-top:22px;padding:18px 16px}.tone-heading h2{font-size:22px}.tone-heading p{max-width:230px;line-height:1.6}.tone-controls{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 15px}.tone-picker{flex-direction:column;align-items:flex-start;gap:6px}.tone-picker select{width:100%}.tone-toggle{grid-column:2;grid-row:1;align-self:end;min-width:106px}.tone-level{grid-column:1 / -1;justify-content:space-between}.tone-level input{flex:1;max-width:220px;width:100px}.tone-bottom{flex-direction:column;gap:8px;margin-top:14px}.tone-about{text-align:left;max-width:none}.tone-status{font-size:10px;line-height:1.6}}
+  @media(max-width:360px){.motion-control{display:none}.timer-wrap{width:130px;height:140px}.focus-panel{padding:19px 14px;column-gap:10px}.tool{padding:8px 4px}.tool .icon{display:none}.star-count{display:none}}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important}}
+  @media print{header,.intro,.bottom-bar,.tone-panel,footer,.garden-tools,.focus-panel,.toast,dialog{display:none!important}.workspace{display:block}.shell{padding:0}.garden{height:80vh}.garden-card{border:0}.garden-bottom{display:none}}
+</style>
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true"><defs>
+ <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M17 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></symbol>
+ <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+ <symbol id="i-play" viewBox="0 0 24 24"><path d="m9 5 11 7-11 7V5Z"/></symbol>
+ <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+ <symbol id="i-reset" viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 1 8M4 4v6h6"/></symbol>
+ <symbol id="i-save" viewBox="0 0 24 24"><path d="M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5"/></symbol>
+ <symbol id="i-undo" viewBox="0 0 24 24"><path d="m9 4-6 6 6 6M3 10h11a7 7 0 0 1 7 7v3"/></symbol>
+ <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+</defs></svg>
+<div class="shell">
+ <header>
+  <div class="brand"><svg class="brand-mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><ellipse cx="16" cy="16" rx="14" ry="7" stroke="currentColor" transform="rotate(-35 16 16)"/><ellipse cx="16" cy="16" rx="14" ry="7" stroke="currentColor" opacity=".5" transform="rotate(35 16 16)"/><circle cx="16" cy="16" r="3" fill="currentColor"/></svg>stillpoint<span class="sr-only"> — a focus instrument</span></div>
+  <span class="header-caption">A little universe for your attention</span>
+  <div class="header-actions"><button class="pill" id="sound" aria-pressed="false" title="Turn the garden's music on or off"><svg class="icon"><use href="#i-sound"/></svg><span id="sound-label">Garden off</span></button><button class="help-button" id="help-open" aria-label="How Stillpoint works">?</button></div>
+ </header>
+ <main>
+  <div class="intro"><div><p class="eyebrow">Less noise. More possibility.</p><h1>A little space.<br>A <em>clearer mind.</em></h1></div><p class="intro-copy">Plant a star. Shape a gentle soundscape.<br>Then make room for the one thing<br>that deserves your attention.</p></div>
+  <div class="workspace">
+   <section class="garden-card" aria-label="Your generative garden">
+    <div class="garden" id="garden" aria-describedby="garden-instructions">
+     <canvas id="flow" aria-hidden="true"></canvas><canvas id="sky" aria-hidden="true"></canvas>
+     <div class="garden-top"><div><p class="garden-title" id="scene-title">01 / The tidal garden</p><p class="garden-sub" id="scene-sub">Everything finds its own rhythm.</p></div><div class="garden-selection"><div class="live-badge"><span class="live-dot"></span><span id="live-label">Living</span></div><button class="remove-star" id="remove-star" hidden>Remove selected star</button></div></div>
+     <div id="star-layer" role="group" aria-label="Garden stars. Use arrow keys to move a focused star, and Delete to remove it."></div>
+     <div class="garden-bottom"><p class="garden-hint" id="garden-instructions">Click to plant a star · drag to shape the current</p><span class="star-count" id="star-count">03 / 07 STARS</span></div>
+    </div>
+    <div class="garden-tools"><div class="tool-group"><button class="tool" id="add-star"><svg class="icon"><use href="#i-plus"/></svg>Plant star</button><button class="tool" id="undo" aria-label="Undo last garden edit" title="Undo last garden edit" disabled><svg class="icon"><use href="#i-undo"/></svg>Undo</button><button class="tool" id="reset-garden" aria-label="Restore this scene's garden" title="Restore this scene's garden"><svg class="icon"><use href="#i-reset"/></svg><span class="sr-only">Restore garden</span></button></div><div class="tool-group"><button class="tool" id="motion" aria-pressed="false" aria-label="Pause motion"><svg class="icon"><use id="motion-icon" href="#i-pause"/></svg><span id="motion-label">Pause</span></button><span class="divider"></span><button class="tool" id="save-art"><svg class="icon"><use href="#i-save"/></svg>Postcard</button></div></div>
+   </section>
+   <section class="focus-panel" aria-label="Focus timer">
+    <div class="focus-heading"><p class="eyebrow">Make room for one thing</p><span class="section-num">01</span></div>
+    <div class="intention-field"><label class="intention-label" for="intention">What matters now?</label><input id="intention" maxlength="90" autocomplete="off" placeholder="Give your attention a destination…"></div>
+    <div class="timer-wrap"><svg class="timer-ring" viewBox="0 0 206 206" aria-hidden="true"><circle class="ring-track" cx="103" cy="103" r="90"/><circle class="ring-progress" id="progress" cx="103" cy="103" r="90"/></svg><div class="timer-center"><span id="clock" role="timer" aria-label="25 minutes remaining" aria-live="off">25:00</span><span id="timer-state">A fresh start</span></div></div>
+    <div class="durations" role="group" aria-label="Focus duration"><button class="duration" data-minutes="5" aria-pressed="false">5 min</button><button class="duration" data-minutes="25" aria-pressed="true">25 min</button><button class="duration" data-minutes="50" aria-pressed="false">50 min</button></div>
+    <div class="session-actions"><button class="primary" id="start"><svg class="icon"><use id="start-icon" href="#i-play"/></svg><span id="start-label">Begin focus</span></button><button class="reset-timer" id="reset-timer" aria-label="Reset focus timer" title="Reset focus timer" hidden><svg class="icon"><use href="#i-reset"/></svg></button></div>
+    <p class="session-note" id="session-note">One thing. A little time. Enough.</p>
+    <div class="daily"><span>YOUR SPACE TODAY</span><strong id="today">0 sessions · 0 min</strong></div>
+   </section>
+  </div>
+  <div class="bottom-bar"><div class="scene-settings"><div class="scenes" role="group" aria-label="Garden scene"><button class="scene" data-scene="tide" aria-pressed="true"><span class="swatch tide" aria-hidden="true"></span>Tide</button><button class="scene" data-scene="ember" aria-pressed="false"><span class="swatch ember" aria-hidden="true"></span>Ember</button><button class="scene" data-scene="aurora" aria-pressed="false"><span class="swatch aurora" aria-hidden="true"></span>Aurora</button></div><label class="motion-control" for="pace">Pace<input type="range" id="pace" min="20" max="100" value="45" aria-label="Garden movement pace"></label></div><label class="volume-control" for="volume"><span><svg class="icon"><use href="#i-sound"/></svg>Garden level</span><input id="volume" type="range" min="0" max="100" value="35" aria-label="Garden music volume"><span id="volume-value">35%</span></label></div>
+  <section class="tone-panel" id="tone-panel" aria-labelledby="tone-title">
+   <div class="tone-main">
+    <div class="tone-heading"><div class="tone-emblem" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M2 12c3-12 7-12 10 0s7 12 10 0M2 12h20" opacity=".9"/></svg></div><div><h2 id="tone-title">Background tones</h2><p>A steady note, with or without the garden.</p></div></div>
+    <div class="tone-controls">
+     <label class="tone-picker" for="tone-frequency">Frequency<select id="tone-frequency" aria-label="Background tone frequency"><optgroup label="Solfeggio tones"><option value="174">174 Hz</option><option value="285">285 Hz</option><option value="396">396 Hz</option><option value="417">417 Hz</option><option value="528" selected>528 Hz</option><option value="639">639 Hz</option><option value="741">741 Hz</option><option value="852">852 Hz</option><option value="963">963 Hz</option></optgroup><optgroup label="Additional pure tone"><option value="432">432 Hz</option></optgroup></select></label>
+     <label class="tone-level" for="tone-volume">Level<input id="tone-volume" type="range" min="0" max="100" value="18" aria-label="Background tone volume"><output id="tone-volume-value" for="tone-volume">18%</output></label>
+     <button class="pill tone-toggle" id="tone-toggle" aria-pressed="false" title="Turn the continuous background tone on or off"><svg class="icon" aria-hidden="true"><use id="tone-icon" href="#i-play"/></svg><span id="tone-label">Tone off</span></button>
+    </div>
+   </div>
+   <div class="tone-bottom"><p class="tone-status" id="tone-status" role="status">528 Hz ready · starts only when you choose.</p><details class="tone-about"><summary>About these frequencies</summary><p>Choose from nine familiar Solfeggio tones or a 432 Hz pure tone. Often called “healing frequencies,” these are offered as listening preferences, without medical claims. Pick a comfortable level. A pure 432 Hz note is different from music tuned to A = 432 Hz.</p><p>The tone can continue while you work in another tab, even with garden motion paused. Turn it off here when you are done; it does not stop with the focus timer. Your frequency and level are remembered, but playback always starts off.</p></details></div>
+  </section>
+ </main>
+ <footer><span class="footer-note"><span class="footer-dot"></span><span id="privacy-note">Entirely on your device. Entirely your space.</span></span><span class="footer-signature">Small worlds. Meaningful moments.</span></footer>
+</div>
+<dialog id="help" aria-labelledby="help-title"><button class="close" data-close="help" aria-label="Close instructions">×</button><p class="eyebrow">Welcome to your quiet corner</p><h2 id="help-title">A garden you can hear.</h2><p>Each star bends a current of light. When a bright traveler crosses its star’s horizon, it plays a note. No recording, no playlist: the garden is the instrument.</p><ol class="help-steps"><li><strong>Make it yours.</strong>Click an empty space to plant a star. Drag stars to reshape the currents. Try Tide’s orbits, Ember’s spiral, or Aurora’s flowing ribbons.</li><li><strong>Give your attention a destination.</strong>Write one intention, choose a duration, and begin. The outer orbit fills as you focus. Pause or reset whenever you need.</li><li><strong>Choose your backdrop.</strong>Garden music follows the moving stars. Background tones play a steady frequency with their own switch and level. Listen to either layer alone or mix them together.</li><li><strong>Take a little of it with you.</strong>Postcard saves a PNG of your garden, your intention, and your focus time. Everything is made and kept on this device.</li></ol><p class="help-small"><strong>Keyboard:</strong> Tab to a star, then use <kbd>←</kbd> <kbd>↑</kbd> <kbd>↓</kbd> <kbd>→</kbd> to move it. <kbd>Delete</kbd> removes it. <kbd>Space</kbd> on the page pauses motion. <kbd>Esc</kbd> closes this guide. Sound is always your choice.</p><p class="help-small">Your settings and timer are saved in this browser when local storage is available. A running timer uses the clock, even in another tab. The garden and its music rest while this tab is hidden; background tones can keep playing until you turn them off. Neither sound layer starts automatically when you reopen Stillpoint. Reduced-motion preferences are respected.</p><button class="primary" data-close="help">Make a little space <span aria-hidden="true">↗</span></button></dialog>
+<dialog id="finished" aria-labelledby="finished-title"><button class="close" data-close="finished" aria-label="Close session reflection">×</button><p class="eyebrow">A moment, well spent</p><div class="finish-mark" aria-hidden="true">✳</div><h2 id="finished-title">You made room.</h2><p id="finished-copy"></p><p>Let your eyes wander. Unclench your shoulders.<br>The next thing can wait a moment.</p><div class="finish-buttons"><button class="pill" id="finish-save"><svg class="icon"><use href="#i-save"/></svg>Save postcard</button><button class="primary" data-close="finished">Take a breath</button></div></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div><div class="sr-only" id="announcer" role="status" aria-live="polite"></div>
+<noscript><p style="padding:24px;text-align:center">Stillpoint needs JavaScript enabled in your browser. It uses no external libraries or services.</p></noscript>
+<script>
+/* Stillpoint: a small, self-contained instrument. No assets and no autoplay. */
+(() => {
+  'use strict';
+
+  const clamp = (value, low, high) => Math.max(low, Math.min(high, Number(value) || 0));
+  const scenes = {
+    tide:   { notes: [50, 53, 55, 57, 60, 62, 65, 67], decay: 2.8, color: 0.12, cutoff: 1900, delay: 0.43 },
+    ember:  { notes: [45, 48, 50, 52, 55, 57, 60, 62], decay: 2.1, color: 0.21, cutoff: 1350, delay: 0.36 },
+    aurora: { notes: [54, 57, 59, 61, 64, 66, 69, 71], decay: 3.5, color: 0.08, cutoff: 2800, delay: 0.51 }
+  };
+
+  class StillpointAudio {
+    constructor() {
+      this.enabled = false;
+      this.volume = 0.45;
+      this.scene = 'tide';
+      this._context = null;
+      this._hidden = false;
+      this._disposed = false;
+      this._revision = 0;
+      this._lastNote = -Infinity;
+      this._voices = new Set();
+      this._suspendTimer = null;
+      this._nodes = [];
+    }
+
+    _build() {
+      const AudioContext = globalThis.AudioContext || globalThis.webkitAudioContext;
+      if (!AudioContext) return false;
+      const context = new AudioContext({ latencyHint: 'playback' });
+      this._context = context;
+      const input = context.createGain();
+      const tone = context.createBiquadFilter();
+      const delay = context.createDelay(1);
+      const feedback = context.createGain();
+      const echoFilter = context.createBiquadFilter();
+      const echo = context.createGain();
+      const reverb = context.createConvolver();
+      const room = context.createGain();
+      const mix = context.createGain();
+      const limiter = context.createDynamicsCompressor();
+      const master = context.createGain();
+
+      tone.type = 'lowpass';
+      tone.frequency.value = scenes[this.scene].cutoff;
+      tone.Q.value = 0.3;
+      delay.delayTime.value = scenes[this.scene].delay;
+      feedback.gain.value = 0.24;
+      echoFilter.type = 'lowpass';
+      echoFilter.frequency.value = 1100;
+      echoFilter.Q.value = 0.3;
+      echo.gain.value = 0.19;
+      room.gain.value = 0.19;
+      mix.gain.value = 0.8;
+      limiter.threshold.value = -15;
+      limiter.knee.value = 12;
+      limiter.ratio.value = 8;
+      limiter.attack.value = 0.005;
+      limiter.release.value = 0.25;
+      master.gain.value = 0;
+
+      // An inexpensive, deterministic stereo room, made in memory once.
+      const seconds = 1.65;
+      const impulse = context.createBuffer(2, Math.floor(context.sampleRate * seconds), context.sampleRate);
+      let seed = 7331;
+      for (let channel = 0; channel < 2; channel++) {
+        const samples = impulse.getChannelData(channel);
+        let smooth = 0;
+        for (let i = 0; i < samples.length; i++) {
+          seed = (Math.imul(seed, 1664525) + 1013904223) | 0;
+          smooth = smooth * 0.66 + ((seed >>> 0) / 2147483648 - 1) * 0.34;
+          const progress = i / samples.length;
+          samples[i] = smooth * Math.pow(1 - progress, 3) * Math.min(1, i / 240);
+        }
+      }
+      reverb.buffer = impulse;
+      input.connect(tone);
+      tone.connect(mix);
+      tone.connect(delay);
+      delay.connect(echoFilter);
+      echoFilter.connect(feedback);
+      feedback.connect(delay);
+      echoFilter.connect(echo);
+      echo.connect(mix);
+      tone.connect(reverb);
+      reverb.connect(room);
+      room.connect(mix);
+      mix.connect(limiter);
+      limiter.connect(master);
+      master.connect(context.destination);
+
+      this._input = input;
+      this._tone = tone;
+      this._delay = delay;
+      this._master = master;
+      this._nodes = [input, tone, delay, feedback, echoFilter, echo, reverb, room, mix, limiter, master];
+      this._lastNote = -Infinity;
+      return true;
+    }
+
+    _gain(value, time = 0.06) {
+      if (!this._context || !this._master || this._context.state === 'closed') return;
+      const gain = this._master.gain;
+      gain.cancelScheduledValues(this._context.currentTime);
+      gain.setTargetAtTime(value, this._context.currentTime, time);
+    }
+
+    async setEnabled(enabled) {
+      const revision = ++this._revision;
+      clearTimeout(this._suspendTimer);
+      this._suspendTimer = null;
+      if (this._disposed) return false;
+      if (!enabled) {
+        this.enabled = false;
+        this._gain(0, 0.02);
+        this._suspendSoon();
+        return false;
+      }
+      try {
+        if (!this._context || this._context.state === 'closed') {
+          this._disconnect();
+          if (!this._build()) return false;
+        }
+        // Call setEnabled(true) from a click or key handler; browsers require it.
+        await this._context.resume();
+        if (revision !== this._revision || this._disposed) return this.enabled;
+        this.enabled = this._context.state === 'running';
+        this._gain(this.enabled && !this._hidden ? this.volume : 0);
+        if (this._hidden) this._suspendSoon();
+        return this.enabled;
+      } catch (_) {
+        if (revision === this._revision) {
+          this.enabled = false;
+          this._gain(0);
+          const failedContext = this._context;
+          this._disconnect();
+          this._context = null;
+          if (failedContext && failedContext.state !== 'closed') failedContext.close().catch(() => {});
+        }
+        return false;
+      }
+    }
+
+    setVolume(volume) {
+      this.volume = clamp(volume, 0, 1);
+      this._gain(this.enabled && !this._hidden ? this.volume : 0);
+    }
+
+    setScene(scene) {
+      if (!Object.prototype.hasOwnProperty.call(scenes, scene)) return;
+      this.scene = scene;
+      if (!this._context || this._context.state === 'closed') return;
+      const now = this._context.currentTime;
+      this._tone.frequency.setTargetAtTime(scenes[scene].cutoff, now, 0.6);
+      this._delay.delayTime.setTargetAtTime(scenes[scene].delay, now, 0.8);
+    }
+
+    pluck(index, pan = 0, strength = 0.5) {
+      const context = this._context;
+      if (!this.enabled || this._hidden || !context || context.state !== 'running') return;
+      const now = context.currentTime;
+      // Dense particle crossings stay musical and inexpensive.
+      if (now - this._lastNote < 0.095 || this._voices.size >= 12) return;
+      this._lastNote = now;
+      const scene = scenes[this.scene];
+      const numericIndex = Number(index);
+      const noteIndex = Math.abs(Math.floor(Number.isFinite(numericIndex) ? numericIndex : 0)) % scene.notes.length;
+      this._voice(scene.notes[noteIndex], clamp(pan, -1, 1), clamp(strength, 0, 1), now, scene);
+    }
+
+    _voice(midi, pan, strength, at, scene) {
+      const context = this._context;
+      if (!context || context.state !== 'running' || this._voices.size >= 12 || strength <= 0) return;
+      const frequency = 440 * Math.pow(2, (midi - 69) / 12);
+      const fundamental = context.createOscillator();
+      const overtone = context.createOscillator();
+      const overtoneGain = context.createGain();
+      const envelope = context.createGain();
+      const position = context.createStereoPanner ? context.createStereoPanner() : context.createGain();
+      if (position.pan) position.pan.value = pan * 0.7;
+      fundamental.type = 'sine';
+      fundamental.frequency.value = frequency;
+      overtone.type = 'sine';
+      overtone.frequency.value = frequency * 2;
+      overtone.detune.value = 3;
+      overtoneGain.gain.value = scene.color;
+      const amplitude = 0.08 + strength * 0.11;
+      envelope.gain.setValueAtTime(0, at);
+      envelope.gain.linearRampToValueAtTime(amplitude, at + 0.025);
+      envelope.gain.exponentialRampToValueAtTime(0.0001, at + scene.decay);
+      envelope.gain.linearRampToValueAtTime(0, at + scene.decay + 0.05);
+      fundamental.connect(envelope);
+      overtone.connect(overtoneGain);
+      overtoneGain.connect(envelope);
+      envelope.connect(position);
+      position.connect(this._input);
+      const voice = { oscillators: [fundamental, overtone], nodes: [fundamental, overtone, overtoneGain, envelope, position] };
+      this._voices.add(voice);
+      fundamental.onended = () => {
+        voice.nodes.forEach(node => { try { node.disconnect(); } catch (_) {} });
+        this._voices.delete(voice);
+      };
+      fundamental.start(at);
+      overtone.start(at);
+      fundamental.stop(at + scene.decay + 0.08);
+      overtone.stop(at + scene.decay + 0.08);
+    }
+
+    completion() {
+      const context = this._context;
+      if (!this.enabled || this._hidden || !context || context.state !== 'running') return;
+      const scene = scenes[this.scene];
+      // Three gently spaced tones; native audio scheduling needs no timers.
+      [0, 2, 4].forEach((degree, i) => {
+        this._voice(scene.notes[degree] + 12, (i - 1) * 0.4, 0.5, context.currentTime + i * 0.28, scene);
+      });
+    }
+
+    _suspendSoon() {
+      clearTimeout(this._suspendTimer);
+      const context = this._context;
+      this._suspendTimer = setTimeout(() => {
+        this._suspendTimer = null;
+        if (context && context === this._context && context.state === 'running' && (!this.enabled || this._hidden)) {
+          this._clearVoices();
+          context.suspend().catch(() => {});
+        }
+      }, 130);
+    }
+
+    pauseForVisibility(hidden) {
+      this._hidden = Boolean(hidden);
+      clearTimeout(this._suspendTimer);
+      this._suspendTimer = null;
+      if (this._hidden) {
+        this._gain(0, 0.02);
+        this._suspendSoon();
+      } else if (this.enabled && this._context && this._context.state !== 'closed') {
+        // This resumes only a context the listener explicitly enabled earlier.
+        this._context.resume().then(() => {
+          if (this.enabled && !this._hidden && !this._disposed) this._gain(this.volume);
+        }).catch(() => {});
+      }
+    }
+
+    _clearVoices() {
+      this._voices.forEach(voice => {
+        voice.oscillators.forEach(oscillator => { try { oscillator.stop(); } catch (_) {} });
+        voice.nodes.forEach(node => { try { node.disconnect(); } catch (_) {} });
+      });
+      this._voices.clear();
+    }
+
+    _disconnect() {
+      this._clearVoices();
+      this._nodes.forEach(node => { try { node.disconnect(); } catch (_) {} });
+      this._nodes = [];
+    }
+
+    dispose() {
+      this._disposed = true;
+      this.enabled = false;
+      ++this._revision;
+      clearTimeout(this._suspendTimer);
+      this._disconnect();
+      if (this._context && this._context.state !== 'closed') this._context.close().catch(() => {});
+      this._context = null;
+    }
+  }
+
+  globalThis.StillpointAudio = StillpointAudio;
+})();
+
+/* A separate, gentle sine tone. Settings are inert until an explicit enable. */
+(() => {
+  'use strict';
+
+  const FREQUENCIES = new Set([174, 285, 396, 417, 432, 528, 639, 741, 852, 963]);
+  const PEAK_GAIN = 0.18;
+  const clamp = value => Math.max(0, Math.min(1, Number(value) || 0));
+
+  class StillpointTone {
+    constructor(onStateChange) {
+      this.enabled = false;
+      this.volume = 0.18;
+      this.frequency = 528;
+      this._onStateChange = typeof onStateChange === 'function' ? onStateChange : null;
+      this._context = null;
+      this._oscillator = null;
+      this._gain = null;
+      this._wanted = false;
+      this._disposed = false;
+      this._revision = 0;
+      this._startingRevision = 0;
+      this._suspendTimer = null;
+    }
+
+    _setState(enabled) {
+      const next = Boolean(enabled);
+      if (this.enabled === next) return;
+      this.enabled = next;
+      // UI callbacks cannot disrupt audio cleanup or turn a failure into a throw.
+      if (this._onStateChange) {
+        try { this._onStateChange(next); } catch (_) {}
+      }
+    }
+
+    _clearTimer() {
+      clearTimeout(this._suspendTimer);
+      this._suspendTimer = null;
+    }
+
+    _build() {
+      const AudioContext = globalThis.AudioContext || globalThis.webkitAudioContext;
+      if (!AudioContext) return false;
+      let context, oscillator, gain;
+      try {
+        context = new AudioContext({ latencyHint: 'playback' });
+        oscillator = context.createOscillator();
+        gain = context.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.value = this.frequency;
+        gain.gain.value = 0;
+        oscillator.connect(gain);
+        gain.connect(context.destination);
+        oscillator.start();
+        this._context = context;
+        this._oscillator = oscillator;
+        this._gain = gain;
+        context.onstatechange = () => this._contextChanged(context);
+        return true;
+      } catch (_) {
+        if (oscillator) {
+          try { oscillator.stop(); } catch (_) {}
+          try { oscillator.disconnect(); } catch (_) {}
+        }
+        if (gain) { try { gain.disconnect(); } catch (_) {} }
+        if (context && context.state !== 'closed') {
+          try { context.close().catch(() => {}); } catch (_) {}
+        }
+        return false;
+      }
+    }
+
+    _hold(parameter, now) {
+      if (typeof parameter.cancelAndHoldAtTime === 'function') {
+        parameter.cancelAndHoldAtTime(now);
+      } else {
+        const current = parameter.value;
+        parameter.cancelScheduledValues(now);
+        parameter.setValueAtTime(current, now);
+      }
+    }
+
+    _gainTo(value, seconds = 0.12) {
+      const context = this._context;
+      if (!context || context.state === 'closed' || !this._gain) return;
+      const parameter = this._gain.gain;
+      const now = context.currentTime;
+      this._hold(parameter, now);
+      if (seconds === 0) parameter.setValueAtTime(value, now);
+      else parameter.linearRampToValueAtTime(value, now + seconds);
+    }
+
+    _contextChanged(context) {
+      if (context !== this._context || this._disposed) return;
+      if (context.state === 'closed') {
+        this._wanted = false;
+        ++this._revision;
+        this._startingRevision = 0;
+        this._setState(false);
+        this._releaseContext();
+      } else if (context.state === 'running') {
+        if (this._wanted) {
+          this._setState(true);
+          this._gainTo(this.volume * PEAK_GAIN);
+        } else {
+          // A previously pending resume must not undo a newer Off action.
+          this._gainTo(0, 0);
+          this._suspendSoon();
+        }
+      } else {
+        this._setState(false);
+        this._gainTo(0, 0);
+        // A browser/device interruption requires another deliberate enable.
+        // A suspension still settling during a new resume is allowed to finish.
+        if (this._startingRevision !== this._revision) this._wanted = false;
+      }
+    }
+
+    async setEnabled(enabled) {
+      const revision = ++this._revision;
+      this._clearTimer();
+      if (this._disposed) return false;
+      this._wanted = Boolean(enabled);
+      if (!this._wanted) {
+        this._startingRevision = 0;
+        this._setState(false);
+        this._gainTo(0, 0.08);
+        this._suspendSoon();
+        return false;
+      }
+      this._startingRevision = revision;
+      try {
+        if (!this._context || this._context.state === 'closed') {
+          this._releaseContext();
+          if (!this._build()) {
+            this._wanted = false;
+            this._setState(false);
+            return false;
+          }
+        }
+        const context = this._context;
+        // This call must originate in a button/key handler. Nothing auto-enables.
+        await context.resume();
+        if (revision !== this._revision || this._disposed) return this.enabled;
+        const running = context === this._context && context.state === 'running';
+        this._wanted = running;
+        this._setState(running);
+        this._gainTo(running ? this.volume * PEAK_GAIN : 0);
+        if (!running) this._suspendSoon();
+        return running;
+      } catch (_) {
+        if (revision === this._revision) {
+          this._wanted = false;
+          this._setState(false);
+          this._releaseContext();
+        }
+        return this.enabled;
+      } finally {
+        if (this._startingRevision === revision) this._startingRevision = 0;
+      }
+    }
+
+    setFrequency(value) {
+      const frequency = Number(value);
+      if (!FREQUENCIES.has(frequency)) return false;
+      this.frequency = frequency;
+      const context = this._context;
+      if (context && context.state !== 'closed' && this._oscillator) {
+        const parameter = this._oscillator.frequency;
+        this._hold(parameter, context.currentTime);
+        parameter.exponentialRampToValueAtTime(frequency, context.currentTime + 0.18);
+      }
+      return true;
+    }
+
+    setVolume(value) {
+      this.volume = clamp(value);
+      this._gainTo(this.enabled && this._wanted ? this.volume * PEAK_GAIN : 0);
+    }
+
+    _suspendSoon() {
+      this._clearTimer();
+      const context = this._context;
+      if (!context || context.state === 'closed' || context.state === 'suspended' || this._wanted) return;
+      this._suspendTimer = setTimeout(() => {
+        this._suspendTimer = null;
+        if (context !== this._context || this._wanted || this._disposed || context.state === 'closed') return;
+        this._gainTo(0, 0);
+        try {
+          context.suspend().catch(() => {
+            // If suspension fails, release the silent graph instead of leaving it running.
+            if (context === this._context && !this._wanted) this._releaseContext();
+          });
+        } catch (_) {
+          if (context === this._context && !this._wanted) this._releaseContext();
+        }
+      }, 115);
+    }
+
+    _releaseContext() {
+      this._clearTimer();
+      const context = this._context;
+      const oscillator = this._oscillator;
+      const gain = this._gain;
+      this._context = this._oscillator = this._gain = null;
+      if (context) context.onstatechange = null;
+      if (oscillator) {
+        try { oscillator.stop(); } catch (_) {}
+        try { oscillator.disconnect(); } catch (_) {}
+      }
+      if (gain) { try { gain.disconnect(); } catch (_) {} }
+      if (context && context.state !== 'closed') {
+        try { context.close().catch(() => {}); } catch (_) {}
+      }
+    }
+
+    dispose() {
+      if (this._disposed) return;
+      this._disposed = true;
+      this._wanted = false;
+      ++this._revision;
+      this._startingRevision = 0;
+      this._setState(false);
+      this._releaseContext();
+      this._onStateChange = null;
+    }
+  }
+
+  globalThis.StillpointTone = StillpointTone;
+})();
+
+
+</script>
+<script>
+(() => {
+  'use strict';
+  // Configuration and defensive persistence. User text is never interpreted as HTML.
+  const $ = id => document.getElementById(id);
+  const clamp = (n,a,b) => Math.min(b,Math.max(a,n));
+  const finite = (n,f) => typeof n === 'number' && Number.isFinite(n) ? n : f;
+  const TAU = Math.PI * 2, KEY = 'stillpoint-v1';
+  const scenes = {
+    tide:{title:'01 / The tidal garden',sub:'Everything finds its own rhythm.',colors:['#6db4ac','#adc993','#498f9e','#d6d9a1'],rgb:[[109,180,172],[173,201,147],[73,143,158],[214,217,161]],background:'#091419',stars:[[.36,.52],[.65,.47],[.51,.73]]},
+    ember:{title:'02 / The ember garden',sub:'A small spark is a beginning.',colors:['#db9b6f','#f1ca8b','#9e796f','#e3ad89'],rgb:[[219,155,111],[241,202,139],[158,121,111],[227,173,137]],background:'#171215',stars:[[.5,.51],[.28,.66],[.73,.4]]},
+    aurora:{title:'03 / The aurora garden',sub:'Let a different current find you.',colors:['#aea0d7','#7bceb6','#6b97b5','#d4c4e8'],rgb:[[174,160,215],[123,206,182],[107,151,181],[212,196,232]],background:'#0d1420',stars:[[.25,.55],[.51,.42],[.76,.6]]}
+  };
+  let stored = {}, storageAvailable = true;
+  try { stored = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch { storageAvailable = false; }
+  if(typeof stored !== 'object' || Array.isArray(stored)) stored={};
+  let scene = Object.prototype.hasOwnProperty.call(scenes,stored.scene) ? stored.scene : 'tide';
+  let stars = [];
+  let nextStarId = 1;
+  const makeStar = (x,y) => ({id:nextStarId++,x:clamp(x,.06,.94),y:clamp(y,.20,.86),pulse:0,lastNote:-100});
+  const validStars = Array.isArray(stored.stars) && stored.stars.length > 0 && stored.stars.length <= 7 && stored.stars.every(s => s && Number.isFinite(s.x) && Number.isFinite(s.y));
+  stars = validStars ? stored.stars.map(s=>makeStar(s.x,s.y)) : scenes[scene].stars.map(s=>makeStar(...s));
+  let pace = clamp(finite(stored.pace,45),20,100), volume=clamp(finite(stored.volume,35),0,100);
+  const toneFrequencies = [174,285,396,417,432,528,639,741,852,963];
+  let toneFrequency=toneFrequencies.includes(stored.toneFrequency)?stored.toneFrequency:528;
+  let toneVolume=clamp(finite(stored.toneVolume,18),0,100),toneOn=false,toneBusy=false;
+  const tone = new StillpointTone(enabled=>{toneOn=Boolean(enabled);updateToneUI();});
+  tone.setFrequency(toneFrequency);tone.setVolume(toneVolume/100);
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  let motionPaused = reducedMotion.matches, selected = null, dragging = null, history=[];
+  const audio = new StillpointAudio();
+  let soundOn = false, soundBusy = false;
+  let stats = stored.stats && typeof stored.stats==='object' ? stored.stats : {};
+  let lastSession = stored.lastSession && typeof stored.lastSession==='object' ? stored.lastSession : null;
+  let timer = {duration:25*60,remaining:25*60,started:false,running:false,end:0,intention:''};
+  if(stored.timer && [300,1500,3000].includes(stored.timer.duration)) {
+    const t=stored.timer;
+    timer={duration:t.duration,remaining:clamp(finite(t.remaining,t.duration),0,t.duration),started:t.started===true,running:t.running===true,end:finite(t.end,0),intention:typeof t.intention==='string'?t.intention.slice(0,90):''};
+    if(timer.running && (!timer.started || timer.end<=0 || timer.end>Date.now()+timer.duration*1000+1000)) {timer.running=false;timer.remaining=timer.duration;timer.started=false;}
+  }
+  $('intention').value = typeof stored.intention==='string' ? stored.intention.slice(0,90) : '';
+  $('pace').value=pace; $('volume').value=volume; $('volume-value').textContent=volume+'%';
+  $('tone-frequency').value=String(toneFrequency);$('tone-volume').value=toneVolume;updateToneUI();
+  audio.setVolume(volume/100); audio.setScene(scene);
+  const dayKey = (d=new Date()) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  function announce(message){$('announcer').textContent=message;}
+  let toastTimeout;
+  function toast(message){$('toast').textContent=message;$('toast').classList.add('show');clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>$('toast').classList.remove('show'),3600);}
+  function save(){
+    try {localStorage.setItem(KEY,JSON.stringify({scene,stars:stars.map(({x,y})=>({x,y})),pace,volume,toneFrequency,toneVolume,intention:$('intention').value,timer,stats,lastSession}));}
+    catch {storageAvailable=false;$('privacy-note').textContent='Private by design. Saving is unavailable in this browser.';}
+  }
+  if(!storageAvailable)$('privacy-note').textContent='Private by design. Saving is unavailable in this browser.';
+  // A bounded, deterministic flow field; the canvas performs no DOM work per particle.
+  const garden=$('garden'),canvas=$('flow'),ctx=canvas.getContext('2d',{alpha:false}),sky=$('sky'),overlay=sky.getContext('2d');
+  let W=800,H=442,DPR=1,particles=[],dust=[],time=0,raf=0,lastFrame=0,lastNoteTime=-100,frameCount=0;
+  let seed=0x19A4B23;
+  function random(){seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return (seed>>>0)/4294967296;}
+  function particle(p={},initial=false){
+    const home=stars[Math.floor(random()*stars.length)],a=random()*TAU,r=25+Math.pow(random(),.55)*Math.min(W*.29,H*.56);
+    p.x=initial && random()<.13?random()*W:home.x*W+Math.cos(a)*r;
+    p.y=initial && random()<.13?random()*H:home.y*H+Math.sin(a)*r*.75;
+    p.vx=0;p.vy=0;p.life=150+random()*600;p.age=0;p.color=Math.floor(random()*4);p.speed=.6+random()*.85;
+    p.traveler=random()<.017;p.px=p.x;p.py=p.y;return p;
+  }
+  function clearArt(){ctx.fillStyle=scenes[scene].background;ctx.fillRect(0,0,W,H);}
+  function initParticles(){seed=0x19A4B23;const count=Math.round(clamp(W*H/480,420,1250));particles=Array.from({length:count},()=>particle({},true));dust=Array.from({length:75},()=>({x:random(),y:random(),r:random()<.12?1:.5,a:.1+random()*.25}));clearArt();for(let i=0;i<100;i++)step(1.6,true);drawSky();}
+  function resize(){const rect=garden.getBoundingClientRect();if(!rect.width||!rect.height)return;const w=Math.round(rect.width),h=Math.round(rect.height),dpr=Math.min(window.devicePixelRatio||1,1.75);if(W===w&&H===h&&DPR===dpr&&particles.length)return;W=w;H=h;DPR=dpr;for(const c of [canvas,sky]){c.width=Math.round(W*DPR);c.height=Math.round(H*DPR);}ctx.setTransform(DPR,0,0,DPR,0,0);overlay.setTransform(DPR,0,0,DPR,0,0);initParticles();positionStars();}
+  function step(dt,warmup=false){
+    time+=dt*.007;
+    ctx.globalCompositeOperation='source-over';ctx.fillStyle=scenes[scene].background;ctx.globalAlpha=warmup?.025:1-Math.pow(.975,dt);ctx.fillRect(0,0,W,H);ctx.globalAlpha=1;
+    const centers=stars.map(s=>({x:s.x*W,y:s.y*H,s})),scale=Math.min(W,H)/440;
+    const speed=(.4+pace/70)*(timer.running?.7:1)*scale;
+    for(const p of particles){
+      p.px=p.x;p.py=p.y;p.age+=dt;
+      let fx=0,fy=0,total=0;
+      for(let j=0;j<centers.length;j++){
+        const s=centers[j],dx=s.x-p.x,dy=s.y-p.y,d=Math.sqrt(dx*dx+dy*dy)+.01;
+        const weight=1/(1+d*d/(16000*scale*scale)),ring=(43+j*9)*scale;
+        let radial=(d-ring)*.004/scale,spin=1.6;
+        if(scene==='ember'){radial=(d-ring*.35)*.006/scale;spin=1.45+Math.sin(time*.4+j)*.35;}
+        if(scene==='aurora'){radial=(d-ring*1.6)*.002/scale;spin=(j%2?-1:1)*1.8;}
+        fx+=(dx/d*radial-dy/d*spin)*weight;fy+=(dy/d*radial+dx/d*spin*.82)*weight;total+=weight;
+      }
+      fx/=total||1;fy/=total||1;
+      if(scene==='aurora'){fx+=Math.sin(p.y/H*7+time*.25)*.8;fy+=Math.cos(p.x/W*9+time*.2)*.38;}
+      const flutter=Math.sin(p.x*.007+p.y*.005+time*.4)*.13;
+      p.vx+=(fx+flutter-p.vx)*Math.min(1,.05*dt);p.vy+=(fy-flutter-p.vy)*Math.min(1,.05*dt);
+      p.x+=p.vx*speed*p.speed*dt;p.y+=p.vy*speed*p.speed*dt;
+      if(p.age>p.life||p.x<-30||p.x>W+30||p.y<-30||p.y>H+30){particle(p);continue;}
+      // A crossing is both visible and audible. Limit the musical rate globally.
+      if(!warmup && p.traveler){
+        for(let j=0;j<centers.length;j++){const c=centers[j];if(p.py<c.y&&p.y>=c.y&&p.x>c.x&&p.x<c.x+170*scale&&time-lastNoteTime>.45&&time-c.s.lastNote>1.3){c.s.pulse=1;c.s.lastNote=time;lastNoteTime=time;audio.pluck(j+(scene==='aurora'?2:0),c.s.x*1.7-.85,.3+random()*.25);break;}}
+      }
+    }
+    ctx.lineWidth=.78;ctx.globalCompositeOperation='lighter';
+    for(let c=0;c<4;c++){
+      ctx.beginPath();for(const p of particles){if(p.color===c&&p.age>0){ctx.moveTo(p.px,p.py);ctx.lineTo(p.x,p.y);}}
+      ctx.strokeStyle=scenes[scene].colors[c];ctx.globalAlpha=warmup?.21:.24;ctx.stroke();
+    }
+    ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+    for(const s of stars)s.pulse=Math.max(0,s.pulse-dt*.025);
+  }
+  function progressValue(){return timer.started?clamp(1-timer.remaining/timer.duration,0,1):0;}
+  function drawSky(){
+    overlay.clearRect(0,0,W,H);
+    const g=overlay.createRadialGradient(W*.5,H*.53,H*.2,W*.5,H*.53,W*.7);g.addColorStop(0,'#07131700');g.addColorStop(1,'#030a1277');overlay.fillStyle=g;overlay.fillRect(0,0,W,H);
+    for(const d of dust){overlay.globalAlpha=d.a;overlay.fillStyle='#dae7cb';overlay.beginPath();overlay.arc(d.x*W,d.y*H,d.r,0,TAU);overlay.fill();}overlay.globalAlpha=1;
+    // Fine orbit lines give the moving field a quiet, architectural frame.
+    const cx=W*.5,cy=H*.53,rx=Math.min(W*.38,H*.72),ry=H*.36;
+    overlay.strokeStyle='#b6ceac16';overlay.lineWidth=.7;overlay.beginPath();overlay.ellipse(cx,cy,rx,ry,-.15,0,TAU);overlay.stroke();
+    if(timer.started){overlay.strokeStyle='#deefac88';overlay.lineWidth=1.3;overlay.beginPath();overlay.ellipse(cx,cy,rx,ry,-.15,-Math.PI/2,-Math.PI/2+TAU*progressValue());overlay.stroke();}
+    overlay.strokeStyle='#bed1b329';overlay.lineWidth=.65;
+    for(const s of stars){
+      const x=s.x*W,y=s.y*H;overlay.beginPath();overlay.moveTo(x+20,y);overlay.lineTo(x+42,y);overlay.moveTo(x,y-22);overlay.lineTo(x,y-36);overlay.stroke();
+      if(s.pulse>0){overlay.strokeStyle=`rgba(221,240,181,${s.pulse*.6})`;overlay.beginPath();overlay.arc(x,y,15+(1-s.pulse)*36,0,TAU);overlay.stroke();overlay.strokeStyle='#bed1b329';}
+    }
+    overlay.fillStyle='#eaf4c9';for(const p of particles){if(p.traveler&&p.age>0){overlay.globalAlpha=.45+Math.sin(time+p.speed)*.2;overlay.beginPath();overlay.arc(p.x,p.y,1.1,0,TAU);overlay.fill();}}overlay.globalAlpha=1;
+  }
+  function frame(now){
+    raf=0;if(document.hidden||motionPaused)return;
+    const delta=lastFrame?now-lastFrame:25;
+    if(delta<1000/40){raf=requestAnimationFrame(frame);return;}
+    lastFrame=now;step(Math.min(delta/25,2));drawSky();frameCount++;
+    raf=requestAnimationFrame(frame);
+  }
+  function runAnimation(){if(!raf&&!document.hidden&&!motionPaused){lastFrame=0;raf=requestAnimationFrame(frame);}}
+  function updateMotion(){
+    $('motion').setAttribute('aria-pressed',String(motionPaused));$('motion').setAttribute('aria-label',motionPaused?'Resume motion':'Pause motion');$('motion-label').textContent=motionPaused?'Resume':'Pause';$('motion-icon').setAttribute('href',motionPaused?'#i-play':'#i-pause');$('live-label').textContent=motionPaused?'Still':'Living';
+    if(motionPaused){cancelAnimationFrame(raf);raf=0;drawSky();}else runAnimation();
+  }
+  // Stars are real buttons: the visual surface is equally editable without a mouse.
+  function positionStars(){stars.forEach((s,i)=>{const el=$('star-'+s.id);if(el){el.style.left=(s.x*100)+'%';el.style.top=(s.y*100)+'%';el.setAttribute('aria-label',`Star ${i+1}, ${Math.round(s.x*100)}% from left, ${Math.round(s.y*100)}% from top. Arrow keys move; Delete removes.`);}});}
+  function renderStars(){
+    const layer=$('star-layer');layer.replaceChildren();
+    stars.forEach((s,i)=>{const button=document.createElement('button');button.type='button';button.className='star'+(selected===s.id?' selected':'');button.id='star-'+s.id;button.dataset.id=s.id;button.setAttribute('aria-label',`Star ${i+1}. Arrow keys move; Delete removes.`);const label=document.createElement('span');label.className='star-label';label.textContent='STAR '+String(i+1).padStart(2,'0');button.append(label);button.addEventListener('keydown',e=>starKey(e,s));button.addEventListener('focus',()=>{selected=s.id;highlightStars();});layer.append(button);});
+    positionStars();highlightStars();$('star-count').textContent=String(stars.length).padStart(2,'0')+' / 07 STARS';$('add-star').disabled=stars.length>=7;
+  }
+  function highlightStars(){for(const s of stars)$('star-'+s.id)?.classList.toggle('selected',s.id===selected);$('remove-star').hidden=!stars.some(s=>s.id===selected);$('remove-star').disabled=stars.length===1;}
+  function removeStar(s){if(!s)return;if(stars.length===1){toast('Keep one star to hold your garden together.');return;}checkpoint();stars=stars.filter(x=>x.id!==s.id);selected=stars[0].id;renderStars();$('star-'+selected).focus();save();refreshStill();announce('Star removed.');}
+  $('remove-star').addEventListener('click',()=>removeStar(stars.find(s=>s.id===selected)));
+  function checkpoint(){history.push({scene,stars:stars.map(({x,y,id})=>({x,y,id}))});if(history.length>30)history.shift();$('undo').disabled=false;}
+  function refreshStill(){if(motionPaused){initParticles();}else drawSky();}
+  function plant(x,y){if(stars.length>=7){toast('Seven stars is a full garden. Move one, or select it and press Delete.');return;}checkpoint();const s=makeStar(x,y);stars.push(s);selected=s.id;renderStars();audio.pluck(stars.length-1,s.x*1.7-.85,.5);s.pulse=1;save();refreshStill();announce(`Star ${stars.length} planted.`);return s;}
+  function starKey(e,s){
+    const moves={ArrowLeft:[-.015,0],ArrowRight:[.015,0],ArrowUp:[0,-.02],ArrowDown:[0,.02]};
+    if(moves[e.key]){e.preventDefault();if(!e.repeat)checkpoint();const [dx,dy]=moves[e.key];s.x=clamp(s.x+dx*(e.shiftKey?3:1),.06,.94);s.y=clamp(s.y+dy*(e.shiftKey?3:1),.2,.86);positionStars();save();refreshStill();announce(`Star moved to ${Math.round(s.x*100)} percent from left, ${Math.round(s.y*100)} percent from top.`);}
+    if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();removeStar(s);}
+  }
+  const pointerPosition=e=>{const r=garden.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height};};
+  garden.addEventListener('pointerdown',e=>{
+    if(e.button!==0||!e.isPrimary)return;
+    const button=e.target.closest('.star'),p=pointerPosition(e);if(!button&&e.target.closest('button'))return;
+    if(button){const s=stars.find(s=>s.id===Number(button.dataset.id));dragging={s,pointer:e.pointerId,dx:p.x-s.x,dy:p.y-s.y,moved:false};selected=s.id;highlightStars();garden.setPointerCapture(e.pointerId);button.focus({preventScroll:true});s.pulse=1;audio.pluck(stars.indexOf(s),s.x*1.7-.85,.4);}
+    else {dragging={start:p,pointer:e.pointerId,moved:false};garden.setPointerCapture(e.pointerId);}
+  });
+  garden.addEventListener('pointermove',e=>{if(!dragging||dragging.pointer!==e.pointerId)return;const p=pointerPosition(e);if(dragging.s){if(!dragging.moved&&Math.hypot(p.x-dragging.dx-dragging.s.x,p.y-dragging.dy-dragging.s.y)<.002)return;if(!dragging.moved)checkpoint();dragging.s.x=clamp(p.x-dragging.dx,.06,.94);dragging.s.y=clamp(p.y-dragging.dy,.2,.86);dragging.moved=true;positionStars();if(motionPaused)drawSky();}else if(Math.hypot(p.x-dragging.start.x,p.y-dragging.start.y)>.015)dragging.moved=true;});
+  function endDrag(e,cancelled=false){if(!dragging||e.pointerId!==dragging.pointer)return;const d=dragging;dragging=null;if(garden.hasPointerCapture(e.pointerId))garden.releasePointerCapture(e.pointerId);if(d.s){save();refreshStill();}else if(!d.moved&&!cancelled){const p=pointerPosition(e);plant(p.x,p.y);}}
+  garden.addEventListener('pointerup',e=>endDrag(e));garden.addEventListener('pointercancel',e=>endDrag(e,true));
+  $('add-star').addEventListener('click',()=>{const s=plant(.22+random()*.56,.32+random()*.4);if(s)$('star-'+s.id).focus();});
+  $('undo').addEventListener('click',()=>{const previous=history.pop();if(!previous)return;scene=previous.scene;stars=previous.stars.map(s=>({...makeStar(s.x,s.y),id:s.id}));selected=null;updateSceneUI();renderStars();initParticles();save();$('undo').disabled=!history.length;announce('Garden edit undone.');});
+  $('reset-garden').addEventListener('click',()=>{checkpoint();stars=scenes[scene].stars.map(s=>makeStar(...s));selected=null;renderStars();initParticles();save();toast('A fresh garden. Your focus timer stays with you.');});
+  function updateSceneUI(){const s=scenes[scene];$('scene-title').textContent=s.title;$('scene-sub').textContent=s.sub;document.querySelectorAll('[data-scene]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.scene===scene)));audio.setScene(scene);}
+  document.querySelectorAll('[data-scene]').forEach(button=>button.addEventListener('click',()=>{if(scene===button.dataset.scene)return;checkpoint();scene=button.dataset.scene;stars=scenes[scene].stars.map(s=>makeStar(...s));selected=null;updateSceneUI();renderStars();initParticles();save();}));
+  $('motion').addEventListener('click',()=>{motionPaused=!motionPaused;updateMotion();});
+  document.addEventListener('keydown',e=>{if(e.code==='Space'&&!e.repeat&&!e.altKey&&!e.ctrlKey&&!e.metaKey&&!e.target.closest('button,input,textarea,select,summary,dialog,[contenteditable]')){e.preventDefault();motionPaused=!motionPaused;updateMotion();}});
+  reducedMotion.addEventListener('change',e=>{if(e.matches){motionPaused=true;updateMotion();}});
+  $('pace').addEventListener('input',e=>{pace=Number(e.target.value);if(motionPaused)initParticles();});$('pace').addEventListener('change',save);
+  // Audio always starts with a gesture. Preferences restore volume, never autoplay.
+  $('sound').addEventListener('click',async()=>{if(soundBusy)return;soundBusy=true;$('sound').disabled=true;try{const desired=!soundOn;soundOn=await audio.setEnabled(desired);$('sound').setAttribute('aria-pressed',String(soundOn));$('sound-label').textContent=soundOn?'Garden on':'Garden off';if(desired&&!soundOn)toast('Garden music is unavailable here. Your garden still works.');if(soundOn){audio.pluck(0,0,.4);toast(motionPaused?'Garden music is on. Resume motion to hear the stars play.':'Garden music on. Bright travelers play as they cross a star’s horizon.');}}catch{toast('Garden music could not start in this browser.');}finally{soundBusy=false;$('sound').disabled=false;}});
+  $('volume').addEventListener('input',e=>{volume=Number(e.target.value);audio.setVolume(volume/100);$('volume-value').textContent=volume+'%';});$('volume').addEventListener('change',save);
+  // A separate native oscillator keeps the steady tone independent of animation and garden music.
+  function updateToneUI(){
+    $('tone-toggle').setAttribute('aria-pressed',String(toneOn));$('tone-label').textContent=toneOn?'Tone on':'Tone off';
+    $('tone-icon').setAttribute('href',toneOn?'#i-pause':'#i-play');$('tone-panel').classList.toggle('playing',toneOn);
+    $('tone-volume-value').textContent=toneVolume+'%';
+    const status=toneOn?(toneVolume>0?`${toneFrequency} Hz playing · a steady backdrop for your focus.`:`${toneFrequency} Hz at 0% · raise the level to hear it.`):`${toneFrequency} Hz ready · starts only when you choose.`;
+    if($('tone-status').textContent!==status)$('tone-status').textContent=status;
+  }
+  $('tone-toggle').addEventListener('click',async()=>{
+    if(toneBusy)return;toneBusy=true;$('tone-toggle').disabled=true;
+    try{const desired=!toneOn;toneOn=await tone.setEnabled(desired);if(desired&&!toneOn)toast('The background tone could not start. You can try again in this browser.');}
+    catch{toneOn=false;toast('The background tone is unavailable in this browser.');}
+    finally{toneBusy=false;$('tone-toggle').disabled=false;updateToneUI();}
+  });
+  $('tone-frequency').addEventListener('change',e=>{const value=Number(e.target.value);if(toneFrequencies.includes(value)){toneFrequency=value;tone.setFrequency(value);updateToneUI();save();}else e.target.value=String(toneFrequency);});
+  $('tone-volume').addEventListener('input',e=>{toneVolume=clamp(finite(Number(e.target.value),18),0,100);tone.setVolume(toneVolume/100);updateToneUI();});$('tone-volume').addEventListener('change',save);
+  window.addEventListener('pagehide',()=>{tone.setEnabled(false).catch(()=>{});toneOn=false;updateToneUI();});
+  // The timer uses absolute time, not frame count or setInterval tick count.
+  function updateStats(){const s=stats[dayKey()]||{};$('today').textContent=`${Math.max(0,Math.floor(finite(s.sessions,0)))} sessions · ${Math.max(0,Math.floor(finite(s.minutes,0)))} min`;}
+  function updateTimer(){
+    if(timer.running){timer.remaining=Math.max(0,(timer.end-Date.now())/1000);if(timer.remaining<=0){completeSession();return;}}
+    const seconds=Math.ceil(timer.remaining),minutes=Math.floor(seconds/60),rest=seconds%60;
+    $('clock').textContent=String(minutes).padStart(2,'0')+':'+String(rest).padStart(2,'0');$('clock').setAttribute('aria-label',`${minutes} minutes ${rest} seconds remaining`);
+    $('timer-state').textContent=timer.running?'Gently, one thing':timer.started?'A moment to pause':'A fresh start';
+    $('progress').style.strokeDashoffset=565.487*(1-progressValue());
+    $('start-label').textContent=timer.running?'Pause focus':timer.started?'Resume focus':'Begin focus';$('start-icon').setAttribute('href',timer.running?'#i-pause':'#i-play');
+    $('reset-timer').hidden=!timer.started;$('intention').readOnly=timer.started;
+    $('session-note').textContent=timer.running?'Your attention is right where it belongs.':timer.started?'Your place is saved. Take your time.':'One thing. A little time. Enough.';
+    document.body.classList.toggle('session-running',timer.running);
+    document.querySelectorAll('[data-minutes]').forEach(b=>{b.disabled=timer.started;b.setAttribute('aria-pressed',String(Number(b.dataset.minutes)*60===timer.duration));});
+    document.title=timer.running?`${$('clock').textContent} · Stillpoint`:'Stillpoint — a little space to focus';
+    if(motionPaused&&!document.hidden)drawSky();
+  }
+  function completeSession(){
+    timer.running=false;timer.remaining=0;
+    const completedAt=new Date(timer.end||Date.now()),d=dayKey(completedAt),current=stats[d]||{};
+    stats[d]={sessions:Math.max(0,finite(current.sessions,0))+1,minutes:Math.max(0,finite(current.minutes,0))+timer.duration/60};
+    stats=Object.fromEntries(Object.entries(stats).sort(([a],[b])=>a.localeCompare(b)).slice(-31));
+    lastSession={minutes:timer.duration/60,intention:timer.intention,date:completedAt.toISOString()};
+    $('finished-copy').textContent=`${lastSession.minutes} minutes of space${lastSession.intention?' for “'+lastSession.intention+'”':''}. One small promise, kept.`;
+    timer={duration:timer.duration,remaining:timer.duration,started:false,running:false,end:0,intention:''};
+    save();updateStats();updateTimer();audio.completion();announce('Your focus session is complete. You made room.');
+    if(!$('finished').open)$('finished').showModal();
+  }
+  $('start').addEventListener('click',()=>{
+    if(timer.running){timer.remaining=Math.max(0,(timer.end-Date.now())/1000);if(timer.remaining<=0){completeSession();return;}timer.running=false;}
+    else{if(!timer.started){timer.remaining=timer.duration;timer.intention=$('intention').value.trim();}timer.started=true;timer.running=true;timer.end=Date.now()+timer.remaining*1000;announce('Focus started. '+Math.ceil(timer.remaining/60)+' minutes.');}
+    save();updateTimer();
+  });
+  $('reset-timer').addEventListener('click',()=>{timer={duration:timer.duration,remaining:timer.duration,started:false,running:false,end:0,intention:''};save();updateTimer();toast('Timer reset. A fresh start is always allowed.');});
+  document.querySelectorAll('[data-minutes]').forEach(b=>b.addEventListener('click',()=>{if(timer.started)return;timer.duration=Number(b.dataset.minutes)*60;timer.remaining=timer.duration;save();updateTimer();}));
+  $('intention').addEventListener('input',save);
+  document.addEventListener('visibilitychange',()=>{audio.pauseForVisibility(document.hidden);if(document.hidden){cancelAnimationFrame(raf);raf=0;save();}else{updateTimer();updateStats();runAnimation();}});
+  window.addEventListener('pagehide',save);
+  // Export a fully composed postcard: no server, no screenshot library, no external font.
+  function download(blob,name){const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=name;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);}
+  function wrapText(c,text,width){const words=text.split(/\s+/),lines=[];let line='';for(const word of words){const next=line?line+' '+word:word;if(c.measureText(next).width>width&&line){lines.push(line);line=word;}else line=next;}if(line)lines.push(line);return lines;}
+  function exportPostcard(){
+    const out=document.createElement('canvas');out.width=1600;out.height=1200;const c=out.getContext('2d');c.fillStyle=scenes[scene].background;c.fillRect(0,0,1600,1200);
+    // Contain the live artwork so rings and stars retain their geometry at any viewport size.
+    const box={x:60,y:150,w:1480,h:750},scale=Math.min(box.w/W,box.h/H),dw=W*scale,dh=H*scale,ox=box.x+(box.w-dw)/2,oy=box.y+(box.h-dh)/2;
+    c.drawImage(canvas,ox,oy,dw,dh);c.drawImage(sky,ox,oy,dw,dh);
+    for(const s of stars){const x=ox+s.x*dw,y=oy+s.y*dh;const glow=c.createRadialGradient(x,y,0,x,y,32);glow.addColorStop(0,'#eaf3b9aa');glow.addColorStop(1,'#eaf3b900');c.fillStyle=glow;c.fillRect(x-32,y-32,64,64);c.strokeStyle='#dbeab577';c.lineWidth=1;c.beginPath();c.arc(x,y,12,0,TAU);c.stroke();c.fillStyle='#edf3cc';c.beginPath();c.arc(x,y,3.5,0,TAU);c.fill();}
+    c.fillStyle='#e7edda';c.font='36px Georgia';c.fillText('stillpoint',80,85);c.fillStyle='#a6bba9';c.font='16px sans-serif';c.textAlign='right';c.fillText(scenes[scene].title.toUpperCase(),1520,82);c.textAlign='left';
+    c.strokeStyle='#33473e';c.beginPath();c.moveTo(80,930);c.lineTo(1520,930);c.stroke();
+    const active=timer.started,hasLast=!active&&lastSession&&lastSession.intention===$('intention').value.trim();
+    const intention=active?timer.intention:$('intention').value.trim();
+    const minutes=active?Math.floor((timer.duration-timer.remaining)/60):hasLast?lastSession.minutes:0;
+    c.font='italic 42px Georgia';c.fillStyle='#e6edcf';const lines=wrapText(c,intention||'A little space. A clearer mind.',1400).slice(0,2);lines.forEach((line,i)=>{while(c.measureText(line).width>1420)line=line.slice(0,-2)+'…';c.fillText(line,80,1000+i*53);});
+    c.font='16px sans-serif';c.fillStyle='#a6bba9';c.fillText(minutes>0?`${minutes} MINUTES OF SPACE${active?' · IN PROGRESS':' · WELL SPENT'}`:'A SMALL WORLD, MADE BY YOU',80,1138);c.textAlign='right';c.fillText(new Date().toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'}),1520,1138);
+    out.toBlob(blob=>{if(!blob){toast('This browser could not create a postcard.');return;}download(blob,'stillpoint-'+scene+'-'+dayKey()+'.png');toast('Your postcard is ready. A little space to keep.');},'image/png');
+  }
+  $('save-art').addEventListener('click',exportPostcard);$('finish-save').addEventListener('click',exportPostcard);
+  $('help-open').addEventListener('click',()=>$('help').showModal());
+  document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>$(b.dataset.close).close()));
+  for(const dialog of [$('help'),$('finished')])dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close();}});
+  renderStars();updateSceneUI();resize();updateMotion();updateStats();updateTimer();
+  new ResizeObserver(resize).observe(garden);
+  setInterval(()=>{updateTimer();if(!document.hidden)updateStats();},500);
+})();
+</script>
+</body>
+</html>

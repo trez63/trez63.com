@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vote — trez63</title>
+<style>
+:root{--bg:#0f1115;--panel:#161a21;--line:#242a34;--fg:#e8e9ec;--mute:#8b93a1;--acc:#ff6a45}
+@media (prefers-color-scheme: light){:root{--bg:#f6f4ef;--panel:#ffffff;--line:#e2ded4;--fg:#1c1b19;--mute:#6f6a60}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:inherit}
+.wrap{max-width:820px;margin:0 auto;padding:40px 24px 80px}
+.back{color:var(--mute);text-decoration:none;font-size:14px}
+.head{display:flex;gap:24px;align-items:flex-start;margin:20px 0 28px;flex-wrap:wrap}
+.head img{width:280px;max-width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:12px;border:1px solid var(--line);background:#000}
+h1{margin:0 0 6px;font-size:30px;letter-spacing:-.02em}
+.desc{color:var(--mute);margin:0 0 16px}
+.play{display:inline-block;background:var(--acc);color:#fff;font-weight:600;padding:10px 18px;border-radius:999px;text-decoration:none}
+.hint{color:var(--mute);font-size:13px;margin:0 0 10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="./">← All apps</a>
+  <div class="head">
+    <img id="thumb" alt="">
+    <div>
+      <h1 id="title">…</h1>
+      <p class="desc" id="desc"></p>
+      <a class="play" id="play" href="#">Play it</a>
+    </div>
+  </div>
+  <p class="hint"><strong>Vote with a 👍 below.</strong> One vote per GitHub account — sign in, tap the thumbs-up, done. Comments welcome too.</p>
+  <div id="giscus"></div>
+</div>
+<script>
+(async () => {
+  const slug = new URLSearchParams(location.search).get('app') || '';
+  const safe = /^[a-z0-9-]+$/.test(slug) ? slug : '';
+  const cat = await fetch('catalog.json', {cache: 'no-cache'}).then(r => r.json()).catch(() => ({apps:{}}));
+  const e = cat.apps[safe];
+  if (!e) { document.getElementById('title').textContent = 'App not found'; document.getElementById('play').remove(); return; }
+  document.title = `Vote: ${e.title} — trez63`;
+  document.getElementById('title').textContent = e.title;
+  document.getElementById('desc').textContent = e.description || '';
+  document.getElementById('play').href = `apps/${safe}.html`;
+  document.getElementById('thumb').src = `thumbs/${safe}.webp`;
+  const s = document.createElement('script');
+  Object.entries({
+    src: 'https://giscus.app/client.js',
+    'data-repo': 'trez63/trez63.com',
+    'data-repo-id': 'R_kgDOVXH-4g',
+    'data-category': 'App votes',
+    'data-category-id': 'DIC_kwDOVXH-4s4DJnEN',
+    'data-mapping': 'specific',
+    'data-term': `app:${safe}`,
+    'data-strict': '1',
+    'data-reactions-enabled': '1',
+    'data-emit-metadata': '0',
+    'data-input-position': 'top',
+    'data-theme': 'preferred_color_scheme',
+    'data-lang': 'en',
+    crossorigin: 'anonymous', async: ''
+  }).forEach(([k, v]) => s.setAttribute(k, v));
+  document.getElementById('giscus').appendChild(s);
+})();
+</script>
+</body>
+</html>

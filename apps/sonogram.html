@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sonogram</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: one working surface. Toolbar on top, a horizontally scrolling time–frequency strip fills the rest, pitch axis left, seconds below. */
+:root {
+  --bg: #f3f1ec; --panel: #ffffff; --ink: #1d1c1a; --muted: #6d675e; --line: #d9d4ca;
+  --accent: #b23a1e; --accent-ink: #ffffff; --play: #2f6f5a;
+  --display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --body: ui-sans-serif, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121214; --panel: #1b1b1f; --ink: #ece9e2; --muted: #9a958b; --line: #2e2e34;
+  --accent: #ff7a45; --accent-ink: #1a0d06; --play: #5fd0a6; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #121214; --panel: #1b1b1f; --ink: #ece9e2; --muted: #9a958b; --line: #2e2e34;
+  --accent: #ff7a45; --accent-ink: #1a0d06; --play: #5fd0a6; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.4 var(--body);
+  display: flex; flex-direction: column; gap: 10px;
+  padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+h1 { font: 600 26px/1 var(--display); margin: 0; letter-spacing: .01em; }
+header p { margin: 0; color: var(--muted); }
+.bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.bar .grp { display: flex; gap: 4px; align-items: center; padding-right: 8px; border-right: 1px solid var(--line); }
+.bar .grp:last-child { border: 0; }
+button, select, input[type=text] { font: inherit; color: var(--ink); background: var(--panel); border: 1px solid var(--line);
+  border-radius: 6px; padding: 5px 9px; cursor: pointer; }
+button:hover { border-color: var(--muted); }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+#play { background: var(--play); color: var(--bg); border-color: var(--play); font-weight: 600; min-width: 72px; }
+input[type=text] { width: 100px; cursor: text; }
+input[type=range] { width: 80px; accent-color: var(--accent); }
+label.s { color: var(--muted); font-size: 12px; display: flex; gap: 4px; align-items: center; }
+
+.stage { flex: 1; min-height: 240px; display: grid; grid-template-columns: 34px 1fr; gap: 0 6px; }
+.yaxis { position: relative; font: 11px var(--mono); color: var(--muted); margin-bottom: 18px; }
+.yaxis span { position: absolute; right: 0; transform: translateY(-50%); }
+.scroller { overflow-x: auto; overflow-y: hidden; min-width: 0; }
+.inner { height: 100%; display: flex; flex-direction: column; }
+.wrap { position: relative; flex: 1; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--panel); touch-action: none; }
+.wrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+#view { image-rendering: pixelated; }
+#over { cursor: crosshair; }
+.xaxis { position: relative; height: 18px; font: 11px var(--mono); color: var(--muted); }
+.xaxis span { position: absolute; transform: translateX(-50%); }
+.wrap.drop::after { content: "Drop an image or .json to open it"; position: absolute; inset: 0; display: grid; place-items: center;
+  background: color-mix(in srgb, var(--accent) 20%, transparent); font: 600 20px var(--display); color: var(--ink); }
+.status { color: var(--muted); font: 12px var(--mono); display: flex; gap: 16px; flex-wrap: wrap; }
+
+#help { position: fixed; inset: 0; background: color-mix(in srgb, var(--bg) 88%, transparent); display: grid; place-items: center;
+  padding: 16px; z-index: 20; overflow: auto; }
+#help section { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 22px 26px; max-width: 600px; width: 100%; }
+#help h2 { font: 600 22px var(--display); margin: 0 0 6px; }
+#help p { color: var(--muted); margin: 0 0 14px; max-width: 62ch; }
+#help dl { display: grid; grid-template-columns: auto 1fr; gap: 5px 14px; margin: 0; font-size: 13px; }
+#help dt { font: 12px var(--mono); color: var(--accent); white-space: nowrap; }
+#help dd { margin: 0; }
+@media (max-width: 600px) { h1 { font-size: 22px; } .bar .grp { border: 0; padding: 0; } input[type=text] { width: 84px; } header p { display: none; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Sonogram</h1>
+  <p>Draw a picture; hear it. The canvas is a spectrogram: left to right is time, bottom to top is pitch.</p>
+</header>
+
+<div class="bar" role="toolbar" aria-label="Tools">
+  <div class="grp">
+    <button id="play" title="Play / Stop (Space)">Play</button>
+    <button id="loop" aria-pressed="false" title="Repeat (R)">Loop</button>
+  </div>
+  <div class="grp">
+    <button data-tool="brush" aria-pressed="true" title="Brush (B) · hold Shift to lock pitch">Brush</button>
+    <button data-tool="line" aria-pressed="false" title="Straight line: drag from start to end (L) · Shift locks pitch">Line</button>
+    <button data-tool="eraser" aria-pressed="false" title="Eraser (E)">Eraser</button>
+    <button data-tool="text" aria-pressed="false" title="Stamp text where you click (X); Size sets its height">Text</button>
+    <input type="text" id="word" value="HELLO" maxlength="24" aria-label="Text to stamp" placeholder="word to stamp">
+  </div>
+  <div class="grp">
+    <button data-tool="select" aria-pressed="false" title="Select a rectangle (M)">Select</button>
+    <button id="copy" title="Copy the selection (Ctrl+C) · Ctrl+X cuts">Copy</button>
+    <button id="paste" title="Paste: the copy follows the pointer, snaps to the grid, click to place (Ctrl+V)">Paste</button>
+  </div>
+  <div class="grp">
+    <label class="s">Size <input type="range" id="size" min="1" max="8" value="2" aria-label="Brush width or text height" title="Brush width, or text height with the Text tool ([ and ])"></label>
+    <button id="snap" aria-pressed="false" title="Snap pitch to semitones (N)">Snap</button>
+    <button id="grid" aria-pressed="false" title="Beat grid: show beats and snap time to them (G)">Grid</button>
+    <button id="audition" aria-pressed="true" title="Hear the pitch under the brush (A)">Audition</button>
+  </div>
+  <div class="grp">
+    <button id="shorter" title="Remove 4 seconds from the end (−)">−4 s</button>
+    <button id="longer" title="Add 4 seconds to the end (+)">+4 s</button>
+  </div>
+  <div class="grp">
+    <select id="preset" aria-label="Preset">
+      <option value="overture">Overture</option><option value="glyph">Glyph</option><option value="chorale">Chorale</option>
+      <option value="birdsong">Birdsong</option><option value="rain">Rain</option><option value="blank">Blank</option>
+    </select>
+    <button id="undo" title="Undo (Ctrl+Z)">Undo</button>
+    <button id="clear" title="Clear (Delete)">Clear</button>
+  </div>
+  <div class="grp">
+    <button id="open" title="Open a saved .json or any image as sound (O)">Open…</button>
+    <input type="file" id="file" accept="image/*,.json,application/json" hidden>
+    <button id="save" title="Save this sonogram as .json (Ctrl+S)">Save</button>
+    <button id="wav" title="Download WAV (S)">WAV</button>
+    <button id="png" title="Download PNG (P)">PNG</button>
+    <button id="theme" title="Theme (T)">Theme</button>
+    <button id="helpbtn" title="Help (Ctrl+/)">?</button>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="yaxis" id="yaxis"></div>
+  <div class="scroller" id="scroller">
+    <div class="inner" id="inner">
+      <div class="wrap" id="wrap">
+        <canvas id="view"></canvas>
+        <canvas id="over"></canvas>
+      </div>
+      <div class="xaxis" id="xaxis"></div>
+    </div>
+  </div>
+</div>
+<div class="status"><span id="st-pos">—</span><span id="st-info"></span></div>
+
+<div id="help" hidden>
+  <section>
+    <h2>Sonogram</h2>
+    <p>Every bright pixel becomes a sine wave at that pitch, for that moment. Paint a melody, draw straight note lines, stamp a word and hear what a word sounds like, or drop any image onto the canvas. While you paint, the pitch under the brush plays so you can draw by ear. Your work autosaves in this browser.</p>
+    <dl>
+      <dt>Space · R</dt><dd>Play / stop · Loop</dd>
+      <dt>B · L · E · X</dt><dd>Brush · Line · Eraser · Text stamp (click to place)</dd>
+      <dt>Shift + drag</dt><dd>Lock pitch: a perfectly horizontal note</dd>
+      <dt>M</dt><dd>Select a rectangle; Delete clears it, Ctrl+A selects all</dd>
+      <dt>Ctrl+C · X · V</dt><dd>Copy · Cut · Paste: the copy follows the pointer and snaps; click or Enter places it, arrows nudge it, Esc cancels</dd>
+      <dt>[ · ]</dt><dd>Brush width, or text height with the Text tool</dd>
+      <dt>N · G</dt><dd>Snap pitch to semitones · Beat grid (snaps time)</dd>
+      <dt>+ · −</dt><dd>Lengthen or shorten the timeline by 4 s (it scrolls)</dd>
+      <dt>A</dt><dd>Audition pitch while painting</dd>
+      <dt>1 – 6</dt><dd>Presets</dd>
+      <dt>Ctrl+Z · Delete</dt><dd>Undo · Clear</dd>
+      <dt>O · Ctrl+S</dt><dd>Open .json or image · Save .json</dd>
+      <dt>S · P</dt><dd>Save WAV · Save PNG</dd>
+      <dt>T</dt><dd>Dark / light theme</dd>
+      <dt>Ctrl+/ · Esc</dt><dd>Toggle this help</dd>
+    </dl>
+  </section>
+</div>
+
+<script>
+'use strict';
+// ---------- The grid: COLS time slices × ROWS quarter-tones, C2 (65 Hz) at the bottom ----------
+const BASE_COLS = 192, MAX_COLS = 1500, ROWS = 144, COL_SEC = 0.04, BINS_PER_OCT = 24, F0 = 65.406;
+const BEAT = 6, BAR = 24;                               // grid: a beat is 240 ms, a bar is 0.96 s
+let COLS = BASE_COLS, grid = new Float32Array(COLS * ROWS);
+const duration = () => COLS * COL_SEC;
+const freqOfRow = r => F0 * Math.pow(2, r / BINS_PER_OCT);
+const NOTE = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const nameOfRow = r => { const s = Math.round(r / 2); return NOTE[s % 12] + (2 + Math.floor(s / 12)); };
+const clampRow = r => Math.max(0, Math.min(ROWS - 1, r));
+
+const undoStack = [];
+const state = { tool: 'brush', size: 2, snap: false, gridOn: false, audition: true, loop: false, playing: false };
+let sel = null, clip = null, floating = null, floatCanvas = null;   // selection rect, copied block, block being placed
+
+// ---------- Rendering ----------
+const $ = id => document.getElementById(id);
+const view = $('view'), over = $('over'), wrap = $('wrap'), scroller = $('scroller'), inner = $('inner');
+const vctx = view.getContext('2d'), octx = over.getContext('2d');
+const pix = document.createElement('canvas');
+const pctx = pix.getContext('2d');
+let img, lut = [];
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+function buildLut() {
+  const dark = matchMedia('(prefers-color-scheme: dark)').matches, attr = document.documentElement.dataset.theme;
+  const isDark = attr ? attr === 'dark' : dark;
+  const stops = isDark
+    ? [[27,27,31],[70,20,90],[180,50,70],[250,140,40],[255,240,190]]
+    : [[255,255,255],[205,220,240],[90,130,200],[30,40,120],[10,5,40]];
+  lut = [];
+  for (let i = 0; i < 256; i++) {
+    const t = i / 255 * (stops.length - 1), k = Math.min(stops.length - 2, Math.floor(t)), f = t - k;
+    lut.push(stops[k].map((c, j) => Math.round(lerp(c, stops[k + 1][j], f))));
+  }
+}
+function render() {
+  if (pix.width !== COLS) { pix.width = COLS; pix.height = ROWS; img = pctx.createImageData(COLS, ROWS); }
+  const d = img.data;
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    const v = lut[Math.min(255, Math.round(grid[c * ROWS + r] * 255))], i = ((ROWS - 1 - r) * COLS + c) * 4;
+    d[i] = v[0]; d[i + 1] = v[1]; d[i + 2] = v[2]; d[i + 3] = 255;
+  }
+  pctx.putImageData(img, 0, 0);
+  vctx.imageSmoothingEnabled = false;
+  vctx.clearRect(0, 0, view.width, view.height);
+  vctx.drawImage(pix, 0, 0, view.width, view.height);
+  // Guide lines: faint, so the picture stays the point. Octaves always; beats and bars when the grid is on.
+  vctx.strokeStyle = getComputedStyle(document.body).color; vctx.lineWidth = 1;
+  const line = (x0, y0, x1, y1, a) => { vctx.globalAlpha = a; vctx.beginPath(); vctx.moveTo(x0, y0); vctx.lineTo(x1, y1); vctx.stroke(); };
+  for (let r = BINS_PER_OCT; r < ROWS; r += BINS_PER_OCT) { const y = Math.round((ROWS - r) / ROWS * view.height) + 0.5; line(0, y, view.width, y, 0.12); }
+  if (state.gridOn) for (let c = BEAT; c < COLS; c += BEAT) { const x = Math.round(c / COLS * view.width) + 0.5; line(x, 0, x, view.height, c % BAR ? 0.07 : 0.18); }
+  vctx.globalAlpha = 1;
+  scheduleAutosave();
+}
+function resize() {
+  const w = wrap.clientWidth, h = wrap.clientHeight, dpr = devicePixelRatio || 1;
+  for (const cv of [view, over]) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+  render();
+}
+function buildAxes() {
+  const y = $('yaxis'), x = $('xaxis');
+  y.innerHTML = ''; x.innerHTML = '';
+  for (let r = 0; r <= ROWS; r += BINS_PER_OCT) {
+    const s = document.createElement('span'); s.textContent = nameOfRow(r);
+    s.style.top = ((ROWS - r) / ROWS * 100) + '%'; y.appendChild(s);
+  }
+  for (let t = 0; t <= duration(); t += 1) {
+    const s = document.createElement('span'); s.textContent = t + 's';
+    s.style.left = (t / duration() * 100) + '%'; if (t === 0) s.style.transform = 'none'; x.appendChild(s);
+  }
+  inner.style.width = (COLS / BASE_COLS * 100) + '%';   // wider than the page → the strip scrolls
+  $('st-info').textContent = `${COLS} columns × ${ROWS} quarter-tones · ${duration().toFixed(1)} s`;
+}
+function setCols(n, keepUndo) {
+  n = Math.max(BASE_COLS, Math.min(MAX_COLS, n));
+  if (n === COLS) return;
+  if (!keepUndo) pushUndo();
+  const g = new Float32Array(n * ROWS); g.set(grid.subarray(0, Math.min(COLS, n) * ROWS));
+  grid = g; COLS = n; buildAxes(); resize();
+}
+
+// ---------- Painting ----------
+function pushUndo() { undoStack.push({ cols: COLS, data: grid.slice() }); if (undoStack.length > 40) undoStack.shift(); }
+function stamp(cx, cy, rx, ry, strength, erase) {
+  const c0 = Math.max(0, Math.floor(cx - rx)), c1 = Math.min(COLS - 1, Math.ceil(cx + rx));
+  const r0 = Math.max(0, Math.floor(cy - ry)), r1 = Math.min(ROWS - 1, Math.ceil(cy + ry));
+  for (let c = c0; c <= c1; c++) for (let r = r0; r <= r1; r++) {
+    const dx = (c - cx) / rx, dy = (r - cy) / ry, d2 = dx * dx + dy * dy;
+    if (d2 > 1) continue;
+    const i = c * ROWS + r, v = strength * (1 - d2 * 0.6);
+    grid[i] = erase ? grid[i] * d2 : Math.max(grid[i], v);
+  }
+}
+function brushAt(c, r, prev) {
+  const erase = state.tool === 'eraser', rx = state.size * (erase ? 1.5 : 0.8) + 0.5;
+  const ry = state.snap && !erase ? 0.6 : rx;
+  if (state.snap && !erase) r = Math.round(r / 2) * 2;
+  if (prev) { const n = Math.ceil(Math.hypot(c - prev.c, r - prev.r)) + 1;
+    for (let k = 0; k <= n; k++) stamp(lerp(prev.c, c, k / n), lerp(prev.r, r, k / n), rx, ry, 1, erase); }
+  else stamp(c, r, rx, ry, 1, erase);
+}
+function stampText(text, c0, rMid, px) {
+  const t = document.createElement('canvas'); t.width = COLS; t.height = ROWS;
+  const g = t.getContext('2d'); g.font = 'bold ' + px + 'px ' + getComputedStyle(document.body).fontFamily;
+  g.textBaseline = 'middle'; g.fillStyle = '#fff'; g.fillText(text, 0, ROWS / 2);
+  const d = g.getImageData(0, 0, COLS, ROWS).data;
+  for (let x = 0; x < COLS; x++) for (let y = 0; y < ROWS; y++) {
+    const a = d[(y * COLS + x) * 4 + 3] / 255; if (a < 0.1) continue;
+    const c = c0 + x, r = Math.round(rMid + (ROWS / 2 - y));
+    if (c < COLS && r >= 0 && r < ROWS) grid[c * ROWS + r] = Math.max(grid[c * ROWS + r], a);
+  }
+}
+function loadImage(src) {
+  const im = new Image();
+  im.onload = () => {
+    pushUndo(); grid.fill(0);
+    const t = document.createElement('canvas'); t.width = COLS; t.height = ROWS;
+    const g = t.getContext('2d'), s = Math.min(COLS / im.width, ROWS / im.height);
+    const w = im.width * s, h = im.height * s;
+    g.drawImage(im, (COLS - w) / 2, (ROWS - h) / 2, w, h);
+    const d = g.getImageData(0, 0, COLS, ROWS).data; let sum = 0;
+    const lum = new Float32Array(COLS * ROWS);
+    for (let i = 0; i < COLS * ROWS; i++) { lum[i] = (0.2126 * d[i*4] + 0.7152 * d[i*4+1] + 0.0722 * d[i*4+2]) / 255 * (d[i*4+3] / 255); sum += lum[i]; }
+    const invert = sum / lum.length > 0.5;              // a photo on white reads as its dark lines
+    for (let x = 0; x < COLS; x++) for (let y = 0; y < ROWS; y++) {
+      const l = lum[y * COLS + x], v = invert ? 1 - l : l;
+      grid[x * ROWS + (ROWS - 1 - y)] = v < 0.08 ? 0 : v * v;
+    }
+    render(); URL.revokeObjectURL(src);
+  };
+  im.src = src;
+}
+
+// ---------- Selection, copy, paste ----------
+function rectFrom(a, b) {
+  const c0 = Math.max(0, Math.floor(Math.min(a.c, b.c))), c1 = Math.min(COLS, Math.ceil(Math.max(a.c, b.c)));
+  const r0 = Math.max(0, Math.floor(Math.min(a.r, b.r))), r1 = Math.min(ROWS, Math.ceil(Math.max(a.r, b.r)));
+  return c1 > c0 && r1 > r0 ? { c0, c1, r0, r1 } : null;
+}
+function copySel(cut) {
+  if (!sel || sel.c0 >= COLS) return;
+  sel.c1 = Math.min(sel.c1, COLS);                        // the timeline may have been shortened since the selection was made
+  const w = sel.c1 - sel.c0, h = sel.r1 - sel.r0, data = new Float32Array(w * h);
+  for (let x = 0; x < w; x++) for (let y = 0; y < h; y++) data[x * h + y] = grid[(sel.c0 + x) * ROWS + sel.r0 + y];
+  clip = { w, h, data };
+  if (cut) { pushUndo(); for (let x = 0; x < w; x++) grid.fill(0, (sel.c0 + x) * ROWS + sel.r0, (sel.c0 + x) * ROWS + sel.r1); render(); }
+  $('st-pos').textContent = `${cut ? 'Cut' : 'Copied'} ${(w * COL_SEC).toFixed(2)} s × ${h / 2} semitones`;
+}
+function clearSel() { if (!sel) return; pushUndo(); for (let c = sel.c0; c < Math.min(sel.c1, COLS); c++) grid.fill(0, c * ROWS + sel.r0, c * ROWS + sel.r1); render(); }
+function startPaste() {
+  if (!clip) { $('st-pos').textContent = 'Nothing copied yet: select a rectangle, then Copy.'; return; }
+  const at = cursor || (sel ? { c: sel.c0, r: sel.r0 } : { c: 0, r: 0 });
+  floating = { c: at.c, r: at.r };
+  floatCanvas = document.createElement('canvas'); floatCanvas.width = clip.w; floatCanvas.height = clip.h;   // the block, drawn in theme colors
+  const fi = floatCanvas.getContext('2d').createImageData(clip.w, clip.h);
+  for (let x = 0; x < clip.w; x++) for (let y = 0; y < clip.h; y++) {
+    const v = clip.data[x * clip.h + (clip.h - 1 - y)], col = lut[Math.round(v * 255)], i = (y * clip.w + x) * 4;
+    fi.data[i] = col[0]; fi.data[i + 1] = col[1]; fi.data[i + 2] = col[2]; fi.data[i + 3] = v > 0.02 ? 255 : 0;
+  }
+  floatCanvas.getContext('2d').putImageData(fi, 0, 0);
+  placeFloating(at); $('st-pos').textContent = 'Move the copy, click or Enter to place it, Esc to cancel';
+}
+function placeFloating(p) {                                // bottom-left corner follows the (already snapped) pointer
+  floating.c = Math.max(0, Math.min(COLS - clip.w, Math.round(p.c)));
+  floating.r = Math.max(0, Math.min(ROWS - clip.h, Math.round(p.r)));
+  drawOverlay();
+}
+function dropFloating() {
+  if (!floating) return;
+  pushUndo();
+  for (let x = 0; x < clip.w; x++) for (let y = 0; y < clip.h; y++) {
+    const c = floating.c + x, r = floating.r + y; if (c >= COLS || r >= ROWS) continue;
+    grid[c * ROWS + r] = Math.max(grid[c * ROWS + r], clip.data[x * clip.h + y]);
+  }
+  sel = { c0: floating.c, c1: floating.c + clip.w, r0: floating.r, r1: floating.r + clip.h };
+  floating = null; render(); drawOverlay();
+  $('st-pos').textContent = `Placed at ${(sel.c0 * COL_SEC).toFixed(2)} s · Ctrl+V pastes another copy`;
+}
+function nudge(dc, dr) { if (!floating) return; placeFloating({ c: floating.c + dc, r: floating.r + dr }); }
+
+// ---------- Save / open: a .json with the grid as 8-bit intensities ----------
+function serialize() {
+  const bytes = new Uint8Array(COLS * ROWS); for (let i = 0; i < bytes.length; i++) bytes[i] = Math.round(Math.min(1, grid[i]) * 255);
+  let bin = ''; for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return JSON.stringify({ app: 'sonogram', v: 1, cols: COLS, rows: ROWS, colSec: COL_SEC, data: btoa(bin) });
+}
+function deserialize(text) {
+  const o = JSON.parse(text);
+  if (o.app !== 'sonogram' || o.rows !== ROWS || !o.data) throw new Error('not a sonogram file');
+  const bin = atob(o.data), n = Math.max(BASE_COLS, Math.min(MAX_COLS, o.cols));
+  pushUndo(); grid = new Float32Array(n * ROWS); COLS = n;
+  for (let i = 0; i < Math.min(bin.length, grid.length); i++) grid[i] = bin.charCodeAt(i) / 255;
+  buildAxes(); resize();
+}
+let autosaveTimer = 0;
+function scheduleAutosave() { clearTimeout(autosaveTimer); autosaveTimer = setTimeout(() => { try { localStorage.setItem('sonogram', serialize()); } catch (e) {} }, 400); }
+function openFile(f) {
+  if (!f) return;
+  if (f.type.startsWith('image/')) loadImage(URL.createObjectURL(f));
+  else f.text().then(deserialize).catch(() => { $('st-pos').textContent = 'Could not read that file: open a .json saved here, or an image.'; });
+}
+
+// ---------- Presets (procedural, so the file stays small) ----------
+let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const C4 = 48, semis = s => C4 + s * 2;
+function noteLine(c0, c1, r, amp = 1) { for (let c = c0; c < c1; c++) stamp(c, r, 0.6, 0.6, amp, false); }
+const presets = {
+  blank() {},
+  overture() {
+    const mel = [0,4,7,12,9,7,4,2, 0,4,7,12,14,12,9,7];
+    mel.forEach((s, i) => { noteLine(i * 6, i * 6 + 5, semis(s)); noteLine(i * 6, i * 6 + 5, semis(s + 12), 0.3); });
+    [[-12,0,48],[-5,48,96]].forEach(([s, a, b]) => { noteLine(a, b, semis(s), 0.8); noteLine(a, b, semis(s + 12), 0.35); });
+    for (let c = 96; c < 160; c++) { const t = (c - 96) / 64; stamp(c, 60 + Math.sin(t * Math.PI * 2) * 20 + t * 30, 1, 1.2, 1, false); }
+    [0,4,7,12,16].forEach(s => noteLine(160, 192, semis(s), 0.9));
+    for (let c = 160; c < 192; c++) stamp(c, 40 + (c - 160) * 2.6, 0.6, 0.8, 0.5, false);
+  },
+  glyph() { stampText('HELLO', 6, 74, 54); for (let c = 150; c < 192; c += 3) stamp(c, 30 + ((c / 3) % 4) * 8, 0.8, 0.8, 0.7, false); },
+  chorale() {
+    const chords = [[0,4,7],[7,11,14],[9,12,16],[5,9,12]];
+    chords.forEach((ch, i) => ch.forEach(s => { noteLine(i * 48, i * 48 + 46, semis(s)); noteLine(i * 48, i * 48 + 46, semis(s + 12), 0.3); noteLine(i*48, i*48+46, semis(s - 24), 0.6); }));
+  },
+  birdsong() {
+    for (let k = 0; k < 14; k++) {
+      const c0 = Math.floor(rnd() * 170), len = 6 + Math.floor(rnd() * 14), base = 95 + rnd() * 35, bend = (rnd() - 0.5) * 30;
+      for (let c = c0; c < c0 + len && c < COLS; c++) { const t = (c - c0) / len; stamp(c, base + Math.sin(t * Math.PI) * bend, 0.7, 0.9, 0.9, false); }
+    }
+    for (let c = 0; c < COLS; c++) stamp(c, 14 + Math.sin(c / 9) * 2, 0.6, 1.5, 0.35, false);
+  },
+  rain() {
+    for (let k = 0; k < 320; k++) { const c = rnd() * COLS, r = 40 + rnd() * 100, l = rnd() * 3;
+      for (let j = 0; j < l; j++) stamp(c, r - j * 1.5, 0.6, 0.6, 0.35 + rnd() * 0.6, false); }
+    noteLine(0, COLS, 24, 0.5); noteLine(0, COLS, 38, 0.35);
+  },
+};
+function usePreset(name) { pushUndo(); grid.fill(0); seed = 7; presets[name](); render(); }
+
+// ---------- Synthesis: additive sines, one per bright row, amplitude ramped between columns ----------
+function synthesize(sr) {
+  const n = Math.round(duration() * sr), out = new Float32Array(n), perCol = Math.round(COL_SEC * sr);
+  const phase = new Float32Array(ROWS), step = new Float32Array(ROWS), weight = new Float32Array(ROWS);
+  for (let r = 0; r < ROWS; r++) { const f = freqOfRow(r); step[r] = 2 * Math.PI * f / sr; weight[r] = Math.pow(f / 440, -0.3); }
+  for (let c = 0; c < COLS; c++) {
+    const a0 = c * ROWS, a1 = Math.min(COLS - 1, c + 1) * ROWS, start = c * perCol;
+    for (let r = 0; r < ROWS; r++) {
+      const g0 = grid[a0 + r] * weight[r], g1 = grid[a1 + r] * weight[r];
+      if (g0 < 0.004 && g1 < 0.004) continue;
+      let ph = phase[r]; const st = step[r], dg = (g1 - g0) / perCol;
+      for (let k = 0; k < perCol && start + k < n; k++) { out[start + k] += (g0 + dg * k) * Math.sin(ph); ph += st; }
+      phase[r] = ph % (2 * Math.PI);
+    }
+  }
+  let peak = 0; for (let i = 0; i < n; i++) peak = Math.max(peak, Math.abs(out[i]));
+  if (peak > 0) { const k = 0.85 / peak; for (let i = 0; i < n; i++) out[i] *= k; }
+  const fade = Math.round(sr * 0.01);                    // guard the loop seam
+  for (let i = 0; i < fade; i++) { out[i] *= i / fade; out[n - 1 - i] *= i / fade; }
+  return out;
+}
+function toWav(samples, sr) {
+  const b = new ArrayBuffer(44 + samples.length * 2), v = new DataView(b);
+  const str = (o, s) => [...s].forEach((ch, i) => v.setUint8(o + i, ch.charCodeAt(0)));
+  str(0, 'RIFF'); v.setUint32(4, 36 + samples.length * 2, true); str(8, 'WAVE'); str(12, 'fmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, sr, true);
+  v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); str(36, 'data'); v.setUint32(40, samples.length * 2, true);
+  for (let i = 0; i < samples.length; i++) v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, samples[i])) * 32767, true);
+  return b;
+}
+
+// ---------- Playback ----------
+let actx, analyser, source, startAt = 0, osc, oscGain, specBuf;
+function audio() {
+  if (actx) return actx;
+  actx = new (window.AudioContext || window.webkitAudioContext)();
+  analyser = actx.createAnalyser(); analyser.fftSize = 8192; analyser.smoothingTimeConstant = 0.5; analyser.connect(actx.destination);
+  specBuf = new Uint8Array(analyser.frequencyBinCount);
+  oscGain = actx.createGain(); oscGain.gain.value = 0; oscGain.connect(actx.destination);
+  osc = actx.createOscillator(); osc.type = 'triangle'; osc.connect(oscGain); osc.start();
+  return actx;
+}
+function play() {
+  const ctx = audio(); if (ctx.state === 'suspended') ctx.resume();
+  stop();
+  const data = synthesize(ctx.sampleRate), buf = ctx.createBuffer(1, data.length, ctx.sampleRate);
+  buf.copyToChannel(data, 0);
+  source = ctx.createBufferSource(); source.buffer = buf; source.loop = state.loop; source.connect(analyser);
+  source.onended = () => { if (state.playing && !state.loop) stop(); };
+  startAt = ctx.currentTime; source.start(); state.playing = true;
+  $('play').textContent = 'Stop'; requestAnimationFrame(tick);
+}
+function stop() {
+  if (source) { source.onended = null; try { source.stop(); } catch (e) {} source = null; }
+  state.playing = false; $('play').textContent = 'Play'; drawOverlay();
+}
+function tick() {
+  if (!state.playing) return;
+  const t = (actx.currentTime - startAt) % duration();
+  drawOverlay(t);
+  const x = t / duration() * wrap.clientWidth, vw = scroller.clientWidth;   // keep the playhead in view
+  if (x < scroller.scrollLeft || x > scroller.scrollLeft + vw - 40) scroller.scrollLeft = Math.max(0, x - 40);
+  requestAnimationFrame(tick);
+}
+let cursor = null, anchor = null;
+function drawOverlay(t) {
+  const W = over.width, H = over.height; octx.clearRect(0, 0, W, H);
+  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+  const X = c => c / COLS * W, Y = r => (ROWS - r) / ROWS * H;
+  octx.strokeStyle = accent; octx.lineWidth = 1.5;
+  if (sel && !floating) { octx.setLineDash([5, 4]); octx.strokeRect(X(sel.c0), Y(sel.r1), X(sel.c1) - X(sel.c0), Y(sel.r0) - Y(sel.r1)); octx.setLineDash([]); }
+  if (floating) {                                        // the block being placed rides on the overlay until it is dropped
+    const x = X(floating.c), y = Y(floating.r + clip.h), w = clip.w / COLS * W, h = clip.h / ROWS * H;
+    octx.imageSmoothingEnabled = false; octx.globalAlpha = 0.75; octx.drawImage(floatCanvas, x, y, w, h); octx.globalAlpha = 1;
+    octx.setLineDash([5, 4]); octx.strokeRect(x, y, w, h); octx.setLineDash([]);
+    if (t === undefined) return;
+  }
+  if (t !== undefined) {
+    const x = t / duration() * W;
+    // Live spectrum from the analyser, drawn beside the playhead on the same log-pitch scale: what you hear is what you see.
+    analyser.getByteFrequencyData(specBuf);
+    const binHz = actx.sampleRate / analyser.fftSize; octx.fillStyle = accent; octx.globalAlpha = 0.55;
+    for (let r = 0; r < ROWS; r++) {
+      const m = specBuf[Math.min(specBuf.length - 1, Math.round(freqOfRow(r) / binHz))] / 255;
+      if (m > 0.2) octx.fillRect(x, (ROWS - 1 - r) / ROWS * H, (m - 0.2) * W / COLS * 12, H / ROWS);
+    }
+    octx.globalAlpha = 1; octx.fillRect(x - 1, 0, 2, H);
+    $('st-pos').textContent = t.toFixed(2) + ' s';
+    return;
+  }
+  if (!cursor) return;
+  if (anchor && state.tool === 'select') { const q = rectFrom(anchor, cursor); if (q) { octx.setLineDash([5, 4]); octx.strokeRect(X(q.c0), Y(q.r1), X(q.c1) - X(q.c0), Y(q.r0) - Y(q.r1)); octx.setLineDash([]); } return; }
+  if (state.tool === 'select') return;
+  if (anchor && state.tool === 'line') {                 // preview of the straight line being dragged
+    octx.setLineDash([6, 4]); octx.beginPath(); octx.moveTo(X(anchor.c), Y(anchor.r)); octx.lineTo(X(cursor.c), Y(cursor.r)); octx.stroke(); octx.setLineDash([]);
+  }
+  if (state.tool === 'text') { octx.beginPath(); octx.moveTo(X(cursor.c), Y(cursor.r) - textPx() / ROWS * H / 2); octx.lineTo(X(cursor.c), Y(cursor.r) + textPx() / ROWS * H / 2); octx.stroke(); return; }
+  const rx = (state.size * 0.8 + 0.5) / COLS * W, ry = (state.snap ? 0.6 : state.size * 0.8 + 0.5) / ROWS * H;
+  octx.beginPath(); octx.ellipse(X(cursor.c), Y(cursor.r), rx, ry, 0, 0, Math.PI * 2); octx.stroke();
+}
+const textPx = () => 18 + state.size * 9;
+
+// ---------- Input ----------
+function pos(e) {
+  const b = wrap.getBoundingClientRect();
+  let c = (e.clientX - b.left) / b.width * COLS, r = ROWS - (e.clientY - b.top) / b.height * ROWS;
+  if (anchor && e.shiftKey) r = anchor.r;                 // Shift locks the pitch: horizontal lines
+  if (state.gridOn && state.tool !== 'eraser') c = Math.round(c / BEAT) * BEAT;
+  if (state.snap && state.tool !== 'eraser') r = Math.round(r / 2) * 2;
+  return { c, r: clampRow(r) };
+}
+let prev = null, drawing = false;
+over.addEventListener('pointerdown', e => {
+  if (e.button !== 0) return;
+  over.setPointerCapture(e.pointerId); const p = pos(e); cursor = p;
+  if (floating) { placeFloating(p); return; }
+  if (state.tool === 'select') { anchor = p; sel = null; drawOverlay(); return; }
+  pushUndo();
+  if (state.tool === 'text') { stampText($('word').value.trim() || 'HELLO', Math.round(p.c), Math.round(p.r), textPx()); render(); return; }
+  anchor = p;
+  if (state.tool === 'line') { drawOverlay(); return; }
+  drawing = true; prev = p; brushAt(p.c, p.r, null); render(); auditionAt(p.r, true);
+});
+over.addEventListener('pointermove', e => {
+  const p = pos(e); cursor = p;
+  if (floating) { placeFloating(p); return; }
+  if (!state.playing) $('st-pos').textContent = `${(p.c * COL_SEC).toFixed(2)} s · ${nameOfRow(p.r)} · ${freqOfRow(p.r).toFixed(0)} Hz` + (state.tool === 'text' ? ` · text ${textPx()} px` : '');
+  if (drawing) {                                          // freehand: the grid snaps only where the stroke starts
+    const q = state.gridOn ? { c: (e.clientX - wrap.getBoundingClientRect().left) / wrap.clientWidth * COLS, r: p.r } : p;
+    brushAt(q.c, q.r, prev); prev = q; render(); auditionAt(q.r, false);
+  }
+  if (!state.playing) drawOverlay();
+});
+function endStroke(e) {
+  if (floating) { if (e && e.type === 'pointerup') dropFloating(); return; }
+  if (anchor && state.tool === 'select') { if (e && e.type === 'pointerup') sel = rectFrom(anchor, pos(e)); anchor = null; drawOverlay(); return; }
+  if (anchor && state.tool === 'line' && e && e.type === 'pointerup') { const p = pos(e); brushAt(p.c, p.r, anchor); render(); }
+  drawing = false; prev = null; anchor = null; auditionOff(); if (!state.playing) drawOverlay();
+}
+over.addEventListener('pointerup', endStroke); over.addEventListener('pointercancel', endStroke);
+over.addEventListener('pointerleave', () => { cursor = null; if (!state.playing) drawOverlay(); });
+function auditionAt(r, fresh) {
+  if (!state.audition || state.tool !== 'brush' || state.playing) return;
+  const ctx = audio(); if (ctx.state === 'suspended') ctx.resume();
+  const t = ctx.currentTime, f = freqOfRow(clampRow(state.snap ? Math.round(r / 2) * 2 : r));
+  if (fresh) osc.frequency.setValueAtTime(f, t); else osc.frequency.setTargetAtTime(f, t, 0.02);
+  oscGain.gain.setTargetAtTime(0.12, t, 0.02);
+}
+function auditionOff() { if (oscGain) oscGain.gain.setTargetAtTime(0, actx.currentTime, 0.04); }
+
+wrap.addEventListener('dragover', e => { e.preventDefault(); wrap.classList.add('drop'); });
+wrap.addEventListener('dragleave', () => wrap.classList.remove('drop'));
+wrap.addEventListener('drop', e => { e.preventDefault(); wrap.classList.remove('drop'); openFile(e.dataTransfer.files[0]); });
+$('file').addEventListener('change', e => { openFile(e.target.files[0]); e.target.value = ''; });
+
+// ---------- Controls ----------
+function setTool(t) { state.tool = t; document.querySelectorAll('[data-tool]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tool === t))); }
+function toggle(key) { state[key] = !state[key]; $(key === 'gridOn' ? 'grid' : key).setAttribute('aria-pressed', String(state[key]));
+  if (source && key === 'loop') source.loop = state.loop; if (key === 'gridOn') render(); }
+function download(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); }
+function undo() { const u = undoStack.pop(); if (!u) return; grid = u.data; if (u.cols !== COLS) { COLS = u.cols; buildAxes(); resize(); } else render(); }
+function clearAll() { pushUndo(); grid.fill(0); render(); }
+function setTheme(t) { document.documentElement.dataset.theme = t; buildLut(); render(); drawOverlay(); }
+function toggleTheme() { const dark = matchMedia('(prefers-color-scheme: dark)').matches, cur = document.documentElement.dataset.theme || (dark ? 'dark' : 'light'); setTheme(cur === 'dark' ? 'light' : 'dark'); }
+function toggleHelp(force) { const h = $('help'); h.hidden = force === undefined ? !h.hidden : !force; }
+function saveJson() { download(new Blob([serialize()], { type: 'application/json' }), 'sonogram.json'); }
+function saveWav() { const sr = 44100; download(new Blob([toWav(synthesize(sr), sr)], { type: 'audio/wav' }), 'sonogram.wav'); }
+function savePng() { const c = document.createElement('canvas'); c.width = COLS * 4; c.height = ROWS * 4; const g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(pix, 0, 0, c.width, c.height); c.toBlob(b => download(b, 'sonogram.png'), 'image/png'); }
+function setSize(n) { $('size').value = state.size = Math.max(1, Math.min(8, n)); drawOverlay(); }
+
+document.querySelectorAll('[data-tool]').forEach(b => b.addEventListener('click', () => setTool(b.dataset.tool)));
+$('play').addEventListener('click', () => state.playing ? stop() : play());
+for (const k of ['loop', 'snap', 'audition']) $(k).addEventListener('click', () => toggle(k));
+$('grid').addEventListener('click', () => toggle('gridOn'));
+$('size').addEventListener('input', e => state.size = +e.target.value);
+$('longer').addEventListener('click', () => setCols(COLS + 100));
+$('shorter').addEventListener('click', () => setCols(COLS - 100));
+$('preset').addEventListener('change', e => usePreset(e.target.value));
+$('undo').addEventListener('click', undo); $('clear').addEventListener('click', clearAll);
+$('open').addEventListener('click', () => $('file').click());
+$('save').addEventListener('click', saveJson); $('wav').addEventListener('click', saveWav); $('png').addEventListener('click', savePng);
+$('copy').addEventListener('click', () => copySel(false)); $('paste').addEventListener('click', startPaste);
+$('theme').addEventListener('click', toggleTheme);
+$('helpbtn').addEventListener('click', () => toggleHelp());
+$('help').addEventListener('click', e => { if (e.target === $('help')) toggleHelp(false); });
+
+const presetKeys = Object.keys(presets).filter(k => k !== 'blank').concat('blank');
+document.addEventListener('keydown', e => {
+  const typing = e.target.tagName === 'INPUT' && e.target.type === 'text';
+  if ((e.ctrlKey || e.metaKey) && e.key === '/') { e.preventDefault(); toggleHelp(); return; }
+  if (e.key === 'Escape') { if (typing) e.target.blur(); else if (floating) { floating = null; drawOverlay(); } else if (sel) { sel = null; drawOverlay(); } else toggleHelp(false); return; }
+  if (typing) { if (e.key === 'Enter') { setTool('text'); e.target.blur(); } return; }
+  const k = e.key.toLowerCase();
+  if (e.ctrlKey || e.metaKey) {
+    const combo = { z: undo, s: saveJson, c: () => copySel(false), x: () => copySel(true), v: startPaste, a: () => { sel = { c0: 0, c1: COLS, r0: 0, r1: ROWS }; setTool('select'); drawOverlay(); } };
+    if (combo[k]) { e.preventDefault(); combo[k](); } return;
+  }
+  if (e.altKey) return;
+  if (floating) {                                        // placing a pasted block: arrows nudge by a beat / semitone (Shift: bar / octave)
+    const step = e.shiftKey ? [BAR, BINS_PER_OCT] : [BEAT, 2];
+    const arrows = { arrowleft: () => nudge(-step[0], 0), arrowright: () => nudge(step[0], 0), arrowup: () => nudge(0, step[1]), arrowdown: () => nudge(0, -step[1]), enter: dropFloating };
+    if (arrows[k]) { e.preventDefault(); arrows[k](); return; }
+  }
+  const del = () => sel ? clearSel() : clearAll();
+  const map = { ' ': () => state.playing ? stop() : play(), r: () => toggle('loop'), b: () => setTool('brush'), l: () => setTool('line'), m: () => setTool('select'),
+    e: () => setTool('eraser'), x: () => setTool('text'), n: () => toggle('snap'), g: () => toggle('gridOn'), a: () => toggle('audition'),
+    t: toggleTheme, '[': () => setSize(state.size - 1), ']': () => setSize(state.size + 1), '+': () => setCols(COLS + 100), '=': () => setCols(COLS + 100),
+    '-': () => setCols(COLS - 100), delete: del, backspace: del, o: () => $('file').click(), s: saveWav, p: savePng };
+  if (/^[1-6]$/.test(k)) { const name = presetKeys[+k - 1]; $('preset').value = name; usePreset(name); e.preventDefault(); return; }
+  if (map[k]) { e.preventDefault(); map[k](); if (k === 'n') drawOverlay(); }
+});
+
+// ---------- Boot: restore the last session if there is one, else an impressive canvas before the first click ----------
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { buildLut(); render(); });
+new ResizeObserver(resize).observe(wrap);
+buildLut();
+let restored = false;
+try { const s = localStorage.getItem('sonogram'); if (s) { deserialize(s); undoStack.length = 0; restored = grid.some(v => v > 0); } } catch (e) {}
+if (!restored) { COLS = BASE_COLS; grid = new Float32Array(COLS * ROWS); presets.overture(); }
+buildAxes(); resize();
+</script>
+</body>
+</html>

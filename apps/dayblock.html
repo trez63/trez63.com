@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DAYBLOCK — a time-block day planner</title>
+<style>
+/* ---------- Palette & base ---------- */
+:root{
+  --paper:#faf6ee; --card:#fffdf7; --ink:#2b2118; --muted:#7a6c5c;
+  --line:#e6dccb; --terra:#c2572b; --terra-dk:#9c421f;
+  --mustard:#d9a441; --sage:#7d8f69; --plum:#7d5a7a; --blue:#5b7d8c;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:Georgia,"Iowan Old Style",Palatino,"Times New Roman",serif;
+  -webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+/* ---------- Header ---------- */
+header{max-width:1080px;margin:0 auto;padding:28px 20px 8px}
+h1{margin:0;font-size:clamp(30px,5vw,46px);letter-spacing:.01em}
+h1 span{color:var(--terra)}
+.sub{color:var(--muted);margin:6px 0 0;font-size:17px;line-height:1.45}
+.sub b{color:var(--ink)}
+/* ---------- Toolbar ---------- */
+.toolbar{max-width:1080px;margin:16px auto 0;padding:0 20px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.toolbar label{font-size:14px;color:var(--muted)}
+.toolbar input[type=date]{border:1px solid var(--line);border-radius:8px;padding:7px 10px;background:var(--card);color:var(--ink)}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;font-size:14px}
+.btn:hover{border-color:var(--terra)}
+.btn.primary{background:var(--terra);border-color:var(--terra);color:#fff}
+.btn.primary:hover{background:var(--terra-dk)}
+.btn.danger{color:#8c2f1d}
+.spacer{flex:1}
+/* ---------- Stats ---------- */
+.stats{max-width:1080px;margin:16px auto 0;padding:0 20px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 18px}
+.stat .n{font-size:30px;line-height:1.1}
+.stat .l{color:var(--muted);font-size:13px;margin-top:2px}
+.bar{height:10px;border-radius:99px;overflow:hidden;display:flex;background:#efe7d6;margin-top:10px}
+.bar i{display:block;height:100%}
+/* ---------- Layout ---------- */
+main{max-width:1080px;margin:18px auto 40px;padding:0 20px;display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:start}
+@media(max-width:800px){main{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+.panel h2{margin:0 0 4px;font-size:19px}
+.hint{color:var(--muted);font-size:14px;line-height:1.5;margin:0 0 12px}
+/* ---------- Timeline ---------- */
+.timeline{display:grid;grid-template-columns:56px 1fr}
+.hours{position:relative}
+.hour{height:56px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;padding-top:4px;text-align:right;padding-right:10px}
+.track{position:relative;border-left:1px solid var(--line);cursor:crosshair;touch-action:none;user-select:none}
+.track .gridline{height:56px;border-top:1px solid var(--line)}
+.track .gridline:nth-child(4n+1){border-top-color:#d8cbb2}
+.nowline{position:absolute;left:-4px;right:0;height:2px;background:var(--terra);z-index:5;pointer-events:none}
+.nowline::after{content:"now";position:absolute;left:-2px;top:-18px;background:var(--terra);color:#fff;font-size:11px;padding:1px 6px;border-radius:99px}
+/* Blocks sit inside .track, positioned by JS */
+.block{position:absolute;left:8px;right:8px;border-radius:10px;padding:8px 10px 16px;overflow:hidden;
+  color:#fff;cursor:grab;z-index:2;border:1px solid rgba(0,0,0,.12)}
+.block:active{cursor:grabbing}
+.block.sel{outline:3px solid var(--ink);outline-offset:1px;z-index:3}
+.block .t{font-weight:bold;font-size:15px;line-height:1.25}
+.block .m{font-size:12.5px;opacity:.92;margin-top:2px}
+.block .grip{position:absolute;left:0;right:0;bottom:0;height:12px;cursor:ns-resize;text-align:center;font-size:10px;line-height:12px;opacity:.7}
+.block .grip::before{content:"⋯"}
+.ghost{opacity:.65;border:2px dashed var(--ink);color:var(--ink);background:#fff8}
+/* ---------- Editor & quick add ---------- */
+.field{margin-bottom:12px}
+.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#fff;color:var(--ink)}
+.field textarea{min-height:64px;resize:vertical}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.quick{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.chip{border:0;border-radius:999px;padding:7px 12px;color:#fff;font-size:13px}
+.msg{color:var(--muted);font-size:13px;min-height:18px;margin-top:8px}
+footer{max-width:1080px;margin:0 auto;padding:0 20px 30px;color:var(--muted);font-size:13px;line-height:1.5}
+kbd{font-family:ui-monospace,monospace;background:#efe7d6;border-radius:4px;padding:1px 5px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <h1>DAY<span>BLOCK</span></h1>
+  <p class="sub">Drag on the timeline to carve out your day. Drag a block to move it, pull its bottom edge to resize it. <b>No block is ever rejected</b> — overlaps are fine, the totals just add up.</p>
+</header>
+
+<div class="toolbar" role="toolbar" aria-label="Day controls">
+  <label for="day">Day</label>
+  <input type="date" id="day">
+  <button class="btn" id="todayBtn">Today</button>
+  <span class="spacer"></span>
+  <button class="btn primary" id="saveBtn">Save JSON</button>
+  <button class="btn" id="loadBtn">Load JSON</button>
+  <input type="file" id="fileIn" accept=".json,application/json" hidden>
+  <button class="btn" id="sampleBtn">Sample day</button>
+  <button class="btn danger" id="clearBtn">Clear day</button>
+</div>
+
+<section class="stats" aria-label="Day totals">
+  <div class="stat"><div class="n" id="statSched">–</div><div class="l">scheduled</div></div>
+  <div class="stat"><div class="n" id="statFree">–</div><div class="l">unscheduled, 6am–10pm</div></div>
+  <div class="stat"><div class="n" id="statCount">–</div><div class="l">blocks on the day</div><div class="bar" id="catBar"></div></div>
+</section>
+
+<main>
+  <!-- Timeline -->
+  <section class="panel" aria-label="Timeline">
+    <h2>Your day, 6am – 10pm</h2>
+    <p class="hint">Drag downward on empty space to create a block (snaps to 15 minutes). Click a block to edit it here on the right. Arrow keys nudge the selected block; Delete removes it.</p>
+    <div class="timeline">
+      <div class="hours" id="hours"></div>
+      <div class="track" id="track" aria-label="Drag to create a time block"></div>
+    </div>
+  </section>
+
+  <!-- Editor -->
+  <aside class="panel" aria-label="Block editor">
+    <h2 id="editTitle">New block</h2>
+    <p class="hint" id="editHint">Select a block, or drag on the timeline to make one.</p>
+    <div class="field"><label for="fTitle">What</label><input id="fTitle" placeholder="e.g. Deep work"></div>
+    <div class="field"><label for="fCat">Kind</label>
+      <select id="fCat">
+        <option value="work">Work</option><option value="meeting">Meeting</option>
+        <option value="personal">Personal</option><option value="health">Health</option>
+        <option value="home">Home</option><option value="rest">Rest</option>
+      </select>
+    </div>
+    <div class="row2">
+      <div class="field"><label for="fStart">From</label><input type="time" id="fStart" step="900"></div>
+      <div class="field"><label for="fEnd">To</label><input type="time" id="fEnd" step="900"></div>
+    </div>
+    <div class="field"><label for="fNotes">Notes (optional)</label><textarea id="fNotes" placeholder="Anything this block needs…"></textarea></div>
+    <button class="btn primary" id="applyBtn">Save block</button>
+    <button class="btn danger" id="delBtn">Delete block</button>
+    <div class="msg" id="msg" role="status"></div>
+    <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
+    <h2>Quick add</h2>
+    <p class="hint">Drops a 60-minute block into the first free gap of the day.</p>
+    <div class="quick" id="quick"></div>
+  </aside>
+</main>
+
+<footer>
+  Saved automatically in this browser, per day. Save JSON downloads a backup you can load on any device. Keyboard: <kbd>↑</kbd><kbd>↓</kbd> move the selected block 15 min, <kbd>Delete</kbd> removes it. Works fully offline — nothing leaves this file.
+</footer>
+
+<script>
+"use strict";
+/* ---------- 1. Constants & categories ---------- */
+const DAY_START = 6 * 60, DAY_END = 22 * 60;   // visible window, minutes
+const HOUR_PX = 56, SNAP = 15;                  // px per hour, snap minutes
+const STORE_KEY = "dayblock-v1";
+const CATS = {
+  work:     { label: "Work",     color: "#c2572b" },
+  meeting:  { label: "Meeting",  color: "#5b7d8c" },
+  personal: { label: "Personal", color: "#7d5a7a" },
+  health:   { label: "Health",   color: "#7d8f69" },
+  home:     { label: "Home",     color: "#b07d2b" },
+  rest:     { label: "Rest",     color: "#8a7a5c" }
+};
+const SAMPLE = [
+  { title: "Morning routine", start: 420, end: 465, cat: "personal", notes: "" },
+  { title: "Deep work", start: 480, end: 600, cat: "work", notes: "Hardest task first." },
+  { title: "Team standup", start: 600, end: 630, cat: "meeting", notes: "" },
+  { title: "Lunch + walk", start: 720, end: 780, cat: "health", notes: "" },
+  { title: "Focus block", start: 795, end: 915, cat: "work", notes: "" },
+  { title: "Errands", start: 1020, end: 1080, cat: "home", notes: "" },
+  { title: "Workout", start: 1080, end: 1140, cat: "health", notes: "" },
+  { title: "Evening wind-down", start: 1200, end: 1260, cat: "rest", notes: "" }
+];
+
+/* ---------- 2. State & storage ---------- */
+let blocks = [];          // {id, title, start, end, cat, notes}
+let selectedId = null;
+let uid = 1;
+const $ = id => document.getElementById(id);
+const dayInput = $("day"), track = $("track");
+function todayISO(){ const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); }
+function loadStore(){ try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch(e){ return {}; } }
+function persist(){ const s = loadStore(); s[dayInput.value] = blocks; try { localStorage.setItem(STORE_KEY, JSON.stringify(s)); } catch(e){} }
+function loadDay(date){
+  const s = loadStore();
+  if (s[date]) { blocks = s[date].map(b => ({...b})); }
+  else if (date === todayISO()) { blocks = SAMPLE.map(b => ({...b})); }
+  else { blocks = []; }
+  blocks.forEach(b => { b.id = uid++; });
+  selectedId = blocks.length ? blocks[0].id : null;
+  renderAll();
+}
+
+/* ---------- 3. Time helpers ---------- */
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const snap = m => clamp(Math.round(m / SNAP) * SNAP, DAY_START, DAY_END);
+function fmt(m){ let h = Math.floor(m / 60), mi = m % 60;
+  const ap = h >= 12 ? "pm" : "am"; h = h % 12 || 12;
+  return h + ":" + String(mi).padStart(2, "0") + ap; }
+function fmtDur(m){ const h = Math.floor(m / 60), mi = m % 60;
+  return (h ? h + "h " : "") + (mi ? mi + "m" : "") || "0m"; }
+function toMin(hhmm){ const p = hhmm.split(":"); return (+p[0]) * 60 + (+p[1] || 0); }
+function toHHMM(m){ return String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0"); }
+function yToMin(y){ const r = track.getBoundingClientRect();
+  return snap(DAY_START + (y - r.top) / HOUR_PX * 60); }
+
+/* ---------- 4. Render: hours, blocks, stats ---------- */
+(function buildHours(){
+  let h = "";
+  for (let m = DAY_START; m < DAY_END; m += 60) h += '<div class="hour">' + fmt(m) + "</div>";
+  $("hours").innerHTML = h;
+  let g = "";
+  for (let m = DAY_START; m < DAY_END; m += 60) g += '<div class="gridline"></div>';
+  track.innerHTML = g;
+})();
+function renderBlocks(){
+  track.querySelectorAll(".block, .nowline").forEach(n => n.remove());
+  // "now" line, only when viewing today
+  if (dayInput.value === todayISO()){
+    const now = new Date().getHours() * 60 + new Date().getMinutes();
+    if (now > DAY_START && now < DAY_END){
+      const line = document.createElement("div");
+      line.className = "nowline";
+      line.style.top = ((now - DAY_START) / 60 * HOUR_PX) + "px";
+      track.appendChild(line);
+    }
+  }
+  [...blocks].sort((a, b) => a.start - b.start).forEach(b => {
+    const el = document.createElement("div");
+    el.className = "block" + (b.id === selectedId ? " sel" : "");
+    el.tabIndex = 0; el.dataset.id = b.id;
+    el.style.top = ((b.start - DAY_START) / 60 * HOUR_PX + 1) + "px";
+    el.style.height = Math.max(30, (b.end - b.start) / 60 * HOUR_PX - 2) + "px";
+    el.style.background = CATS[b.cat] ? CATS[b.cat].color : "#8a7a5c";
+    el.innerHTML = '<div class="t"></div><div class="m"></div><div class="grip" title="Drag to resize"></div>';
+    el.querySelector(".t").textContent = b.title || "Untitled";
+    el.querySelector(".m").textContent = fmt(b.start) + " – " + fmt(b.end) + " · " + fmtDur(b.end - b.start);
+    el.addEventListener("pointerdown", e => startBlockDrag(e, b, el));
+    el.addEventListener("click", () => select(b.id));
+    el.addEventListener("keydown", e => {
+      if (e.key === "ArrowUp" || e.key === "ArrowDown"){
+        e.preventDefault();
+        const d = e.key === "ArrowUp" ? -SNAP : SNAP;
+        const len = b.end - b.start;
+        b.start = clamp(b.start + d, DAY_START, DAY_END - len); b.end = b.start + len;
+        persist(); renderAll();
+      } else if (e.key === "Delete" || e.key === "Backspace"){ deleteBlock(b.id); }
+    });
+    track.appendChild(el);
+  });
+}
+function renderStats(){
+  const total = blocks.reduce((s, b) => s + Math.max(0, b.end - b.start), 0);
+  $("statSched").textContent = fmtDur(total);
+  $("statFree").textContent = fmtDur(Math.max(0, DAY_END - DAY_START - total));
+  $("statCount").textContent = blocks.length + (blocks.length === 1 ? " block" : " blocks");
+  const bar = $("catBar"); bar.innerHTML = "";
+  if (total > 0) Object.keys(CATS).forEach(k => {
+    const t = blocks.filter(b => b.cat === k).reduce((s, b) => s + (b.end - b.start), 0);
+    if (t > 0){ const i = document.createElement("i");
+      i.style.width = (t / total * 100) + "%"; i.style.background = CATS[k].color;
+      i.title = CATS[k].label + ": " + fmtDur(t); bar.appendChild(i); }
+  });
+}
+function renderEditor(){
+  const b = blocks.find(x => x.id === selectedId);
+  $("editTitle").textContent = b ? "Edit block" : "New block";
+  $("editHint").textContent = b ? fmt(b.start) + " – " + fmt(b.end) + " · " + CATS[b.cat].label
+    : "Select a block, or drag on the timeline to make one.";
+  $("fTitle").value = b ? b.title : "";
+  $("fCat").value = b ? b.cat : "work";
+  $("fStart").value = b ? toHHMM(b.start) : "";
+  $("fEnd").value = b ? toHHMM(b.end) : "";
+  $("fNotes").value = b ? (b.notes || "") : "";
+  $("delBtn").disabled = !b;
+}
+function renderAll(){ renderBlocks(); renderStats(); renderEditor(); }
+function select(id){ selectedId = id; renderAll();
+  const el = track.querySelector('.block[data-id="' + id + '"]');
+  if (el) el.focus({ preventScroll: false });
+}
+function showMsg(t){ $("msg").textContent = t; setTimeout(() => { $("msg").textContent = ""; }, 4000); }
+
+/* ---------- 5. Drag: create, move, resize ---------- */
+let drag = null;
+function startBlockDrag(e, b, el){
+  // Resize if the grip was grabbed, else a move.
+  const r = el.getBoundingClientRect();
+  const mode = (r.bottom - e.clientY <= 14) ? "resize" : "move";
+  drag = { mode, b, el, startY: e.clientY, origStart: b.start, origEnd: b.end, moved: false };
+  el.setPointerCapture(e.pointerId);
+  el.addEventListener("pointermove", onDragMove);
+  el.addEventListener("pointerup", onDragEnd, { once: true });
+  e.preventDefault();
+}
+function onDragMove(e){
+  if (!drag) return;
+  const dMin = Math.round((e.clientY - drag.startY) / HOUR_PX * 60 / SNAP) * SNAP;
+  if (Math.abs(e.clientY - drag.startY) > 3) drag.moved = true;
+  const b = drag.b, len = drag.origEnd - drag.origStart;
+  if (drag.mode === "move"){
+    b.start = clamp(drag.origStart + dMin, DAY_START, DAY_END - len); b.end = b.start + len;
+  } else {
+    b.end = clamp(drag.origEnd + dMin, b.start + SNAP, DAY_END);
+  }
+  // Update only the dragged element in place: a full re-render here would
+  // destroy the element holding pointer capture and kill the drag.
+  drag.el.style.top = ((b.start - DAY_START) / 60 * HOUR_PX + 1) + "px";
+  drag.el.style.height = Math.max(30, (b.end - b.start) / 60 * HOUR_PX - 2) + "px";
+  drag.el.querySelector(".m").textContent = fmt(b.start) + " – " + fmt(b.end) + " · " + fmtDur(b.end - b.start);
+  renderStats();
+}
+function onDragEnd(e){
+  if (drag){ select(drag.b.id); drag = null; persist(); renderAll(); }
+}
+track.addEventListener("pointerdown", e => {
+  if (e.target !== track && !e.target.classList.contains("gridline")) return;
+  const startMin = yToMin(e.clientY);
+  const ghost = document.createElement("div");
+  ghost.className = "block ghost";
+  track.appendChild(ghost);
+  const draw = (a, z) => {
+    const top = Math.min(a, z), bot = Math.max(a, z);
+    ghost.style.top = ((top - DAY_START) / 60 * HOUR_PX + 1) + "px";
+    ghost.style.height = Math.max(30, (bot - top) / 60 * HOUR_PX - 2) + "px";
+    ghost.querySelector(".t") && (ghost.querySelector(".t").textContent = fmt(top) + " – " + fmt(bot));
+  };
+  ghost.innerHTML = '<div class="t"></div>';
+  draw(startMin, startMin + SNAP);
+  const move = ev => draw(startMin, snap(yToMin(ev.clientY)));
+  const up = ev => {
+    track.removeEventListener("pointermove", move);
+    track.removeEventListener("pointerup", up);
+    ghost.remove();
+    const endMin = snap(yToMin(ev.clientY));
+    const s = Math.min(startMin, endMin), en = Math.max(startMin, endMin);
+    if (en - s < SNAP) return; // a bare click on empty space does nothing
+    const b = { id: uid++, title: "", start: s, end: en, cat: "work", notes: "" };
+    blocks.push(b); selectedId = b.id; persist(); renderAll();
+    $("fTitle").focus(); showMsg("Block created — name it on the right.");
+  };
+  track.addEventListener("pointermove", move);
+  track.addEventListener("pointerup", up);
+});
+
+/* ---------- 6. Editor actions ---------- */
+$("applyBtn").addEventListener("click", () => {
+  const b = blocks.find(x => x.id === selectedId);
+  if (!b){ showMsg("Drag on the timeline to create a block first."); return; }
+  let s = $("fStart").value ? toMin($("fStart").value) : b.start;
+  let en = $("fEnd").value ? toMin($("fEnd").value) : b.end;
+  s = clamp(snap(s), DAY_START, DAY_END - SNAP);
+  en = clamp(snap(en), s + SNAP, DAY_END);   // never zero-length, never backwards
+  b.title = $("fTitle").value.trim(); b.cat = $("fCat").value;
+  b.start = s; b.end = en; b.notes = $("fNotes").value;
+  persist(); renderAll(); showMsg("Saved.");
+});
+function deleteBlock(id){
+  blocks = blocks.filter(b => b.id !== id);
+  selectedId = blocks.length ? blocks[0].id : null;
+  persist(); renderAll(); showMsg("Block deleted.");
+}
+$("delBtn").addEventListener("click", () => { if (selectedId) deleteBlock(selectedId); });
+
+/* ---------- 7. Quick add ---------- */
+Object.keys(CATS).forEach(k => {
+  const btn = document.createElement("button");
+  btn.className = "chip"; btn.style.background = CATS[k].color;
+  btn.textContent = "+ " + CATS[k].label;
+  btn.addEventListener("click", () => {
+    // First 60-minute gap at or after the current first block boundary.
+    const sorted = [...blocks].sort((a, b) => a.start - b.start);
+    let cursor = DAY_START, placed = null;
+    for (const b of sorted){
+      if (b.start - cursor >= 60){ placed = cursor; break; }
+      cursor = Math.max(cursor, b.end);
+    }
+    if (!placed && DAY_END - cursor >= 60) placed = cursor;
+    if (placed === null){ showMsg("No free 60-minute gap left — drag to make room."); return; }
+    const b = { id: uid++, title: CATS[k].label, start: placed, end: placed + 60, cat: k, notes: "" };
+    blocks.push(b); selectedId = b.id; persist(); renderAll(); showMsg(CATS[k].label + " added at " + fmt(placed) + ".");
+  });
+  $("quick").appendChild(btn);
+});
+
+/* ---------- 8. Day switching, sample, clear ---------- */
+dayInput.value = todayISO();
+dayInput.addEventListener("change", () => loadDay(dayInput.value));
+$("todayBtn").addEventListener("click", () => { dayInput.value = todayISO(); loadDay(dayInput.value); });
+$("sampleBtn").addEventListener("click", () => {
+  blocks = SAMPLE.map(b => ({...b, id: uid++}));
+  selectedId = blocks[0].id; persist(); renderAll(); showMsg("Sample day loaded.");
+});
+$("clearBtn").addEventListener("click", () => {
+  blocks = []; selectedId = null; persist(); renderAll(); showMsg("Day cleared — drag to start again.");
+});
+
+/* ---------- 9. JSON save / load (validated, never wipes on bad input) ---------- */
+$("saveBtn").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify({ date: dayInput.value, blocks }, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "dayblock-" + dayInput.value + ".json";
+  a.click(); URL.revokeObjectURL(a.href);
+});
+$("loadBtn").addEventListener("click", () => $("fileIn").click());
+$("fileIn").addEventListener("change", () => {
+  const f = $("fileIn").files[0]; if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try {
+      const data = JSON.parse(rd.result);
+      const arr = Array.isArray(data) ? data : data.blocks;
+      if (!Array.isArray(arr)) throw new Error("no blocks array");
+      const clean = arr.map(b => {
+        const s = snap(clamp(+b.start, DAY_START, DAY_END - SNAP));
+        const en = snap(clamp(+b.end, s + SNAP, DAY_END));
+        if (!isFinite(s) || !isFinite(en)) throw new Error("bad time");
+        return { id: uid++, title: String(b.title || ""), start: s, end: en,
+                 cat: CATS[b.cat] ? b.cat : "work", notes: String(b.notes || "") };
+      });
+      blocks = clean; selectedId = blocks.length ? blocks[0].id : null;
+      if (data.date) dayInput.value = data.date;
+      persist(); renderAll(); showMsg("Loaded " + clean.length + " blocks.");
+    } catch(e){ showMsg("That file isn't a valid DAYBLOCK plan — nothing changed."); }
+    $("fileIn").value = "";
+  };
+  rd.readAsText(f);
+});
+
+/* ---------- 10. Boot & now-line refresh ---------- */
+loadDay(dayInput.value);
+setInterval(() => { if (dayInput.value === todayISO()) renderBlocks(); }, 60000);
+</script>
+</body>
+</html>

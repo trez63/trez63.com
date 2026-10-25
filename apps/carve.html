@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Carve</title>
+<style>
+:root{--bg:#f3f0e8;--fg:#1d1b17;--mut:#6f6a60;--panel:#fffdf8;--line:#dcd6c8;--acc:#d9482b;--ok:#1f8a5b;--shadow:0 12px 40px rgba(30,20,0,.18)}
+:root[data-theme=dark]{--bg:#111418;--fg:#e9e7e1;--mut:#8f8c86;--panel:#1a1e24;--line:#2a2f37;--acc:#ff6a45;--ok:#4fd18b;--shadow:0 12px 40px rgba(0,0,0,.6)}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{display:grid;grid-template-rows:auto 1fr auto;height:100dvh;background:var(--bg);color:var(--fg);font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+header{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding:10px 14px;background:var(--panel);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:17px;letter-spacing:.02em}
+.brand i{width:14px;height:14px;border-radius:3px;background:linear-gradient(135deg,var(--acc),#f6b73c)}
+.brand small{font-weight:400;color:var(--mut);font-size:12px}
+.bar{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-left:auto}
+.sep{width:1px;height:20px;background:var(--line);margin:0 4px}
+button{font:inherit;font-size:13px;color:var(--fg);background:transparent;border:1px solid var(--line);border-radius:7px;padding:5px 8px;cursor:pointer;line-height:1.2}
+button:hover{border-color:var(--mut)}
+button.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+button.prime{border-color:var(--acc);color:var(--acc)}
+button.prime:hover{background:var(--acc);color:#fff}
+.rng{display:flex;align-items:center;gap:6px;color:var(--mut);font-size:12px}
+.rng input{width:80px;accent-color:var(--acc)}
+main{position:relative;display:flex;align-items:center;justify-content:center;overflow:auto;padding:28px}
+#stage{position:relative;box-shadow:var(--shadow);flex:none}
+canvas{display:block;image-rendering:auto;touch-action:none;background:#888}
+canvas.brush{cursor:crosshair}
+.h{position:absolute;touch-action:none;z-index:2}
+.h::after{content:"";position:absolute;background:var(--panel);border:1px solid var(--line);border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.25);transition:background .15s}
+.h:hover::after,.h.on::after{background:var(--acc);border-color:var(--acc)}
+#hx{top:0;bottom:0;right:-11px;width:22px;cursor:ew-resize}
+#hx::after{top:50%;left:7px;width:8px;height:44px;margin-top:-22px}
+#hy{left:0;right:0;bottom:-11px;height:22px;cursor:ns-resize}
+#hy::after{left:50%;top:7px;height:8px;width:44px;margin-left:-22px}
+footer{display:flex;gap:14px;padding:7px 14px;font-size:12px;color:var(--mut);background:var(--panel);border-top:1px solid var(--line);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden}
+footer b{color:var(--fg);font-weight:600}
+#hint{margin-left:auto;overflow:hidden;text-overflow:ellipsis}
+.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);z-index:10;padding:16px}
+.overlay[hidden]{display:none}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 26px;max-width:560px;width:100%;max-height:90dvh;overflow:auto;box-shadow:var(--shadow)}
+.card h2{margin:0 0 6px;font-size:18px}.card p{margin:6px 0;color:var(--mut)}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;margin:14px 0 4px}
+kbd{font:12px ui-monospace,Menlo,Consolas,monospace;background:var(--bg);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 6px;white-space:nowrap}
+body.drop main::after{content:"Drop image to carve it";position:absolute;inset:12px;border:2px dashed var(--acc);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--acc);background:rgba(0,0,0,.15);pointer-events:none}
+@media (max-width:640px){header{padding:8px}.bar{margin-left:0}main{padding:18px}.rng{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><i></i>Carve <small>content-aware resize</small></div>
+  <div class="bar">
+    <button data-act="open" title="Open image (O)">Open</button>
+    <button data-act="save" title="Save PNG (Ctrl+S)">Save</button>
+    <span class="sep"></span>
+    <button data-tool="protect" title="Protect brush (2)">Protect</button>
+    <button data-tool="remove" title="Remove brush (3)">Remove</button>
+    <button data-tool="erase" title="Erase mask (4)">Erase</button>
+    <label class="rng">Brush <input type="range" id="radius" min="4" max="60" value="18"></label>
+    <span class="sep"></span>
+    <button data-act="seams" title="Show seams (S)">Seams</button>
+    <button data-act="energy" title="Energy view (E)">Energy</button>
+    <span class="sep"></span>
+    <button data-act="go" class="prime" title="Remove marked (Delete)">Remove marked</button>
+    <button data-act="keep" title="Grow back to the original size afterwards">Keep size</button>
+    <span class="sep"></span>
+    <button data-act="undo" title="Undo (Ctrl+Z)">Undo</button>
+    <button data-act="reset" title="Reset (Home)">Reset</button>
+    <button data-act="theme" title="Light / dark (T)">Theme</button>
+    <button data-act="help" title="Help (Ctrl+/)">?</button>
+  </div>
+</header>
+<main><div id="stage"><canvas id="cv"></canvas><div id="hx" class="h"></div><div id="hy" class="h"></div></div></main>
+<footer><span id="dims"></span><span id="stat"></span><span id="hint"></span></footer>
+<input type="file" id="file" accept="image/*" hidden>
+<div id="help" class="overlay" hidden><div class="card">
+  <h2>Carve</h2>
+  <p>Resize a picture by removing the paths of least importance, so the subjects stay intact while the boring parts give way. Drag the <b>right</b> or <b>bottom</b> edge of the picture to carve or grow it. Paint <b>Remove</b> over an object and press Delete to make it vanish.</p>
+  <p>Everything runs in this one file: no uploads, no network. Drop, paste or open any image.</p>
+  <div class="keys">
+    <kbd>← →</kbd><span>Width −/+ 1 px (<kbd>Shift</kbd> 10)</span>
+    <kbd>↑ ↓</kbd><span>Height −/+ 1 px (<kbd>Shift</kbd> 10)</span>
+    <kbd>1 2 3 4</kbd><span>No brush · Protect · Remove · Erase</span>
+    <kbd>[ ]</kbd><span>Brush smaller / larger</span>
+    <kbd>Delete</kbd><span>Remove the red area (grows back if Keep size is on)</span>
+    <kbd>S</kbd><span>Show seams as they go</span>
+    <kbd>E</kbd><span>Energy view (what the algorithm sees)</span>
+    <kbd>Space</kbd><span>Hold to compare with the original</span>
+    <kbd>Ctrl Z</kbd><span>Undo</span>
+    <kbd>Home</kbd><span>Reset</span>
+    <kbd>O</kbd><span>Open image</span>
+    <kbd>Ctrl S</kbd><span>Save PNG</span>
+    <kbd>T</kbd><span>Light / dark</span>
+    <kbd>Ctrl /</kbd><span>This help</span>
+  </div>
+  <p>Seam carving, after Avidan &amp; Shamir (2007): energy = colour gradient, a dynamic programme finds the cheapest top-to-bottom path, and that path is removed or duplicated.</p>
+</div></div>
+<script>
+'use strict';
+const $=s=>document.querySelector(s), cv=$('#cv'), ctx=cv.getContext('2d');
+const PROTECT=1e6, REMOVE=-1e6;           // mask weights dwarf any gradient sum
+const S={img:null,orig:null,target:{w:0,h:0},scale:1,tool:'none',radius:18,showSeams:true,
+  showEnergy:false,keepSize:true,job:null,undo:[],lastSeams:[],seamsDone:0,msAcc:0,
+  dirty:true,lastGesture:0,compare:false,maskUsed:false,flash:''};
+
+/* ---------- the image as typed arrays: RGBA pixels + Int8 mask (1 protect, -1 remove) ---------- */
+const makeImg=(w,h,px,mask)=>({w,h,px,mask:mask||new Int8Array(w*h)});
+const cloneImg=im=>makeImg(im.w,im.h,im.px.slice(),im.mask.slice());
+
+function transpose(im){
+  const {w,h,px,mask}=im, tp=new Uint8ClampedArray(px.length), tm=new Int8Array(mask.length);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    const s=y*w+x, d=x*h+y;
+    tp[d*4]=px[s*4];tp[d*4+1]=px[s*4+1];tp[d*4+2]=px[s*4+2];tp[d*4+3]=px[s*4+3];tm[d]=mask[s];
+  }
+  return makeImg(h,w,tp,tm);
+}
+
+// Energy: colour-gradient magnitude, biased by the mask.
+function energy(im){
+  const {w,h,px,mask}=im, e=new Float64Array(w*h);
+  for(let y=0;y<h;y++){
+    const yu=y?y-1:0, yd=y<h-1?y+1:y;
+    for(let x=0;x<w;x++){
+      const a=(y*w+(x?x-1:0))*4, b=(y*w+(x<w-1?x+1:x))*4, c=(yu*w+x)*4, d=(yd*w+x)*4, i=y*w+x;
+      const r=px[a]-px[b], g=px[a+1]-px[b+1], bl=px[a+2]-px[b+2];
+      const r2=px[c]-px[d], g2=px[c+1]-px[d+1], b2=px[c+2]-px[d+2];
+      e[i]=Math.sqrt(r*r+g*g+bl*bl+r2*r2+g2*g2+b2*b2)+(mask[i]>0?PROTECT:mask[i]<0?REMOVE:0);
+    }
+  }
+  return e;
+}
+
+// Cheapest 8-connected top-to-bottom path (dynamic programming). Returns x per row.
+function findSeam(im){
+  const {w,h}=im, e=energy(im), cum=new Float64Array(w*h), from=new Int8Array(w*h);
+  for(let x=0;x<w;x++)cum[x]=e[x];
+  for(let y=1;y<h;y++){
+    const r=y*w, p=r-w;
+    for(let x=0;x<w;x++){
+      let best=cum[p+x], f=0;
+      if(x>0&&cum[p+x-1]<best){best=cum[p+x-1];f=-1;}
+      if(x<w-1&&cum[p+x+1]<best){best=cum[p+x+1];f=1;}
+      cum[r+x]=best+e[r+x]; from[r+x]=f;
+    }
+  }
+  const last=(h-1)*w; let x=0;
+  for(let i=1;i<w;i++)if(cum[last+i]<cum[last+x])x=i;
+  const seam=new Int32Array(h);
+  for(let y=h-1;y>=0;y--){seam[y]=x;x+=from[y*w+x];}
+  return seam;
+}
+
+function removeSeam(im,seam){
+  const {w,h,px,mask}=im, nw=w-1, np=new Uint8ClampedArray(nw*h*4), nm=new Int8Array(nw*h);
+  for(let y=0;y<h;y++){
+    const s=seam[y], so=y*w, d=y*nw;
+    np.set(px.subarray(so*4,(so+s)*4),d*4); np.set(px.subarray((so+s+1)*4,(so+w)*4),(d+s)*4);
+    nm.set(mask.subarray(so,so+s),d); nm.set(mask.subarray(so+s+1,so+w),d+s);
+  }
+  return makeImg(nw,h,np,nm);
+}
+
+// Grow by k: find k seams on a shrinking copy (so they never pile up), then duplicate them.
+function insertSeams(im,k){
+  const {w,h,px,mask}=im, dup=new Uint8Array(w*h);
+  let copy=cloneImg(im), idx=Int32Array.from({length:w*h},(_,i)=>i%w);
+  for(let n=0;n<k;n++){
+    const seam=findSeam(copy), cw=copy.w, ni=new Int32Array((cw-1)*h);
+    for(let y=0;y<h;y++){
+      const s=seam[y], so=y*cw, d=y*(cw-1);
+      dup[y*w+idx[so+s]]=1;
+      ni.set(idx.subarray(so,so+s),d); ni.set(idx.subarray(so+s+1,so+cw),d+s);
+    }
+    idx=ni; copy=removeSeam(copy,seam);
+  }
+  const nw=w+k, np=new Uint8ClampedArray(nw*h*4), nm=new Int8Array(nw*h);
+  for(let y=0;y<h;y++){
+    let d=y*nw;
+    for(let x=0;x<w;x++){
+      const s=y*w+x; np.set(px.subarray(s*4,s*4+4),d*4); nm[d]=mask[s]; d++;
+      if(dup[s]){const t=x<w-1?s+1:s;for(let c=0;c<4;c++)np[d*4+c]=(px[s*4+c]+px[t*4+c])>>1;nm[d]=mask[s];d++;}
+    }
+  }
+  return makeImg(nw,h,np,nm);
+}
+
+/* ---------- carving loop: a few seams per frame, animated ---------- */
+function carve(axis,k){
+  let im=axis==='y'?transpose(S.img):S.img;
+  if(k<0){const seam=findSeam(im);im=removeSeam(im,seam);S.lastSeams.push({axis,seam});S.seamsDone++;}
+  else{im=insertSeams(im,k);S.seamsDone+=k;}
+  S.img=axis==='y'?transpose(im):im;
+}
+const hasRemoveMask=()=>S.img.mask.includes(-1);
+const clampW=v=>Math.max(24,Math.min(S.orig.w*2,v)), clampH=v=>Math.max(24,Math.min(S.orig.h*2,v));
+
+function work(){
+  const t0=performance.now(); let n=0; S.lastSeams.length=0;
+  while(performance.now()-t0<12){
+    if(S.job){
+      if(!hasRemoveMask()||S.job.removed>=600){
+        const j=S.job; S.job=null; S.target={w:S.img.w,h:S.img.h};
+        if(j.restore)S.target[j.axis==='x'?'w':'h']+=j.removed;
+        continue;
+      }
+      carve(S.job.axis,-1);S.job.removed++;n++;continue;
+    }
+    const dx=S.target.w-S.img.w, dy=S.target.h-S.img.h;
+    if(!dx&&!dy)break;
+    if(dx<0){carve('x',-1);n++;}else if(dx>0){carve('x',Math.min(dx,8));n+=Math.min(dx,8);}
+    else if(dy<0){carve('y',-1);n++;}else{carve('y',Math.min(dy,8));n+=Math.min(dy,8);}
+  }
+  if(n){S.msAcc=S.msAcc*0.8+((performance.now()-t0)/n)*0.2;S.dirty=true;}
+}
+
+/* ---------- rendering ---------- */
+const mc=document.createElement('canvas'), mctx=mc.getContext('2d');
+function render(){
+  const im=S.compare?S.orig:S.img, {w,h}=im;
+  if(cv.width!==w)cv.width=w; if(cv.height!==h)cv.height=h;
+  cv.style.width=w*S.scale+'px'; cv.style.height=h*S.scale+'px';
+  if(S.showEnergy&&!S.compare){
+    const e=energy(im), out=new Uint8ClampedArray(w*h*4);
+    for(let i=0;i<w*h;i++){const v=Math.min(255,e[i]*0.8);out[i*4]=out[i*4+1]=out[i*4+2]=v;out[i*4+3]=255;}
+    ctx.putImageData(new ImageData(out,w,h),0,0);
+  }else ctx.putImageData(new ImageData(im.px,w,h),0,0);
+  if(S.maskUsed&&!S.compare){
+    mc.width=w;mc.height=h; const o=new Uint8ClampedArray(w*h*4), m=im.mask;
+    for(let i=0;i<w*h;i++){if(!m[i])continue;const j=i*4;if(m[i]>0){o[j]=60;o[j+1]=200;o[j+2]=120;}else{o[j]=255;o[j+1]=60;o[j+2]=40;}o[j+3]=120;}
+    mctx.putImageData(new ImageData(o,w,h),0,0); ctx.drawImage(mc,0,0);
+  }
+  if(S.showSeams&&!S.compare){
+    ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--acc');
+    ctx.lineWidth=Math.max(1,1/S.scale);
+    for(const {axis,seam} of S.lastSeams){
+      ctx.beginPath();
+      for(let i=0;i<seam.length;i++)axis==='x'?ctx.lineTo(seam[i],i+0.5):ctx.lineTo(i+0.5,seam[i]);
+      ctx.stroke();
+    }
+  }
+  S.dirty=false;
+}
+
+function status(){
+  const {orig:o,img:i}=S, busy=S.job||S.target.w!==i.w||S.target.h!==i.h;
+  $('#dims').innerHTML=`${o.w}×${o.h} → <b>${i.w}×${i.h}</b>`;
+  $('#stat').textContent=`${S.seamsDone} seams · ${S.msAcc.toFixed(1)} ms/seam${busy?' · carving…':''}${S.compare?' · original':''}`;
+  $('#hint').textContent=S.flash||(S.tool==='none'?'Drag the right edge of the picture to the left. Ctrl+/ for help.':`Painting: ${S.tool} (brush ${S.radius}px)`);
+  for(const b of document.querySelectorAll('[data-tool]'))b.classList.toggle('on',b.dataset.tool===S.tool);
+  for(const [k,v] of [['seams',S.showSeams],['energy',S.showEnergy],['keep',S.keepSize]])$(`[data-act=${k}]`).classList.toggle('on',v);
+  cv.classList.toggle('brush',S.tool!=='none');
+}
+function loop(){work();if(S.dirty)render();status();requestAnimationFrame(loop);}
+
+/* ---------- state changes ---------- */
+function fit(){
+  const m=document.querySelector('main'), pad=56;
+  S.scale=Math.min((m.clientWidth-pad)/S.orig.w,(m.clientHeight-pad)/S.orig.h,2); S.dirty=true;
+}
+function pushUndo(){S.undo.push(cloneImg(S.img));if(S.undo.length>12)S.undo.shift();}
+function gesture(){S.job=null;const t=performance.now();if(t-S.lastGesture>800)pushUndo();S.lastGesture=t;}
+function undo(){const im=S.undo.pop();if(!im)return;S.img=im;S.target={w:im.w,h:im.h};S.job=null;S.dirty=true;}
+function reset(){S.img=cloneImg(S.orig);S.target={w:S.orig.w,h:S.orig.h};S.job=null;S.undo=[];S.seamsDone=0;S.msAcc=0;S.maskUsed=false;fit();}
+function flash(msg){S.flash=msg;clearTimeout(flash.t);flash.t=setTimeout(()=>S.flash='',2500);}
+
+function removeMarked(){
+  const {w,h,mask}=S.img; let x0=w,x1=-1,y0=h,y1=-1;
+  for(let i=0;i<w*h;i++)if(mask[i]<0){const x=i%w,y=(i-x)/w;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}
+  if(x1<0)return flash('Paint a red area with the Remove brush (3) first.');
+  pushUndo(); S.lastGesture=performance.now();
+  S.job={axis:(x1-x0)<=(y1-y0)?'x':'y',removed:0,restore:S.keepSize};
+}
+
+function setSource(src,sw,sh){
+  const s=Math.min(1,900/Math.max(sw,sh)), w=Math.max(2,Math.round(sw*s)), h=Math.max(2,Math.round(sh*s));
+  const oc=document.createElement('canvas'); oc.width=w; oc.height=h;
+  const c=oc.getContext('2d'); c.drawImage(src,0,0,w,h);
+  S.orig=makeImg(w,h,c.getImageData(0,0,w,h).data); S.lastGesture=0; reset();
+}
+function loadFile(file){
+  if(!file||!file.type.startsWith('image/'))return;
+  const url=URL.createObjectURL(file), im=new Image();
+  im.onload=()=>{URL.revokeObjectURL(url);setSource(im,im.naturalWidth,im.naturalHeight);flash(`Loaded ${file.name}`);};
+  im.src=url;
+}
+function save(){
+  const oc=document.createElement('canvas'); oc.width=S.img.w; oc.height=S.img.h;
+  oc.getContext('2d').putImageData(new ImageData(S.img.px,S.img.w,S.img.h),0,0);
+  oc.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`carve-${S.img.w}x${S.img.h}.png`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000);});
+}
+function setTheme(t){document.documentElement.dataset.theme=t;try{localStorage.setItem('carve-theme',t);}catch(e){}S.dirty=true;}
+const toggleTheme=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+const toggleHelp=()=>$('#help').hidden=!$('#help').hidden;
+
+/* ---------- painting masks ---------- */
+let painting=false, lastPt=null;
+function paintAt(x,y){
+  const v=S.tool==='protect'?1:S.tool==='remove'?-1:0, R=S.radius, {w,h,mask}=S.img;
+  for(let yy=Math.max(0,Math.floor(y-R));yy<=Math.min(h-1,Math.ceil(y+R));yy++)
+    for(let xx=Math.max(0,Math.floor(x-R));xx<=Math.min(w-1,Math.ceil(x+R));xx++)
+      if((xx-x)**2+(yy-y)**2<=R*R)mask[yy*w+xx]=v;
+  S.maskUsed=true; S.dirty=true;
+}
+function paint(e){
+  const r=cv.getBoundingClientRect(), x=(e.clientX-r.left)/S.scale, y=(e.clientY-r.top)/S.scale;
+  if(lastPt){const d=Math.hypot(x-lastPt.x,y-lastPt.y), n=Math.ceil(d/(S.radius/2));
+    for(let i=1;i<n;i++)paintAt(lastPt.x+(x-lastPt.x)*i/n,lastPt.y+(y-lastPt.y)*i/n);}
+  paintAt(x,y); lastPt={x,y};
+}
+cv.addEventListener('pointerdown',e=>{if(S.tool==='none')return;e.preventDefault();cv.setPointerCapture(e.pointerId);gesture();painting=true;lastPt=null;paint(e);});
+cv.addEventListener('pointermove',e=>{if(painting)paint(e);});
+cv.addEventListener('pointerup',()=>painting=false);
+cv.addEventListener('pointercancel',()=>painting=false);
+
+/* ---------- edge handles ---------- */
+function handle(el,axis){
+  let start0=0, size0=0;
+  el.addEventListener('pointerdown',e=>{e.preventDefault();el.setPointerCapture(e.pointerId);el.classList.add('on');gesture();
+    start0=axis==='x'?e.clientX:e.clientY; size0=axis==='x'?S.img.w:S.img.h;});
+  el.addEventListener('pointermove',e=>{if(!el.classList.contains('on'))return;
+    const v=Math.round(size0+((axis==='x'?e.clientX:e.clientY)-start0)/S.scale);
+    if(axis==='x')S.target.w=clampW(v);else S.target.h=clampH(v);});
+  for(const ev of ['pointerup','pointercancel'])el.addEventListener(ev,()=>el.classList.remove('on'));
+}
+handle($('#hx'),'x'); handle($('#hy'),'y');
+
+/* ---------- toolbar, keys, files ---------- */
+const acts={open:()=>$('#file').click(),save,seams:()=>S.showSeams=!S.showSeams,energy:()=>{S.showEnergy=!S.showEnergy;S.dirty=true;},
+  go:removeMarked,keep:()=>S.keepSize=!S.keepSize,undo,reset,theme:toggleTheme,help:toggleHelp};
+document.querySelector('.bar').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  if(b.dataset.tool)S.tool=S.tool===b.dataset.tool?'none':b.dataset.tool; else acts[b.dataset.act]();
+});
+$('#radius').addEventListener('input',e=>S.radius=+e.target.value);
+$('#file').addEventListener('change',e=>{loadFile(e.target.files[0]);e.target.value='';});
+$('#help').addEventListener('click',e=>{if(e.target===e.currentTarget)toggleHelp();});
+addEventListener('dragover',e=>{e.preventDefault();document.body.classList.add('drop');});
+addEventListener('dragleave',()=>document.body.classList.remove('drop'));
+addEventListener('drop',e=>{e.preventDefault();document.body.classList.remove('drop');loadFile(e.dataTransfer.files[0]);});
+addEventListener('paste',e=>{for(const it of e.clipboardData.items)if(it.type.startsWith('image/'))loadFile(it.getAsFile());});
+addEventListener('resize',()=>{fit();});
+
+addEventListener('keydown',e=>{
+  const mod=e.ctrlKey||e.metaKey, k=e.key;
+  if(mod&&k==='/'){e.preventDefault();return toggleHelp();}
+  if(k==='Escape'){$('#help').hidden=true;return;}
+  if(e.target.tagName==='INPUT')return;
+  if(mod&&k.toLowerCase()==='z'){e.preventDefault();return undo();}
+  if(mod&&k.toLowerCase()==='s'){e.preventDefault();return save();}
+  if(mod||e.altKey)return;
+  const st=e.shiftKey?10:1, tools={1:'none',2:'protect',3:'remove',4:'erase'};
+  if(k in tools)S.tool=tools[k];
+  else if(k==='ArrowLeft'||k==='ArrowRight'){e.preventDefault();gesture();S.target.w=clampW(S.target.w+(k==='ArrowLeft'?-st:st));}
+  else if(k==='ArrowUp'||k==='ArrowDown'){e.preventDefault();gesture();S.target.h=clampH(S.target.h+(k==='ArrowUp'?-st:st));}
+  else if(k===' '){e.preventDefault();if(!S.compare){S.compare=true;S.dirty=true;}}
+  else if(k==='s'||k==='S')acts.seams();
+  else if(k==='e'||k==='E')acts.energy();
+  else if(k==='t'||k==='T')toggleTheme();
+  else if(k==='o'||k==='O')acts.open();
+  else if(k==='?')toggleHelp();
+  else if(k==='['||k===']'){S.radius=Math.max(4,Math.min(60,S.radius+(k==='['?-4:4)));$('#radius').value=S.radius;}
+  else if(k==='Delete'||k==='Backspace'){e.preventDefault();removeMarked();}
+  else if(k==='Home'||k==='0')reset();
+});
+addEventListener('keyup',e=>{if(e.key===' '){S.compare=false;S.dirty=true;}});
+
+/* ---------- demo picture: painted here, so the file needs nothing else ---------- */
+function demo(){
+  const w=640,h=400,oc=document.createElement('canvas');oc.width=w;oc.height=h;const c=oc.getContext('2d');
+  let g=c.createLinearGradient(0,0,0,h*.62);g.addColorStop(0,'#1d3566');g.addColorStop(.6,'#7aa6d8');g.addColorStop(1,'#f5c98f');c.fillStyle=g;c.fillRect(0,0,w,h);
+  g=c.createRadialGradient(w*.74,h*.3,10,w*.74,h*.3,120);g.addColorStop(0,'rgba(255,230,160,.9)');g.addColorStop(1,'rgba(255,230,160,0)');c.fillStyle=g;c.fillRect(0,0,w,h);
+  c.fillStyle='#ffd978';c.beginPath();c.arc(w*.74,h*.3,24,0,7);c.fill();
+  c.fillStyle='rgba(255,255,255,.85)';for(const [x,y,r] of [[90,70,22],[120,78,30],[150,70,20],[420,120,18],[445,126,26],[470,118,16]]){c.beginPath();c.ellipse(x,y,r*1.6,r,0,0,7);c.fill();}
+  c.fillStyle='#5a6b9c';c.beginPath();c.moveTo(0,h*.62);for(const [x,y] of [[0,.45],[.12,.33],[.2,.4],[.3,.3],[.42,.42],[.5,.36],[.6,.47],[.7,.41],[.8,.5],[.9,.44],[1,.5]])c.lineTo(x*w,y*h);c.lineTo(w,h*.62);c.fill();
+  c.fillStyle='#3f7a4a';c.beginPath();c.moveTo(0,h*.62);c.quadraticCurveTo(w*.3,h*.46,w*.62,h*.6);c.quadraticCurveTo(w*.8,h*.64,w,h*.56);c.lineTo(w,h*.64);c.lineTo(0,h*.64);c.fill();
+  g=c.createLinearGradient(0,h*.64,0,h);g.addColorStop(0,'#6b98c9');g.addColorStop(1,'#1f3f68');c.fillStyle=g;c.fillRect(0,h*.64,w,h*.36);
+  g=c.createLinearGradient(0,h*.64,0,h*.95);g.addColorStop(0,'rgba(255,225,160,.55)');g.addColorStop(1,'rgba(255,225,160,0)');c.fillStyle=g;c.fillRect(w*.74-16,h*.64,32,h*.31);
+  const tree=(x,y,s)=>{c.fillStyle='#4a2e1a';c.fillRect(x-s*.08,y-s*.2,s*.16,s*.3);c.fillStyle='#1f5a2e';for(let i=0;i<3;i++){c.beginPath();c.moveTo(x,y-s*(1.1-i*.25));c.lineTo(x-s*(.35+i*.1),y-s*(.55-i*.25));c.lineTo(x+s*(.35+i*.1),y-s*(.55-i*.25));c.fill();}};
+  tree(60,h*.62,70);tree(110,h*.6,55);tree(165,h*.58,80);tree(560,h*.6,60);
+  c.fillStyle='#e8dcc8';c.fillRect(w*.78,h*.49,70,42);c.fillStyle='#b23a2e';c.beginPath();c.moveTo(w*.78-8,h*.49);c.lineTo(w*.78+35,h*.4);c.lineTo(w*.78+78,h*.49);c.fill();
+  c.fillStyle='#ffd166';c.fillRect(w*.78+12,h*.52,14,14);c.fillRect(w*.78+44,h*.52,14,14);c.fillStyle='#4a2e1a';c.fillRect(w*.78+30,h*.55,12,18);
+  const bx=w*.25,by=h*.2;c.fillStyle='#d9482b';c.beginPath();c.arc(bx,by,30,0,7);c.fill();c.fillStyle='#f6b73c';c.beginPath();c.moveTo(bx-30,by);c.quadraticCurveTo(bx,by-38,bx+30,by);c.quadraticCurveTo(bx,by+38,bx-30,by);c.fill();
+  c.strokeStyle='#3a2a1a';c.lineWidth=1.5;c.beginPath();c.moveTo(bx-14,by+26);c.lineTo(bx-8,by+52);c.moveTo(bx+14,by+26);c.lineTo(bx+8,by+52);c.stroke();c.fillStyle='#6b4a2a';c.fillRect(bx-10,by+50,20,12);
+  const sx=w*.5,sy=h*.8;c.fillStyle='#f0ead6';c.beginPath();c.moveTo(sx,sy-6);c.lineTo(sx,sy-58);c.lineTo(sx+34,sy-8);c.fill();c.fillStyle='#d9482b';c.beginPath();c.moveTo(sx-2,sy-6);c.lineTo(sx-2,sy-46);c.lineTo(sx-26,sy-8);c.fill();
+  c.fillStyle='#4a2e1a';c.beginPath();c.moveTo(sx-34,sy-4);c.lineTo(sx+38,sy-4);c.lineTo(sx+30,sy+8);c.lineTo(sx-28,sy+8);c.fill();
+  setSource(oc,w,h);
+}
+
+(function init(){
+  let t=null;try{t=localStorage.getItem('carve-theme');}catch(e){}
+  setTheme(t||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'));
+  demo(); requestAnimationFrame(loop);
+  setTimeout(()=>{if(!S.lastGesture)S.target.w=Math.round(S.orig.w*0.72);},700);   // opening flourish
+})();
+</script>
+</body>
+</html>

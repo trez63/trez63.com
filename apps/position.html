@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Position — press or fold</title>
+<style>
+:root{
+  --bg:#0d0f11;--panel:#141719;--panel2:#1a1e21;--line:#262c31;--ink:#ece7db;--mute:#8d949b;
+  --press:#3ccf7f;--check:#e9b949;--fold:#e5574f;--accent:#8ab8ff;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Inter,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--sans)}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:1px solid var(--line);border-radius:6px;padding:6px 10px;color:var(--ink)}
+button:hover{border-color:var(--mute)}
+button.primary{background:var(--ink);color:#0d0f11;border-color:var(--ink);font-weight:600}
+input,textarea{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:7px 9px;width:100%}
+input:focus,textarea:focus{outline:none;border-color:var(--accent)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+header{display:flex;align-items:baseline;gap:18px;padding:22px 28px 10px;border-bottom:1px solid var(--line)}
+header h1{font:600 26px/1 var(--serif);letter-spacing:.5px;margin:0}
+header .tag{color:var(--mute);font-size:14px}
+header .right{margin-left:auto;display:flex;gap:8px}
+header kbd{font-family:var(--mono);font-size:11px;color:var(--mute);border:1px solid var(--line);border-radius:4px;padding:1px 5px;margin-left:6px}
+
+#play{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
+#play div{background:var(--panel);padding:14px 28px}
+#play .lbl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+#play .val{font:600 24px/1.2 var(--serif);margin-top:4px}
+#play .sub{color:var(--mute);font-size:13px;margin-top:2px}
+.c-press{color:var(--press)}.c-check{color:var(--check)}.c-fold{color:var(--fold)}
+
+main{display:grid;grid-template-columns:1fr 400px;min-height:calc(100vh - 150px)}
+#board{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border-right:1px solid var(--line)}
+.col{background:var(--bg);padding:14px 14px 40px}
+.col h2{font:600 12px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;margin:4px 0 12px;display:flex;align-items:center;gap:8px}
+.col h2 .n{margin-left:auto;color:var(--mute);font-weight:400}
+.col .rule{font-size:12px;color:var(--mute);margin:-6px 0 12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:11px 12px;margin-bottom:8px;cursor:pointer;transition:border-color .12s,transform .12s}
+.card:hover{border-color:var(--mute)}
+.card.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.card .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.card .name{font:600 16px/1.2 var(--serif)}
+.card .tcv{font-family:var(--mono);font-size:13px;color:var(--mute)}
+.card .pips{display:flex;gap:4px;margin:8px 0 6px}
+.pip{width:18px;height:6px;border-radius:3px;background:var(--line)}
+.pip.on{background:var(--ink)}
+.card .meta{font-size:12px;color:var(--mute);display:flex;justify-content:space-between}
+.card .meta .stale{color:var(--fold)}
+.card .act{font-size:13px;margin-top:6px;color:var(--ink)}
+.card .act b{font-weight:600}
+.col.press .card .pip.on{background:var(--press)}
+.col.check .card .pip.on{background:var(--check)}
+.col.fold .card .pip.on{background:var(--fold)}
+.empty{color:var(--mute);font-size:13px;padding:20px 4px;text-align:center;border:1px dashed var(--line);border-radius:8px}
+
+#detail{padding:18px 22px 40px;overflow:auto}
+#detail .placeholder{color:var(--mute);margin-top:40px;text-align:center}
+.badge{display:inline-block;font:600 12px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;padding:6px 10px;border-radius:5px;border:1px solid}
+.badge.press{color:var(--press);border-color:var(--press)}
+.badge.check{color:var(--check);border-color:var(--check)}
+.badge.fold{color:var(--fold);border-color:var(--fold)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+label.f{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-bottom:4px}
+.playbox{margin:16px 0;padding:14px;border-radius:8px;background:var(--panel);border-left:3px solid var(--accent)}
+.playbox.press{border-left-color:var(--press)}.playbox.check{border-left-color:var(--check)}.playbox.fold{border-left-color:var(--fold)}
+.playbox .h{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.playbox .q{font:18px/1.35 var(--serif);margin-top:6px}
+.playbox .why{font-size:13px;color:var(--mute);margin-top:8px}
+.sig{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--line)}
+.sig:first-of-type{border-top:0}
+.sig .tog{flex:0 0 34px;height:20px;border-radius:10px;background:var(--line);position:relative;margin-top:2px;border:0;padding:0}
+.sig .tog::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:7px;background:var(--mute);transition:left .15s,background .15s}
+.sig .tog.on{background:var(--press)}
+.sig .tog.on::after{left:17px;background:#0d0f11}
+.sig .t{flex:1}
+.sig .t .nm{font-weight:600}
+.sig .t .nm .k{font-family:var(--mono);font-size:11px;color:var(--mute);margin-left:6px}
+.sig .t .d{font-size:13px;color:var(--mute)}
+.sig .t .ask{font-size:13px;color:var(--check);margin-top:3px;font-style:italic}
+.note{margin-top:14px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px;font-size:14px;white-space:pre-wrap;line-height:1.5}
+.btns{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.btn-danger{color:var(--fold);border-color:#4a2320}
+h3{font:600 13px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin:20px 0 8px}
+
+#rules{display:none;padding:14px 28px;background:var(--panel);border-bottom:1px solid var(--line);font-size:14px}
+#rules.open{display:block}
+#rules .grid{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-end}
+#rules input{width:70px;text-align:center}
+#rules p{margin:10px 0 0;color:var(--mute);font-size:13px}
+.rules-text{font-family:var(--serif);font-size:16px;line-height:1.6;margin-top:6px}
+
+@media (max-width:1100px){main{grid-template-columns:1fr}#board{grid-template-columns:1fr}#play{grid-template-columns:repeat(2,1fr)}#detail{border-top:1px solid var(--line)}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Position</h1>
+  <span class="tag">Play position only. Press or fold — nothing in between.</span>
+  <div class="right">
+    <button onclick="toggleRules()">Rules</button>
+    <button onclick="loadSample()">Sample</button>
+    <button onclick="exportJSON()">Export</button>
+    <button onclick="$('imp').click()">Import</button>
+    <input id="imp" type="file" accept="application/json" style="display:none" onchange="importJSON(this)">
+    <button class="primary" onclick="newDeal()">New deal<kbd>N</kbd></button>
+  </div>
+</header>
+
+<section id="rules">
+  <div class="grid">
+    <div><label class="f">Press at ≥ signals</label><input class="mono" type="number" min="1" max="6" id="r-press"></div>
+    <div><label class="f">Fold at ≤ signals</label><input class="mono" type="number" min="0" max="5" id="r-fold"></div>
+    <div><label class="f">Stale after (days)</label><input class="mono" type="number" min="1" max="365" id="r-stale"></div>
+    <div><label class="f">Your name (fold notes)</label><input id="r-name" style="width:140px"></div>
+    <div class="rules-text" id="rules-text"></div>
+  </div>
+  <p>Six signals define whether you have position in a deal. The rules are deliberately crude so there is nothing to interpret in the moment: count the signals, read the verdict, do the one thing it says.</p>
+</section>
+
+<section id="play"></section>
+
+<main>
+  <div id="board"></div>
+  <aside id="detail"></aside>
+</main>
+
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const today=()=>new Date().toISOString().slice(0,10);
+const uid=()=>Math.random().toString(36).slice(2,9);
+
+// ---------- The six signals. Each one has the single question that flips it. ----------
+const SIGNALS=[
+  {k:'champion',name:'Champion',d:'Someone inside loses something if this stalls.',
+   q:'If you went on leave tomorrow, who in your org keeps pushing this?',
+   gap:'a champion who owns this internally'},
+  {k:'pain',name:'Dated pain',d:'There is a date on which not having it costs them.',
+   q:'What breaks, and on what date, if this isn\'t in place?',
+   gap:'a date on which this has to be done'},
+  {k:'budget',name:'Budget line',d:'Money exists in this fiscal year.',
+   q:'Is this in an existing budget line this FY, or does someone have to create one?',
+   gap:'a budget line for it this year'},
+  {k:'power',name:'Power met',d:'You have talked to the person who signs.',
+   q:'Before I write the proposal, can we get 20 minutes with whoever signs it?',
+   gap:'a conversation with the person who signs'},
+  {k:'paper',name:'Path to paper',d:'The legal / procurement route is known.',
+   q:'Walk me through what happens after you say yes — who reviews what, in what order?',
+   gap:'a known route through legal and procurement'},
+  {k:'alt',name:'Alternative named',d:'You know what they do if they don\'t pick you.',
+   q:'If you don\'t do this with us, what do you do instead?',
+   gap:'a clear answer on what they do instead'},
+];
+
+// ---------- State ----------
+const KEY='position.v1';
+let state=load()||{deals:[],rules:{press:4,fold:1,stale:30,name:''},sel:null};
+function load(){try{return JSON.parse(localStorage.getItem(KEY))}catch(e){return null}}
+function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+
+// ---------- Rules engine ----------
+const count=d=>SIGNALS.reduce((n,s)=>n+(d.sig[s.k]?1:0),0);
+const staleDays=d=>Math.max(0,Math.round((Date.now()-new Date(d.last+'T12:00:00'))/864e5));
+const tcv=d=>(+d.acv||0)*(+d.term||1);
+function verdict(d){
+  const n=count(d),st=staleDays(d),r=state.rules;
+  if(n<=r.fold) return 'fold';
+  if(st>r.stale && n<r.press) return 'fold';
+  if(n>=r.press && st<=r.stale) return 'press';
+  return 'check';
+}
+function missing(d){return SIGNALS.filter(s=>!d.sig[s.k])}
+function play(d){
+  const v=verdict(d),n=count(d),st=staleDays(d),m=missing(d);
+  if(v==='press'){
+    return {h:'Press',q:'Name the close date out loud and send paper this week.',
+      why:m.length?`Position is good (${n}/6). Still unknown: ${m.map(s=>s.name.toLowerCase()).join(', ')} — ask while the paper moves, don't wait on it.`:'Full position. Nothing left to discover; the only move is to close.'};
+  }
+  if(v==='check'){
+    if(st>state.rules.stale)
+      return {h:'Check — re-engage',q:`It has been ${st} days. Book the next meeting before anything else.`,
+        why:`Signals are there (${n}/6) but the deal is drifting. Momentum is the missing signal.`};
+    const s=m[0];
+    return {h:'Check — ask one question',q:s.q,
+      why:`${n}/6. Flip "${s.name}" and this moves to press or fold. Don't add work; add information.`};
+  }
+  return {h:'Fold',q:'Send the fold note. Take the time back.',
+    why:n<=state.rules.fold?`${n}/6 signals. You are out of position; more effort here is paying to see cards you can't win with.`
+      :`${st} days without an advance at ${n}/6. Time without information is a signal — it says no.`};
+}
+function foldNote(d){
+  const m=missing(d),gap=m.length?m[0].gap:'an advance';
+  const who=d.contact?d.contact:'Hi';
+  const me=state.rules.name||'';
+  return `Subject: Closing the file on ${d.name}\n\n${who} — I'm going to close this out on my side.\n\nWe've been at it ${staleDays(d)} days without ${gap}, and in my experience that means it isn't a priority this year. That's fine; it usually isn't a reflection on anyone.\n\nIf that changes, reply to this email and we'll pick it up at the same terms for the next 30 days. After that we start over.\n\n${me}`.trim();
+}
+
+// ---------- Formatting ----------
+const money=n=>n>=1e6?'$'+(n/1e6).toFixed(n>=1e7?0:1)+'M':n>=1e3?'$'+Math.round(n/1e3)+'K':'$'+Math.round(n);
+
+// ---------- Render ----------
+function render(){
+  renderRules();renderPlay();renderBoard();renderDetail();save();
+}
+function renderRules(){
+  const r=state.rules;
+  $('r-press').value=r.press;$('r-fold').value=r.fold;$('r-stale').value=r.stale;$('r-name').value=r.name;
+  $('rules-text').innerHTML=`<b class="c-press">Press</b> at ≥${r.press} of 6 and advanced within ${r.stale} days. &nbsp;<b class="c-fold">Fold</b> at ≤${r.fold}, or stale past ${r.stale} days below press. &nbsp;<b class="c-check">Check</b> = ask exactly one question.`;
+}
+function renderPlay(){
+  const g={press:[],check:[],fold:[]};
+  state.deals.forEach(d=>g[verdict(d)].push(d));
+  const sum=a=>a.reduce((s,d)=>s+tcv(d),0);
+  const total=sum(state.deals);
+  const inPos=sum(g.press);
+  $('play').innerHTML=`
+    <div><div class="lbl">This week's play</div><div class="val">${g.press.length} press · ${g.check.length} ask · ${g.fold.length} fold</div><div class="sub">${state.deals.length} deals in the hand</div></div>
+    <div><div class="lbl">TCV in position</div><div class="val c-press">${money(inPos)}</div><div class="sub">${total?Math.round(inPos/total*100):0}% of ${money(total)} pipeline</div></div>
+    <div><div class="lbl">Questions to ask</div><div class="val c-check">${g.check.length}</div><div class="sub">one per deal, nothing else</div></div>
+    <div><div class="lbl">Time to take back</div><div class="val c-fold">${money(sum(g.fold))}</div><div class="sub">of pipeline that looks like money and isn't</div></div>`;
+}
+function renderBoard(){
+  const cols=[
+    ['press','Press','Close it. Send paper.'],
+    ['check','Check','Ask one question, then re-read.'],
+    ['fold','Fold','Send the note. Move on.']];
+  $('board').innerHTML=cols.map(([v,t,rule])=>{
+    const list=state.deals.filter(d=>verdict(d)===v).sort((a,b)=>tcv(b)-tcv(a)||count(b)-count(a));
+    return `<div class="col ${v}"><h2><span class="c-${v}">●</span>${t}<span class="n mono">${list.length}</span></h2><div class="rule">${rule}</div>
+      ${list.length?list.map(card).join(''):'<div class="empty">nothing here</div>'}</div>`;
+  }).join('');
+}
+function card(d){
+  const st=staleDays(d),p=play(d),v=verdict(d);
+  return `<div class="card ${state.sel===d.id?'sel':''}" onclick="select('${d.id}')">
+    <div class="top"><div class="name">${esc(d.name)||'<i style="color:var(--mute)">untitled</i>'}</div><div class="tcv">${money(tcv(d))}</div></div>
+    <div class="pips">${SIGNALS.map(s=>`<div class="pip ${d.sig[s.k]?'on':''}" title="${s.name}"></div>`).join('')}</div>
+    <div class="meta"><span>${count(d)}/6 · ${d.term||1}y</span><span class="${st>state.rules.stale?'stale':''}">${st}d since advance</span></div>
+    <div class="act">${v==='check'&&st<=state.rules.stale?'Ask: ':''}<b>${esc(p.q)}</b></div>
+  </div>`;
+}
+function renderDetail(){
+  const d=state.deals.find(x=>x.id===state.sel);
+  const el=$('detail');
+  if(!d){el.innerHTML=`<div class="placeholder">Select a deal, or press <kbd>N</kbd> to add one.<br><br><span style="font-size:13px">Toggle signals with keys <kbd>1</kbd>–<kbd>6</kbd>.</span></div>`;return;}
+  const v=verdict(d),p=play(d);
+  el.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center"><span class="badge ${v}">${v}</span><span class="mono" style="color:var(--mute)">${count(d)}/6 · ${staleDays(d)}d</span></div>
+    <div class="playbox ${v}"><div class="h">${esc(p.h)}</div><div class="q">${esc(p.q)}</div><div class="why">${esc(p.why)}</div></div>
+    <label class="f">Deal</label><input value="${esc(d.name)}" oninput="upd('name',this.value)" placeholder="Account / project">
+    <div class="row">
+      <div><label class="f">Contact (for the note)</label><input value="${esc(d.contact||'')}" oninput="upd('contact',this.value)" placeholder="First name"></div>
+      <div><label class="f">Last real advance</label><input type="date" class="mono" value="${d.last}" onchange="upd('last',this.value)"></div>
+    </div>
+    <div class="row">
+      <div><label class="f">ACV ($/yr)</label><input type="number" class="mono" value="${d.acv}" oninput="upd('acv',+this.value)"></div>
+      <div><label class="f">Term (years)</label><input type="number" class="mono" min="1" max="10" value="${d.term}" oninput="upd('term',+this.value)"></div>
+    </div>
+    <h3>Position — the six signals</h3>
+    ${SIGNALS.map((s,i)=>`<div class="sig">
+      <button class="tog ${d.sig[s.k]?'on':''}" onclick="flip('${s.k}')" aria-label="toggle ${s.name}"></button>
+      <div class="t"><div class="nm">${s.name}<span class="k">${i+1}</span></div><div class="d">${s.d}</div>${d.sig[s.k]?'':`<div class="ask">“${esc(s.q)}”</div>`}</div>
+    </div>`).join('')}
+    ${v==='fold'?`<h3>Fold note <button style="float:right;padding:2px 8px;font-size:12px" onclick="copyNote('${d.id}')">copy</button></h3><div class="note" id="note">${esc(foldNote(d))}</div>`:''}
+    <div class="btns">
+      <button onclick="advance()">Advanced today</button>
+      <button onclick="dup()">Duplicate</button>
+      <button class="btn-danger" onclick="del()">Remove</button>
+    </div>`;
+}
+
+// ---------- Actions ----------
+function select(id){state.sel=id;render();}
+function newDeal(){
+  const d={id:uid(),name:'',contact:'',acv:100000,term:3,last:today(),sig:{}};
+  state.deals.unshift(d);state.sel=d.id;render();
+  const i=document.querySelector('#detail input');if(i)i.focus();
+}
+function cur(){return state.deals.find(x=>x.id===state.sel)}
+function upd(k,v){const d=cur();if(!d)return;d[k]=v;
+  // live-update without stealing focus from the input
+  renderPlay();renderBoard();save();
+  const box=document.querySelector('#detail .playbox');if(box){const p=play(d),vv=verdict(d);box.className='playbox '+vv;box.innerHTML=`<div class="h">${esc(p.h)}</div><div class="q">${esc(p.q)}</div><div class="why">${esc(p.why)}</div>`;document.querySelector('#detail .badge').className='badge '+vv;document.querySelector('#detail .badge').textContent=vv;}
+}
+function flip(k){const d=cur();if(!d)return;d.sig[k]=!d.sig[k];render();}
+function advance(){const d=cur();if(!d)return;d.last=today();render();}
+function dup(){const d=cur();if(!d)return;const c=JSON.parse(JSON.stringify(d));c.id=uid();c.name+=' (copy)';state.deals.unshift(c);state.sel=c.id;render();}
+function del(){const d=cur();if(!d)return;if(d.name&&!confirm(`Remove ${d.name}?`))return;state.deals=state.deals.filter(x=>x!==d);state.sel=null;render();}
+function copyNote(id){const d=state.deals.find(x=>x.id===id);navigator.clipboard.writeText(foldNote(d)).then(()=>{const b=document.querySelector('h3 button');if(b){b.textContent='copied';setTimeout(()=>b.textContent='copy',1200)}});}
+function toggleRules(){$('rules').classList.toggle('open');}
+['press','fold','stale'].forEach(k=>$('r-'+k).addEventListener('input',e=>{const v=+e.target.value;if(v>0||k==='fold')state.rules[k]=v;render();}));
+$('r-name').addEventListener('input',e=>{state.rules.name=e.target.value;save();renderDetail();});
+
+function exportJSON(){
+  const a=document.createElement('a');
+  a.href='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(state,null,2));
+  a.download=`position-${today()}.json`;a.click();
+}
+function importJSON(inp){
+  const f=inp.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const s=JSON.parse(r.result);if(!Array.isArray(s.deals))throw 0;state=s;state.sel=null;render();}catch(e){alert('Not a Position export.')}};
+  r.readAsText(f);inp.value='';
+}
+function loadSample(){
+  if(state.deals.length&&!confirm('Replace current deals with sample data?'))return;
+  const ago=n=>new Date(Date.now()-n*864e5).toISOString().slice(0,10);
+  state.deals=[
+    {id:uid(),name:'Meridian Health',contact:'Dana',acv:180000,term:3,last:ago(4),sig:{champion:1,pain:1,budget:1,power:1,paper:0,alt:1}},
+    {id:uid(),name:'Harbor Unified Schools',contact:'Luis',acv:95000,term:3,last:ago(12),sig:{champion:1,pain:1,budget:0,power:0,paper:1,alt:0}},
+    {id:uid(),name:'Keystone Foods',contact:'Priya',acv:240000,term:5,last:ago(9),sig:{champion:1,pain:0,budget:1,power:0,paper:0,alt:0}},
+    {id:uid(),name:'Northwind Logistics',contact:'Mike',acv:120000,term:3,last:ago(47),sig:{champion:1,pain:0,budget:0,power:1,paper:0,alt:0}},
+    {id:uid(),name:'Vantage Credit Union',contact:'Sarah',acv:150000,term:3,last:ago(6),sig:{champion:1,pain:1,budget:1,power:1,paper:1,alt:1}},
+    {id:uid(),name:'Summit County',contact:'Tom',acv:70000,term:3,last:ago(21),sig:{champion:0,pain:0,budget:1,power:0,paper:0,alt:0}},
+  ];
+  state.sel=state.deals[0].id;render();
+}
+
+// ---------- Keyboard ----------
+document.addEventListener('keydown',e=>{
+  const typing=/^(INPUT|TEXTAREA)$/.test(e.target.tagName);
+  if(e.key==='Escape'){e.target.blur();if(!typing){state.sel=null;render();}return;}
+  if(typing)return;
+  if(e.key==='n'||e.key==='N'){e.preventDefault();newDeal();}
+  else if(/^[1-6]$/.test(e.key)&&cur()){flip(SIGNALS[+e.key-1].k);}
+  else if(e.key==='a'&&cur()){advance();}
+});
+
+if(!state.deals.length)loadSample();else render();
+</script>
+</body>
+</html>

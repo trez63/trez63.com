@@ -1,0 +1,645 @@
+{
+  "apps": {
+    "carve": {
+      "title": "Carve",
+      "engine": "Claude",
+      "description": "Content-aware image resizing. Drag an edge and the picture shrinks by removing its least interesting paths, so subjects stay intact. Paint over an object and delete it.",
+      "source_file": "Carve-claude.html",
+      "first_published": "2026-10-25",
+      "last_updated": "2026-10-25",
+      "version": 1,
+      "sha": "8ec93caaf281",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-25",
+          "sha": "8ec93caaf281"
+        }
+      ],
+      "thumb": {
+        "actions": [
+          {
+            "wait": 1500
+          },
+          {
+            "key": "Escape"
+          },
+          {
+            "wait": 500
+          }
+        ]
+      }
+    },
+    "foldwork": {
+      "title": "Foldwork",
+      "engine": "ChatGPT",
+      "description": "A tiny paper studio. Size an envelope, add a name and a message, print the template and fold it into something real.",
+      "source_file": "foldwork-codex.html",
+      "first_published": "2026-10-21",
+      "last_updated": "2026-10-21",
+      "version": 1,
+      "sha": "c9eab6f58cd7",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-21",
+          "sha": "c9eab6f58cd7"
+        }
+      ]
+    },
+    "genesis-universe": {
+      "title": "Genesis",
+      "engine": "Muse",
+      "description": "Type anything and it becomes a universe. The same words always produce the same universe, on any machine.",
+      "source_file": "genesis-universe-muse.html",
+      "first_published": "2026-10-21",
+      "last_updated": "2026-10-21",
+      "version": 1,
+      "sha": "440dde3dc560",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-21",
+          "sha": "440dde3dc560"
+        }
+      ],
+      "thumb": {
+        "actions": [
+          {
+            "wait": 800
+          },
+          {
+            "selector_click": "input"
+          },
+          {
+            "type": "trez63"
+          },
+          {
+            "key": "Enter"
+          },
+          {
+            "wait": 2500
+          }
+        ]
+      }
+    },
+    "kaleido": {
+      "title": "Kaleido",
+      "engine": "Muse",
+      "description": "Draw once, see it eight times. Every stroke mirrors around the centre into a mandala.",
+      "source_file": "kaleido-Muse.html",
+      "first_published": "2026-10-22",
+      "last_updated": "2026-10-22",
+      "version": 1,
+      "sha": "b056ca3b94f6",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-22",
+          "sha": "b056ca3b94f6"
+        }
+      ],
+      "thumb": {
+        "actions": [
+          {
+            "wait": 800
+          },
+          {
+            "drag": [
+              [
+                0.3,
+                0.3
+              ],
+              [
+                0.5,
+                0.6
+              ]
+            ]
+          },
+          {
+            "drag": [
+              [
+                0.6,
+                0.25
+              ],
+              [
+                0.45,
+                0.7
+              ]
+            ]
+          },
+          {
+            "drag": [
+              [
+                0.35,
+                0.65
+              ],
+              [
+                0.7,
+                0.4
+              ]
+            ]
+          },
+          {
+            "wait": 800
+          }
+        ]
+      }
+    },
+    "ledger": {
+      "title": "Ledger",
+      "engine": "Muse",
+      "description": "Your money on one page, offline. Add an entry and the totals, chart and list update at once. Nothing leaves the browser.",
+      "source_file": "ledger-muse.html",
+      "first_published": "2026-10-23",
+      "last_updated": "2026-10-23",
+      "version": 1,
+      "sha": "290019c18967",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-23",
+          "sha": "290019c18967"
+        }
+      ]
+    },
+    "meadowsong": {
+      "title": "Meadowsong",
+      "engine": "Muse",
+      "description": "A wind-chime meadow you play by gliding your cursor through it.",
+      "source_file": "meadowsong-muse.html",
+      "first_published": "2026-10-23",
+      "last_updated": "2026-10-23",
+      "version": 1,
+      "sha": "74a8ccfd3e26",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-23",
+          "sha": "74a8ccfd3e26"
+        }
+      ],
+      "thumb": {
+        "actions": [
+          {
+            "wait": 800
+          },
+          {
+            "drag": [
+              [
+                0.2,
+                0.5
+              ],
+              [
+                0.8,
+                0.5
+              ]
+            ]
+          },
+          {
+            "wait": 1200
+          }
+        ]
+      }
+    },
+    "position": {
+      "title": "Position",
+      "engine": "Claude",
+      "description": "Press or fold — nothing in between. Six crude signals decide whether you have position in a deal, so there is nothing to interpret in the moment.",
+      "source_file": "position.html",
+      "first_published": "2026-10-23",
+      "last_updated": "2026-10-23",
+      "version": 1,
+      "sha": "ef66cf12d600",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-23",
+          "sha": "ef66cf12d600"
+        }
+      ]
+    },
+    "reckon": {
+      "title": "Reckon",
+      "engine": "Claude",
+      "description": "A notepad that does math. Write naturally; numbers, units, dates and variables compute in the margin.",
+      "source_file": "reckon-claude.html",
+      "first_published": "2026-10-21",
+      "last_updated": "2026-10-21",
+      "version": 1,
+      "sha": "fd818002ad5a",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-21",
+          "sha": "fd818002ad5a"
+        }
+      ],
+      "thumb": {
+        "actions": [
+          {
+            "wait": 1000
+          },
+          {
+            "key": "Escape"
+          },
+          {
+            "wait": 500
+          }
+        ]
+      }
+    },
+    "ripple": {
+      "title": "Ripple",
+      "engine": "Claude",
+      "description": "A wave tank you can draw in. Walls reflect, glass refracts, and the whole wave equation is ten lines of code.",
+      "source_file": "ripple-claude.html",
+      "first_published": "2026-10-21",
+      "last_updated": "2026-10-21",
+      "version": 1,
+      "sha": "4abba62598cd",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-21",
+          "sha": "4abba62598cd"
+        }
+      ],
+      "thumb": {
+        "actions": [
+          {
+            "wait": 800
+          },
+          {
+            "key": "Escape"
+          },
+          {
+            "click": [
+              0.4,
+              0.5
+            ]
+          },
+          {
+            "click": [
+              0.6,
+              0.55
+            ]
+          },
+          {
+            "wait": 1500
+          }
+        ]
+      }
+    },
+    "sonogram": {
+      "title": "Sonogram",
+      "engine": "Claude",
+      "description": "Draw a picture; hear it. The canvas is a spectrogram — left to right is time, bottom to top is pitch.",
+      "source_file": "sonogram-claude.html",
+      "first_published": "2026-10-22",
+      "last_updated": "2026-10-22",
+      "version": 1,
+      "sha": "c992751b2229",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-22",
+          "sha": "c992751b2229"
+        }
+      ],
+      "thumb": {
+        "actions": [
+          {
+            "wait": 1000
+          },
+          {
+            "key": "Escape"
+          },
+          {
+            "drag": [
+              [
+                0.25,
+                0.5
+              ],
+              [
+                0.75,
+                0.35
+              ]
+            ]
+          },
+          {
+            "drag": [
+              [
+                0.3,
+                0.7
+              ],
+              [
+                0.7,
+                0.6
+              ]
+            ]
+          },
+          {
+            "wait": 800
+          }
+        ]
+      }
+    },
+    "sprout-garden": {
+      "title": "Sprout",
+      "engine": "Muse",
+      "description": "A tiny garden you grow by clicking. Every plant is different; rain makes them grow faster.",
+      "source_file": "sprout-garden-muse.html",
+      "first_published": "2026-10-21",
+      "last_updated": "2026-10-21",
+      "version": 1,
+      "sha": "12c6eeb3dc1f",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-21",
+          "sha": "12c6eeb3dc1f"
+        }
+      ],
+      "thumb": {
+        "actions": [
+          {
+            "wait": 600
+          },
+          {
+            "click": [
+              0.3,
+              0.6
+            ]
+          },
+          {
+            "click": [
+              0.5,
+              0.55
+            ]
+          },
+          {
+            "click": [
+              0.7,
+              0.65
+            ]
+          },
+          {
+            "click": [
+              0.4,
+              0.7
+            ]
+          },
+          {
+            "click": [
+              0.6,
+              0.5
+            ]
+          },
+          {
+            "wait": 2500
+          }
+        ]
+      }
+    },
+    "stillpoint": {
+      "title": "Stillpoint",
+      "engine": "ChatGPT",
+      "description": "A little space to focus. Plant a star, shape a soundscape, make room for one thing.",
+      "source_file": "stillpoint.html",
+      "first_published": "2026-10-21",
+      "last_updated": "2026-10-21",
+      "version": 1,
+      "sha": "25b715301e51",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-21",
+          "sha": "25b715301e51"
+        }
+      ]
+    },
+    "tradeoff": {
+      "title": "Tradeoff",
+      "engine": "ChatGPT",
+      "description": "Make room for what matters. Rate your options, weigh your priorities, and see the smallest shift that would change your mind.",
+      "source_file": "tradeoff-codex.html",
+      "first_published": "2026-10-22",
+      "last_updated": "2026-10-22",
+      "version": 1,
+      "sha": "69ffaf5a8e79",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-22",
+          "sha": "69ffaf5a8e79"
+        }
+      ]
+    },
+    "budget": {
+      "title": "Budget",
+      "engine": "Muse",
+      "description": "Projected income and expenses on one page, offline. Enter anything weekly, monthly or yearly and it normalizes to a monthly view.",
+      "source_file": "Budget-Muse.html",
+      "first_published": "2026-10-25",
+      "last_updated": "2026-10-25",
+      "version": 1,
+      "sha": "506f6bff1777",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-25",
+          "sha": "506f6bff1777"
+        }
+      ]
+    },
+    "crosslight": {
+      "title": "Crosslight",
+      "engine": "ChatGPT",
+      "description": "A mirror puzzle. Turn the mirrors so every beam reaches its receiver — a small game that rewards a second look.",
+      "source_file": "Crosslight-Codex.html",
+      "first_published": "2026-10-23",
+      "last_updated": "2026-10-23",
+      "version": 1,
+      "sha": "007e3b1dbca2",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-23",
+          "sha": "007e3b1dbca2"
+        }
+      ],
+      "thumb": {
+        "actions": [
+          {
+            "wait": 1200
+          },
+          {
+            "key": "Escape"
+          },
+          {
+            "wait": 300
+          }
+        ]
+      }
+    },
+    "hilbert": {
+      "title": "Hilbert",
+      "engine": "Claude",
+      "description": "See the shape of any file. Every byte is laid along a Hilbert curve, so headers, text, compressed streams and padding each get their own texture.",
+      "source_file": "Hilbert-Claude.html",
+      "first_published": "2026-10-25",
+      "last_updated": "2026-10-25",
+      "version": 1,
+      "sha": "b23b113f58f4",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-25",
+          "sha": "b23b113f58f4"
+        }
+      ],
+      "thumb": {
+        "actions": [
+          {
+            "wait": 1500
+          },
+          {
+            "key": "Escape"
+          },
+          {
+            "wait": 300
+          }
+        ]
+      }
+    },
+    "labelmaker": {
+      "title": "Label sheets",
+      "engine": "Claude",
+      "description": "Paste a list of names, pick a label size and paper, and print a sheet where every name is set as large as it fits.",
+      "source_file": "Labelmaker-Claude.html",
+      "first_published": "2026-10-05",
+      "last_updated": "2026-10-05",
+      "version": 1,
+      "sha": "32b4397ea346",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-05",
+          "sha": "32b4397ea346"
+        }
+      ]
+    },
+    "tessera": {
+      "title": "Tessera",
+      "engine": "Claude",
+      "description": "An Escher-style tiling editor. Shape one tile and the plane re-tiles itself with no gaps or overlaps.",
+      "source_file": "Tessera-Claude.html",
+      "first_published": "2026-10-25",
+      "last_updated": "2026-10-25",
+      "version": 1,
+      "sha": "d9a942ebf900",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-25",
+          "sha": "d9a942ebf900"
+        }
+      ],
+      "thumb": {
+        "actions": [
+          {
+            "wait": 1000
+          },
+          {
+            "key": "Escape"
+          },
+          {
+            "key": "r"
+          },
+          {
+            "wait": 800
+          }
+        ]
+      }
+    },
+    "chroma-desk": {
+      "title": "Chroma Desk",
+      "engine": "ChatGPT",
+      "description": "A small studio for everyday color. Drop a photo, pull a palette out of it, then edit and export the swatches.",
+      "source_file": "chroma-desk-codex.html",
+      "first_published": "2026-10-25",
+      "last_updated": "2026-10-25",
+      "version": 1,
+      "sha": "07fbd74082ba",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-25",
+          "sha": "07fbd74082ba"
+        }
+      ]
+    },
+    "dayblock": {
+      "title": "Dayblock",
+      "engine": "Muse",
+      "description": "A time-block day planner. Drag on the timeline to carve out your day; overlaps are allowed and the totals just add up.",
+      "source_file": "dayblock-Muse.html",
+      "first_published": "2026-10-25",
+      "last_updated": "2026-10-25",
+      "version": 1,
+      "sha": "e88ede47c357",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-25",
+          "sha": "e88ede47c357"
+        }
+      ],
+      "thumb": {
+        "actions": [
+          {
+            "wait": 600
+          },
+          {
+            "selector_click": "text=Sample day"
+          },
+          {
+            "wait": 800
+          }
+        ]
+      }
+    },
+    "pantry-clock": {
+      "title": "Pantry Clock",
+      "engine": "Muse",
+      "description": "What's expiring first? Track what's in the fridge, freezer and pantry and tap an item to use it up before it becomes waste.",
+      "source_file": "pantry-clock-muse.html",
+      "first_published": "2026-10-25",
+      "last_updated": "2026-10-25",
+      "version": 1,
+      "sha": "524a11923d1d",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-25",
+          "sha": "524a11923d1d"
+        }
+      ],
+      "thumb": {
+        "actions": [
+          {
+            "wait": 600
+          },
+          {
+            "selector_click": "text=Restore samples"
+          },
+          {
+            "wait": 800
+          }
+        ]
+      }
+    }
+  },
+  "generated": "2026-10-25"
+}

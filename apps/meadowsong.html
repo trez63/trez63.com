@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MEADOWSONG — a wind-chime meadow you play by gliding</title>
+<!--
+  MEADOWSONG — 2026-10-23 daily single-page creation.
+  Play a meadow of wind chimes without clicking anything: just glide
+  your pointer across the screen (or sweep a finger on touch screens).
+  Every chime you brush rings a real note; a breeze keeps the meadow
+  alive on its own. No libraries, no network, no setup — double-click
+  and glide. Keyboard players: keys A–R play the chimes directly.
+-->
+<style>
+  /* ---------- 1. Palette & page shell (daylight meadow) ---------- */
+  :root{
+    --paper:#fdf6e3; --cream:#fffdf4; --ink:#2f3a33; --soft:#6b7a6e;
+    --terra:#c96f4a; --sage:#7a9b76; --gold:#d9a441; --slate:#5b7a8c;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden;background:var(--paper);
+    color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,
+    Helvetica,Arial,sans-serif}
+  canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
+
+  /* ---------- 2. Floating control panel ---------- */
+  .panel{position:fixed;top:14px;left:14px;z-index:5;max-width:min(430px,calc(100vw - 28px));
+    background:rgba(255,253,244,.88);border:1px solid rgba(47,58,51,.14);
+    border-radius:18px;padding:14px 16px 12px;backdrop-filter:blur(6px)}
+  .panel h1{margin:0;font-size:22px;letter-spacing:.06em}
+  .panel h1 span{color:var(--terra)}
+  .panel p{margin:6px 0 10px;font-size:14px;line-height:1.45;color:var(--soft)}
+  .panel p b{color:var(--ink)}
+  .row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0}
+  .row label{font-size:13px;color:var(--soft)}
+  button{border:1px solid rgba(47,58,51,.2);background:#fff;color:var(--ink);
+    border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer}
+  button:hover{border-color:var(--ink)}
+  button.active{background:var(--terra);border-color:var(--terra);color:#fff;font-weight:700}
+  button.primary{background:var(--sage);border-color:var(--sage);color:#fff;font-weight:700}
+  input[type=range]{accent-color:var(--sage);width:130px}
+  #trail{display:flex;flex-wrap:wrap;gap:4px;min-height:24px;margin-top:8px}
+  #trail:empty::after{content:"Your melody appears here as you play…";
+    font-size:12px;color:var(--soft);font-style:italic}
+  .note{font-size:12px;font-weight:700;background:var(--gold);color:#fff;
+    border-radius:999px;padding:2px 9px}
+  .hint{position:fixed;right:14px;bottom:14px;z-index:5;background:rgba(255,253,244,.88);
+    border:1px solid rgba(47,58,51,.14);border-radius:999px;padding:7px 13px;
+    font-size:12.5px;color:var(--soft)}
+  .hint b{color:var(--ink)}
+  #showUi{display:none;position:fixed;top:14px;left:14px;z-index:6}
+  body.zen .panel,body.zen .hint{display:none}
+  body.zen #showUi{display:block}
+  @media (max-width:560px){.hint{display:none}.panel p{font-size:13px}}
+</style>
+</head>
+<body>
+
+<!-- ---------- 3. Controls (secondary — the meadow itself needs no clicks) ---------- -->
+<div class="panel" role="region" aria-label="Meadowsong controls">
+  <h1>MEADOW<span>SONG</span></h1>
+  <p><b>Just glide.</b> Move your pointer across the meadow — no clicking,
+    no pressing. Every chime you brush rings. A breeze plays on its own;
+    turn it up, change the scale, or sweep the whole meadow with Gust.</p>
+  <div class="row" role="group" aria-label="Musical scale">
+    <label>Scale:</label>
+    <button class="scale active" data-scale="sunlit">☀ Sunlit</button>
+    <button class="scale" data-scale="moss">🌿 Moss</button>
+    <button class="scale" data-scale="evening">🌙 Evening</button>
+  </div>
+  <div class="row">
+    <label for="breeze">Breeze:</label>
+    <input id="breeze" type="range" min="0" max="100" value="30" aria-label="Breeze strength">
+    <button id="gust" class="primary" title="Sweep every chime in turn">💨 Gust</button>
+    <button id="rec" title="Record the notes you play, then play them back">● Record</button>
+    <button id="play" title="Play back your recording">▶ Play back</button>
+    <button id="mute" title="Toggle sound">🔊 Sound on</button>
+    <button id="hide" title="Hide all controls (H to bring back)">Hide UI (H)</button>
+  </div>
+  <div id="trail" aria-live="polite" aria-label="Notes you just played"></div>
+</div>
+<button id="showUi">Show controls</button>
+<div class="hint">Keys <b>A S D F G H J K L ; Q W E R</b> play chimes &nbsp;·&nbsp; <b>H</b> hides UI &nbsp;·&nbsp; <b>G</b> gusts</div>
+<canvas id="field" aria-label="A meadow of hanging wind chimes. Glide your pointer across it to play."></canvas>
+
+<script>
+"use strict";
+/* ================= 4. Canvas setup (DPR capped, resize-safe) ================= */
+const cv = document.getElementById("field"), ctx = cv.getContext("2d");
+let W = 0, H = 0, DPR = 1;
+function resize(){
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth; H = window.innerHeight;
+  cv.width = Math.floor(W * DPR); cv.height = Math.floor(H * DPR);
+  cv.style.width = W + "px"; cv.style.height = H + "px";
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  layoutChimes();
+}
+window.addEventListener("resize", resize);
+const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ================= 5. Scales & note names ================= */
+const SCALES = {
+  sunlit:  { name: "Sunlit",  steps: [0, 2, 4, 7, 9],       names: ["C","D","E","G","A"] },
+  moss:    { name: "Moss",    steps: [0, 3, 5, 7, 10],      names: ["C","Eb","F","G","Bb"] },
+  evening: { name: "Evening", steps: [0, 2, 3, 7, 8],       names: ["C","D","Eb","G","Ab"] }
+};
+let scaleKey = "sunlit";
+const BASE = 261.63; // middle C
+function noteFreq(i){
+  const s = SCALES[scaleKey], oct = Math.floor(i / s.steps.length);
+  return BASE * Math.pow(2, oct + s.steps[i % s.steps.length] / 12);
+}
+function noteName(i){
+  const s = SCALES[scaleKey], oct = Math.floor(i / s.steps.length);
+  return s.names[i % s.steps.length] + (4 + oct);
+}
+
+/* ================= 6. Audio engine (lazy: starts on first gesture) ================= */
+let actx = null, master = null, echo = null, muted = false;
+function ensureAudio(){
+  if (actx) { if (actx.state === "suspended") actx.resume(); return; }
+  try {
+    actx = new (window.AudioContext || window.webkitAudioContext)();
+    master = actx.createGain(); master.gain.value = 0.9;
+    master.connect(actx.destination);
+    // Gentle echo: one feedback delay, so a single strike lingers like a real chime.
+    const delay = actx.createDelay(1); delay.delayTime.value = 0.38;
+    const fb = actx.createGain(); fb.gain.value = 0.28;
+    const wet = actx.createGain(); wet.gain.value = 0.25;
+    master.connect(delay); delay.connect(fb); fb.connect(delay);
+    delay.connect(wet); wet.connect(actx.destination);
+  } catch (e) { actx = null; }
+}
+function ring(freq, vol){
+  if (muted) return;
+  ensureAudio(); if (!actx) return;
+  const t = actx.currentTime;
+  const osc = actx.createOscillator(), g = actx.createGain();
+  osc.type = "sine"; osc.frequency.value = freq;
+  // A chime's shimmer: a faint overtone an octave and a fifth up.
+  const osc2 = actx.createOscillator(), g2 = actx.createGain();
+  osc2.type = "sine"; osc2.frequency.value = freq * 2.76;
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(vol, t + 0.008);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 2.2);
+  g2.gain.setValueAtTime(0, t);
+  g2.gain.linearRampToValueAtTime(vol * 0.18, t + 0.008);
+  g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
+  osc.connect(g); g.connect(master); osc2.connect(g2); g2.connect(master);
+  osc.start(t); osc2.start(t); osc.stop(t + 2.3); osc2.stop(t + 1.0);
+}
+
+/* ================= 7. The chimes ================= */
+const COLORS = ["#c96f4a", "#7a9b76", "#d9a441", "#5b7a8c", "#b65c6b", "#8a9a5b"];
+const KEYS = ["a","s","d","f","g","h","j","k","l",";","q","w","e","r"];
+let chimes = [], ripples = [], petals = [];
+function layoutChimes(){
+  const n = 14, top = 108, margin = Math.max(24, W * 0.06);
+  const span = W - margin * 2, gap = n > 1 ? span / (n - 1) : 0;
+  chimes = [];
+  for (let i = 0; i < n; i++){
+    // Lengths undulate like a hillside, so the row reads as one instrument.
+    const len = 74 + 46 * Math.sin(i * 0.85) + 26 * Math.sin(i * 0.31 + 1.2);
+    chimes.push({ x: margin + gap * i, len: Math.max(56, len), w: Math.max(13, Math.min(26, span / n * 0.62)),
+      color: COLORS[i % COLORS.length], ring: 0, key: KEYS[i], hitAt: -1 });
+  }
+}
+function strike(i, vol, fromBreeze){
+  const c = chimes[i]; if (!c) return;
+  c.ring = 1; c.hitAt = performance.now();
+  if (!fromBreeze) recordNote(i);
+  ring(noteFreq(i), vol);
+  ripples.push({ x: c.x, y: 108 + c.len, r: 6, a: 0.55, color: c.color });
+  if (ripples.length > 40) ripples.shift();
+  pushNote(noteName(i));
+  if (!reduced) for (let k = 0; k < 3; k++) spawnPetal(c.x, 108 + c.len, c.color);
+}
+function spawnPetal(x, y, color){
+  petals.push({ x, y, vx: (Math.random() - 0.5) * 1.4, vy: 0.4 + Math.random() * 0.9,
+    s: 3 + Math.random() * 5, rot: Math.random() * 6.28, vr: (Math.random() - 0.5) * 0.06,
+    life: 1, color });
+  if (petals.length > 90) petals.shift();
+}
+
+/* ================= 8. Melody trail (last notes played) ================= */
+const trail = document.getElementById("trail");
+function pushNote(name){
+  const el = document.createElement("span"); el.className = "note"; el.textContent = name;
+  trail.appendChild(el);
+  while (trail.children.length > 12) trail.removeChild(trail.firstChild);
+}
+
+/* ================= 9. Gliding input — the whole instrument ================= */
+let prevX = null, prevY = null, inside = new Set();
+function glideTo(x, y){
+  ensureAudio();
+  // A) Crossing a chime's vertical line strums it, whatever your height.
+  if (prevX !== null){
+    chimes.forEach((c, i) => {
+      if ((prevX - c.x) * (x - c.x) < 0 && (performance.now() - c.hitAt) > 90) strike(i, 0.5);
+    });
+  }
+  // B) Resting on a chime rings it once until you leave it.
+  chimes.forEach((c, i) => {
+    const over = Math.abs(x - c.x) <= c.w && y >= 80 && y <= 108 + c.len + 20;
+    if (over && !inside.has(i) && (performance.now() - c.hitAt) > 90){ inside.add(i); strike(i, 0.5); }
+    if (!over) inside.delete(i);
+  });
+  prevX = x; prevY = y;
+}
+cv.addEventListener("pointermove", e => glideTo(e.clientX, e.clientY));
+cv.addEventListener("pointerdown", e => glideTo(e.clientX, e.clientY));
+document.addEventListener("keydown", e => {
+  const k = e.key.toLowerCase();
+  if (k === "h"){ toggleUi(); return; }
+  if (k === "g"){ gust(); return; }
+  const i = KEYS.indexOf(k);
+  if (i >= 0){ ensureAudio(); strike(i, 0.55); }
+});
+
+/* ================= 10a. Recorder — capture a glide, play it back ================= */
+let recording = false, recStart = 0, recNotes = [], playingBack = false;
+document.getElementById("rec").addEventListener("click", e => {
+  recording = !recording;
+  if (recording){ recNotes = []; recStart = performance.now(); e.target.textContent = "■ Stop"; e.target.classList.add("active"); }
+  else { e.target.textContent = "● Record"; e.target.classList.remove("active"); }
+});
+document.getElementById("play").addEventListener("click", () => {
+  if (!recNotes.length) return;
+  ensureAudio(); playingBack = true;
+  recNotes.forEach(n => setTimeout(() => strike(n.i, 0.5), n.t));
+  setTimeout(() => playingBack = false, recNotes[recNotes.length - 1].t + 500);
+});
+// Hooked into strike() below via recordNote(); kept separate so the
+// recorder never changes how a live strike sounds or looks.
+function recordNote(i){ if (recording && !playingBack) recNotes.push({ i, t: performance.now() - recStart }); }
+
+/* ================= 10. Controls ================= */
+function toggleUi(){ document.body.classList.toggle("zen"); }
+document.getElementById("hide").addEventListener("click", toggleUi);
+document.getElementById("showUi").addEventListener("click", toggleUi);
+document.querySelectorAll(".scale").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".scale").forEach(x => x.classList.remove("active"));
+  b.classList.add("active"); scaleKey = b.dataset.scale;
+}));
+document.getElementById("mute").addEventListener("click", e => {
+  muted = !muted; e.target.textContent = muted ? "🔇 Muted" : "🔊 Sound on";
+});
+let breeze = 30;
+document.getElementById("breeze").addEventListener("input", e => breeze = +e.target.value);
+function gust(){
+  ensureAudio();
+  chimes.forEach((c, i) => setTimeout(() => strike(i, 0.45), i * 75));
+}
+document.getElementById("gust").addEventListener("click", gust);
+document.getElementById("field").addEventListener("dblclick", () => savePng());
+function savePng(){
+  const a = document.createElement("a");
+  a.download = "meadowsong.png"; a.href = cv.toDataURL("image/png"); a.click();
+}
+
+/* ================= 11. Breeze — the meadow plays itself, softly ================= */
+let nextBreeze = performance.now() + 1500;
+function breezeTick(now){
+  if (breeze > 0 && now >= nextBreeze){
+    const i = Math.floor(Math.random() * chimes.length);
+    strike(i, 0.10 + breeze / 100 * 0.22, true);
+    nextBreeze = now + 2600 - breeze * 22 + Math.random() * 1200;
+  }
+}
+
+/* ================= 12. Render loop (no shadowBlur; soft alpha shapes only) ================= */
+function draw(now){
+  requestAnimationFrame(draw);
+  const t = now / 1000, swayAmp = reduced ? 0 : (0.5 + breeze / 100 * 2.2);
+  // Sky: warm daylight gradient.
+  const sky = ctx.createLinearGradient(0, 0, 0, H);
+  sky.addColorStop(0, "#fdf6e3"); sky.addColorStop(0.55, "#f7ead0"); sky.addColorStop(1, "#e9dcc0");
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
+  // Sun: a soft disc, drawn with layered alpha circles, never shadowBlur.
+  ctx.fillStyle = "rgba(217,164,65,0.18)";
+  ctx.beginPath(); ctx.arc(W - 110, 92, 64, 0, 6.283); ctx.fill();
+  ctx.fillStyle = "rgba(217,164,65,0.85)";
+  ctx.beginPath(); ctx.arc(W - 110, 92, 34, 0, 6.283); ctx.fill();
+  // Rolling hills.
+  ctx.fillStyle = "#c8d6b4";
+  ctx.beginPath(); ctx.moveTo(0, H * 0.78);
+  ctx.quadraticCurveTo(W * 0.3, H * 0.68, W * 0.6, H * 0.79);
+  ctx.quadraticCurveTo(W * 0.85, H * 0.86, W, H * 0.76);
+  ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.fill();
+  ctx.fillStyle = "#a8bf8d";
+  ctx.beginPath(); ctx.moveTo(0, H * 0.88);
+  ctx.quadraticCurveTo(W * 0.4, H * 0.80, W, H * 0.90);
+  ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.fill();
+  // Branch the chimes hang from.
+  ctx.strokeStyle = "#6b5138"; ctx.lineWidth = 7; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(10, 96);
+  ctx.bezierCurveTo(W * 0.3, 82, W * 0.7, 108, W - 10, 92); ctx.stroke();
+  // Ripples, oldest first.
+  ripples = ripples.filter(r => r.a > 0.01);
+  ripples.forEach(r => {
+    r.r += reduced ? 0 : 1.1; r.a *= 0.97;
+    ctx.strokeStyle = r.color; ctx.globalAlpha = r.a; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, 6.283); ctx.stroke();
+  });
+  ctx.globalAlpha = 1;
+  // Chimes: sway gently, glow briefly when struck.
+  chimes.forEach((c, i) => {
+    const sway = reduced ? 0 : Math.sin(t * 0.9 + i * 0.55) * swayAmp;
+    const topX = c.x, topY = 100, botX = c.x + sway, botY = 100 + c.len;
+    c.ring = Math.max(0, c.ring - 0.02);
+    ctx.strokeStyle = "rgba(47,58,51,0.55)"; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(topX, topY); ctx.lineTo(botX, topY); ctx.stroke();
+    ctx.save(); ctx.translate(botX, topY); ctx.rotate(sway / c.len);
+    ctx.fillStyle = c.color;
+    roundRect(-c.w / 2, 0, c.w, c.len, 7); ctx.fill();
+    if (c.ring > 0){ // glow ring + bright core while ringing
+      ctx.globalAlpha = c.ring * 0.5; ctx.fillStyle = "#ffffff";
+      roundRect(-c.w / 2, 0, c.w, c.len, 7); ctx.fill(); ctx.globalAlpha = 1;
+    }
+    ctx.fillStyle = "rgba(255,253,244,0.9)"; ctx.font = "bold 11px system-ui,sans-serif";
+    ctx.textAlign = "center"; ctx.fillText(c.key.toUpperCase(), 0, c.len - 10);
+    ctx.restore();
+    // Floating note name just after a strike.
+    if (c.hitAt > 0 && now - c.hitAt < 1200){
+      ctx.globalAlpha = Math.max(0, 1 - (now - c.hitAt) / 1200);
+      ctx.fillStyle = "#2f3a33"; ctx.font = "bold 14px system-ui,sans-serif"; ctx.textAlign = "center";
+      ctx.fillText(noteName(i), botX, topY + c.len + 22); ctx.globalAlpha = 1;
+    }
+  });
+  // Drifting petals.
+  petals = petals.filter(p => p.life > 0 && p.y < H + 20);
+  petals.forEach(p => {
+    p.x += p.vx + (reduced ? 0 : Math.sin(t + p.rot) * 0.3); p.y += p.vy; p.rot += p.vr; p.life -= 0.004;
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.globalAlpha = Math.max(0, p.life);
+    ctx.fillStyle = p.color; ctx.beginPath(); ctx.ellipse(0, 0, p.s, p.s * 0.55, 0, 0, 6.283); ctx.fill();
+    ctx.restore();
+  });
+  ctx.globalAlpha = 1;
+  breezeTick(now);
+}
+function roundRect(x, y, w, h, r){
+  ctx.beginPath(); ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+
+/* ================= 13. Start: a finished meadow, already swaying ================= */
+resize();
+requestAnimationFrame(draw);
+setTimeout(gust, 900); // a soft opening sweep — visual only until the first gesture unlocks audio
+</script>
+</body>
+</html>

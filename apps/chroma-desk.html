@@ -1,0 +1,228 @@
+<!doctype html>
+<!--
+App: Chroma Desk | Created: 2026-10-24 (America/Los_Angeles)
+Purpose: Find useful color palettes in local images and refine them for design.
+Main interaction: Extract representative colors, select a swatch, and sample
+the image to replace it; edit colors, compare text/background, and copy CSS.
+Visual approach: Chalk and charcoal design desk, oversized type, wide artwork
+stage, a physical-looking row of color chips, and a live typographic specimen.
+Distinct from Stillpoint, Foldwork, Tradeoff, and Crosslight: the collection's
+first local-image analysis tool. No timers, craft geometry, decision matrix,
+or puzzle mechanic. All artwork, styles, and code are embedded or generated.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f0f0eb">
+<title>Chroma Desk — good colors are already around you</title>
+<style>
+:root{font-family:Arial,Helvetica,sans-serif;color:#252725;background:#f0f0eb;--paper:#f0f0eb;--line:#d4d6ce;--muted:#656b61;--coral:#e56547}*{box-sizing:border-box}body{margin:0}button,input,select,textarea{font:inherit}button,select,input[type=color]{cursor:pointer}button{border:0;color:inherit}button:disabled{opacity:.4;cursor:not-allowed}button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,canvas:focus-visible{outline:3px solid #dc5336;outline-offset:4px}button:hover:not(:disabled){filter:brightness(.96)}button{transition:background .16s,transform .16s}h1,h2,h3,p{margin:0}[hidden]{display:none!important}.shell{max-width:1460px;margin:auto;padding:0 40px}.top{height:87px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}.brand{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:1.2px;font-size:16px}.brand-mark{width:29px;height:29px;background:#252725;position:relative;transform:rotate(-8deg)}.brand-mark:after{content:'';position:absolute;width:17px;height:17px;background:#e56547;right:-5px;top:-5px;border:3px solid var(--paper)}.edition,.eyebrow,.section-label,.micro,.stage-footer,.chip-number{font:10px/1.4 'Courier New',monospace;letter-spacing:1px;text-transform:uppercase}.top-right{display:flex;gap:25px;align-items:center}.edition{color:var(--muted)}.quiet-button{padding:9px 12px;background:transparent;border:1px solid var(--line);border-radius:5px;font-size:11px;font-weight:600}.intro{display:flex;align-items:flex-end;justify-content:space-between;gap:35px;padding:32px 0 29px}.eyebrow{color:#7d5d4f;margin-bottom:11px}.intro h1{font-size:clamp(34px,4.3vw,61px);font-weight:800;line-height:.99;letter-spacing:-2.7px}.intro-copy{max-width:327px;font-size:13px;color:var(--muted);line-height:1.6;padding-bottom:2px}.intro-copy strong{color:#252725;font-weight:600}.desk{display:grid;grid-template-columns:minmax(0,1fr) 305px;gap:25px;align-items:start}.stage{background:#222724;border-radius:10px;overflow:hidden;border:1px solid #222724}.stage-top{display:flex;justify-content:space-between;align-items:center;padding:13px 17px;gap:14px;color:#b7beb4;min-height:50px}.stage-label{font:10px 'Courier New',monospace;letter-spacing:.7px;text-transform:uppercase;max-width:55%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.stage-label:before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:#e9a55b;margin-right:8px}.open-button{background:#edf0e7;color:#262e27;padding:9px 13px;border-radius:4px;font-size:11px;font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:8px}.open-button svg{width:14px;height:14px}.image-well{position:relative;margin:0 17px;background:#101813;min-height:100px;display:grid;place-items:center;border-radius:3px;overflow:hidden}.image-well.dragging{outline:4px solid #ecae65;outline-offset:-4px}.image-well.dragging:after{content:'Drop your image here';position:absolute;inset:0;display:grid;place-items:center;background:#17211de8;color:white;font-size:22px;pointer-events:none}.image-wrap{position:relative;max-width:100%;display:grid;place-items:center;line-height:0}.image-canvas{display:block;width:auto;height:auto;max-width:100%;max-height:460px;cursor:crosshair;touch-action:manipulation}.crosshair{position:absolute;width:20px;height:20px;border:2px solid white;border-radius:50%;box-shadow:0 0 0 1px #222,inset 0 0 0 1px #222;transform:translate(-50%,-50%);pointer-events:none}.crosshair:before,.crosshair:after{content:'';position:absolute;background:white;box-shadow:0 0 1px black}.crosshair:before{width:28px;height:1px;top:8px;left:-6px}.crosshair:after{height:28px;width:1px;left:8px;top:-6px}.sample-badge{position:absolute;bottom:10px;left:10px;display:flex;align-items:center;gap:7px;background:#222b25dd;color:white;padding:7px 9px;border-radius:3px;font:11px 'Courier New',monospace;pointer-events:none;line-height:1}.sample-badge i{width:12px;height:12px;border:1px solid #ffffff88;background:white}.stage-footer{display:flex;justify-content:space-between;gap:15px;padding:13px 17px;color:#9ea99e;font-size:9px;letter-spacing:.4px}.studies{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:13px}.studies>span{font-size:10px;color:var(--muted);margin-right:2px}.study{background:transparent;border:1px solid var(--line);border-radius:30px;padding:7px 10px;display:flex;align-items:center;gap:6px;font-size:10px}.study[aria-pressed=true]{border-color:#303d32;background:#e5e9df}.study i{width:10px;height:10px;border-radius:50%;background:var(--dot)}.sidebar{display:flex;flex-direction:column;gap:20px}.section-label{color:var(--muted);margin-bottom:13px}.inspector{border-bottom:1px solid var(--line);padding-bottom:20px}.edit-row{display:flex;align-items:center;gap:10px}.color-input{height:45px;width:45px;padding:0;border:1px solid #c7cbc0;border-radius:4px;background:transparent;flex:none;overflow:hidden}.color-input::-webkit-color-swatch-wrapper{padding:0}.color-input::-webkit-color-swatch{border:0}.hex-input{background:transparent;border:0;border-bottom:1px solid var(--line);padding:8px 0;width:100%;font:bold 25px 'Courier New',monospace;letter-spacing:-1px;color:#242a25;text-transform:uppercase}.rgb-note{font:10px 'Courier New',monospace;color:var(--muted);margin-top:10px}.hint-copy{font-size:12px;line-height:1.6;color:var(--muted);margin-top:14px}.hint-copy strong{font-weight:600;color:#30382d}.pair-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.pair-head .section-label{margin:0}.swap{background:transparent;border:1px solid var(--line);border-radius:4px;font-size:10px;padding:5px 9px}.specimen{min-height:172px;padding:22px;border-radius:6px;border:1px solid #00000014;overflow-wrap:anywhere;transition:background .16s,color .16s}.specimen .small-type{font-size:10px;letter-spacing:1.8px;text-transform:uppercase;line-height:1.4}.specimen h2{font-family:Georgia,'Times New Roman',serif;font-size:38px;font-weight:400;letter-spacing:-1.5px;line-height:1.03;margin-top:13px}.specimen p{font-size:11px;line-height:1.5;margin-top:12px}.pair-selectors{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.pair-selectors label{font-size:10px;color:var(--muted)}select{width:100%;font:11px 'Courier New',monospace;background:#fafbf7;border:1px solid #cdd1c5;border-radius:4px;padding:9px 5px;color:#30372d;margin-top:5px}.contrast{display:flex;align-items:baseline;justify-content:space-between;margin-top:13px;gap:10px}.contrast strong{font-size:20px;letter-spacing:-.7px}.contrast span{font-size:10px;color:var(--muted)}.pair-note{font-size:10px;line-height:1.5;color:var(--muted);margin-top:5px}.palette-area{margin-top:25px}.palette-heading{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:14px}.palette-heading-left{display:flex;align-items:center;gap:12px}.palette-heading h2{font-size:17px;letter-spacing:-.4px}.palette-count{font:10px 'Courier New',monospace;color:var(--muted)}.palette-tools{display:flex;gap:9px;align-items:center}.palette-tools label{font-size:10px;color:var(--muted);display:flex;gap:7px;align-items:center}.palette-tools select{width:48px;margin:0;padding:7px}.small-button{padding:8px 10px;border:1px solid #cbd0c4;border-radius:4px;font-size:10px;font-weight:600;background:transparent}.chips{display:grid;grid-template-columns:repeat(var(--count,5),minmax(0,1fr));gap:9px}.chip{padding:0;text-align:left;background:#fafbf8;border:1px solid #d1d5c8;border-radius:5px;overflow:hidden;min-width:0;position:relative}.chip[aria-pressed=true]{box-shadow:0 0 0 2px #263328;border-color:#263328}.chip-color{height:105px;display:flex;align-items:flex-start;justify-content:space-between;padding:12px;color:var(--ink)}.chip-number{opacity:.8;font-size:10px;letter-spacing:.5px}.chip-check{border:1px solid currentColor;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font:11px Arial;visibility:hidden}.chip[aria-pressed=true] .chip-check{visibility:visible}.chip-label{padding:11px 12px;display:flex;justify-content:space-between;align-items:center;gap:5px;font:12px 'Courier New',monospace}.chip-label span:last-child{font:9px Arial;color:#798171}.bottom{display:flex;justify-content:space-between;align-items:center;gap:25px;margin-top:20px;padding-bottom:25px}.status{font-size:12px;color:var(--muted);line-height:1.6;max-width:680px}.status.error{color:#a43720}.export-button{background:#263328;color:#f5f5ed;border-radius:4px;padding:13px 20px;font-size:12px;font-weight:700;white-space:nowrap;display:flex;gap:20px;align-items:center}.footer{display:flex;justify-content:space-between;gap:20px;border-top:1px solid var(--line);padding:18px 0 26px;color:#73796b;font-size:10px;line-height:1.5}.footer span:first-child{font:10px 'Courier New',monospace;letter-spacing:.5px}.dialog{border:1px solid var(--line);border-radius:10px;padding:28px;background:#f6f7f0;color:#273025;width:calc(100% - 30px);max-width:580px;box-shadow:0 25px 100px #121d1d44}.dialog::backdrop{background:#151e1bb3}.dialog-top{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:15px}.dialog h2{font-size:26px;letter-spacing:-.8px}.close{width:30px;height:30px;border-radius:50%;background:#e2e6db;font-size:21px;flex:none}.dialog p{font-size:13px;line-height:1.7;color:var(--muted)}.dialog ul{padding-left:20px;font-size:13px;color:var(--muted);line-height:1.7}.export-preview{display:flex;height:45px;margin:18px 0;border-radius:4px;overflow:hidden}.export-preview i{flex:1}.code-label{display:block;font-size:11px;margin-bottom:8px;color:var(--muted)}textarea{display:block;width:100%;min-height:200px;resize:vertical;background:#242d26;color:#f3f4e8;border:0;border-radius:5px;padding:18px;font:12px/1.65 'Courier New',monospace;tab-size:2}.dialog-actions{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-top:16px}.dialog-actions p{font-size:11px;line-height:1.4}.dialog-actions button{background:#263328;color:white;padding:11px 18px;border-radius:5px;white-space:nowrap;font-size:12px}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}.busy{opacity:.6;pointer-events:none}
+@media(min-width:1500px){.image-canvas{max-height:500px}.chip-color{height:120px}}
+@media(max-width:1150px){.shell{padding:0 26px}.desk{grid-template-columns:minmax(0,1fr) 270px;gap:20px}.intro h1{font-size:46px}.intro-copy{max-width:280px;font-size:12px}.chip-label{padding:10px 8px;font-size:11px}.chip-label span:last-child{display:none}.specimen{padding:18px}.specimen h2{font-size:34px}.image-canvas{max-height:440px}}
+@media(min-width:851px) and (max-height:850px){.top{height:62px}.intro{padding:20px 0}.intro h1{font-size:38px;letter-spacing:-1.8px;line-height:1.05}.intro h1 br{display:none}.intro-copy{max-width:260px;font-size:11px}.eyebrow{font-size:9px;margin-bottom:8px}.image-canvas{max-height:280px}.stage-top{min-height:44px;padding:9px 14px}.stage-footer{padding:10px 14px}.studies{margin-top:10px}.palette-area{margin-top:18px}.palette-heading{margin-bottom:10px}.palette-heading h2{font-size:15px}.palette-count{font-size:9px}.palette-tools{gap:6px}.small-button{padding:7px 8px;font-size:9px}.chip-color{height:67px;padding:9px}.chip-label{padding:9px;font-size:11px}.chip-label span:last-child{display:none}.sidebar{gap:17px}.inspector{padding-bottom:17px}.specimen{min-height:150px;padding:18px}.specimen h2{font-size:34px}.hint-copy{font-size:11px}.bottom{margin-top:16px;padding-bottom:19px}.footer{padding-top:14px}}
+@media(max-width:850px){.shell{padding:0 22px}.desk{grid-template-columns:1fr}.sidebar{display:grid;grid-template-columns:1fr 1.2fr;gap:25px}.inspector{border:0}.pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}.pair-head{grid-column:1/-1;margin-bottom:0}.specimen{grid-row:2/5;min-height:190px}.pair-selectors{display:block;margin:0}.pair-selectors label{display:block;margin-bottom:9px}.contrast{margin:0;align-items:center}.pair-note{margin:0}.intro{padding:26px 0;gap:25px}.intro h1{font-size:43px}.intro-copy{max-width:260px}.image-canvas{max-height:460px}.palette-area{margin-top:19px}.chip-color{height:92px}.edition{display:none}}
+@media(max-width:560px){.shell{padding:0 16px}.top{height:68px}.brand{font-size:13px;letter-spacing:.7px}.brand-mark{width:23px;height:23px}.brand-mark:after{width:15px;height:15px}.quiet-button{font-size:10px;padding:8px 10px}.intro{display:block;padding:24px 0 22px}.intro h1{font-size:43px;letter-spacing:-2px}.intro-copy{max-width:100%;margin-top:16px;font-size:12px}.eyebrow{font-size:9px;margin-bottom:10px}.stage-top{padding:11px;gap:8px}.stage-label{font-size:8px;max-width:47%}.stage-label:before{width:5px;height:5px;margin-right:6px}.open-button{padding:8px 9px;font-size:10px}.image-well{margin:0 10px}.image-canvas{max-height:380px}.stage-footer{padding:11px;font-size:8px;gap:8px}.stage-footer span:last-child{max-width:45%;text-align:right}.studies{gap:5px;margin-top:11px}.studies>span{font-size:9px}.study{font-size:9px;padding:7px 8px}.sidebar{display:block;margin-top:3px}.inspector{padding-bottom:20px;border-bottom:1px solid var(--line)}.section-label{margin-bottom:10px}.hex-input{max-width:210px}.hint-copy{font-size:11px;margin-top:10px}.pair{display:grid;margin-top:20px;grid-template-columns:1.15fr 1fr;gap:12px}.specimen{min-height:180px;padding:17px}.specimen h2{font-size:31px}.specimen .small-type{font-size:8px}.specimen p{font-size:10px}.pair-head{margin:0}.palette-heading{align-items:flex-start;gap:12px;flex-direction:column}.palette-heading-left{width:100%;justify-content:space-between}.palette-tools{width:100%;justify-content:flex-end}.palette-tools label{margin-right:auto}.chips{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.chip-color{height:83px;padding:10px}.chip-label{font-size:11px}.palette-area{margin-top:23px}.bottom{align-items:flex-start;flex-direction:column;gap:15px}.export-button{width:100%;justify-content:space-between}.footer{display:block;padding-top:15px}.footer span{display:block;margin-bottom:7px}.dialog{padding:22px}.dialog h2{font-size:24px}.dialog-actions{align-items:flex-start}.dialog-actions button{padding:11px 12px}.status{font-size:11px}}
+@media(max-width:360px){.intro h1{font-size:37px}.study{padding:6px;font-size:8px}.studies{gap:4px}.studies>span{width:100%}.pair{grid-template-columns:1fr 1fr}.specimen{padding:13px}.specimen h2{font-size:27px}.chip-label{font-size:10px;padding:9px 6px}.stage-footer{font-size:7px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="shell">
+ <header class="top"><div class="brand"><i class="brand-mark" aria-hidden="true"></i>CHROMA DESK</div><div class="top-right"><span class="edition">A small studio for everyday color</span><button class="quiet-button" id="help">A quick guide</button></div></header>
+ <section class="intro"><div><p class="eyebrow">Look closer. There’s a palette in there.</p><h1>Good colors.<br> Already around you.</h1></div><p class="intro-copy">A photo, a favorite corner, an unexpected detail.<br><strong>Find its colors. Make them your own.</strong><br>Open an image or explore a color study below.</p></section>
+ <main>
+ <div class="desk">
+  <section class="image-section" aria-label="Image workspace"><div class="stage"><div class="stage-top"><span class="stage-label" id="imageName">Citrus hour · color study</span><button class="open-button" id="openImage"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 13V2M6 6l4-4 4 4M3 12v5h14v-5" stroke="currentColor" stroke-width="1.6"/></svg>Open an image</button><input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp" hidden></div><div class="image-well" id="dropZone"><div class="image-wrap" id="imageWrap"><canvas class="image-canvas" id="imageCanvas" width="960" height="600" tabindex="0" role="img" aria-label="Citrus hour color study. Select a swatch, then click to sample. Use arrow keys to move the sampling point and Enter to apply."></canvas><span class="crosshair" id="crosshair" hidden></span><span class="sample-badge" id="sampleBadge" hidden><i id="sampleDot"></i><span id="sampleHex"></span></span></div></div><div class="stage-footer"><span id="imageMeta">960 × 600 · built-in artwork</span><span>Drop a photo. Everything stays here.</span></div></div><div class="studies" aria-label="Try a color study"><span>COLOR STUDIES</span><button class="study" data-study="0" aria-pressed="true"><i style="--dot:#dd683e" aria-hidden="true"></i>Citrus hour</button><button class="study" data-study="1" aria-pressed="false"><i style="--dot:#348a9b" aria-hidden="true"></i>Blue coast</button><button class="study" data-study="2" aria-pressed="false"><i style="--dot:#845f96" aria-hidden="true"></i>City dusk</button></div>
+ <section class="palette-area" aria-label="Your palette"><div class="palette-heading"><div class="palette-heading-left"><h2>Your palette</h2><span class="palette-count" id="paletteCount">5 colors / select to edit</span></div><div class="palette-tools"><label>Colors<select id="colorCount" aria-label="Number of colors to extract"><option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option><option>8</option></select></label><button class="small-button" id="undo" disabled>Undo edit</button><button class="small-button" id="extract">Extract again ↗</button></div></div><div class="chips" id="chips"></div></section></section>
+  <aside class="sidebar"><section class="inspector" aria-label="Selected color"><p class="section-label" id="selectedLabel">01 / Selected color</p><div class="edit-row"><input class="color-input" id="colorInput" type="color" value="#252725" aria-label="Choose selected swatch color"><label class="sr-only" for="hexInput">Selected swatch hex color</label><input id="hexInput" class="hex-input" type="text" value="#252725" maxlength="7" spellcheck="false" autocomplete="off" inputmode="text" aria-describedby="rgbNote"></div><p class="rgb-note" id="rgbNote">RGB 37 / 39 / 37</p><p class="hint-copy"><strong>Select a swatch below, then click the image</strong> to replace it with a sampled color. Or enter a hex color here.</p></section>
+   <section class="pair" aria-label="Text pairing preview"><div class="pair-head"><p class="section-label">Try it in type</p><button class="swap" id="swap">Swap ↔</button></div><div class="specimen" id="specimen"><div class="small-type">A little perspective</div><h2>Make room<br>for color.</h2><p>A small note. A larger idea.</p></div><div class="pair-selectors"><label>Background<select id="background" aria-label="Preview background color"></select></label><label>Text<select id="foreground" aria-label="Preview text color"></select></label></div><div class="contrast"><strong id="contrastRatio">—</strong><span>contrast ratio</span></div><p class="pair-note">Higher contrast makes text easier to distinguish. This measures this color pair only.</p></section>
+  </aside>
+ </div>
+
+ <div class="bottom"><p class="status" id="status" role="status">Representative colors from the image. Select a swatch to make it yours.</p><button class="export-button" id="export">Take these colors <span aria-hidden="true">↗</span></button></div>
+ </main>
+ <footer class="footer"><span>MADE FROM WHAT YOU NOTICE.</span><span>JPG, PNG or WebP · up to 20 MB · no uploads · copy your palette before closing</span></footer>
+</div>
+<dialog class="dialog" id="helpDialog" aria-labelledby="helpTitle"><div class="dialog-top"><h2 id="helpTitle">A little color goes a long way.</h2><button class="close" data-close="helpDialog" aria-label="Close guide">×</button></div><p>Start with a built-in color study or open a photo. Chroma Desk finds representative colors, then gives you the last word.</p><ul><li>Select a color chip, then click the image to replace it. Sampling uses the displayed image, resized if necessary.</li><li>For keyboard sampling, focus the image. Arrow keys move one pixel; Shift + arrow moves ten. Enter or Space applies the color.</li><li>Type a three- or six-digit hex color to edit a chip. Undo reverses palette changes.</li><li>Try two colors as text and background, then take the palette as CSS.</li></ul><p>Images are processed in this tab and never sent anywhere. Transparent areas are placed on white. Images and colors are not saved after closing this page.</p></dialog>
+<dialog class="dialog" id="exportDialog" aria-labelledby="exportTitle"><div class="dialog-top"><h2 id="exportTitle">A palette to take with you.</h2><button class="close" data-close="exportDialog" aria-label="Close palette export">×</button></div><p>Copy these CSS variables into a website, or use the hex values in your favorite design tool.</p><div class="export-preview" id="exportPreview" aria-hidden="true"></div><label class="code-label" for="exportCode">Your colors · CSS</label><textarea id="exportCode" readonly spellcheck="false"></textarea><div class="dialog-actions"><p id="copyStatus" role="status">Everything here is ready to copy.</p><button id="copy">Copy CSS</button></div></dialog>
+<noscript><p style="padding:25px">Enable JavaScript to use Chroma Desk. No internet connection is required.</p></noscript>
+<script>
+'use strict';
+(() => {
+/* COLOR_CORE_START */
+// Native color helpers. Oklab matrices: Bjorn Ottosson's public-domain reference.
+// Contrast uses WCAG relative luminance in sRGB. No runtime resources are used.
+function rgbToHex(rgb) {
+  if (!rgb || rgb.length < 3 || ![rgb[0], rgb[1], rgb[2]].every(Number.isFinite)) return null;
+  return '#' + [rgb[0], rgb[1], rgb[2]].map(v => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0')).join('').toUpperCase();
+}
+
+function hexToRgb(value) {
+  if (typeof value !== 'string') return null;
+  let hex = value.trim().replace(/^#/, '');
+  if (/^[0-9a-f]{3}$/i.test(hex)) hex = hex.split('').map(c => c + c).join('');
+  if (!/^[0-9a-f]{6}$/i.test(hex)) return null;
+  return [0, 2, 4].map(i => parseInt(hex.slice(i, i + 2), 16));
+}
+
+function srgbChannelToLinear(value) {
+  const c = value / 255;
+  return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+}
+
+function relativeLuminance(rgb) {
+  return 0.2126 * srgbChannelToLinear(rgb[0]) + 0.7152 * srgbChannelToLinear(rgb[1]) + 0.0722 * srgbChannelToLinear(rgb[2]);
+}
+
+function contrastRatio(first, second) {
+  const a = hexToRgb(first), b = hexToRgb(second);
+  if (!a || !b) return null;
+  const la = relativeLuminance(a), lb = relativeLuminance(b);
+  return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+}
+
+function rgbToOklab(rgb) {
+  const r = srgbChannelToLinear(rgb[0]), g = srgbChannelToLinear(rgb[1]), b = srgbChannelToLinear(rgb[2]);
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  return [0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s,
+    1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
+    0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s];
+}
+
+function colorDistanceSquared(a, b) {
+  return (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2;
+}
+
+function extractPalette(imageData, requestedCount) {
+  // The caller supplies a thumbnail composited onto white, normally <=96x96.
+  // A defensive sampling cap also bounds accidental larger inputs at 9216 pixels.
+  const data = imageData && imageData.data;
+  if (!data || !Number.isSafeInteger(data.length) || data.length < 4 || data.length % 4) return [];
+  const k = Number.isFinite(requestedCount) ? Math.max(3, Math.min(8, Math.round(requestedCount))) : 5;
+  const stride = Math.max(1, Math.ceil((data.length / 4) / 9216));
+  const histogram = new Map();
+  for (let offset = 0; offset < data.length; offset += 4 * stride) {
+    const r = data[offset], g = data[offset + 1], b = data[offset + 2];
+    if (!Number.isInteger(r) || !Number.isInteger(g) || !Number.isInteger(b) || r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) continue;
+    const key = r * 65536 + g * 256 + b;
+    histogram.set(key, (histogram.get(key) || 0) + 1);
+  }
+  if (!histogram.size) return [];
+  const points = [...histogram].sort((a, b) => a[0] - b[0]).map(([key, weight]) => {
+    const rgb = [key >> 16, (key >> 8) & 255, key & 255];
+    return { rgb, lab: rgbToOklab(rgb), weight };
+  });
+  if (points.length === 1) return [rgbToHex(points[0].rgb)];
+
+  // Seed from the most frequent color, then choose separated, weighted colors.
+  // This threshold is a palette-design heuristic, not a perceptual guarantee.
+  const separation = 0.02 ** 2;
+  let first = 0;
+  points.forEach((p, i) => { if (p.weight > points[first].weight) first = i; });
+  const centers = [points[first].lab.slice()];
+  while (centers.length < Math.min(k, points.length)) {
+    let candidate = -1, bestScore = -1;
+    points.forEach((p, i) => {
+      let nearest = Infinity;
+      for (const center of centers) nearest = Math.min(nearest, colorDistanceSquared(p.lab, center));
+      const score = nearest * p.weight;
+      if (nearest >= separation && score > bestScore) { bestScore = score; candidate = i; }
+    });
+    if (candidate < 0) break;
+    centers.push(points[candidate].lab.slice());
+  }
+
+  const assignments = new Int16Array(points.length).fill(-1);
+  for (let pass = 0; pass < 16; pass++) {
+    const sums = centers.map(() => [0, 0, 0, 0]);
+    let changed = false;
+    points.forEach((point, i) => {
+      let index = 0, best = Infinity;
+      centers.forEach((center, j) => {
+        const d = colorDistanceSquared(point.lab, center);
+        if (d < best) { best = d; index = j; }
+      });
+      if (assignments[i] !== index) changed = true;
+      assignments[i] = index;
+      const sum = sums[index];
+      sum[0] += point.lab[0] * point.weight;
+      sum[1] += point.lab[1] * point.weight;
+      sum[2] += point.lab[2] * point.weight;
+      sum[3] += point.weight;
+    });
+    sums.forEach((sum, i) => { if (sum[3]) centers[i] = [sum[0] / sum[3], sum[1] / sum[3], sum[2] / sum[3]]; });
+    if (!changed) break;
+  }
+
+  // Output a real sampled color nearest each center, rather than inventing a hue.
+  const representatives = centers.map(() => ({ point: null, distance: Infinity, weight: 0 }));
+  points.forEach((point, i) => {
+    const index = assignments[i], representative = representatives[index];
+    if (!representative) return;
+    representative.weight += point.weight;
+    const d = colorDistanceSquared(point.lab, centers[index]);
+    if (d < representative.distance || (d === representative.distance && point.weight > representative.point.weight)) {
+      representative.distance = d;
+      representative.point = point;
+    }
+  });
+  const selected = [];
+  representatives.filter(r => r.point).sort((a, b) => b.weight - a.weight).forEach(r => {
+    if (selected.every(p => colorDistanceSquared(p.lab, r.point.lab) >= separation)) selected.push(r.point);
+  });
+  return selected.sort((a, b) => relativeLuminance(a.rgb) - relativeLuminance(b.rgb)).map(p => rgbToHex(p.rgb));
+}
+
+/* COLOR_CORE_END */
+const $=id=>document.getElementById(id),canvas=$('imageCanvas'),ctx=canvas.getContext('2d',{willReadFrequently:true});
+const thumb=document.createElement('canvas');thumb.width=96;thumb.height=96;const tctx=thumb.getContext('2d',{willReadFrequently:true});
+let palette=['#273B31','#C35C39','#E9AC4F','#DCC5A5','#F4E9D6'],active=0,bg=4,fg=0,history=[],imagePixels=null,sample={x:480,y:300},loadId=0,studyIndex=0;
+const studyNames=['Citrus hour','Blue coast','City dusk'];
+const status=(text,error=false)=>{$('status').textContent=text;$('status').classList.toggle('error',error);};
+const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+function snapshot(){return {palette:palette.slice(),active,bg,fg};}
+function remember(){history.push(snapshot());if(history.length>60)history.shift();}
+function setPalette(colors,record=true){if(record)remember();palette=colors;active=clamp(active,0,palette.length-1);bg=palette.length-1;fg=0;render();}
+function options(selected){return palette.map((c,i)=>`<option value="${i}"${i===selected?' selected':''}>${String(i+1).padStart(2,'0')} ${c}</option>`).join('');}
+function render(){
+ $('chips').style.setProperty('--count',palette.length);$('chips').innerHTML=palette.map((c,i)=>{const ink=contrastRatio(c,'#FFFFFF')>contrastRatio(c,'#202820')?'#FFFFFF':'#202820';return `<button class="chip" data-chip="${i}" aria-pressed="${i===active}" aria-label="Color ${i+1}, ${c}. Select to edit."><span class="chip-color" style="background:${c};--ink:${ink}"><span class="chip-number">${String(i+1).padStart(2,'0')}</span><span class="chip-check" aria-hidden="true">✓</span></span><span class="chip-label"><span>${c}</span><span>HEX</span></span></button>`;}).join('');
+ $('selectedLabel').textContent=String(active+1).padStart(2,'0')+' / Selected color';$('hexInput').value=palette[active];$('hexInput').removeAttribute('aria-invalid');$('colorInput').value=palette[active];$('rgbNote').textContent='RGB '+hexToRgb(palette[active]).join(' / ');$('paletteCount').textContent=`${palette.length} ${palette.length===1?'color':'colors'} / select to edit`;$('background').innerHTML=options(bg);$('foreground').innerHTML=options(fg);$('undo').disabled=!history.length;renderPair();
+}
+function renderPair(){$('specimen').style.backgroundColor=palette[bg];$('specimen').style.color=palette[fg];$('contrastRatio').textContent=contrastRatio(palette[bg],palette[fg]).toFixed(2)+':1';}
+function applyColor(color,message){if(color!==palette[active]){remember();palette[active]=color;}render();status(message||`Color ${active+1} is now ${color}.`);}
+function extract(record=true){if(!imagePixels)return;const ratio=Math.min(96/canvas.width,96/canvas.height);thumb.width=Math.max(1,Math.round(canvas.width*ratio));thumb.height=Math.max(1,Math.round(canvas.height*ratio));tctx.drawImage(canvas,0,0,thumb.width,thumb.height);const k=Number($('colorCount').value),colors=extractPalette(tctx.getImageData(0,0,thumb.width,thumb.height),k);if(!colors.length){status('This image could not produce a palette. Try another image.',true);return;}setPalette(colors,record);status(colors.length<k?`Found ${colors.length} distinct ${colors.length===1?'color':'colors'}. This image has fewer colors than requested.`:`${colors.length} representative colors found. Select a swatch, then sample the image to refine it.`);}
+function hideSample(){$('crosshair').hidden=true;$('sampleBadge').hidden=true;}
+function sampleColor(){const p=(sample.y*canvas.width+sample.x)*4;return rgbToHex([imagePixels.data[p],imagePixels.data[p+1],imagePixels.data[p+2]]);}
+function showSample(){if(!imagePixels)return;const color=sampleColor();$('crosshair').hidden=false;$('sampleBadge').hidden=false;$('crosshair').style.left=((sample.x+.5)/canvas.width*100)+'%';$('crosshair').style.top=((sample.y+.5)/canvas.height*100)+'%';$('sampleDot').style.background=color;$('sampleHex').textContent=color;}
+function commitSample(){if(imagePixels)applyColor(sampleColor(),`Sampled ${sampleColor()} into color ${active+1}.`);}
+function resetImageState(name,meta,study){imagePixels=ctx.getImageData(0,0,canvas.width,canvas.height);sample={x:Math.floor(canvas.width/2),y:Math.floor(canvas.height/2)};hideSample();$('imageName').textContent=name;$('imageMeta').textContent=meta;canvas.setAttribute('aria-label',name+'. Select a swatch, then click to sample. Arrow keys move the sampling point; Enter applies.');studyIndex=study;document.querySelectorAll('[data-study]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.study)===study)));history=[];active=0;extract(false);}
+function grain(seed){let n=seed;ctx.save();for(let i=0;i<6000;i++){n=(Math.imul(1664525,n)+1013904223)>>>0;const x=(n%960);n=(Math.imul(1664525,n)+1013904223)>>>0;const y=n%600;ctx.fillStyle=i%2?'#ffffff09':'#171d1608';ctx.fillRect(x,y,1.2,1.2);}ctx.restore();}
+function ellipse(x,y,rx,ry,color,rotation=0){ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(x,y,rx,ry,rotation,0,Math.PI*2);ctx.fill();}
+function path(points,color){ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(...points[0]);points.slice(1).forEach(p=>ctx.lineTo(...p));ctx.closePath();ctx.fill();}
+function drawStudy(index){if(!ctx||!tctx)return;loadId++;canvas.width=960;canvas.height=600;ctx.fillStyle='#E6CFB0';ctx.fillRect(0,0,960,600);
+ if(index===0){ctx.fillStyle='#DCC4A2';ctx.fillRect(0,0,960,600);ctx.fillStyle='#EFE3CC';ctx.fillRect(0,0,530,600);ctx.fillStyle='#B5B89B';ctx.fillRect(530,0,430,600);ctx.fillStyle='#374D3D';ctx.beginPath();ctx.moveTo(575,425);ctx.lineTo(575,180);ctx.arc(730,180,155,Math.PI,0);ctx.lineTo(885,425);ctx.fill();path([[0,422],[960,365],[960,600],[0,600]],'#CC7954');path([[0,532],[960,433],[960,600],[0,600]],'#AC563B');ellipse(375,485,215,26,'#873E2D',-.04);ellipse(385,460,198,29,'#EBD6AC');ellipse(385,452,180,25,'#F3E5C8');ellipse(323,422,73,73,'#E59C35');ellipse(325,405,65,54,'#EDB04A');ellipse(422,443,63,53,'#DB792F',.15);ellipse(436,431,49,39,'#E49037',.15);ellipse(313,359,31,10,'#466548',-.5);ellipse(349,361,28,10,'#344E39',.4);ctx.fillStyle='#EEE4CD';ctx.fillRect(174,225,72,214);ellipse(210,225,36,12,'#FAEED5');ellipse(210,438,36,9,'#D3BFA1');ctx.fillStyle='#C4AE8C';ctx.fillRect(204,236,4,184);path([[196,229],[210,174],[222,229]],'#E3A959');ellipse(725,467,110,14,'#91442F');path([[665,325],[791,325],[778,462],[679,462]],'#273F32');ellipse(728,324,63,16,'#48634E');ellipse(728,325,52,11,'#1F362C');ctx.strokeStyle='#2F4A39';ctx.lineWidth=12;ctx.beginPath();ctx.arc(791,373,34,-1.3,1.3);ctx.stroke();}
+ if(index===1){ctx.fillStyle='#D9E9E5';ctx.fillRect(0,0,960,600);ellipse(748,110,49,49,'#F0BD6A');path([[0,286],[198,148],[406,299],[574,199],[803,306],[960,239],[960,600],[0,600]],'#829F9C');path([[0,362],[184,267],[355,357],[548,280],[740,376],[960,295],[960,600],[0,600]],'#497E85');ctx.fillStyle='#246C7B';ctx.fillRect(0,377,960,223);path([[0,441],[187,436],[325,462],[553,448],[729,474],[960,462],[960,600],[0,600]],'#378C99');path([[0,520],[220,489],[350,502],[576,481],[797,507],[960,484],[960,600],[0,600]],'#8CB6B6');path([[0,600],[0,539],[216,535],[344,564],[510,542],[689,579],[960,552],[960,600]],'#D4D9BD');ctx.strokeStyle='#A7CFCB';ctx.lineWidth=3;[[50,404,174],[350,418,533],[708,399,907],[147,476,297],[599,506,751],[359,536,468]].forEach(([x,y,end])=>{ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(end,y);ctx.stroke();});path([[85,600],[130,524],[196,510],[254,552],[292,600]],'#263F43');path([[155,600],[196,543],[237,555],[278,600]],'#3C5754');}
+ if(index===2){ctx.fillStyle='#CDA8A9';ctx.fillRect(0,0,960,600);path([[0,0],[960,0],[960,214],[0,280]],'#A691AE');ellipse(690,183,70,70,'#EBC796');ctx.fillStyle='#6B647E';ctx.fillRect(0,302,960,298);[[0,150,205,450],[245,222,118,378],[405,126,178,474],[628,272,149,328],[815,212,145,388]].forEach(([x,y,w,h])=>{ctx.fillStyle='#4A4962';ctx.fillRect(x,y,w,h);});ctx.fillStyle='#333D4B';ctx.fillRect(0,454,960,146);path([[0,600],[0,536],[960,453],[960,600]],'#202D39');for(let y=0;y<4;y++)for(let x=0;x<3;x++){ctx.fillStyle=(x+y)%3?'#C69D7F':'#E5BF84';ctx.fillRect(428+x*48,171+y*67,22,31);}for(let y=0;y<3;y++)for(let x=0;x<3;x++){ctx.fillStyle=(x+y)%2?'#83798C':'#C1AA96';ctx.fillRect(38+x*48,201+y*70,19,31);}ctx.fillStyle='#AB6B68';ctx.fillRect(659,334,64,120);ctx.fillStyle='#E0B67D';ctx.fillRect(668,345,45,79);path([[0,530],[960,445],[960,455],[0,541]],'#947880');ctx.fillStyle='#152630';ctx.fillRect(798,326,9,274);ellipse(802,325,27,11,'#EED3A3');}
+ grain(index+17);resetImageState(studyNames[index]+' · color study','960 × 600 · built-in artwork',index);
+}
+async function openFile(file){if(!ctx||!tctx){status('Image processing is unavailable in this browser. You can still edit and copy the example palette.',true);return;}if(!file)return;const id=++loadId;const ext=/\.(jpe?g|png|webp)$/i.test(file.name);if(!['image/jpeg','image/png','image/webp'].includes(file.type)&&!(file.type===''&&ext)){status('Please choose a JPG, PNG or WebP image. Your current work is still here.',true);return;}if(file.size>20*1024*1024){status('That image is over 20 MB. Choose a smaller copy; your current work is still here.',true);return;}status('Opening your image…');let url;try{url=URL.createObjectURL(file);const img=new Image();await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url;});if(id!==loadId)return;if(!img.naturalWidth||!img.naturalHeight||img.naturalWidth*img.naturalHeight>40000000){status('Please choose an image under 40 megapixels. Your current work is still here.',true);return;}const scale=Math.min(1,1600/Math.max(img.naturalWidth,img.naturalHeight)),w=Math.max(1,Math.round(img.naturalWidth*scale)),h=Math.max(1,Math.round(img.naturalHeight*scale));const prepared=document.createElement('canvas');prepared.width=w;prepared.height=h;const pc=prepared.getContext('2d');pc.fillStyle='#FFFFFF';pc.fillRect(0,0,w,h);pc.drawImage(img,0,0,w,h);pc.getImageData(0,0,w,h);canvas.width=w;canvas.height=h;ctx.drawImage(prepared,0,0);resetImageState(file.name,`${w} × ${h}${scale<1?' · resized for this desk':' · local image'}`,-1);status('Your image is ready. Transparent areas appear on white. Select a swatch to refine its color.');}catch{if(id===loadId)status('This image could not be opened. Try a different JPG, PNG or WebP; your current work is still here.',true);}finally{if(url)URL.revokeObjectURL(url);}}
+$('chips').addEventListener('click',e=>{const b=e.target.closest('[data-chip]');if(!b)return;active=Number(b.dataset.chip);render();document.querySelector(`[data-chip="${active}"]`).focus({preventScroll:true});status(`Color ${active+1} selected. Click the image or edit its hex value.`);});
+$('chips').addEventListener('keydown',e=>{const b=e.target.closest('[data-chip]');if(!b||!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();active=e.key==='Home'?0:e.key==='End'?palette.length-1:(active+(e.key==='ArrowRight'?1:-1)+palette.length)%palette.length;render();document.querySelector(`[data-chip="${active}"]`).focus({preventScroll:true});});
+function editHex(){const rgb=hexToRgb($('hexInput').value.trim());if(!rgb){$('hexInput').setAttribute('aria-invalid','true');status('Use a hex color such as #E56547 or #F80. Your swatch has not changed.',true);return;}applyColor(rgbToHex(rgb));}
+$('hexInput').addEventListener('change',editHex);$('hexInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();editHex();}if(e.key==='Escape'){$('hexInput').value=palette[active];$('hexInput').removeAttribute('aria-invalid');status('Edit canceled.');}});$('colorInput').addEventListener('change',()=>applyColor($('colorInput').value.toUpperCase()));
+canvas.addEventListener('pointermove',e=>{const r=canvas.getBoundingClientRect();sample={x:clamp(Math.floor((e.clientX-r.left)/r.width*canvas.width),0,canvas.width-1),y:clamp(Math.floor((e.clientY-r.top)/r.height*canvas.height),0,canvas.height-1)};showSample();});canvas.addEventListener('pointerleave',hideSample);canvas.addEventListener('click',e=>{const r=canvas.getBoundingClientRect();sample={x:clamp(Math.floor((e.clientX-r.left)/r.width*canvas.width),0,canvas.width-1),y:clamp(Math.floor((e.clientY-r.top)/r.height*canvas.height),0,canvas.height-1)};showSample();commitSample();});canvas.addEventListener('focus',showSample);canvas.addEventListener('blur',hideSample);canvas.addEventListener('keydown',e=>{const d=e.shiftKey?10:1;if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();if(e.key==='ArrowLeft')sample.x-=d;if(e.key==='ArrowRight')sample.x+=d;if(e.key==='ArrowUp')sample.y-=d;if(e.key==='ArrowDown')sample.y+=d;sample.x=clamp(sample.x,0,canvas.width-1);sample.y=clamp(sample.y,0,canvas.height-1);showSample();}else if(e.key==='Enter'||e.key===' '){e.preventDefault();commitSample();showSample();}});
+$('background').addEventListener('change',()=>{bg=Number($('background').value);renderPair();});$('foreground').addEventListener('change',()=>{fg=Number($('foreground').value);renderPair();});$('swap').addEventListener('click',()=>{[bg,fg]=[fg,bg];$('background').value=bg;$('foreground').value=fg;renderPair();});
+$('extract').addEventListener('click',()=>extract());$('colorCount').addEventListener('change',()=>extract());$('undo').addEventListener('click',()=>{const previous=history.pop();if(!previous)return;({palette,active,bg,fg}=previous);render();status('Last palette change undone.');});
+document.querySelectorAll('[data-study]').forEach(b=>b.addEventListener('click',()=>drawStudy(Number(b.dataset.study))));$('openImage').addEventListener('click',()=>$('fileInput').click());$('fileInput').addEventListener('change',()=>{openFile($('fileInput').files[0]);$('fileInput').value='';});
+let dragDepth=0;$('dropZone').addEventListener('dragenter',e=>{e.preventDefault();dragDepth++;$('dropZone').classList.add('dragging');});$('dropZone').addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='copy';});$('dropZone').addEventListener('dragleave',()=>{dragDepth=Math.max(0,dragDepth-1);if(!dragDepth)$('dropZone').classList.remove('dragging');});$('dropZone').addEventListener('drop',e=>{e.preventDefault();dragDepth=0;$('dropZone').classList.remove('dragging');if(e.dataTransfer.files.length>1){status('Drop one image at a time. Your current work is still here.',true);return;}openFile(e.dataTransfer.files[0]);});window.addEventListener('dragover',e=>e.preventDefault());window.addEventListener('drop',e=>e.preventDefault());
+function cssText(){return ':root {\n'+palette.map((c,i)=>`  --color-${i+1}: ${c};`).join('\n')+`\n  --surface: var(--color-${bg+1});\n  --text: var(--color-${fg+1});\n}`;}
+$('export').addEventListener('click',()=>{$('exportCode').value=cssText();$('exportPreview').innerHTML=palette.map(c=>`<i style="background:${c}"></i>`).join('');$('copyStatus').textContent='Everything here is ready to copy.';$('exportDialog').showModal();});$('copy').addEventListener('click',async()=>{const text=$('exportCode').value;try{if(!navigator.clipboard?.writeText)throw new Error('Clipboard unavailable');await navigator.clipboard.writeText(text);$('copyStatus').textContent='Copied. Your colors are ready to go.';}catch{$('exportCode').focus();$('exportCode').select();$('copyStatus').textContent='Text selected. Press Ctrl+C (or ⌘C) to copy.';}});
+$('help').addEventListener('click',()=>$('helpDialog').showModal());document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>$(b.dataset.close).close()));
+if(!ctx||!tctx){render();status('Image processing is unavailable in this browser. You can still edit and copy the example palette.',true);$('openImage').disabled=true;$('extract').disabled=true;$('colorCount').disabled=true;document.querySelectorAll('[data-study]').forEach(b=>b.disabled=true);canvas.tabIndex=-1;}else drawStudy(0);
+})();
+</script>
+</body>
+</html>

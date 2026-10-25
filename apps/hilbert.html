@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Hilbert</title>
+<style>
+/* Layout: a square byte-map on the left, a virtual hex dump on the right, an entropy strip along the foot. */
+:root {
+  --bg: #0c1018; --panel: #121826; --line: #233047; --fg: #dfe6f3; --dim: #8795ad; --accent: #f2b544;
+  --c-zero: #1b2436; --c-low: #2fbfae; --c-ascii: #e9b949; --c-high: #9b6bff; --c-ff: #f4f6fb;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
+  --bg: #f3f1ea; --panel: #fbfaf6; --line: #d6d2c6; --fg: #1d2230; --dim: #6b7384; --accent: #b2690a;
+  --c-zero: #e2dfd4; --c-low: #0f8f82; --c-ascii: #d49a1a; --c-high: #6f3fe0; --c-ff: #1d2230; color-scheme: light; } }
+:root[data-theme="light"] {
+  --bg: #f3f1ea; --panel: #fbfaf6; --line: #d6d2c6; --fg: #1d2230; --dim: #6b7384; --accent: #b2690a;
+  --c-zero: #e2dfd4; --c-low: #0f8f82; --c-ascii: #d49a1a; --c-high: #6f3fe0; --c-ff: #1d2230; color-scheme: light; }
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--fg); font: 14px/1.4 var(--sans); display: flex; flex-direction: column;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 10px; gap: 10px; }
+button, select { font: inherit; color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+button:hover { border-color: var(--accent); }
+button.on { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+kbd { font: 12px var(--mono); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; color: var(--dim); }
+
+header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+header h1 { font: 600 20px var(--mono); margin: 0 8px 0 0; letter-spacing: .02em; }
+header h1 span { color: var(--accent); }
+.grow { flex: 1; }
+.group { display: flex; gap: 4px; flex-wrap: wrap; }
+
+main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(280px, 460px) 1fr; gap: 12px; }
+.left { display: flex; flex-direction: column; gap: 10px; min-width: 0; min-height: 0; overflow: auto; }
+.mapwrap { position: relative; width: 100%; }
+#map { display: block; width: 100%; aspect-ratio: 1; max-width: 100%; border: 1px solid var(--line); border-radius: 4px; cursor: crosshair; image-rendering: pixelated; }
+#tip { position: absolute; pointer-events: none; background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 3px 7px; font: 12px var(--mono); white-space: nowrap; display: none; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font: 12px var(--mono); color: var(--dim); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; margin-right: 5px; border: 1px solid var(--line); }
+#ramp { width: 120px; height: 10px; vertical-align: -1px; margin: 0 5px; border-radius: 2px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; font: 13px var(--mono); font-variant-numeric: tabular-nums; }
+.card dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 14px; margin: 0; }
+.card dt { color: var(--dim); } .card dd { margin: 0; overflow-wrap: anywhere; }
+#hist { width: 100%; height: 44px; display: block; margin-top: 8px; }
+
+.right { display: flex; flex-direction: column; gap: 10px; min-width: 0; min-height: 0; }
+#hexwrap { flex: 1; min-height: 160px; overflow: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; font: 13px/20px var(--mono); position: relative; }
+#hexspacer { position: relative; }
+#hexbody { position: absolute; left: 0; right: 0; white-space: pre; padding: 0 10px; }
+.row { display: flex; gap: 14px; }
+.row.sel { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.off { color: var(--dim); }
+.b { padding: 0 1px; border-radius: 2px; cursor: pointer; }
+.b.cur { outline: 1px solid var(--accent); background: color-mix(in srgb, var(--accent) 30%, transparent); }
+.c0 { color: var(--dim); opacity: .55; } .c1 { color: var(--c-low); } .c2 { color: var(--c-ascii); } .c3 { color: var(--c-high); } .c4 { color: var(--c-ff); }
+.asc { opacity: .85; }
+#status { display: flex; flex-wrap: wrap; gap: 4px 18px; font: 12px var(--mono); color: var(--dim); }
+#status b { color: var(--fg); font-weight: 500; }
+#strings { max-height: 150px; overflow: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; font: 12px/18px var(--mono); padding: 4px 10px; }
+#strings div { cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#strings div:hover { color: var(--accent); }
+#strings span { color: var(--dim); margin-right: 10px; }
+
+footer { display: flex; flex-direction: column; gap: 4px; }
+#strip { width: 100%; height: 56px; display: block; border: 1px solid var(--line); border-radius: 4px; cursor: crosshair; }
+footer small { color: var(--dim); font: 11px var(--mono); }
+
+#drop { position: fixed; inset: 0; display: none; place-items: center; background: color-mix(in srgb, var(--bg) 80%, transparent); font: 22px var(--mono); border: 3px dashed var(--accent); z-index: 20; }
+#help { position: fixed; inset: 0; display: none; place-items: center; background: color-mix(in srgb, var(--bg) 75%, transparent); z-index: 30; padding: 16px; }
+#help .box { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 18px 22px; max-width: 560px; width: 100%; }
+#help h2 { margin: 0 0 8px; font: 600 16px var(--mono); }
+#help p { color: var(--dim); margin: 0 0 12px; max-width: 65ch; }
+#help table { border-collapse: collapse; width: 100%; } #help td { padding: 3px 6px 3px 0; vertical-align: top; }
+.show { display: grid !important; }
+@media (max-width: 760px) { html, body { height: auto; } main { grid-template-columns: 1fr; } .left { overflow: visible; } #hexwrap { height: 50vh; flex: none; } header h1 { font-size: 17px; } }
+@media (prefers-reduced-motion: no-preference) { button { transition: border-color .15s; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Hilbert<span>.</span></h1>
+  <div class="group" id="samples">
+    <button data-s="specimen" class="on" title="A synthetic file with every kind of region">Specimen</button>
+    <button data-s="page" title="The live HTML of this very page">This page</button>
+    <button data-s="png" title="A PNG rendered on the fly">PNG</button>
+    <button data-s="random" title="64 KiB from crypto.getRandomValues">Random</button>
+  </div>
+  <button id="open" title="Open any file from disk (O)">Open file…</button>
+  <span class="grow"></span>
+  <div class="group">
+    <button id="vclass" class="on" title="Colour by byte class (1)">Class</button>
+    <button id="vent" title="Colour by local entropy (2)">Entropy</button>
+    <button id="path" title="Draw the curve (P)">Path</button>
+    <button id="theme" title="Toggle theme (T)">Theme</button>
+    <button id="helpbtn" title="Help (Ctrl+/)">?</button>
+  </div>
+  <input type="file" id="file" hidden>
+</header>
+
+<main>
+  <section class="left">
+    <div class="mapwrap"><canvas id="map"></canvas><div id="tip"></div></div>
+    <div class="legend" id="legend"></div>
+    <div class="card">
+      <dl>
+        <dt>file</dt><dd id="i-name"></dd>
+        <dt>size</dt><dd id="i-size"></dd>
+        <dt>looks like</dt><dd id="i-type"></dd>
+        <dt>entropy</dt><dd id="i-ent"></dd>
+        <dt>composition</dt><dd id="i-comp"></dd>
+        <dt>map</dt><dd id="i-map"></dd>
+      </dl>
+      <canvas id="hist" title="Byte histogram, 0x00 to 0xFF, log scale"></canvas>
+    </div>
+  </section>
+  <section class="right">
+    <div id="status"></div>
+    <div id="hexwrap"><div id="hexspacer"><div id="hexbody"></div></div></div>
+    <div id="strings"></div>
+  </section>
+</main>
+
+<footer><canvas id="strip"></canvas><small>Shannon entropy per 256-byte window, 0–8 bits, left to right through the file. Click to jump.</small></footer>
+
+<div id="drop">drop a file to inspect it</div>
+<div id="help"><div class="box">
+  <h2>Hilbert — see the shape of any file</h2>
+  <p>Every byte of the file is placed along a Hilbert curve, so bytes that are neighbours in the file are neighbours on the square. Headers, text tables, compressed streams and padding each get their own texture. Drop any file onto the page; nothing leaves your browser.</p>
+  <table>
+    <tr><td><kbd>O</kbd></td><td>open a file</td><td><kbd>D</kbd></td><td>next sample</td></tr>
+    <tr><td><kbd>1</kbd> <kbd>2</kbd></td><td>class / entropy colouring</td><td><kbd>P</kbd></td><td>draw the curve path</td></tr>
+    <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>step one byte (Shift: one row)</td><td><kbd>PgUp</kbd> <kbd>PgDn</kbd></td><td>step 256 bytes</td></tr>
+    <tr><td><kbd>Home</kbd> <kbd>End</kbd></td><td>first / last byte</td><td><kbd>T</kbd></td><td>toggle theme</td></tr>
+    <tr><td><kbd>Ctrl</kbd>+<kbd>/</kbd></td><td>this help</td><td><kbd>Esc</kbd></td><td>close</td></tr>
+  </table>
+</div></div>
+
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const S = { bytes: new Uint8Array(0), name: '', side: 16, bpc: 1, pos: null, cellEnt: null, view: 'class', path: false, off: 0, sample: 0 };
+const CLASSES = ['0x00', 'control', 'ascii', 'high', '0xFF'];
+const cls = b => b === 0 ? 0 : b === 255 ? 4 : b < 32 ? 1 : b < 127 ? 2 : 3;
+
+/* ---------- Hilbert curve: index <-> (x, y) on a side×side grid ---------- */
+function rot(n, x, y, rx, ry) { if (ry === 0) { if (rx === 1) { x = n - 1 - x; y = n - 1 - y; } return [y, x]; } return [x, y]; }
+function d2xy(n, d) { let x = 0, y = 0; for (let s = 1; s < n; s *= 2) { const rx = 1 & (d >> 1), ry = 1 & (d ^ rx); [x, y] = rot(s, x, y, rx, ry); x += s * rx; y += s * ry; d >>= 2; } return [x, y]; }
+function xy2d(n, x, y) { let d = 0; for (let s = n >> 1; s > 0; s >>= 1) { const rx = (x & s) ? 1 : 0, ry = (y & s) ? 1 : 0; d += s * s * ((3 * rx) ^ ry); [x, y] = rot(n, x, y, rx, ry); } return d; }
+
+/* ---------- Analysis ---------- */
+const counts = new Uint32Array(256);
+function entropy(a, s, e) {
+  counts.fill(0); let n = 0;
+  for (let i = s; i < e; i++) { counts[a[i]]++; n++; }
+  if (!n) return 0;
+  let h = 0; for (let k = 0; k < 256; k++) if (counts[k]) { const p = counts[k] / n; h -= p * Math.log2(p); }
+  return h;
+}
+const SIGS = [
+  ['89504e470d0a1a0a', 'PNG image'], ['ffd8ff', 'JPEG image'], ['474946383', 'GIF image'], ['25504446', 'PDF document'],
+  ['504b0304', 'ZIP archive (also docx/xlsx/jar/apk)'], ['504b0506', 'ZIP archive (empty)'], ['1f8b08', 'gzip stream'], ['425a68', 'bzip2 stream'],
+  ['fd377a585a00', 'xz stream'], ['377abcaf271c', '7-Zip archive'], ['526172211a07', 'RAR archive'], ['7f454c46', 'ELF executable'],
+  ['4d5a', 'Windows PE executable'], ['cffaedfe', 'Mach-O 64-bit'], ['cafebabe', 'Java class / Mach-O fat binary'], ['0061736d', 'WebAssembly module'],
+  ['494433', 'MP3 with ID3 tag'], ['fffb', 'MP3 frame'], ['4f676753', 'Ogg container'], ['664c6143', 'FLAC audio'], ['52494646', 'RIFF container (WAV/AVI/WEBP)'],
+  ['424d', 'BMP image'], ['53514c69746520666f726d6174', 'SQLite database'], ['1a45dfa3', 'Matroska / WebM'], ['000000', 'MP4 / QuickTime (ftyp)'],
+  ['efbbbf', 'UTF-8 text with BOM'], ['fffe', 'UTF-16 LE text'], ['feff', 'UTF-16 BE text'], ['2321', 'script with shebang'], ['7b', 'JSON (probably)'],
+];
+function detect(a) {
+  const hex = Array.from(a.subarray(0, 16), b => b.toString(16).padStart(2, '0')).join('');
+  for (const [sig, name] of SIGS) if (hex.startsWith(sig)) { if (sig !== '000000' || hex.slice(8, 16) === '66747970') return name; }
+  const head = new TextDecoder().decode(a.subarray(0, 512)).trimStart().toLowerCase();
+  if (head.startsWith('<!doctype html') || head.startsWith('<html')) return 'HTML document';
+  if (head.startsWith('<?xml') || head.startsWith('<svg')) return 'XML document';
+  let printable = 0; const n = Math.min(a.length, 4096);
+  for (let i = 0; i < n; i++) { const b = a[i]; if ((b >= 32 && b < 127) || b === 9 || b === 10 || b === 13) printable++; }
+  if (n && printable / n > 0.97) return 'plain text';
+  const h = entropy(a, 0, n);
+  return h > 7.9 ? 'encrypted or compressed data' : 'unknown binary';
+}
+function findStrings(a, min = 6, max = 300) {
+  const out = []; let start = -1;
+  for (let i = 0; i <= a.length && out.length < max; i++) {
+    const p = i < a.length && a[i] >= 32 && a[i] < 127;
+    if (p && start < 0) start = i;
+    if (!p && start >= 0) { if (i - start >= min) out.push([start, String.fromCharCode(...a.subarray(start, Math.min(i, start + 120)))]); start = -1; }
+  }
+  return out;
+}
+
+/* ---------- Loading ---------- */
+function load(bytes, name) {
+  S.bytes = bytes; S.name = name;
+  const n = Math.max(1, bytes.length);
+  let side = 16; while (side * side < n && side < 256) side *= 2;
+  S.side = side; S.bpc = Math.ceil(n / (side * side));
+  S.pos = new Uint16Array(side * side * 2);
+  for (let d = 0; d < side * side; d++) { const [x, y] = d2xy(side, d); S.pos[2 * d] = x; S.pos[2 * d + 1] = y; }
+  // Local entropy per cell, over a window of at least 64 bytes centred on the cell.
+  S.cellEnt = new Float32Array(side * side);
+  const w = Math.max(64, S.bpc);
+  for (let d = 0; d < side * side; d++) {
+    const c = d * S.bpc + S.bpc / 2, s = Math.max(0, Math.floor(c - w / 2)), e = Math.min(bytes.length, s + w);
+    S.cellEnt[d] = e > s ? entropy(bytes, s, e) : 0;
+  }
+  describe(); drawAll(); renderStrings(); setOffset(0);
+  $('#hexwrap').scrollTop = 0;
+}
+function describe() {
+  const a = S.bytes, n = a.length, c = [0, 0, 0, 0, 0], hist = new Uint32Array(256);
+  for (let i = 0; i < n; i++) { c[cls(a[i])]++; hist[a[i]]++; }
+  let distinct = 0; for (let k = 0; k < 256; k++) if (hist[k]) distinct++;
+  const pct = k => n ? (100 * c[k] / n).toFixed(1) + '%' : '0%';
+  $('#i-name').textContent = S.name;
+  $('#i-size').textContent = n.toLocaleString() + ' bytes' + (n >= 1024 ? ` (${(n / 1024).toFixed(n >= 1048576 ? 0 : 1)} KiB)` : '');
+  $('#i-type').textContent = n ? detect(a) : 'empty';
+  $('#i-ent').textContent = `${entropy(a, 0, n).toFixed(3)} bits/byte · ${distinct} distinct values`;
+  $('#i-comp').textContent = `ascii ${pct(2)} · control ${pct(1)} · high ${pct(3)} · 0x00 ${pct(0)} · 0xFF ${pct(4)}`;
+  $('#i-map').textContent = `${S.side}×${S.side} cells, order ${Math.log2(S.side)}, ${S.bpc} byte${S.bpc > 1 ? 's' : ''}/cell`;
+  // Histogram, log scale, coloured by class.
+  const cv = $('#hist'), dpr = devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+  cv.width = W * dpr; cv.height = H * dpr; const g = cv.getContext('2d'); g.scale(dpr, dpr);
+  const max = Math.log1p(Math.max(1, ...hist)), col = colors();
+  for (let k = 0; k < 256; k++) {
+    if (!hist[k]) continue; const h = Math.max(1, H * Math.log1p(hist[k]) / max);
+    g.fillStyle = col.cls[cls(k)]; g.fillRect(k * W / 256, H - h, Math.max(1, W / 256 - 0.5), h);
+  }
+}
+
+/* ---------- Drawing ---------- */
+function colors() {
+  const cs = getComputedStyle(document.documentElement), v = k => cs.getPropertyValue(k).trim();
+  return { cls: [v('--c-zero'), v('--c-low'), v('--c-ascii'), v('--c-high'), v('--c-ff')], bg: v('--bg'), panel: v('--panel'), fg: v('--fg'), dim: v('--dim'), accent: v('--accent'), line: v('--line') };
+}
+const hex2rgb = h => { h = h.replace('#', ''); if (h.length === 3) h = h.replace(/./g, c => c + c); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)); };
+// Entropy ramp, 0 → 8 bits: ink, violet, crimson, amber, near-white (magma-like, theme independent).
+const RAMP = ['#0b0a1e', '#3b1c6e', '#9b2d5a', '#e8781a', '#f6d860', '#fbfbe8'].map(hex2rgb);
+function ramp(t) { t = Math.min(1, Math.max(0, t)) * (RAMP.length - 1); const i = Math.floor(t), f = t - i, a = RAMP[i], b = RAMP[Math.min(i + 1, RAMP.length - 1)]; return [0, 1, 2].map(k => a[k] + (b[k] - a[k]) * f); }
+
+const mapTile = document.createElement('canvas');
+function buildTile() {
+  const side = S.side, img = new ImageData(side, side), d = img.data, col = colors(), cc = col.cls.map(hex2rgb), a = S.bytes, bg = hex2rgb(col.panel);
+  const cnt = [0, 0, 0, 0, 0];
+  for (let i = 0; i < side * side; i++) {
+    const s = i * S.bpc, e = Math.min(a.length, s + S.bpc), p = 4 * (S.pos[2 * i + 1] * side + S.pos[2 * i]);
+    let rgb = bg;
+    if (s < a.length) {
+      if (S.view === 'entropy') rgb = ramp(S.cellEnt[i] / 8);
+      else { cnt.fill(0); for (let j = s; j < e; j++) cnt[cls(a[j])]++; let best = 0; for (let k = 1; k < 5; k++) if (cnt[k] > cnt[best]) best = k; rgb = cc[best]; }
+    }
+    d[p] = rgb[0]; d[p + 1] = rgb[1]; d[p + 2] = rgb[2]; d[p + 3] = 255;
+  }
+  mapTile.width = mapTile.height = side; mapTile.getContext('2d').putImageData(img, 0, 0);
+}
+function drawMap() {
+  const cv = $('#map'), dpr = devicePixelRatio || 1, W = cv.clientWidth; if (!W) return;
+  if (cv.width !== W * dpr) { cv.width = cv.height = W * dpr; }
+  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.imageSmoothingEnabled = false;
+  g.drawImage(mapTile, 0, 0, W, W);
+  const k = W / S.side, col = colors();
+  if (S.path) {
+    const n = Math.min(S.side * S.side, Math.ceil(S.bytes.length / S.bpc));
+    g.beginPath(); for (let i = 0; i < n; i++) { const x = (S.pos[2 * i] + .5) * k, y = (S.pos[2 * i + 1] + .5) * k; i ? g.lineTo(x, y) : g.moveTo(x, y); }
+    g.strokeStyle = col.fg; g.globalAlpha = S.side > 64 ? .35 : .7; g.lineWidth = Math.max(.5, k * .18); g.stroke(); g.globalAlpha = 1;
+  }
+  const i = Math.floor(S.off / S.bpc), x = S.pos[2 * i] * k, y = S.pos[2 * i + 1] * k, r = Math.max(6, k);
+  g.lineWidth = 2; g.strokeStyle = col.bg; g.strokeRect(x + k / 2 - r / 2 - 1, y + k / 2 - r / 2 - 1, r + 2, r + 2);
+  g.strokeStyle = col.accent; g.strokeRect(x + k / 2 - r / 2, y + k / 2 - r / 2, r, r);
+}
+function drawStrip() {
+  const cv = $('#strip'), dpr = devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight, a = S.bytes, col = colors();
+  cv.width = W * dpr; cv.height = H * dpr; const g = cv.getContext('2d'); g.scale(dpr, dpr);
+  g.fillStyle = col.panel; g.fillRect(0, 0, W, H);
+  g.strokeStyle = col.line; g.beginPath(); for (let b = 2; b < 8; b += 2) { g.moveTo(0, H - H * b / 8); g.lineTo(W, H - H * b / 8); } g.stroke();
+  if (!a.length) return;
+  const win = 256, px = Math.max(1, Math.round(W)), grad = g.createLinearGradient(0, H, 0, 0);
+  grad.addColorStop(0, col.accent + '10'); grad.addColorStop(1, col.accent + '80');
+  g.beginPath(); g.moveTo(0, H);
+  for (let x = 0; x <= px; x++) { const s = Math.floor(x / px * Math.max(0, a.length - win)), h = entropy(a, s, Math.min(a.length, s + win)); g.lineTo(x * W / px, H - H * h / 8); }
+  g.lineTo(W, H); g.closePath(); g.fillStyle = grad; g.fill(); g.strokeStyle = col.accent; g.lineWidth = 1.2; g.stroke();
+  const cx = S.off / a.length * W; g.strokeStyle = col.fg; g.beginPath(); g.moveTo(cx, 0); g.lineTo(cx, H); g.stroke();
+}
+function drawLegend() {
+  const l = $('#legend'), col = colors();
+  if (S.view === 'class') l.innerHTML = CLASSES.map((n, i) => `<span><i style="background:${col.cls[i]}"></i>${n}</span>`).join('') + '<span><i style="background:' + col.panel + '"></i>past end</span>';
+  else l.innerHTML = '<span>0 bits<canvas id="ramp"></canvas>8 bits · 256-byte window, coloured by how unpredictable the bytes are</span>';
+  const r = $('#ramp'); if (r) { r.width = 120; r.height = 10; const g = r.getContext('2d'); for (let x = 0; x < 120; x++) { const [a, b, c] = ramp(x / 119); g.fillStyle = `rgb(${a},${b},${c})`; g.fillRect(x, 0, 1, 10); } }
+}
+function drawAll() { buildTile(); drawMap(); drawStrip(); drawLegend(); }
+
+/* ---------- Hex dump (virtualised: only visible rows exist in the DOM) ---------- */
+const ROW = 20, wrap = $('#hexwrap'), spacer = $('#hexspacer'), body = $('#hexbody');
+function renderHex() {
+  const a = S.bytes, rows = Math.ceil(a.length / 16); spacer.style.height = rows * ROW + 'px';
+  const first = Math.max(0, Math.floor(wrap.scrollTop / ROW) - 2), last = Math.min(rows, first + Math.ceil(wrap.clientHeight / ROW) + 5);
+  let html = '';
+  for (let r = first; r < last; r++) {
+    const o = r * 16; let hx = '', asc = '';
+    for (let i = o; i < o + 16; i++) {
+      if (i >= a.length) { hx += '<span class="b">  </span>'; asc += ' '; continue; }
+      const b = a[i], c = cls(b);
+      hx += `<span class="b c${c}${i === S.off ? ' cur' : ''}" data-o="${i}">${b.toString(16).padStart(2, '0')}</span>`;
+      asc += c === 2 ? (b === 60 ? '&lt;' : b === 38 ? '&amp;' : String.fromCharCode(b)) : '·';
+    }
+    html += `<div class="row${(S.off >> 4) === r ? ' sel' : ''}"><span class="off">${o.toString(16).padStart(8, '0')}</span><span>${hx}</span><span class="asc">${asc}</span></div>`;
+  }
+  body.style.top = first * ROW + 'px'; body.innerHTML = html;
+}
+wrap.addEventListener('scroll', renderHex);
+body.addEventListener('click', e => { const t = e.target.closest('.b[data-o]'); if (t) setOffset(+t.dataset.o); });
+body.addEventListener('mouseover', e => { const t = e.target.closest('.b[data-o]'); if (t) setOffset(+t.dataset.o, true); });
+
+function setOffset(o, soft) {
+  const a = S.bytes; S.off = Math.min(Math.max(0, o), Math.max(0, a.length - 1));
+  const row = S.off >> 4, top = row * ROW;
+  if (!soft && (top < wrap.scrollTop || top + ROW > wrap.scrollTop + wrap.clientHeight)) { wrap.scrollTop = Math.max(0, top - wrap.clientHeight / 2); renderHex(); }
+  else { // cheap path: move the highlight without rebuilding the rows
+    body.querySelectorAll('.cur, .sel').forEach(el => el.classList.remove('cur', 'sel'));
+    const el = body.querySelector(`.b[data-o="${S.off}"]`); if (el) { el.classList.add('cur'); el.closest('.row').classList.add('sel'); }
+  }
+  drawMap(); drawStrip();
+  if (!a.length) { $('#status').textContent = 'empty file'; return; }
+  const b = a[S.off], i = Math.floor(S.off / S.bpc), ch = b >= 32 && b < 127 ? `'${String.fromCharCode(b)}'` : b === 10 ? '\\n' : b === 13 ? '\\r' : b === 9 ? '\\t' : b === 0 ? 'NUL' : '·';
+  $('#status').innerHTML = `offset <b>0x${S.off.toString(16).padStart(8, '0')}</b> (${S.off.toLocaleString()}) · byte <b>0x${b.toString(16).padStart(2, '0')}</b> ${b.toString().padStart(3)} ${b.toString(2).padStart(8, '0')} <b>${ch}</b> · ${CLASSES[cls(b)]} · local entropy <b>${S.cellEnt[i].toFixed(2)}</b> bits`;
+}
+function renderStrings() {
+  const list = findStrings(S.bytes), el = $('#strings');
+  el.innerHTML = list.length ? `<div style="color:var(--dim);cursor:default">${list.length}${list.length === 300 ? '+' : ''} strings ≥ 6 chars</div>` + list.map(([o, s]) => `<div data-o="${o}"><span>${o.toString(16).padStart(8, '0')}</span>${s.replace(/[&<]/g, c => c === '&' ? '&amp;' : '&lt;')}</div>`).join('') : '<div style="color:var(--dim);cursor:default">no printable strings ≥ 6 chars</div>';
+}
+$('#strings').addEventListener('click', e => { const t = e.target.closest('[data-o]'); if (t) setOffset(+t.dataset.o); });
+
+/* ---------- Map interaction ---------- */
+const map = $('#map'), tip = $('#tip');
+function cellAt(e) {
+  const r = map.getBoundingClientRect(), x = Math.floor((e.clientX - r.left) / r.width * S.side), y = Math.floor((e.clientY - r.top) / r.height * S.side);
+  if (x < 0 || y < 0 || x >= S.side || y >= S.side) return -1;
+  const d = xy2d(S.side, x, y); return d * S.bpc < S.bytes.length ? d : -1;
+}
+map.addEventListener('pointermove', e => {
+  const d = cellAt(e); if (d < 0) { tip.style.display = 'none'; return; }
+  setOffset(d * S.bpc);
+  tip.style.display = 'block'; tip.textContent = `0x${(d * S.bpc).toString(16).padStart(8, '0')} · ${S.cellEnt[d].toFixed(2)} bits`;
+  const r = map.getBoundingClientRect(); tip.style.left = Math.min(e.clientX - r.left + 12, r.width - tip.offsetWidth - 4) + 'px'; tip.style.top = (e.clientY - r.top - 28) + 'px';
+});
+map.addEventListener('pointerleave', () => tip.style.display = 'none');
+map.addEventListener('click', e => { const d = cellAt(e); if (d >= 0) setOffset(d * S.bpc); });
+$('#strip').addEventListener('click', e => { const r = e.currentTarget.getBoundingClientRect(); setOffset(Math.floor((e.clientX - r.left) / r.width * S.bytes.length)); });
+
+/* ---------- Samples ---------- */
+function xorshift(seed) { let s = seed >>> 0 || 1; return () => { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s & 255; }; }
+function specimen() {
+  const parts = [], enc = new TextEncoder();
+  const hdr = new Uint8Array(512); hdr.set(enc.encode('HLBT'), 0); hdr.set([1, 0, 0, 0, 0, 0, 1, 0, 0, 128, 0, 0], 4); parts.push(hdr);
+  const prose = 'The Hilbert curve is a line that fills a square without ever crossing itself. Walk along it and you visit every cell exactly once, and cells that are close along the walk stay close on the square. That is why it is such a good way to look at a file: a header stays a compact blob, a run of text stays a patch, a compressed stream becomes a region of noise, and padding reads as a flat field. Zoom out and the layout of the whole file appears at a glance, something a scrolling hex dump can never show you. '.repeat(9);
+  parts.push(enc.encode(prose));
+  const u16 = new Uint8Array(6144); const msg = 'wide characters interleave zero bytes '; for (let i = 0; i < u16.length; i += 2) { u16[i] = msg.charCodeAt((i / 2) % msg.length); } parts.push(u16);
+  const r = xorshift(0x9e3779b9), rnd = new Uint8Array(20480); for (let i = 0; i < rnd.length; i++) rnd[i] = r(); parts.push(rnd);
+  parts.push(new Uint8Array(2048).fill(255));
+  const wave = new Uint8Array(6144); for (let i = 0; i < wave.length; i++) wave[i] = 128 + Math.round(100 * Math.sin(i / 23) * Math.sin(i / 311)); parts.push(wave);
+  const code = new Uint8Array(8192), ops = [0x48, 0x89, 0xe5, 0x8b, 0x45, 0xfc, 0xc3, 0x55, 0x90, 0x00, 0x00, 0x74, 0x0f, 0xe8, 0xff, 0xff]; for (let i = 0; i < code.length; i++) code[i] = ops[(i * 7 + (i >> 5)) % ops.length]; parts.push(code);
+  const table = new Uint8Array(4096); for (let i = 0; i < table.length; i += 4) { table[i] = i >> 8; table[i + 1] = i & 255; table[i + 2] = 0; table[i + 3] = 0; } parts.push(table);
+  parts.push(new Uint8Array(1024));
+  const total = parts.reduce((n, p) => n + p.length, 0), out = new Uint8Array(total); let o = 0; for (const p of parts) { out.set(p, o); o += p.length; }
+  return out;
+}
+const SAMPLES = {
+  specimen: () => load(specimen(), 'specimen.bin'),
+  page: () => load(new TextEncoder().encode('<!DOCTYPE html>\n' + document.documentElement.outerHTML), 'hilbert.html'),
+  random: () => { const a = new Uint8Array(65536); crypto.getRandomValues(a); load(a, 'random.bin'); },
+  png: () => {
+    const c = document.createElement('canvas'); c.width = c.height = 160; const g = c.getContext('2d');
+    const gr = g.createLinearGradient(0, 0, 160, 160); gr.addColorStop(0, '#f2b544'); gr.addColorStop(1, '#2fbfae'); g.fillStyle = gr; g.fillRect(0, 0, 160, 160);
+    g.fillStyle = '#0c1018'; for (let i = 0; i < 5; i++) { g.beginPath(); g.arc(30 + i * 25, 80 + 30 * Math.sin(i), 10, 0, 7); g.fill(); }
+    c.toBlob(b => b.arrayBuffer().then(buf => load(new Uint8Array(buf), 'swatch.png')), 'image/png');
+  },
+};
+function pick(name) { S.sample = Object.keys(SAMPLES).indexOf(name); document.querySelectorAll('#samples button').forEach(b => b.classList.toggle('on', b.dataset.s === name)); SAMPLES[name](); }
+$('#samples').addEventListener('click', e => { const b = e.target.closest('button'); if (b) pick(b.dataset.s); });
+function openFile(f) { if (!f) return; document.querySelectorAll('#samples button').forEach(b => b.classList.remove('on')); f.arrayBuffer().then(buf => load(new Uint8Array(buf), f.name)); }
+$('#file').addEventListener('change', e => openFile(e.target.files[0]));
+$('#open').addEventListener('click', () => $('#file').click());
+addEventListener('dragover', e => { e.preventDefault(); $('#drop').style.display = 'grid'; });
+addEventListener('dragleave', e => { if (!e.relatedTarget) $('#drop').style.display = 'none'; });
+addEventListener('drop', e => { e.preventDefault(); $('#drop').style.display = 'none'; openFile(e.dataTransfer.files[0]); });
+
+/* ---------- Controls ---------- */
+function setView(v) { S.view = v; $('#vclass').classList.toggle('on', v === 'class'); $('#vent').classList.toggle('on', v === 'entropy'); buildTile(); drawMap(); drawLegend(); }
+function togglePath() { S.path = !S.path; $('#path').classList.toggle('on', S.path); drawMap(); }
+function toggleTheme() {
+  const dark = matchMedia('(prefers-color-scheme: dark)').matches, cur = document.documentElement.dataset.theme || (dark ? 'dark' : 'light'), next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = next; try { localStorage.setItem('hilbert-theme', next); } catch (e) {}
+  describe(); drawAll();
+}
+const help = $('#help'); const toggleHelp = f => help.classList.toggle('show', f);
+$('#vclass').onclick = () => setView('class'); $('#vent').onclick = () => setView('entropy'); $('#path').onclick = togglePath; $('#theme').onclick = toggleTheme;
+$('#helpbtn').onclick = () => toggleHelp(); help.onclick = e => { if (e.target === help) toggleHelp(false); };
+addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === '/') { e.preventDefault(); toggleHelp(); return; }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key, step = e.shiftKey ? 16 : 1, names = Object.keys(SAMPLES);
+  const acts = {
+    Escape: () => { toggleHelp(false); tip.style.display = 'none'; }, '1': () => setView('class'), '2': () => setView('entropy'), p: togglePath, t: toggleTheme,
+    o: () => $('#file').click(), d: () => pick(names[(S.sample + 1) % names.length]),
+    ArrowLeft: () => setOffset(S.off - step), ArrowRight: () => setOffset(S.off + step), ArrowUp: () => setOffset(S.off - 16), ArrowDown: () => setOffset(S.off + 16),
+    PageUp: () => setOffset(S.off - 256), PageDown: () => setOffset(S.off + 256), Home: () => setOffset(0), End: () => setOffset(S.bytes.length - 1),
+  };
+  const f = acts[k] || acts[k.toLowerCase()]; if (f) { e.preventDefault(); f(); }
+});
+new ResizeObserver(() => { drawMap(); drawStrip(); renderHex(); }).observe(document.body);
+try { const t = localStorage.getItem('hilbert-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+pick('specimen');
+</script>
+</body>
+</html>

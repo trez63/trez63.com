@@ -1,0 +1,285 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Daily Build 2026-10-23 — Tessera</title>
+<style>
+:root{--bg:#f3efe6;--fg:#1d1b17;--muted:#6f6a60;--panel:rgba(255,255,255,.8);--line:rgba(0,0,0,.12);--accent:#c8553d}
+[data-theme=dark]{--bg:#15161a;--fg:#ece9e1;--muted:#9a978f;--panel:rgba(28,29,34,.82);--line:rgba(255,255,255,.13);--accent:#f2a65a}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--fg);font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+canvas{position:fixed;inset:0;width:100%;height:100%;touch-action:none;cursor:grab}
+.bar{position:fixed;top:10px;left:10px;right:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;pointer-events:none}
+.bar>*{pointer-events:auto}
+.brand,.group,.status{background:var(--panel);border:1px solid var(--line);border-radius:10px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.brand{font-weight:700;letter-spacing:.05em;padding:6px 11px}
+.brand small{color:var(--muted);font-weight:400;margin-left:6px}
+.group{display:flex;gap:2px;padding:3px}
+button{font:inherit;color:var(--fg);background:transparent;border:0;border-radius:7px;padding:5px 9px;cursor:pointer;white-space:nowrap}
+button:hover{background:var(--line)}
+button[aria-pressed=true]{background:var(--accent);color:#fff}
+kbd{font:11px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted);margin-left:5px}
+button[aria-pressed=true] kbd{color:rgba(255,255,255,.8)}
+.status{position:fixed;left:10px;bottom:10px;padding:6px 10px;color:var(--muted);font-size:12px;max-width:calc(100% - 20px)}
+#help{position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.45);z-index:9}
+#help[hidden]{display:none}
+.card{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:14px;padding:22px 26px;max-width:540px;width:calc(100% - 32px);max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.card h2{margin:0 0 4px;font-size:18px}.card p{margin:0 0 14px;color:var(--muted)}
+.card dl{display:grid;grid-template-columns:auto 1fr;gap:7px 14px;margin:0 0 14px}
+.card dt{font:12px ui-monospace,Menlo,monospace;background:var(--line);border-radius:5px;padding:2px 7px;white-space:nowrap;justify-self:start}
+.card dd{margin:0}
+@media (max-width:640px){kbd,.brand small,.status{display:none}button{padding:5px 7px}}
+</style>
+</head>
+<body>
+<canvas id="c" aria-label="Tessellation canvas"></canvas>
+<div class="bar">
+  <div class="brand">TESSERA<small>Escher-style tiling editor</small></div>
+  <div class="group" id="types" role="radiogroup" aria-label="Symmetry"></div>
+  <div class="group">
+    <button data-act="random" title="New random shape">Random<kbd>R</kbd></button>
+    <button data-act="undo" title="Undo">Undo<kbd>Z</kbd></button>
+    <button data-act="anim" id="animBtn" aria-pressed="false" title="Breathe">Breathe<kbd>Space</kbd></button>
+    <button data-act="palette" title="Next palette">Palette<kbd>C</kbd></button>
+  </div>
+  <div class="group">
+    <button data-act="svg" title="Download SVG">SVG<kbd>S</kbd></button>
+    <button data-act="png" title="Download PNG">PNG<kbd>P</kbd></button>
+    <button data-act="theme" title="Toggle theme">Theme<kbd>T</kbd></button>
+    <button data-act="help" title="Help">?<kbd>⌘/</kbd></button>
+  </div>
+</div>
+<div class="status" id="status"></div>
+<div id="help" hidden role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+  <div class="card">
+    <h2 id="helpTitle">Tessera</h2>
+    <p>Shape one tile; the plane re-tiles itself. Each symmetry copies your free edges onto the others by translation, glide or rotation, so the pattern can never have gaps or overlaps.</p>
+    <dl>
+      <dt>drag ●</dt><dd>Move a handle on the highlighted home tile. Hollow dots are the mirrored copies.</dd>
+      <dt>double-click</dt><dd>Add a handle on a free edge.</dd>
+      <dt>alt-click / right-click</dt><dd>Remove a handle.</dd>
+      <dt>1 – 4</dt><dd>Symmetry: Translate (p1), Glide (pg), Spin (p4), Hex (p3).</dd>
+      <dt>R / Z</dt><dd>Random organic shape / undo.</dd>
+      <dt>Space</dt><dd>Breathe: animate the handles while the tiling stays perfect.</dd>
+      <dt>C / T / H</dt><dd>Cycle palette / toggle theme / hide handles.</dd>
+      <dt>S / P</dt><dd>Download the view as SVG (one path, many &lt;use&gt;) or PNG.</dd>
+      <dt>drag / wheel</dt><dd>Pan the plane / zoom. <b>+</b> <b>−</b> <b>0</b> also zoom.</dd>
+      <dt>Esc</dt><dd>Close this card.</dd>
+    </dl>
+    <button data-act="help" style="background:var(--accent);color:#fff">Got it</button>
+  </div>
+</div>
+<script>
+'use strict';
+/* ---------- affine helpers: m=[a,b,c,d,e,f], x'=ax+cy+e, y'=bx+dy+f (canvas order) ---------- */
+const mul=(m,n)=>[m[0]*n[0]+m[2]*n[1], m[1]*n[0]+m[3]*n[1], m[0]*n[2]+m[2]*n[3], m[1]*n[2]+m[3]*n[3],
+                  m[0]*n[4]+m[2]*n[5]+m[4], m[1]*n[4]+m[3]*n[5]+m[5]];   // m∘n: apply n first
+const ap=(m,[x,y])=>[m[0]*x+m[2]*y+m[4], m[1]*x+m[3]*y+m[5]];
+const tr=(x,y)=>[1,0,0,1,x,y];
+const rotAbout=([cx,cy],th)=>{const c=Math.cos(th),s=Math.sin(th);return mul(tr(cx,cy),mul([c,s,-s,c,0,0],tr(-cx,-cy)));};
+const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+
+/* ---------- the four tile grammars (Heesch types) ----------
+   verts: the prototile polygon.  free: edges the user shapes.
+   rules: how each remaining edge is a rigid copy of a free one
+     shift [i,j] = translate by verts[j]-verts[i];  pivot k = rotate about verts[k];  mat = explicit isometry.
+   cell(m,n): placements inside one lattice cell, each with a colour class c. */
+const SQ=[[0,0],[1,0],[1,1],[0,1]];
+const R3=1/Math.sqrt(3), H3=Math.sqrt(3)/2;
+const HEX=[0,1,2,3,4,5].map(k=>{const a=Math.PI/6+k*Math.PI/3;return [R3*Math.cos(a),R3*Math.sin(a)];});
+const GLIDE=[1,0,0,-1,1,1];                                  // (x,y) -> (x+1, 1-y)
+const TYPES=[
+ {name:'Translate',group:'p1',verts:[[0,0],[1,0],[1.3,1],[0.3,1]],free:[0,1],
+  rules:[{edge:2,from:0,shift:[0,3]},{edge:3,from:1,shift:[1,0]}],basis:[[1,0],[0.3,1]],
+  cell:(m,n)=>[{m:tr(m+0.3*n,n),c:(m&1)+2*(n&1)}]},
+ {name:'Glide',group:'pg',verts:SQ,free:[0,3],
+  rules:[{edge:2,from:0,shift:[0,3]},{edge:1,from:3,mat:GLIDE}],basis:[[2,0],[0,1]],
+  cell:(m,n)=>[{m:tr(2*m,n),c:2*(n&1)},{m:mul(tr(2*m,n),GLIDE),c:1+2*(n&1)}]},
+ {name:'Spin',group:'p4',verts:SQ,free:[0,2],
+  rules:[{edge:1,from:0,pivot:1},{edge:3,from:2,pivot:3}],basis:[[1,0],[0,1]],
+  cell(m,n){const k=[[0,3],[1,2]][m&1][n&1];return [{m:mul(tr(m,n),rotAbout([.5,.5],k*pivotAngle(this,this.rules[0]))),c:k}];}},
+ {name:'Hex',group:'p3',verts:HEX,free:[0,2,4],
+  rules:[{edge:1,from:0,pivot:1},{edge:3,from:2,pivot:3},{edge:5,from:4,pivot:5}],basis:[[1,0],[0.5,H3]],
+  cell(m,n){const k=((m-n)%3+3)%3;return [{m:mul(tr(m+0.5*n,n*H3),rotAbout([0,0],k*pivotAngle(this,this.rules[0]))),c:k}];}},
+];
+function pivotAngle(T,r){ // rotation about the shared vertex carrying the far end of `from` onto the far end of `edge`
+  const V=T.verts,n=V.length,p=V[r.pivot],other=e=>V[e]===p?V[(e+1)%n]:V[e],s=other(r.from),t=other(r.edge);
+  return Math.atan2(t[1]-p[1],t[0]-p[0])-Math.atan2(s[1]-p[1],s[0]-p[0]);
+}
+function edgeMatrix(T,r){
+  if(r.mat)return r.mat;
+  if(r.shift){const [i,j]=r.shift,V=T.verts;return tr(V[j][0]-V[i][0],V[j][1]-V[i][1]);}
+  return rotAbout(T.verts[r.pivot],pivotAngle(T,r));
+}
+
+/* ---------- curves ---------- */
+const SAMP=8;
+function spline(pts){ // clamped Catmull-Rom through pts, SAMP samples per span, inclusive of the last point
+  const out=[],n=pts.length;
+  for(let i=0;i<n-1;i++){const p0=pts[Math.max(i-1,0)],p1=pts[i],p2=pts[i+1],p3=pts[Math.min(i+2,n-1)];
+    for(let j=0;j<SAMP;j++){const t=j/SAMP,t2=t*t,t3=t2*t;
+      out.push([0,1].map(a=>.5*(2*p1[a]+(-p0[a]+p2[a])*t+(2*p0[a]-5*p1[a]+4*p2[a]-p3[a])*t2+(-p0[a]+3*p1[a]-3*p2[a]+p3[a])*t3)));}}
+  out.push(pts[n-1]);return out;
+}
+function allEdges(T,ctrl){ // sampled points of every edge, in tile coordinates
+  const V=T.verts,n=V.length,E=[];
+  for(const i of T.free)E[i]=spline([V[i],...ctrl[i],V[(i+1)%n]]);
+  for(const r of T.rules){const M=edgeMatrix(T,r),pts=E[r.from].map(p=>ap(M,p));
+    if(dist(pts[0],V[r.edge])>1e-9)pts.reverse();E[r.edge]=pts;}
+  return E;
+}
+const outline=E=>E.flatMap(e=>e.slice(0,-1));
+function pathOf(pts){const p=new Path2D();p.moveTo(...pts[0]);for(let i=1;i<pts.length;i++)p.lineTo(...pts[i]);p.closePath();return p;}
+
+/* ---------- organic random edges ---------- */
+const mulberry=s=>()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
+function organic(T,rng,amp=.3){
+  const V=T.verts,n=V.length,out=[];
+  for(const i of T.free){const A=V[i],B=V[(i+1)%n],dx=B[0]-A[0],dy=B[1]-A[1],L=Math.hypot(dx,dy),N=[-dy/L,dx/L];
+    const c=[1,2,3].map(h=>(rng()*2-1)*amp*L/h),k=3+Math.floor(rng()*2),pts=[];
+    if(Math.abs(c[0])<.12*L)c[0]=Math.sign(c[0]||1)*.12*L;        // never a nearly straight edge
+    for(let j=1;j<=k;j++){const t=j/(k+1),off=c.reduce((s,ch,h)=>s+ch*Math.sin((h+1)*Math.PI*t),0),jit=(rng()-.5)*.1*L;
+      pts.push([A[0]+dx*t+N[0]*off+dx/L*jit,A[1]+dy*t+N[1]*off+dy/L*jit]);}
+    out[i]=pts;}
+  return out;
+}
+
+/* ---------- state ---------- */
+const PALETTES=[['#c8553d','#f2a65a','#588b8b','#f7e1a0'],['#22223b','#4a4e69','#9a8c98','#c9ada7'],
+  ['#2d6a4f','#52b788','#b7e4c7','#d8f3dc'],['#ff6b6b','#ffd93d','#6bcb77','#4d96ff'],['#0b3954','#087e8b','#bfd7ea','#ff5a5f']];
+const SEEDS=[10,6,7,10];
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+let T=TYPES[3],ti=3,ctrl=null,saved=[],history=[],palIdx=0,anim=false,showHandles=true,dirty=true,raf=0;
+const view={s:120,cx:0,cy:0};
+let dpr=1,W=0,Hh=0,bg='',fg='';
+
+function setType(i,fresh=false){
+  if(ctrl)saved[ti]=ctrl;
+  ti=i;T=TYPES[i];ctrl=(!fresh&&saved[i])||organic(T,mulberry(SEEDS[i]));
+  if(fresh)ctrl=organic(T,mulberry(Date.now()&0xffff));
+  const c=centroid();view.cx=c[0];view.cy=c[1];
+  document.querySelectorAll('#types button').forEach((b,j)=>b.setAttribute('aria-pressed',j===i));
+  render();
+}
+const centroid=()=>T.verts.reduce((a,v)=>[a[0]+v[0]/T.verts.length,a[1]+v[1]/T.verts.length],[0,0]);
+const snap=()=>{history.push(JSON.stringify({ti,ctrl}));if(history.length>80)history.shift();};
+function undo(){if(!history.length)return;const h=JSON.parse(history.pop());saved[h.ti]=h.ctrl;if(h.ti!==ti)setType(h.ti);else{ctrl=h.ctrl;render();}}
+
+function displayCtrl(){ // during Breathe, handles drift on tiny circles; derived edges follow, so the tiling stays exact
+  if(!anim)return ctrl;const t=performance.now()/1000,a=.03*edgeLen();
+  return ctrl.map((pts,i)=>pts&&pts.map((p,j)=>{const ph=i*2.1+j*1.7;return [p[0]+a*Math.cos(t*1.3+ph),p[1]+a*Math.sin(t*1.7+ph*1.3)];}));
+}
+const edgeLen=()=>dist(T.verts[0],T.verts[1]);
+
+/* ---------- view ---------- */
+const viewM=()=>[view.s,0,0,view.s,W/2-view.cx*view.s,Hh/2-view.cy*view.s];
+const toWorld=([x,y])=>[(x-W/2)/view.s+view.cx,(y-Hh/2)/view.s+view.cy];
+function placements(){ // every lattice cell whose tiles might touch the viewport
+  const [u,w]=T.basis,det=u[0]*w[1]-u[1]*w[0],inv=([x,y])=>[(x*w[1]-y*w[0])/det,(y*u[0]-x*u[1])/det];
+  const cs=[[0,0],[W,0],[0,Hh],[W,Hh]].map(p=>inv(toWorld(p)));
+  const lo=[0,1].map(a=>Math.floor(Math.min(...cs.map(c=>c[a])))-2),hi=[0,1].map(a=>Math.ceil(Math.max(...cs.map(c=>c[a])))+2);
+  const out=[];for(let m=lo[0];m<=hi[0];m++)for(let n=lo[1];n<=hi[1];n++)out.push(...T.cell(m,n));return out;
+}
+function resize(){dpr=Math.min(devicePixelRatio||1,2);W=innerWidth;Hh=innerHeight;canvas.width=W*dpr;canvas.height=Hh*dpr;
+  const cs=getComputedStyle(document.documentElement);bg=cs.getPropertyValue('--bg').trim();fg=cs.getPropertyValue('--fg').trim();render();}
+function render(){dirty=true;if(!raf)raf=requestAnimationFrame(frame);}
+function frame(){raf=0;if(dirty||anim)draw();dirty=false;if(anim)raf=requestAnimationFrame(frame);}
+
+function draw(withHandles=showHandles){
+  const E=allEdges(T,displayCtrl()),path=pathOf(outline(E)),VM=viewM(),pal=PALETTES[palIdx],P=placements();
+  ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle=bg;ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.lineJoin='round';ctx.lineWidth=1.2/view.s;ctx.strokeStyle=bg;
+  for(const p of P){const M=mul(VM,p.m);ctx.setTransform(dpr*M[0],dpr*M[1],dpr*M[2],dpr*M[3],dpr*M[4],dpr*M[5]);
+    ctx.fillStyle=pal[p.c%pal.length];ctx.fill(path);ctx.stroke(path);}
+  status.textContent=`${T.name} · ${T.group} · ${P.length} tiles · drag the dots, double-click an edge to add one`;
+  if(!withHandles)return;
+  ctx.setTransform(dpr*VM[0],dpr*VM[1],dpr*VM[2],dpr*VM[3],dpr*VM[4],dpr*VM[5]);
+  ctx.lineWidth=5/view.s;ctx.strokeStyle=bg;ctx.stroke(path);ctx.lineWidth=2/view.s;ctx.strokeStyle=fg;ctx.stroke(path);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  for(const r of T.rules){const M=edgeMatrix(T,r);                      // hollow dots: where each handle is copied to
+    for(const p of ctrl[r.from]){const [x,y]=ap(VM,ap(M,p));ctx.beginPath();ctx.arc(x,y,3.5,0,7);ctx.fillStyle=bg;ctx.fill();ctx.strokeStyle=fg;ctx.lineWidth=1.5;ctx.stroke();}}
+  for(const i of T.free)for(const p of ctrl[i]){const [x,y]=ap(VM,p);ctx.beginPath();ctx.arc(x,y,6.5,0,7);
+    ctx.fillStyle=fg;ctx.fill();ctx.lineWidth=2.5;ctx.strokeStyle=bg;ctx.stroke();}
+}
+
+/* ---------- interaction ---------- */
+const status=document.getElementById('status'),help=document.getElementById('help');
+const pointers=new Map();let drag=null,pan=null,pinch=null;
+function handleAt(sx,sy,r){const VM=viewM();let best=null,bd=r;
+  for(const i of T.free)ctrl[i].forEach((p,j)=>{const d=dist(ap(VM,p),[sx,sy]);if(d<bd){bd=d;best={i,j};}});return best;}
+canvas.addEventListener('pointerdown',e=>{
+  canvas.setPointerCapture(e.pointerId);pointers.set(e.pointerId,[e.clientX,e.clientY]);
+  if(pointers.size===2){drag=pan=null;const [a,b]=[...pointers.values()];pinch={d:dist(a,b),s:view.s};return;}
+  const h=showHandles&&handleAt(e.clientX,e.clientY,e.pointerType==='touch'?22:14);
+  if(h&&(e.button===2||e.altKey)){snap();ctrl[h.i].splice(h.j,1);render();return;}
+  if(h){snap();drag=h;canvas.style.cursor='grabbing';return;}
+  pan=[e.clientX,e.clientY,view.cx,view.cy];
+});
+canvas.addEventListener('pointermove',e=>{
+  if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId,[e.clientX,e.clientY]);
+  if(pinch&&pointers.size===2){const [a,b]=[...pointers.values()];view.s=Math.min(600,Math.max(40,pinch.s*dist(a,b)/pinch.d));render();return;}
+  if(drag){ctrl[drag.i][drag.j]=toWorld([e.clientX,e.clientY]);render();}
+  else if(pan){view.cx=pan[2]-(e.clientX-pan[0])/view.s;view.cy=pan[3]-(e.clientY-pan[1])/view.s;render();}
+});
+const up=e=>{pointers.delete(e.pointerId);if(pointers.size<2)pinch=null;drag=pan=null;canvas.style.cursor='grab';};
+canvas.addEventListener('pointerup',up);canvas.addEventListener('pointercancel',up);
+canvas.addEventListener('contextmenu',e=>e.preventDefault());
+canvas.addEventListener('dblclick',e=>{ // insert a handle at the nearest point of a free edge
+  const VM=viewM(),E=allEdges(T,ctrl);let best=null,bd=14;
+  for(const i of T.free)E[i].forEach((p,j)=>{const d=dist(ap(VM,p),[e.clientX,e.clientY]);if(d<bd){bd=d;best={i,j:Math.min(j,E[i].length-2),p};}});
+  if(!best)return;snap();ctrl[best.i].splice(Math.floor(best.j/SAMP),0,best.p);render();
+});
+canvas.addEventListener('wheel',e=>{e.preventDefault();zoomAt(Math.exp(-e.deltaY*.002),[e.clientX,e.clientY]);},{passive:false});
+function zoomAt(f,at=[W/2,Hh/2]){const w=toWorld(at),s=Math.min(600,Math.max(40,view.s*f));
+  view.cx=w[0]-(at[0]-W/2)/s;view.cy=w[1]-(at[1]-Hh/2)/s;view.s=s;render();}
+
+/* ---------- actions ---------- */
+async function download(blob,name){ // plain <a download> locally; the claude.ai viewer routes saves through its own prompt
+  const dl=window.claude?.use?await claude.use('downloads').catch(()=>null):null;
+  if(dl)return dl.save({filename:name,data:blob}).catch(()=>{});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+function svgText(){ // one <path> definition, placed once per tile with <use>
+  const pts=outline(allEdges(T,ctrl)),d='M'+pts.map(p=>p.map(v=>+v.toFixed(5)).join(' ')).join('L')+'Z',VM=viewM(),pal=PALETTES[palIdx];
+  let s=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${Hh}" viewBox="0 0 ${W} ${Hh}"><rect width="100%" height="100%" fill="${bg}"/><defs><path id="t" d="${d}"/></defs>`;
+  for(const p of placements()){const M=mul(VM,p.m);
+    s+=`<use href="#t" transform="matrix(${M.map(v=>+v.toFixed(4)).join(' ')})" fill="${pal[p.c%pal.length]}" stroke="${bg}" stroke-width="${(1.2/view.s).toFixed(4)}" stroke-linejoin="round"/>`;}
+  return s+'</svg>';
+}
+const actions={
+  random(){snap();ctrl=organic(T,mulberry(Date.now()&0xffffff));render();},
+  undo,
+  anim(){anim=!anim;document.getElementById('animBtn').setAttribute('aria-pressed',anim);render();},
+  palette(){palIdx=(palIdx+1)%PALETTES.length;render();},
+  theme(){const d=document.documentElement;d.dataset.theme=d.dataset.theme==='dark'?'light':'dark';resize();},
+  help(){help.hidden=!help.hidden;},
+  handles(){showHandles=!showHandles;render();},
+  svg(){download(new Blob([svgText()],{type:'image/svg+xml'}),'tessera.svg');},
+  png(){draw(false);canvas.toBlob(b=>{download(b,'tessera.png');render();},'image/png');},
+};
+document.addEventListener('click',e=>{const b=e.target.closest('button[data-act]');if(b)actions[b.dataset.act]();});
+const typesEl=document.getElementById('types');
+TYPES.forEach((t,i)=>{const b=document.createElement('button');b.innerHTML=`${t.name}<kbd>${i+1}</kbd>`;b.title=`${t.name} (${t.group})`;b.setAttribute('role','radio');b.onclick=()=>setType(i);typesEl.appendChild(b);});
+window.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='/'){e.preventDefault();actions.help();return;}
+  if(e.key==='Escape'&&!help.hidden){help.hidden=true;return;}
+  if(e.ctrlKey||e.metaKey||e.altKey||e.target.tagName==='INPUT')return;
+  const k=e.key.toLowerCase();
+  if(k>='1'&&k<='4')setType(+k-1);
+  else if(k==='?')actions.help();
+  else if(k===' '){e.preventDefault();actions.anim();}
+  else if(k==='+'||k==='=')zoomAt(1.25);else if(k==='-')zoomAt(.8);else if(k==='0'){view.s=120;const c=centroid();view.cx=c[0];view.cy=c[1];render();}
+  else if({r:1,z:1,c:1,t:1,h:1,s:1,p:1}[k])actions[{r:'random',z:'undo',c:'palette',t:'theme',h:'handles',s:'svg',p:'png'}[k]]();
+});
+window.addEventListener('resize',resize);
+if(matchMedia('(prefers-color-scheme: dark)').matches)document.documentElement.dataset.theme='dark';
+view.s=Math.min(600,Math.max(110,Math.min(innerWidth,innerHeight)/5.5));
+setType(3);resize();
+window.Tessera={TYPES,allEdges,placements,organic,mulberry,render,setCtrl(c){ctrl=c;render();},get T(){return T;},get ctrl(){return ctrl;},setType,svgText,actions}; // for tests
+</script>
+</body>
+</html>
+
+</body></html>

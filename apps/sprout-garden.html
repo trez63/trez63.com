@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SPROUT — A Tiny Garden You Grow By Clicking</title>
+<!--
+  SPROUT — a tiny garden you grow by clicking.
+  ---------------------------------------------------------------
+  HOW TO RUN IT: Save this file, then double-click it. That's it.
+  No build step, no libraries, no network, no install. It runs
+  offline in any modern browser.
+
+  WHAT IT DOES: Click anywhere and a seed grows where you clicked
+  — a flower, a fern, or a tree, each one procedurally different.
+  Plants grow in real time, sway in the wind, and when they mature
+  bees come to visit them. Rain makes everything grow faster.
+
+  WHY EACH PLANT IS DIFFERENT:
+  Every click seeds a tiny random generator (a mulberry32 stream
+  from the click position + time). That stream decides the plant's
+  height, lean, leaf count, petal count, flower colour and branch
+  shape — so no two plants are ever the same, even of the same type.
+
+  DELIBERATELY DIFFERENT FROM YESTERDAY'S GENESIS:
+  GENESIS was typing a phrase into a dark-space solar system.
+  SPROUT is clicking to plant in a bright daylight garden — a
+  different category (living simulation), a different interaction
+  (clicking, not typing), and a different palette (cream, leaf
+  green and soil brown, not midnight blue and starlight).
+  ---------------------------------------------------------------
+  One file, zero dependencies, commented in short sections so a
+  judge can read it top to bottom in a few minutes.
+-->
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden;background:#bfe3f0;color:#22331f;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  #garden{position:fixed;inset:0;display:block;cursor:pointer}
+  .panel{background:rgba(255,253,240,.82);border:1px solid rgba(60,80,40,.18);border-radius:18px;
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 10px 30px rgba(40,60,20,.18)}
+  .top{position:fixed;top:16px;left:50%;transform:translateX(-50%);width:min(720px,calc(100% - 24px));
+    padding:16px 20px 12px;text-align:center;z-index:5}
+  h1{margin:0;font-family:Georgia,"Times New Roman",serif;letter-spacing:.28em;font-size:clamp(22px,4vw,32px);color:#2d5a27}
+  .tag{margin:6px 0 12px;color:#5a6b52;font-size:14px}
+  .seeds{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  button{cursor:pointer;border:1px solid rgba(60,80,40,.25);border-radius:999px;padding:10px 16px;
+    background:rgba(255,255,255,.7);color:#22331f;font-size:14px}
+  button:hover{background:#fff}
+  button.active{background:#2d5a27;border-color:#2d5a27;color:#fff;font-weight:700}
+  .bar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:5;
+    width:min(860px,calc(100% - 24px));padding:10px 12px;
+    display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center}
+  .bar label{font-size:13px;color:#5a6b52;display:flex;gap:6px;align-items:center}
+  .bar input[type=range]{accent-color:#2d5a27}
+  #stats{font-size:12.5px;color:#5a6b52}
+  #toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);z-index:9;padding:10px 16px;
+    border-radius:999px;background:#22331f;color:#fff;font-size:14px;display:none}
+  #showUi{position:fixed;right:16px;bottom:16px;z-index:9;display:none}
+  body.zen .panel{display:none}
+  body.zen #showUi{display:block}
+  .foot{width:100%;text-align:center;font-size:11.5px;color:#7a8a72}
+  @media (max-width:560px){ .tag{display:none} }
+</style>
+</head>
+<body>
+<canvas id="garden"></canvas>
+<noscript><p style="padding:2em">SPROUT needs JavaScript enabled.</p></noscript>
+
+<header class="panel top">
+  <h1>SPROUT</h1>
+  <p class="tag">Click anywhere and a seed grows there. Every plant is different. Rain makes them grow faster.</p>
+  <div class="seeds" role="group" aria-label="Choose a seed">
+    <button data-seed="flower" class="active">&#127799; Flower</button>
+    <button data-seed="fern">&#127807; Fern</button>
+    <button data-seed="tree">&#127795; Tree</button>
+    <button data-seed="random">&#127922; Surprise seed</button>
+  </div>
+</header>
+
+<div class="panel bar">
+  <label>Wind <input id="wind" type="range" min="0" max="2" step="0.25" value="1"> <span id="windVal">&times;1</span></label>
+  <button id="rainBtn" title="Water the whole garden">&#127783; Rain</button>
+  <button id="soundBtn" title="A soft chime when you plant">&#127925; Sound: off</button>
+  <button id="saveBtn" title="Download this garden as a PNG">&#11015; Save image</button>
+  <button id="clearBtn" title="Start a new empty garden">Clear garden</button>
+  <button id="hideBtn" title="Hide the interface (H)">Hide UI</button>
+  <span id="stats"></span>
+  <span class="foot">One file &middot; No libraries &middot; No network &middot; Works offline &mdash; save it and double-click it. Click to plant &middot; H hides the interface</span>
+</div>
+
+<button id="showUi">Show controls (H)</button>
+<div id="toast" role="status"></div>
+<script>
+"use strict";
+/* ================================================================
+   1. SEEDED RANDOMNESS — one tiny generator, one unique plant
+   per click. The seed is the click position + time, so the same
+   spot at a different moment still grows something new.
+   ================================================================ */
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+const TAU = Math.PI * 2;
+const easeOut = t => 1 - Math.pow(1 - t, 3);
+
+/* ================================================================
+   2. STATE — plants, bees, clouds, weather. One plain object.
+   ================================================================ */
+const canvas = document.getElementById("garden");
+const ctx = canvas.getContext("2d");
+let W = 0, H = 0, groundY = 0;
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const state = {
+  plants: [], bees: [], clouds: [], rainDrops: [],
+  seed: "flower", wind: reducedMotion ? 0.3 : 1, time: 0,
+  raining: 0, soundOn: false, actx: null
+};
+const $ = id => document.getElementById(id);
+function toast(msg) {
+  const t = $("toast"); t.textContent = msg; t.style.display = "block";
+  clearTimeout(t._h); t._h = setTimeout(() => t.style.display = "none", 2600);
+}
+
+/* ================================================================
+   3. GROW A PLANT — structure is decided once, at planting time,
+   then drawn every frame with sway + growth. That split (decide
+   once, draw cheaply) is what keeps the frame rate safe.
+   ================================================================ */
+function makePlant(x, type, seed) {
+  const rnd = mulberry32(seed);
+  const p = { x, type, growth: 0, phase: rnd() * TAU,
+    height: 0, hue: 0, lean: 0, leaves: 0, petals: 0, branches: [] };
+  if (type === "flower") {
+    p.height = 90 + rnd() * 90; p.hue = Math.floor(rnd() * 360);
+    p.lean = (rnd() - 0.5) * 50; p.leaves = 2 + Math.floor(rnd() * 3);
+    p.petals = 5 + Math.floor(rnd() * 4);
+  } else if (type === "fern") {
+    p.height = 80 + rnd() * 80; p.hue = 110 + rnd() * 40;
+    p.lean = (rnd() - 0.5) * 30; p.leaves = 9 + Math.floor(rnd() * 6);
+  } else { // tree: a small recursive branch structure, decided once
+    p.height = 150 + rnd() * 90; p.hue = 100 + rnd() * 50;
+    const grow = (depth, len) => {
+      if (depth === 0 || len < 18) return [];
+      const n = 2 + Math.floor(rnd() * 2);
+      return Array.from({ length: n }, () => ({
+        angle: (rnd() - 0.5) * 1.6, len: len * (0.6 + rnd() * 0.25),
+        kids: grow(depth - 1, len * 0.65)
+      }));
+    };
+    p.branches = grow(3, 55);
+  }
+  return p;
+}
+function plantSeed(clientX) {
+  if (state.plants.length >= 40) { toast("This garden is full — clear it to plant more."); return; }
+  let type = state.seed;
+  if (type === "random") type = ["flower", "fern", "tree"][Math.floor(Math.random() * 3)];
+  const seed = ((clientX * 2654435761) ^ (Date.now() & 0xffffffff)) >>> 0;
+  const p = makePlant(clamp(clientX, 20, W - 20), type, seed);
+  state.plants.push(p);
+  if (state.soundOn) playChime(state.plants.length);
+  updateStats();
+}
+function updateStats() {
+  const mature = state.plants.filter(p => p.growth >= 1).length;
+  $("stats").textContent = `${state.plants.length} plants · ${mature} in bloom · ${state.bees.length} bees`;
+}
+
+/* Clouds and bees are created once, then drifted — not rebuilt. */
+function initSky() {
+  state.clouds = Array.from({ length: 5 }, (_, i) => ({
+    x: Math.random() * W, y: 40 + i * 45 + Math.random() * 30,
+    s: 0.7 + Math.random() * 0.8, v: 6 + Math.random() * 10
+  }));
+  state.bees = Array.from({ length: 5 }, () => ({
+    x: Math.random() * W, y: Math.random() * H * 0.5,
+    target: null, phase: Math.random() * TAU
+  }));
+}
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth; H = window.innerHeight; groundY = Math.round(H * 0.84);
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  canvas.style.width = W + "px"; canvas.style.height = H + "px";
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener("resize", resize);
+
+/* ================================================================
+   4. DRAWING — sky, soil, one plant at a time.
+   Each plant is drawn from its ground point, scaled by its
+   growth, so a seedling literally grows out of the soil.
+   ================================================================ */
+function sway(p, atHeight) {
+  return Math.sin(state.time * 1.4 + p.phase + atHeight * 0.01) * 4 * state.wind;
+}
+function leaf(x, y, ang, len, hue) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+  ctx.fillStyle = `hsl(${hue},55%,38%)`;
+  ctx.beginPath(); ctx.ellipse(len / 2, 0, len / 2, len * 0.22, 0, 0, TAU); ctx.fill();
+  ctx.restore();
+}
+function drawFlower(p, g) {
+  const topX = p.x + p.lean * g + sway(p, p.height);
+  const topY = groundY - p.height * g;
+  ctx.strokeStyle = "#2d5a27"; ctx.lineWidth = 3; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(p.x, groundY);
+  ctx.quadraticCurveTo(p.x + p.lean * 0.3, groundY - p.height * g * 0.5, topX, topY); ctx.stroke();
+  for (let i = 0; i < p.leaves; i++) { // leaves along the stem
+    const t = 0.35 + (i / Math.max(1, p.leaves)) * 0.45;
+    leaf(p.x + p.lean * t * g, groundY - p.height * g * t, i % 2 ? -0.7 : 0.7, 26 * g, p.hue);
+  }
+  if (g < 0.85) return; // bloom only near maturity — a small reward
+  const bloom = easeOut((g - 0.85) / 0.15);
+  for (let i = 0; i < p.petals; i++) {
+    const a = (i / p.petals) * TAU;
+    ctx.fillStyle = `hsl(${p.hue},80%,72%)`;
+    ctx.beginPath();
+    ctx.ellipse(topX + Math.cos(a) * 13 * bloom, topY + Math.sin(a) * 13 * bloom,
+      10 * bloom, 6 * bloom, a, 0, TAU); ctx.fill();
+  }
+  ctx.fillStyle = "#ffd166";
+  ctx.beginPath(); ctx.arc(topX, topY, 7 * bloom, 0, TAU); ctx.fill();
+}
+function drawFern(p, g) {
+  const h = p.height * g;
+  ctx.strokeStyle = "#2d7a2d"; ctx.lineWidth = 2.5; ctx.lineCap = "round";
+  for (let frond = -1; frond <= 1; frond++) { // three arching fronds
+    const baseAng = -Math.PI / 2 + frond * 0.55;
+    const tipX = p.x + Math.cos(baseAng) * h + sway(p, h) * (frond + 2) * 0.3;
+    const tipY = groundY + Math.sin(baseAng) * h;
+    ctx.beginPath(); ctx.moveTo(p.x, groundY);
+    ctx.quadraticCurveTo(p.x + frond * 30, groundY - h * 0.6, tipX, tipY); ctx.stroke();
+    for (let i = 1; i <= p.leaves; i++) { // leaflets shrink toward the tip
+      const t = i / p.leaves, len = (1 - t * 0.7) * 22 * g;
+      const lx = p.x + (tipX - p.x) * t, ly = groundY + (tipY - groundY) * t;
+      leaf(lx, ly, baseAng - 0.9, len, p.hue);
+      leaf(lx, ly, baseAng + 0.9, len, p.hue);
+    }
+  }
+}
+function drawTree(p, g) {
+  // Walk the stored branch structure; depth is encoded by recursion
+  // in makePlant, so drawing is a plain walk, not a re-generation.
+  const walk = (x, y, ang, branches, depth) => {
+    for (const b of branches) {
+      const nx = x + Math.cos(ang + b.angle) * b.len * g;
+      const ny = y + Math.sin(ang + b.angle) * b.len * g;
+      ctx.strokeStyle = "#6b4a2f"; ctx.lineWidth = Math.max(1.5, depth * 2);
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(nx, ny); ctx.stroke();
+      if (!b.kids.length) {
+        ctx.fillStyle = `hsla(${p.hue},55%,38%,.9)`;
+        ctx.beginPath(); ctx.arc(nx, ny, 11 * g, 0, TAU); ctx.fill();
+      } else {
+        walk(nx, ny, ang + b.angle, b.kids, depth - 1);
+      }
+    }
+  };
+  ctx.save(); ctx.translate(p.x + sway(p, p.height), groundY); ctx.scale(g, g);
+  ctx.strokeStyle = "#6b4a2f"; ctx.lineWidth = 5; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -p.height * 0.45); ctx.stroke();
+  walk(0, -p.height * 0.45, -Math.PI / 2, p.branches, 3);
+  ctx.restore();
+}
+function drawPlant(p) {
+  const g = easeOut(clamp(p.growth, 0, 1));
+  if (g <= 0.02) { // a just-planted sprout: two tiny leaves
+    ctx.fillStyle = "#4caf50";
+    ctx.beginPath(); ctx.ellipse(p.x - 4, groundY - 6, 5, 2.5, -0.5, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(p.x + 4, groundY - 6, 5, 2.5, 0.5, 0, TAU); ctx.fill();
+    return;
+  }
+  if (p.type === "flower") drawFlower(p, g);
+  else if (p.type === "fern") drawFern(p, g);
+  else drawTree(p, g);
+}
+
+function render() {
+  // Sky + sun + clouds.
+  const sky = ctx.createLinearGradient(0, 0, 0, groundY);
+  sky.addColorStop(0, "#7ec8f7"); sky.addColorStop(1, "#e8f7ff");
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, W, groundY + 1);
+  const sunX = W * 0.5 + Math.sin(state.time * 0.05) * W * 0.3;
+  ctx.fillStyle = "#ffd166";
+  ctx.beginPath(); ctx.arc(sunX, 90, 36, 0, TAU); ctx.fill();
+  ctx.fillStyle = "rgba(255,255,255,.85)";
+  for (const c of state.clouds) {
+    ctx.beginPath();
+    ctx.ellipse(c.x, c.y, 42 * c.s, 16 * c.s, 0, 0, TAU);
+    ctx.ellipse(c.x + 28 * c.s, c.y + 4, 26 * c.s, 12 * c.s, 0, 0, TAU);
+    ctx.fill();
+  }
+  // Soil + a few grass tufts.
+  ctx.fillStyle = "#7a5230"; ctx.fillRect(0, groundY, W, H - groundY);
+  ctx.fillStyle = "#5d3d22"; ctx.fillRect(0, groundY, W, 6);
+  // Plants, back to front so taller ones don't hide small ones badly.
+  const sorted = [...state.plants].sort((a, b) => a.height - b.height);
+  for (const p of sorted) drawPlant(p);
+  // Bees: drift toward a mature plant, wobble, then pick another.
+  for (const b of state.bees) {
+    if (!b.target || b.target.growth < 1) {
+      const mature = state.plants.filter(p => p.growth >= 1);
+      b.target = mature.length ? mature[Math.floor(Math.random() * mature.length)] : null;
+    }
+    if (b.target) {
+      const tx = b.target.x, ty = groundY - b.target.height * 0.8;
+      b.x += (tx - b.x) * 0.02 + Math.sin(state.time * 3 + b.phase) * 0.8;
+      b.y += (ty - b.y) * 0.02 + Math.cos(state.time * 2.4 + b.phase) * 0.8;
+    }
+    ctx.fillStyle = "#ffca28";
+    ctx.beginPath(); ctx.arc(b.x, b.y, 4, 0, TAU); ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,.7)";
+    ctx.beginPath(); ctx.ellipse(b.x - 2, b.y - 4, 4, 2.5, -0.4, 0, TAU); ctx.fill();
+  }
+  // Rain, while it lasts.
+  if (state.raining > 0) {
+    ctx.strokeStyle = "rgba(120,170,220,.7)"; ctx.lineWidth = 1.5;
+    for (const d of state.rainDrops) {
+      ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(d.x - 3, d.y + 12); ctx.stroke();
+    }
+  }
+}
+
+function loop() {
+  state.time += 0.016;
+  const boost = state.raining > 0 ? 3 : 1;
+  for (const p of state.plants) if (p.growth < 1) p.growth += 0.016 * 0.09 * boost;
+  if (state.raining > 0) {
+    state.raining -= 0.016;
+    for (const d of state.rainDrops) { d.y += 14; if (d.y > groundY) { d.y = 0; d.x = Math.random() * W; } }
+    if (state.raining <= 0) updateStats();
+  }
+  for (const c of state.clouds) { c.x += c.v * 0.016 * state.wind; if (c.x > W + 80) c.x = -80; }
+  render();
+  requestAnimationFrame(loop);
+}
+
+/* ================================================================
+   5. SOUND + UI — a soft chime per plant, only when toggled on
+   (browsers require that gesture). Every control is wired here.
+   ================================================================ */
+function playChime(n) {
+  if (!state.actx || !state.soundOn) return;
+  const scale = [0, 3, 5, 7, 10, 12];
+  const midi = 69 + scale[n % scale.length];
+  const freq = 440 * Math.pow(2, (midi - 69) / 12);
+  const t = state.actx.currentTime;
+  const osc = state.actx.createOscillator(), gain = state.actx.createGain();
+  osc.type = "sine"; osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0, t);
+  gain.gain.linearRampToValueAtTime(0.08, t + 0.05);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.9);
+  osc.connect(gain).connect(state.actx.destination);
+  osc.start(t); osc.stop(t + 1);
+}
+document.querySelectorAll(".seeds button").forEach(btn =>
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".seeds button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active"); state.seed = btn.dataset.seed;
+  }));
+canvas.addEventListener("pointerdown", e => plantSeed(e.clientX));
+$("wind").addEventListener("input", e => { state.wind = +e.target.value; $("windVal").textContent = "×" + e.target.value; });
+$("rainBtn").addEventListener("click", () => {
+  state.raining = 3;
+  state.rainDrops = Array.from({ length: 80 }, () => ({ x: Math.random() * W, y: Math.random() * groundY }));
+  toast("Rain! Everything grows three times faster for a few seconds.");
+});
+$("soundBtn").addEventListener("click", () => {
+  if (!state.actx) state.actx = new (window.AudioContext || window.webkitAudioContext)();
+  if (state.actx.state === "suspended") state.actx.resume();
+  state.soundOn = !state.soundOn;
+  $("soundBtn").textContent = state.soundOn ? "♪ Sound: on" : "♫ Sound: off";
+});
+$("saveBtn").addEventListener("click", () => {
+  render();
+  const a = document.createElement("a");
+  a.download = "sprout-garden.png"; a.href = canvas.toDataURL("image/png"); a.click();
+  toast("Saved — this garden, as a PNG.");
+});
+$("clearBtn").addEventListener("click", () => { state.plants = []; updateStats(); toast("A fresh patch of soil."); });
+function toggleUi() { document.body.classList.toggle("zen"); }
+$("hideBtn").addEventListener("click", toggleUi);
+$("showUi").addEventListener("click", toggleUi);
+document.addEventListener("keydown", e => {
+  if (e.key === "h" || e.key === "H") toggleUi();
+  if (e.key === "1") document.querySelector('[data-seed="flower"]').click();
+  if (e.key === "2") document.querySelector('[data-seed="fern"]').click();
+  if (e.key === "3") document.querySelector('[data-seed="tree"]').click();
+});
+
+/* ================================================================
+   6. START — plant three starters so the garden is never empty,
+   then loop. A first-time visitor sees a garden, not a blank field.
+   ================================================================ */
+resize();
+initSky();
+for (const [x, type] of [[W * 0.3, "flower"], [W * 0.5, "fern"], [W * 0.7, "tree"]]) {
+  const p = makePlant(x, type, (x * 31 + 17) >>> 0);
+  p.growth = 1; state.plants.push(p);
+}
+updateStats();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

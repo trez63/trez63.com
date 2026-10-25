@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>trez63 — one small app a day</title>
+<meta name="description" content="A daily collection of small single-page apps built by AI — Claude, ChatGPT and Muse. Click any card and play.">
+<style>
+:root{--bg:#0f1115;--panel:#161a21;--line:#242a34;--fg:#e8e9ec;--mute:#8b93a1;--acc:#ff6a45;
+  --claude:#d97757;--chatgpt:#10a37f;--muse:#8b5cf6;--gemini:#4285f4;--other:#6b7280}
+@media (prefers-color-scheme: light){:root{--bg:#f6f4ef;--panel:#ffffff;--line:#e2ded4;--fg:#1c1b19;--mute:#6f6a60}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:inherit;text-decoration:none}
+header{max-width:1240px;margin:0 auto;padding:56px 24px 20px}
+h1{font-size:clamp(28px,5vw,44px);margin:0 0 6px;letter-spacing:-.02em}
+h1 em{font-style:normal;color:var(--acc)}
+.lede{color:var(--mute);margin:0 0 22px;max-width:60ch}
+.toolbar{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center}
+#q{font:inherit;font-size:15px;padding:9px 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--fg);width:min(100%,340px);outline:none}
+#q:focus{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 25%,transparent)}
+.filters{display:flex;flex-wrap:wrap;gap:8px}
+.filters button{font:inherit;font-size:13px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer}
+.filters button[aria-pressed=true]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.sort{margin-left:auto}
+.sort button[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:#fff}
+main{max-width:1240px;margin:0 auto;padding:12px 24px 80px;display:grid;gap:22px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;transition:transform .15s,box-shadow .15s}
+.card:hover{transform:translateY(-3px);box-shadow:0 14px 40px rgba(0,0,0,.25)}
+.card[hidden]{display:none}
+.shot{display:block;aspect-ratio:16/10;background:#000;overflow:hidden}
+.shot img{width:100%;height:100%;object-fit:cover;display:block}
+.body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+h2{font-size:18px;margin:0;letter-spacing:-.01em}
+.badge{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:6px;color:#fff;white-space:nowrap}
+.badge.claude{background:var(--claude)}.badge.chatgpt{background:var(--chatgpt)}.badge.muse{background:var(--muse)}.badge.gemini{background:var(--gemini)}.badge.other{background:var(--other)}
+.body p{margin:0;color:var(--mute);font-size:14px;flex:1}
+.meta{display:flex;gap:6px;font-size:12px;color:var(--mute)}
+.meta a{text-decoration:underline dotted}
+.meta .rate{margin-left:auto;text-decoration:none;color:var(--acc);font-weight:600}
+.meta .rate:hover{text-decoration:underline}
+footer{max-width:1240px;margin:0 auto;padding:0 24px 48px;color:var(--mute);font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <h1>One small app <em>a day</em>.</h1>
+  <p class="lede">Every day three AI models each build a single-page app from a one-line prompt. They land here, untouched. Click a card and play. Everything runs in your browser — nothing is uploaded anywhere.</p>
+  <div class="toolbar">
+    <input id="q" type="search" placeholder="Search apps…" aria-label="Search apps by title or description" autocomplete="off">
+    <div class="filters" role="group" aria-label="Filter by model">
+      <button data-filter="all" aria-pressed="true">All (21)</button><button data-filter="ChatGPT">ChatGPT</button><button data-filter="Claude">Claude</button><button data-filter="Muse">Muse</button>
+    </div>
+    <div class="filters sort" role="group" aria-label="Sort">
+      <button data-sort="new" aria-pressed="true">Newest</button><button data-sort="top">Top voted</button>
+    </div>
+  </div>
+  <p id="empty" class="lede" hidden>No apps match that.</p>
+</header>
+<main id="grid">
+    <article class="card" data-engine="Claude" data-up="0" data-date="2026-10-25" data-search="carve content-aware image resizing. drag an edge and the picture shrinks by removing its least interesting paths, so subjects stay intact. paint over an object and delete it. carve">
+      <a class="shot" href="apps/carve.html" aria-label="Open Carve">
+        <img src="thumbs/carve.webp" alt="" loading="lazy" width="640" height="400">
+      </a>
+      <div class="body">
+        <div class="row">
+          <h2><a href="apps/carve.html">Carve</a></h2>
+          <span class="badge claude">Claude</span>
+        </div>
+        <p>Content-aware image resizing. Drag an edge and the picture shrinks by removing its least interesting paths, so subjects stay intact. Paint over an object and delete it.</p>
+        <div class="meta">
+          <span>Oct 25, 2026</span>
+          <span>·</span>
+          <a href="https://github.com/trez63/trez63.com/commits/main/apps/carve.html" title="Version history on GitHub">v1</a>
+          <a class="rate" href="rate.html?app=carve" title="Vote for this app">👍 Vote</a>
+        </div>
+      </div>
+    </article>
+    <article class="card" data-engine="Muse" data-up="0" data-date="2026-10-25" data-search="budget projected income and expenses on one page, offline. enter anything weekly, monthly or yearly and it normalizes to a monthly view. budget">
+      <a class="shot" href="apps/budget.html" aria-label="Open Budget">
+        <img src="thumbs/budget.webp" alt="" loading="lazy" width="640" height="400">
+      </a>
+      <div class="body">
+        <div class="row">
+          <h2><a href="apps/budget.html">Budget</a></h2>
+          <span class="badge muse">Muse</span>
+        </div>
+        <p>Projected income and expenses on one page, offline. Enter anything weekly, monthly or yearly and it normalizes to a monthly view.</p>
+        <div class="meta">
+          <span>Oct 25, 2026</span>
+          <span>·</span>
+          <a href="https://github.com/trez63/trez63.com/commits/main/apps/budget.html" title="Version history on GitHub">v1</a>
+          <a class="rate" href="rate.html?app=budget" title="Vote for this app">👍 Vote</a>
+        </div>
+      </div>
+    </article>
+    <article class="card" data-engine="Claude" data-up="0" data-date="2026-10-25" data-search="hilbert see the shape of any file. every byte is laid along a hilbert curve, so headers, text, compressed streams and padding each get their own texture. hilbert">
+      <a class="shot" href="apps/hilbert.html" aria-label="Open Hilbert">
+        <img src="thumbs/hilbert.webp" alt="" loading="lazy" width="640" height="400">
+      </a>
+      <div class="body">
+        <div class="row">
+          <h2><a href="apps/hilbert.html">Hilbert</a></h2>
+          <span class="badge claude">Claude</span>
+        </div>
+        <p>See the shape of any file. Every byte is laid along a Hilbert curve, so headers, text, compressed streams and padding each get their own texture.</p>
+        <div class="meta">
+          <span>Oct 25, 2026</span>
+          <span>·</span>
+          <a href="https://github.com/trez63/trez63.com/commits/main/apps/hilbert.html" title="Version history on GitHub">v1</a>
+          <a class="rate" href="rate.html?app=hilbert" title="Vote for this app">👍 Vote</a>
+        </div>
+      </div>
+    </article>
+    <article class="card" data-engine="Claude" data-up="0" data-date="2026-10-25" data-search="tessera an escher-style tiling editor. shape one tile and the plane re-tiles itself with no gaps or overlaps. tessera">
+      <a class="shot" href="apps/tessera.html" aria-label="Open Tessera">
+        <img src="thumbs/tessera.webp" alt="" loading="lazy" width="640" height="400">
+      </a>
+      <div class="body">
+        <div class="row">
+          <h2><a href="apps/tessera.html">Tessera</a></h2>
+          <span class="badge claude">Claude</span>
+        </div>
+        <p>An Escher-style tiling editor. Shape one tile and the plane re-tiles itself with no gaps or overlaps.</p>
+        <div class="meta">
+          <span>Oct 25, 2026</span>
+          <span>·</span>
+          <a href="https://github.com/trez63/trez63.com/commits/main/apps/tessera.html" title="Version history on GitHub">v1</a>
+          <a class="rate" href="rate.html?app=tessera" title="Vote for this app">👍 Vote</a>
+        </div>
+      </div>
+    </article>
+    <article class="card" data-engine="ChatGPT" data-up="0" data-date="2026-10-25" data-search="chroma desk a small studio for everyday color. drop a photo, pull a palette out of it, then edit and export the swatches. chroma-desk">
+      <a class="shot" href="apps/chroma-desk.html" aria-label="Open Chroma Desk">
+        <img src="thumbs/chroma-desk.webp" alt="" loading="lazy" width="640" height="400">
+      </a>
+      <div class="body">
+        <div class="row">
+          <h2><a href="apps/chroma-desk.html">Chroma Desk</a></h2>
+          <span class="badge chatgpt">ChatGPT</span>
+        </div>
+        <p>A small studio for everyday color. Drop a photo, pull a palette out of it, then edit and export the swatches.</p>
+        <div class="meta">
+          <span>Oct 25, 2026</span>
+          <span>·</span>
+          <a href="https://github.com/trez63/trez63.com/commits/main/apps/chroma-desk.html" title="Version history on GitHub">v1</a>
+          <a class="rate" href="rate.html?app=chroma-desk" title="Vote for this app">👍 Vote</a>
+        </div>
+      </div>
+    </article>
+    <article class="card" data-engine="Muse" data-up="0" data-date="2026-10-25" data-search="dayblock a time-block day planner. drag on the timeline to carve out your day; overlaps are allowed and the totals just add up. dayblock">
+      <a class="shot" href="apps/dayblock.html" aria-label="Open Dayblock">
+        <img src="thumbs/dayblock.webp" alt="" loading="lazy" width="640" height="400">
+      </a>
+      <div class="body">
+        <div class="row">
+          <h2><a href="apps/dayblock.html">Dayblock</a></h2>
+          <span class="badge muse">Muse</span>
+        </div>
+        <p>A time-block day planner. Drag on the timeline to carve out your day; overlaps are allowed and the totals just add up.</p>
+        <div class="meta">
+          <span>Oct 25, 2026</span>
+          <span>·</span>
+          <a href="https://github.com/trez63/trez63.com/commits/main/apps/dayblock.html" title="Version history on GitHub">v1</a>
+          <a class="rate" href="rate.html?app=dayblock" title="Vote for this app">👍 Vote</a>
+        </div>
+      </div>
+    </article>
+    <article class="card" data-engine="Muse" data-up="0" data-date="2026-10-25" data-search="pantry clock what&#x27;s expiring first? track what&#x27;s in the fridge, freezer and pantry and tap an item to use it up before it becomes waste. pantry-clock">
+      <a class="shot" href="apps/pantry-clock.html" aria-label="Open Pantry Clock">
+        <img src="thumbs/pantry-clock.webp" alt="" loading="lazy" width="640" height="400">
+      </a>
+      <div class="body">
+        <div class="row">
+          <h2><a href="apps/pantry-clock.html">Pantry Clock</a></h2>
+          <span class="badge muse">Muse</span>
+        </div>
+        <p>What&#x27;s expiring first? Track what&#x27;s in the fridge, freezer and pantry and tap an item to use it up before it becomes waste.</p>
+        <div class="meta">
+          <span>Oct 25, 2026</span>
+          <span>·</span>
+          <a href="https://github.com/trez63/trez63.com/commits/main/apps/pantry-clock.html" title="Version history on GitHub">v1</a>
+          <a class="rate" href="rate.html?app=pantry-clock" title="Vote for this app">👍 Vote</a>
+        </div>
+      </div>
+    </article>
+    <article class="card" data-engine="Muse" data-up="0" data-date="2026-10-23" data-search="ledger your money on one page, offline. add an entry and the totals, chart and list update at once. nothing leaves the browser. ledger">
+      <a class="shot" href="apps/ledger.html" aria-label="Open Ledger">
+        <img src="thumbs/ledger.webp" alt="" loading="lazy" width="640" height="400">
+      </a>
+      <div class="body">
+        <div class="row">
+          <h2><a href="apps/ledger.html">Ledger</a></h2>
+          <span class="badge muse">Muse</span>
+        </div>
+        <p>Your money on one page, offline. Add an entry and the totals, chart and list update at once. Nothing leaves the browser.</p>
+        <div class="meta">
+          <span>Oct 23, 2026</span>
+          <span>·</span>
+          <a href="https://github.com/trez63/trez63.com/commits/main/apps/ledger.html" title="Version history on GitHub">v1</a>
+          <a class="rate" href="rate.html?app=ledger" title="Vote for this app">👍 Vote</a>
+        </div>
+      </div>
+    </article>
+    <article class="card" data-engine="Muse" data-up="0" data-date="2026-10-23" data-search="meadowsong a wind-chime meadow you play by gliding your cursor through it. meadowsong">
+      <a class="shot" href="apps/meadowsong.html" aria-label="Open Meadowsong">
+        <img src="thumbs/meadowsong.webp" alt="" loading="lazy" width="640" height="400">
+      </a>
+      <div class="body">
+        <div class="row">
+          <h2><a href="apps/meadowsong.html">Meadowsong</a></h2>
+          <span class="badge muse">Muse</span>
+        </div>
+        <p>A wind-chime meadow you play by gliding your cursor through it.</p>
+        <div class="meta">
+          <span>Oct 23, 2026</span>
+          <span>·</span>
+          <a href="https://github.com/trez63/trez63.com/commits/main/apps/meadowsong.html" title="Version history on GitHub">v1</a>
+          <a class="rate" href="rate.html?app=meadowsong" title="Vote for this app">👍 Vote</a>
+        </div>
+      </div>
+    </article>
+    <article class="card" data-engine="Claude" data-up="0" data-date="2026-10-23" data-search="position press or fold — nothing in between. six crude signals decide whether you have position in a deal, so there is nothing to interpret in the moment. position">
+      <a class="shot" href="apps/position.html" aria-label="Open Position">
+        <img src="thumbs/position.webp" alt="" loading="lazy" width="640" height="400">
+      </a>
+      <div class="body">
+        <div class="row">
+          <h2><a href="apps/position.html">Position</a></h2>
+          <span class="badge claude">Claude</span>
+        </div>
+        <p>Press or fold — nothing in between. Six crude signals decide whether you have position in a deal, so there is nothing to interpret in the moment.</p>
+        <div class="meta">
+          <span>Oct 23, 2026</span>
+          <span>·</span>
+          <a href="https://github.com/trez63/trez63.com/commits/main/apps/position.html" title="Version history on GitHub">v1</a>
+          <a class="rate" href="rate.html?app=position" title="Vote for this app">👍 Vote</a>
+        </div>
+      </div>
+    </article>
+    <article class="card" data-engine="ChatGPT" data-up="0" data-date="2026-10-23" data-search="crosslight a mirror puzzle. turn the mirrors so every beam reaches its receiver — a small game that rewards a second look. crosslight">
+      <a class="shot" href="apps/crosslight.html" aria-label="Open Crosslight">
+        <img src="thumbs/crosslight.webp" alt="" loading="lazy" width="640" height="400">
+      </a>
+      <div class="body">
+        <div class="row">
+          <h2><a href="apps/crosslight.html">Crosslight</a></h2>
+          <span class="badge chatgpt">ChatGPT</span>
+        </div>
+        <p>A mirror puzzle. Turn the mirrors so every beam reaches its receiver — a small game that rewards a second look.</p>
+        <div class="meta">
+          <span>Oct 23, 2026</span>
+          <span>·</span>
+          <a href="https://github.com/trez63/trez63.com/commits/main/apps/crosslight.html" title="Version history on GitHub">v1</a>
+          <a class="rate" href="rate.html?app=crosslight" title="Vote for this app">👍 Vote</a>
+        </div>
+      </div>
+    </article>
+    <article class="card" data-engine="Muse" data-up="0" data-date="2026-10-22" data-search="kaleido draw once, see it eight times. every stroke mirrors around the centre into a mandala. kaleido">
+      <a class="shot" href="apps/kaleido.html" aria-label="Open Kaleido">
+        <img src="thumbs/kaleido.webp" alt="" loading="lazy" width="640" height="400">
+      </a>
+      <div class="body">
+        <div class="row">
+          <h2><a href="apps/kaleido.html">Kaleido</a></h2>
+          <span class="badge muse">Muse</span>
+        </div>
+        <p>Draw once, see it eight times. Every stroke mirrors around the centre into a mandala.</p>
+        <div class="meta">
+          <span>Oct 22, 2026</span>
+          <span>·</span>
+          <a href="https://github.com/trez63/trez63.com/commits/main/apps/kaleido.html" title="Version history on GitHub">v1</a>
+          <a class="rate" href="rate.html?app=kaleido" title="Vote for this app">👍 Vote</a>
+        </div>
+      </div>
+    </article>
+    <article class="card" data-engine="Claude" data-up="0" data-date="2026-10-22" data-search="sonogram draw a picture; hear it. the canvas is a spectrogram — left to right is time, bottom to top is pitch. sonogram">
+      <a class="shot" href="apps/sonogram.html" aria-label="Open Sonogram">
+        <img src="thumbs/sonogram.webp" alt="" loading="lazy" width="640" height="400">
+      </a>
+      <div class="body">
+        <div class="row">
+          <h2><a href="apps/sonogram.html">Sonogram</a></h2>
+          <span class="badge claude">Claude</span>
+        </div>
+        <p>Draw a picture; hear it. The canvas is a spectrogram — left to right is time, bottom to top is pitch.</p>
+        <div class="meta">
+          <span>Oct 22, 2026</span>
+          <span>·</span>
+          <a href="https://github.com/trez63/trez63.com/commits/main/apps/sonogram.html" title="Version history on GitHub">v1</a>
+          <a class="rate" href="rate.html?app=sonogram" title="Vote for this app">👍 Vote</a>
+        </div>
+      </div>
+    </article>
+    <article class="card" data-engine="ChatGPT" data-up="0" data-date="2026-10-22" data-search="tradeoff make room for what matters. rate your options, weigh your priorities, and see the smallest shift that would change your mind. tradeoff">
+      <a class="shot" href="apps/tradeoff.html" aria-label="Open Tradeoff">
+        <img src="thumbs/tradeoff.webp" alt="" loading="lazy" width="640" height="400">
+      </a>
+      <div class="body">
+        <div class="row">
+          <h2><a href="apps/tradeoff.html">Tradeoff</a></h2>
+          <span class="badge chatgpt">ChatGPT</span>
+        </div>
+        <p>Make room for what matters. Rate your options, weigh your priorities, and see the smallest shift that would change your mind.</p>
+        <div class="meta">
+          <span>Oct 22, 2026</span>
+          <span>·</span>
+          <a href="https://github.com/trez63/trez63.com/commits/main/apps/tradeoff.html" title="Version history on GitHub">v1</a>
+          <a class="rate" href="rate.html?app=tradeoff" title="Vote for this app">👍 Vote</a>
+        </div>
+      </div>
+    </article>
+    <article class="card" data-engine="ChatGPT" data-up="0" data-date="2026-10-21" data-search="foldwork a tiny paper studio. size an envelope, add a name and a message, print the template and fold it into something real. foldwork">
+      <a class="shot" href="apps/foldwork.html" aria-label="Open Foldwork">
+        <img src="thumbs/foldwork.webp" alt="" loading="lazy" width="640" height="400">
+      </a>
+      <div class="body">
+        <div class="row">
+          <h2><a href="apps/foldwork.html">Foldwork</a></h2>
+          <span class="badge chatgpt">ChatGPT</span>
+        </div>
+        <p>A tiny paper studio. Size an envelope, add a name and a message, print the template and fold it into something real.</p>
+        <div class="meta">
+          <span>Oct 21, 2026</span>
+          <span>·</span>
+          <a href="https://github.com/trez63/trez63.com/commits/main/apps/foldwork.html" title="Version history on GitHub">v1</a>
+          <a class="rate" href="rate.html?app=foldwork" title="Vote for this app">👍 Vote</a>
+        </div>
+      </div>
+    </article>
+    <article class="card" data-engine="Muse" data-up="0" data-date="2026-10-21" data-search="genesis type anything and it becomes a universe. the same words always produce the same universe, on any machine. genesis-universe">
+      <a class="shot" href="apps/genesis-universe.html" aria-label="Open Genesis">
+        <img src="thumbs/genesis-universe.webp" alt="" loading="lazy" width="640" height="400">
+      </a>
+      <div class="body">
+        <div class="row">
+          <h2><a href="apps/genesis-universe.html">Genesis</a></h2>
+          <span class="badge muse">Muse</span>
+        </div>
+        <p>Type anything and it becomes a universe. The same words always produce the same universe, on any machine.</p>
+        <div class="meta">
+          <span>Oct 21, 2026</span>
+          <span>·</span>
+          <a href="https://github.com/trez63/trez63.com/commits/main/apps/genesis-universe.html" title="Version history on GitHub">v1</a>
+          <a class="rate" href="rate.html?app=genesis-universe" title="Vote for this app">👍 Vote</a>
+        </div>
+      </div>
+    </article>
+    <article class="card" data-engine="Claude" data-up="0" data-date="2026-10-21" data-search="reckon a notepad that does math. write naturally; numbers, units, dates and variables compute in the margin. reckon">
+      <a class="shot" href="apps/reckon.html" aria-label="Open Reckon">
+        <img src="thumbs/reckon.webp" alt="" loading="lazy" width="640" height="400">
+      </a>
+      <div class="body">
+        <div class="row">
+          <h2><a href="apps/reckon.html">Reckon</a></h2>
+          <span class="badge claude">Claude</span>
+        </div>
+        <p>A notepad that does math. Write naturally; numbers, units, dates and variables compute in the margin.</p>
+        <div class="meta">
+          <span>Oct 21, 2026</span>
+          <span>·</span>
+          <a href="https://github.com/trez63/trez63.com/commits/main/apps/reckon.html" title="Version history on GitHub">v1</a>
+          <a class="rate" href="rate.html?app=reckon" title="Vote for this app">👍 Vote</a>
+        </div>
+      </div>
+    </article>
+    <article class="card" data-engine="Claude" data-up="0" data-date="2026-10-21" data-search="ripple a wave tank you can draw in. walls reflect, glass refracts, and the whole wave equation is ten lines of code. ripple">
+      <a class="shot" href="apps/ripple.html" aria-label="Open Ripple">
+        <img src="thumbs/ripple.webp" alt="" loading="lazy" width="640" height="400">
+      </a>
+      <div class="body">
+        <div class="row">
+          <h2><a href="apps/ripple.html">Ripple</a></h2>
+          <span class="badge claude">Claude</span>
+        </div>
+        <p>A wave tank you can draw in. Walls reflect, glass refracts, and the whole wave equation is ten lines of code.</p>
+        <div class="meta">
+          <span>Oct 21, 2026</span>
+          <span>·</span>
+          <a href="https://github.com/trez63/trez63.com/commits/main/apps/ripple.html" title="Version history on GitHub">v1</a>
+          <a class="rate" href="rate.html?app=ripple" title="Vote for this app">👍 Vote</a>
+        </div>
+      </div>
+    </article>
+    <article class="card" data-engine="Muse" data-up="0" data-date="2026-10-21" data-search="sprout a tiny garden you grow by clicking. every plant is different; rain makes them grow faster. sprout-garden">
+      <a class="shot" href="apps/sprout-garden.html" aria-label="Open Sprout">
+        <img src="thumbs/sprout-garden.webp" alt="" loading="lazy" width="640" height="400">
+      </a>
+      <div class="body">
+        <div class="row">
+          <h2><a href="apps/sprout-garden.html">Sprout</a></h2>
+          <span class="badge muse">Muse</span>
+        </div>
+        <p>A tiny garden you grow by clicking. Every plant is different; rain makes them grow faster.</p>
+        <div class="meta">
+          <span>Oct 21, 2026</span>
+          <span>·</span>
+          <a href="https://github.com/trez63/trez63.com/commits/main/apps/sprout-garden.html" title="Version history on GitHub">v1</a>
+          <a class="rate" href="rate.html?app=sprout-garden" title="Vote for this app">👍 Vote</a>
+        </div>
+      </div>
+    </article>
+    <article class="card" data-engine="ChatGPT" data-up="0" data-date="2026-10-21" data-search="stillpoint a little space to focus. plant a star, shape a soundscape, make room for one thing. stillpoint">
+      <a class="shot" href="apps/stillpoint.html" aria-label="Open Stillpoint">
+        <img src="thumbs/stillpoint.webp" alt="" loading="lazy" width="640" height="400">
+      </a>
+      <div class="body">
+        <div class="row">
+          <h2><a href="apps/stillpoint.html">Stillpoint</a></h2>
+          <span class="badge chatgpt">ChatGPT</span>
+        </div>
+        <p>A little space to focus. Plant a star, shape a soundscape, make room for one thing.</p>
+        <div class="meta">
+          <span>Oct 21, 2026</span>
+          <span>·</span>
+          <a href="https://github.com/trez63/trez63.com/commits/main/apps/stillpoint.html" title="Version history on GitHub">v1</a>
+          <a class="rate" href="rate.html?app=stillpoint" title="Vote for this app">👍 Vote</a>
+        </div>
+      </div>
+    </article>
+    <article class="card" data-engine="Claude" data-up="0" data-date="2026-10-05" data-search="label sheets paste a list of names, pick a label size and paper, and print a sheet where every name is set as large as it fits. labelmaker">
+      <a class="shot" href="apps/labelmaker.html" aria-label="Open Label sheets">
+        <img src="thumbs/labelmaker.webp" alt="" loading="lazy" width="640" height="400">
+      </a>
+      <div class="body">
+        <div class="row">
+          <h2><a href="apps/labelmaker.html">Label sheets</a></h2>
+          <span class="badge claude">Claude</span>
+        </div>
+        <p>Paste a list of names, pick a label size and paper, and print a sheet where every name is set as large as it fits.</p>
+        <div class="meta">
+          <span>Oct 5, 2026</span>
+          <span>·</span>
+          <a href="https://github.com/trez63/trez63.com/commits/main/apps/labelmaker.html" title="Version history on GitHub">v1</a>
+          <a class="rate" href="rate.html?app=labelmaker" title="Vote for this app">👍 Vote</a>
+        </div>
+      </div>
+    </article>
+</main>
+<footer>Source and full version history on <a href="https://github.com/trez63/trez63.com" style="text-decoration:underline">GitHub</a>. Last published Oct 25, 2026.</footer>
+<script>
+const q=document.getElementById('q'), grid=document.getElementById('grid'), cards=[...document.querySelectorAll('.card')], empty=document.getElementById('empty');
+let engine='all', sort='new';
+function resort(){
+  const by = sort==='top'
+    ? (a,b)=>(+b.dataset.up-(+a.dataset.up))||b.dataset.date.localeCompare(a.dataset.date)
+    : (a,b)=>b.dataset.date.localeCompare(a.dataset.date);
+  [...cards].sort(by).forEach(c=>grid.appendChild(c));
+}
+document.querySelectorAll('.sort button').forEach(b=>b.addEventListener('click',()=>{
+  sort=b.dataset.sort;
+  document.querySelectorAll('.sort button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  resort();
+}));
+function apply(){
+  const terms=q.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
+  let shown=0;
+  cards.forEach(c=>{
+    const ok=(engine==='all'||c.dataset.engine===engine)&&terms.every(t=>c.dataset.search.includes(t));
+    c.hidden=!ok; if(ok) shown++;
+  });
+  empty.hidden=shown>0;
+}
+document.querySelectorAll('.filters:not(.sort) button').forEach(b=>b.addEventListener('click',()=>{
+  engine=b.dataset.filter;
+  document.querySelectorAll('.filters:not(.sort) button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  apply();
+}));
+q.addEventListener('input',apply);
+document.addEventListener('keydown',e=>{ if(e.key==='/'&&document.activeElement!==q){e.preventDefault();q.focus();} if(e.key==='Escape'&&document.activeElement===q){q.value='';apply();} });
+</script>
+</body>
+</html>

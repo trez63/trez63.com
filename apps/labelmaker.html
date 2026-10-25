@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Label sheets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@700&family=Barlow+Condensed:wght@700&family=Barlow+Semi+Condensed:wght@700&family=Bebas+Neue&family=IBM+Plex+Sans+Condensed:wght@700&family=Inter:wght@500;600;700&family=Montserrat:wght@700&family=Oswald:wght@600&family=Playfair+Display:wght@700&family=Roboto+Condensed:wght@700&family=Roboto+Slab:wght@700&family=Source+Sans+3:wght@700&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+<style id="pagestyle">@page{ size:letter portrait; margin:0; }</style>
+<style>
+:root{
+  --bg:#e7eaee; --panel:#ffffff; --ink:#15191e; --muted:#5d6670; --rule:#cfd5dc; --accent:#1f5f8b; --accent-ink:#ffffff; --field:#f6f8fa;
+  --err:#b42318; --err-bg:#fdecea; --warn:#8a5a00; --warn-bg:#fff4d6;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --bg:#14181d; --panel:#1d232a; --ink:#e8ecf0; --muted:#98a3ae; --rule:#2f3842; --accent:#5aa2d6; --accent-ink:#0d1216; --field:#161b21; --err:#ff8a80; --err-bg:#3a1d1b; --warn:#ffd27a; --warn-bg:#3a2f14; }
+}
+:root[data-theme="dark"]{ --bg:#14181d; --panel:#1d232a; --ink:#e8ecf0; --muted:#98a3ae; --rule:#2f3842; --accent:#5aa2d6; --accent-ink:#0d1216; --field:#161b21; --err:#ff8a80; --err-bg:#3a1d1b; --warn:#ffd27a; --warn-bg:#3a2f14; }
+html{ scroll-padding-top:env(safe-area-inset-top,0px); }
+html,body{ height:100%; }
+*,*::before,*::after{ box-sizing:inherit; }
+body{ margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 "Inter", system-ui, Arial, sans-serif; }
+
+.app{ display:grid; grid-template-columns:360px 1fr; height:100%; }
+.panel{ background:var(--panel); border-right:1px solid var(--rule); padding:22px 20px 28px; overflow-y:auto; }
+.panel h1{ font:700 23px/1.15 "Barlow Semi Condensed", Arial, sans-serif; margin:0 0 4px; }
+.panel .sub{ color:var(--muted); font-size:13px; margin:0 0 6px; }
+fieldset{ border:0; border-top:1px solid var(--rule); margin:18px 0 0; padding:14px 0 0; }
+legend{ font:700 16px "Barlow Semi Condensed", Arial, sans-serif; padding:0 8px 0 0; }
+label.f{ display:block; font-size:13px; font-weight:600; margin:10px 0 5px; }
+textarea,select,input[type=number]{
+  width:100%; font:inherit; color:var(--ink); background:var(--field);
+  border:1px solid var(--rule); border-radius:6px; padding:7px 9px;
+}
+input.bad{ border-color:var(--err); }
+textarea{ min-height:170px; resize:vertical; }
+.row{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.row3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+.check{ display:flex; gap:9px; align-items:flex-start; margin:10px 0 0; font-size:14px; cursor:pointer; }
+.check input{ margin-top:3px; accent-color:var(--accent); }
+.check small{ display:block; color:var(--muted); font-size:12px; }
+:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+.seg{ display:inline-flex; border:1px solid var(--rule); border-radius:6px; overflow:hidden; float:right; margin-top:-2px; }
+.seg label{ padding:3px 12px; font-size:13px; font-weight:600; cursor:pointer; }
+.seg input{ position:absolute; opacity:0; pointer-events:none; }
+.seg input:checked + span{ color:var(--accent); }
+.seg label:has(input:checked){ background:var(--field); box-shadow:inset 0 -2px 0 var(--accent); }
+
+.swatches{ display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+.sw{ width:44px; height:30px; border-radius:5px; border:1px solid var(--rule); cursor:pointer; font:700 13px "Barlow Semi Condensed", Arial; }
+.pick{ display:flex; align-items:center; gap:8px; font-size:13px; }
+.pick input[type=color]{ width:38px; height:30px; padding:0; border:1px solid var(--rule); border-radius:5px; background:none; cursor:pointer; }
+
+.status{ margin:18px 0 12px; }
+.summary{ padding:10px 12px; border-left:3px solid var(--accent); background:var(--field); font-size:14px; }
+.msg{ margin-top:8px; padding:8px 10px; border-radius:5px; font-size:13px; }
+.msg.err{ color:var(--err); background:var(--err-bg); }
+.msg.warn{ color:var(--warn); background:var(--warn-bg); }
+button.print{
+  width:100%; padding:12px; border:0; border-radius:6px; background:var(--accent); color:var(--accent-ink);
+  font:700 16px "Barlow Semi Condensed", Arial, sans-serif; letter-spacing:.02em; cursor:pointer;
+}
+button.print:disabled{ opacity:.4; cursor:not-allowed; }
+.howto{ margin-top:16px; font-size:13px; color:var(--muted); }
+.howto ol{ padding-left:18px; margin:6px 0 0; }
+.howto b{ color:var(--ink); }
+
+.preview{ overflow:auto; padding:24px; }
+.sheets{ display:flex; flex-direction:column; align-items:center; gap:24px; }
+.empty{ color:var(--muted); max-width:420px; text-align:center; margin-top:60px; }
+.sheet-wrap{ position:relative; }
+.sheet{ position:absolute; top:0; left:0; transform-origin:0 0; background:#fff; color:#000;
+  box-shadow:0 1px 3px rgba(0,0,0,.18), 0 8px 24px rgba(0,0,0,.12); overflow:hidden; }
+.cuts{ position:absolute; inset:0; pointer-events:none; z-index:2; }
+.label{ position:absolute; display:flex; align-items:center; justify-content:center;
+  -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+.label.small{ outline:1.5px dashed #d0342c; outline-offset:-3px; }
+.t{ width:100%; text-align:center; line-height:1.04; overflow-wrap:normal; word-break:normal; hyphens:none; text-wrap:balance; }
+.single .t{ white-space:nowrap; }
+.upper .t{ text-transform:uppercase; }
+
+@media print{
+  :root{ padding:0; }
+  html,body{ background:#fff; height:auto; }
+  .app{ display:block; height:auto; }
+  .panel{ display:none; }
+  .preview{ padding:0; overflow:visible; }
+  .sheets{ display:block; gap:0; }
+  .sheet-wrap{ width:auto !important; height:auto !important; }
+  .sheet{ position:relative; transform:none !important; box-shadow:none; break-after:page; page-break-after:always; }
+  .sheet-wrap:last-child .sheet{ break-after:auto; page-break-after:auto; }
+  .label.small{ outline:none; }
+}
+@media (max-width:760px){
+  .app{ grid-template-columns:1fr; height:auto; }
+  .panel{ border-right:0; border-bottom:1px solid var(--rule); }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="panel">
+    <h1>Label sheets</h1>
+    <p class="sub">Every name is set as large as it fits inside its label. Labels share cut lines so nothing is wasted between them.</p>
+
+    <fieldset>
+      <legend>Names</legend>
+      <label class="f" for="text">One label per line</label>
+      <textarea id="text" spellcheck="false"></textarea>
+    </fieldset>
+
+    <fieldset>
+      <legend>Label size
+        <span class="seg" role="radiogroup" aria-label="Units">
+          <label><input type="radio" name="unit" value="mm"><span>mm</span></label>
+          <label><input type="radio" name="unit" value="in"><span>in</span></label>
+        </span>
+      </legend>
+      <div class="row3">
+        <div><label class="f" for="lw">Width</label><input id="lw" type="number" min="0"></div>
+        <div><label class="f" for="lh">Height</label><input id="lh" type="number" min="0"></div>
+        <div><label class="f" for="pad">Inner margin</label><input id="pad" type="number" min="0"></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Paper</legend>
+      <label class="f" for="paper">Size</label>
+      <select id="paper">
+        <option value="letter">Letter (8.5 × 11 in)</option>
+        <option value="legal">Legal (8.5 × 14 in)</option>
+        <option value="tabloid">Tabloid (11 × 17 in)</option>
+        <option value="a5">A5 (148 × 210 mm)</option>
+        <option value="a4">A4 (210 × 297 mm)</option>
+        <option value="a3">A3 (297 × 420 mm)</option>
+        <option value="custom">Custom</option>
+      </select>
+      <div class="row">
+        <div><label class="f" for="pw">Width</label><input id="pw" type="number" min="0"></div>
+        <div><label class="f" for="ph">Height</label><input id="ph" type="number" min="0"></div>
+      </div>
+      <div class="row">
+        <div><label class="f" for="orient">Orientation</label>
+          <select id="orient"><option value="auto">Auto (most labels)</option><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select></div>
+        <div><label class="f" for="pm">Printer margin</label><input id="pm" type="number" min="0"></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Type</legend>
+      <div class="row">
+        <div><label class="f" for="font">Typeface</label>
+          <select id="font">
+            <optgroup label="Condensed, best for long names">
+              <option value="barlowsc">Barlow Semi Condensed</option>
+              <option value="barlowc">Barlow Condensed</option>
+              <option value="robotoc">Roboto Condensed</option>
+              <option value="archivo">Archivo Narrow</option>
+              <option value="plexc">IBM Plex Sans Condensed</option>
+              <option value="oswald">Oswald</option>
+              <option value="bebas">Bebas Neue (capitals only)</option>
+            </optgroup>
+            <optgroup label="Standard width">
+              <option value="inter">Inter</option>
+              <option value="montserrat">Montserrat</option>
+              <option value="source">Source Sans 3</option>
+              <option value="space">Space Grotesk</option>
+              <option value="arial">Arial</option>
+              <option value="verdana">Verdana</option>
+            </optgroup>
+            <optgroup label="Serif">
+              <option value="slab">Roboto Slab</option>
+              <option value="playfair">Playfair Display</option>
+              <option value="georgia">Georgia</option>
+            </optgroup>
+          </select></div>
+        <div><label class="f" for="max">Largest size (pt)</label><input id="max" type="number" min="4" max="300" step="1"></div>
+      </div>
+      <label class="check"><input type="checkbox" id="upper"><span>All capitals</span></label>
+      <label class="check"><input type="checkbox" id="single"><span>Keep each name on one line<small>Off lets long names wrap and print bigger.</small></span></label>
+      <label class="check"><input type="checkbox" id="uniform"><span>Same size on every label<small>Uses the size of the longest name.</small></span></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Color</legend>
+      <div class="swatches" id="swatches"></div>
+      <div class="row3" style="margin-top:12px">
+        <label class="pick"><input type="color" id="fg"> Text</label>
+        <label class="pick"><input type="color" id="bg"> Fill</label>
+        <label class="pick"><input type="color" id="cut"> Cut lines</label>
+      </div>
+    </fieldset>
+
+    <div class="status" id="status"></div>
+    <button class="print" id="printBtn" type="button">Print sheets</button>
+
+    <div class="howto">
+      In the print dialog:
+      <ol>
+        <li>Paper size matching the one above, scale <b>100%</b> (not “Fit to page”).</li>
+        <li>Margins <b>None</b>, headers and footers <b>off</b>, background graphics <b>on</b> if you use a fill color.</li>
+        <li>Cut down the middle of each line, all verticals first.</li>
+      </ol>
+    </div>
+  </aside>
+
+  <main class="preview" id="preview">
+    <div class="sheets" id="sheets"></div>
+  </main>
+</div>
+
+<script>
+const MM=96/25.4, IN=25.4;
+const PAPERS={ letter:[215.9,279.4], legal:[215.9,355.6], tabloid:[279.4,431.8], a5:[148,210], a4:[210,297], a3:[297,420] };
+const FONTS={
+  barlowsc:{f:"'Barlow Semi Condensed','Arial Narrow',Arial,sans-serif", w:700},
+  barlowc:{f:"'Barlow Condensed','Arial Narrow',Arial,sans-serif", w:700},
+  robotoc:{f:"'Roboto Condensed','Arial Narrow',Arial,sans-serif", w:700},
+  archivo:{f:"'Archivo Narrow','Arial Narrow',Arial,sans-serif", w:700},
+  plexc:{f:"'IBM Plex Sans Condensed','Arial Narrow',Arial,sans-serif", w:700},
+  oswald:{f:"Oswald,'Arial Narrow',Impact,sans-serif", w:600},
+  bebas:{f:"'Bebas Neue',Impact,'Arial Narrow',sans-serif", w:400},
+  inter:{f:"Inter,Arial,sans-serif", w:700},
+  montserrat:{f:"Montserrat,Arial,sans-serif", w:700},
+  source:{f:"'Source Sans 3',Arial,sans-serif", w:700},
+  space:{f:"'Space Grotesk',Arial,sans-serif", w:700},
+  arial:{f:"Arial,Helvetica,sans-serif", w:700, sys:true},
+  verdana:{f:"Verdana,Geneva,sans-serif", w:700, sys:true},
+  slab:{f:"'Roboto Slab',Georgia,serif", w:700},
+  playfair:{f:"'Playfair Display',Georgia,serif", w:700},
+  georgia:{f:"Georgia,'Times New Roman',serif", w:700, sys:true}
+};
+const PRESETS=[
+  {n:"Classic", fg:"#000000", bg:"#ffffff", cut:"#000000"},
+  {n:"Soft", fg:"#1f2933", bg:"#ffffff", cut:"#9aa5b1"},
+  {n:"Navy", fg:"#ffffff", bg:"#1f3a5f", cut:"#000000"},
+  {n:"Slate", fg:"#ffffff", bg:"#3c4650", cut:"#000000"},
+  {n:"Forest", fg:"#ffffff", bg:"#2f5d3a", cut:"#000000"},
+  {n:"Red", fg:"#ffffff", bg:"#b3261e", cut:"#000000"},
+  {n:"Safety", fg:"#000000", bg:"#ffd100", cut:"#000000"},
+  {n:"Sky", fg:"#0b3954", bg:"#d6ecfa", cut:"#0b3954"}
+];
+const DEF={ text:"Acme Corp\nNorthwind Traders\nGlobex\nInitech",
+  unit:"mm", lw:100, lh:35, pad:3, paper:"letter", pw:215.9, ph:279.4, orient:"auto", pm:6.35,
+  font:"barlowsc", max:90, upper:false, single:false, uniform:false, fg:"#000000", bg:"#ffffff", cut:"#000000" };
+const KEY="label-sheets-v2";
+let state={...DEF};
+try{
+  const s=localStorage.getItem(KEY);
+  if(s) state={...DEF,...JSON.parse(s)};
+  else { const old=localStorage.getItem("label-sheet-35x100"); if(old){ const o=JSON.parse(old); if(o.text) state.text=o.text; } }
+}catch(e){}
+const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(state)); }catch(e){} };
+const $=id=>document.getElementById(id);
+const LEN=['lw','lh','pad','pw','ph','pm'];
+let sheetW=215.9, sheetH=279.4, blocked=false;
+
+const toUnit=mm=>state.unit==='in' ? +(mm/IN).toFixed(3) : +mm.toFixed(2);
+const fromUnit=v=>state.unit==='in' ? v*IN : v;
+const fmt=mm=>state.unit==='in' ? `${(mm/IN).toFixed(2)} in` : `${+mm.toFixed(1)} mm`;
+
+function showLengths(){
+  LEN.forEach(k=>{
+    const el=$(k);
+    el.value=Number.isFinite(state[k])?toUnit(state[k]):'';
+    el.step=state.unit==='in'?'0.01':'0.5';
+  });
+}
+
+function bind(){
+  $('text').value=state.text;
+  document.querySelectorAll('input[name=unit]').forEach(r=>{
+    r.checked=r.value===state.unit;
+    r.addEventListener('change',()=>{ state.unit=r.value; save(); showLengths(); render(); });
+  });
+  showLengths();
+  ['paper','orient','font','max','fg','bg','cut'].forEach(k=>$(k).value=state[k]);
+  ['upper','single','uniform'].forEach(k=>$(k).checked=state[k]);
+
+  let tmr; $('text').addEventListener('input',()=>{ state.text=$('text').value; save(); clearTimeout(tmr); tmr=setTimeout(render,120); });
+  LEN.forEach(k=>$(k).addEventListener('input',()=>{
+    const v=parseFloat($(k).value);
+    state[k]=Number.isFinite(v)?fromUnit(v):NaN;
+    if((k==='pw'||k==='ph') && state.paper!=='custom'){ state.paper='custom'; $('paper').value='custom'; }
+    save(); render();
+  }));
+  $('paper').addEventListener('change',()=>{
+    state.paper=$('paper').value;
+    if(PAPERS[state.paper]){ [state.pw,state.ph]=PAPERS[state.paper]; showLengths(); }
+    save(); render();
+  });
+  ['orient','font'].forEach(k=>$(k).addEventListener('change',()=>{ state[k]=$(k).value; save(); render(); }));
+  $('max').addEventListener('input',()=>{ state.max=parseFloat($('max').value); save(); render(); });
+  ['fg','bg','cut'].forEach(k=>$(k).addEventListener('input',()=>{ state[k]=$(k).value; save(); render(); }));
+  ['upper','single','uniform'].forEach(k=>$(k).addEventListener('change',()=>{ state[k]=$(k).checked; save(); render(); }));
+
+  const sw=$('swatches');
+  PRESETS.forEach(p=>{
+    const b=document.createElement('button'); b.type='button'; b.className='sw'; b.textContent='Aa';
+    b.title=p.n; b.setAttribute('aria-label',p.n+' colors');
+    b.style.background=p.bg; b.style.color=p.fg; b.style.borderColor=p.cut;
+    b.addEventListener('click',()=>{ Object.assign(state,{fg:p.fg,bg:p.bg,cut:p.cut}); ['fg','bg','cut'].forEach(k=>$(k).value=state[k]); save(); render(); });
+    sw.appendChild(b);
+  });
+
+  $('printBtn').addEventListener('click',()=>{
+    if(blocked) return;
+    const t0=Date.now();
+    try{ window.print(); }catch(e){}
+    if(Date.now()-t0<300) addMsg('warn','Printing is blocked inside this viewer. Download the file, open it in Chrome, and print from there.');
+  });
+  window.addEventListener('resize',scalePreview);
+}
+
+function lum(hex){
+  const n=parseInt(hex.slice(1),16), c=[n>>16&255,n>>8&255,n&255].map(v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4);});
+  return .2126*c[0]+.7152*c[1]+.0722*c[2];
+}
+const contrast=(a,b)=>{ const x=lum(a), y=lum(b); return (Math.max(x,y)+.05)/(Math.min(x,y)+.05); };
+
+function layout(){
+  const errs=[], warns=[], bad=new Set();
+  const {lw,lh,pad,pw,ph,pm}=state;
+  const pos=v=>Number.isFinite(v)&&v>0, nonneg=v=>Number.isFinite(v)&&v>=0;
+  if(!pos(lw)){ errs.push('Enter a label width greater than zero.'); bad.add('lw'); }
+  if(!pos(lh)){ errs.push('Enter a label height greater than zero.'); bad.add('lh'); }
+  if(!nonneg(pad)){ errs.push('Inner margin must be zero or more.'); bad.add('pad'); }
+  if(!pos(pw)){ errs.push('Enter a paper width greater than zero.'); bad.add('pw'); }
+  if(!pos(ph)){ errs.push('Enter a paper height greater than zero.'); bad.add('ph'); }
+  if(!nonneg(pm)){ errs.push('Printer margin must be zero or more.'); bad.add('pm'); }
+  if(!(Number.isFinite(state.max)&&state.max>=4)){ errs.push('Largest size must be at least 4 pt.'); bad.add('max'); }
+  if(errs.length) return {errs,warns,bad};
+
+  if(Math.min(pw,ph)<76.2 || Math.max(pw,ph)>609.6){
+    errs.push(`Paper must be between ${fmt(76.2)} and ${fmt(609.6)} on each side.`); bad.add('pw'); bad.add('ph');
+  }
+  if(Math.min(lw,lh)<6.35){ errs.push(`Labels must be at least ${fmt(6.35)} on each side to cut and read.`); bad.add(lw<lh?'lw':'lh'); }
+  else if(Math.min(lw,lh)<12.7) warns.push(`Labels under ${fmt(12.7)} on a side are hard to cut cleanly and read.`);
+  if(2*pad>=Math.min(lw,lh)){ errs.push(`An inner margin of ${fmt(pad)} on each side leaves no room for text on a ${fmt(Math.min(lw,lh))} label.`); bad.add('pad'); }
+  else if(2*pad>Math.min(lw,lh)*0.5) warns.push('The inner margin takes up more than half the label, so text will be small.');
+  if(Number.isFinite(pw)&&pm>Math.min(pw,ph)/4){ errs.push(`A printer margin of ${fmt(pm)} is too large for this paper.`); bad.add('pm'); }
+  else if(pm<3) warns.push(`Most printers can't print within 3–5 mm of the edge. Labels that close may be clipped.`);
+  if(errs.length) return {errs,warns,bad};
+
+  const fit=(W,H)=>({ c:Math.max(0,Math.floor((W-2*pm+1e-6)/lw)), r:Math.max(0,Math.floor((H-2*pm+1e-6)/lh)), W, H });
+  const short=Math.min(pw,ph), long=Math.max(pw,ph);
+  const P={...fit(short,long),o:'portrait'}, L={...fit(long,short),o:'landscape'};
+  let g = state.orient==='portrait'?P : state.orient==='landscape'?L : (L.c*L.r>P.c*P.r?L:P);
+  if(g.c*g.r===0){
+    const other=g===P?L:P;
+    if(state.orient!=='auto' && other.c*other.r>0){ errs.push(`This label doesn't fit in ${g.o}. Switch orientation to Auto or ${other.o}.`); bad.add('orient'); }
+    else { errs.push(`A ${fmt(lw)} × ${fmt(lh)} label doesn't fit on ${fmt(short)} × ${fmt(long)} paper with a ${fmt(pm)} printer margin. The largest label that fits is ${fmt(long-2*pm)} × ${fmt(short-2*pm)}.`); bad.add('lw'); bad.add('lh'); }
+    return {errs,warns,bad};
+  }
+  if(state.orient!=='auto'){
+    const other=g===P?L:P;
+    if(other.c*other.r>g.c*g.r) warns.push(`${other.o[0].toUpperCase()+other.o.slice(1)} fits ${other.c*other.r} per sheet instead of ${g.c*g.r}.`);
+  }
+  const per=g.c*g.r;
+  if(per===1) warns.push('Only one label fits per sheet.');
+  if(contrast(state.fg,state.bg)<3) warns.push('Text and fill colors are too close to read easily.');
+  if(state.bg.toLowerCase()!=='#ffffff') warns.push('The fill runs right to the cut line. Cut on the center of the line or a thin white edge may show. Turn on “Background graphics” when printing.');
+  if(contrast(state.cut,state.bg)<1.4 && state.bg.toLowerCase()!=='#ffffff') warns.push('Cut lines match the fill, so they only show in the paper margins.');
+  return {errs,warns,bad,...g,per,used:per*lw*lh/(g.W*g.H)};
+}
+
+function cutLines(g){
+  const NS='http://www.w3.org/2000/svg', s=document.createElementNS(NS,'svg');
+  s.setAttribute('class','cuts'); s.setAttribute('viewBox',`0 0 ${g.W} ${g.H}`);
+  s.style.width=g.W+'mm'; s.style.height=g.H+'mm';
+  let d='';
+  for(let c=0;c<=g.c;c++){ const x=g.ox+c*state.lw; d+=`M${x} 0V${g.H}`; }
+  for(let r=0;r<=g.r;r++){ const y=g.oy+r*state.lh; d+=`M0 ${y}H${g.W}`; }
+  const p=document.createElementNS(NS,'path');
+  p.setAttribute('d',d); p.setAttribute('fill','none'); p.setAttribute('stroke',state.cut); p.setAttribute('stroke-width','0.2');
+  s.appendChild(p); return s;
+}
+
+let rendering=0;
+async function render(){
+  const my=++rendering;
+  const g=layout();
+  LEN.concat(['max','orient']).forEach(k=>$(k).classList.toggle('bad',g.bad.has(k)));
+  const names=state.text.split('\n').map(s=>s.trim()).filter(Boolean);
+  const out=$('sheets');
+  blocked=g.errs.length>0 || !names.length;
+  $('printBtn').disabled=blocked;
+
+  if(g.errs.length){
+    out.innerHTML='<p class="empty">Fix the highlighted settings to see your sheet.</p>';
+    showStatus(null,g);
+    return;
+  }
+  const fd=FONTS[state.font]||FONTS.barlowsc;
+  if(!fd.sys){ try{ await document.fonts.load(`${fd.w} 40px ${fd.f.split(',')[0]}`); }catch(e){} }
+  if(my!==rendering) return;
+
+  g.ox=(g.W-g.c*state.lw)/2; g.oy=(g.H-g.r*state.lh)/2;
+  sheetW=g.W; sheetH=g.H;
+  $('pagestyle').textContent=`@page{ size:${g.W}mm ${g.H}mm; margin:0; }`;
+  const pages=Math.max(1,Math.ceil(names.length/g.per));
+  out.innerHTML='';
+  out.classList.toggle('upper',state.upper || state.font==='bebas');
+  out.classList.toggle('single',state.single);
+  const all=[];
+  for(let p=0;p<pages;p++){
+    const wrap=document.createElement('div'); wrap.className='sheet-wrap';
+    const sheet=document.createElement('div'); sheet.className='sheet';
+    sheet.style.width=g.W+'mm'; sheet.style.height=g.H+'mm';
+    sheet.appendChild(cutLines(g));
+    for(let i=0;i<g.per;i++){
+      const n=names[p*g.per+i]; if(n===undefined) break;
+      const lab=document.createElement('div'); lab.className='label';
+      Object.assign(lab.style,{ left:(g.ox+(i%g.c)*state.lw)+'mm', top:(g.oy+Math.floor(i/g.c)*state.lh)+'mm',
+        width:state.lw+'mm', height:state.lh+'mm', padding:state.pad+'mm', background:state.bg });
+      const t=document.createElement('div'); t.className='t'; t.textContent=n;
+      Object.assign(t.style,{ fontFamily:fd.f, fontWeight:fd.w, color:state.fg });
+      lab.appendChild(t); sheet.appendChild(lab); all.push({t,lab,n});
+    }
+    wrap.appendChild(sheet); out.appendChild(wrap);
+  }
+  let sizes=all.map(o=>fit(o.t));
+  if(state.uniform && sizes.length){ const m=Math.min(...sizes); sizes=sizes.map(()=>m); all.forEach(o=>o.t.style.fontSize=m+'px'); }
+  const tiny=[];
+  all.forEach((o,i)=>{ const pt=sizes[i]*72/96; o.lab.title=Math.round(pt)+' pt'; const small=pt<6; o.lab.classList.toggle('small',small); if(small) tiny.push(o.n); });
+  if(tiny.length) g.warns.unshift(`${tiny.length} label${tiny.length>1?'s print':' prints'} smaller than 6 pt and may be hard to read (outlined in red): ${tiny.slice(0,3).join(', ')}${tiny.length>3?'…':''}. Use a condensed typeface, a smaller inner margin, or a shorter name.`);
+  if(!names.length) out.querySelector('.sheet').insertAdjacentHTML('beforeend','');
+  showStatus({names:names.length,pages},g);
+  scalePreview();
+}
+
+function fit(t){
+  const w=(state.lw-2*state.pad)*MM, h=(state.lh-2*state.pad)*MM;
+  const ok=()=>t.scrollWidth<=w+0.5 && t.scrollHeight<=h+0.5;
+  let lo=1, hi=Math.max(2,state.max*96/72);
+  t.style.fontSize=hi+'px'; if(ok()) return hi;
+  for(let k=0;k<18;k++){ const m=(lo+hi)/2; t.style.fontSize=m+'px'; if(ok()) lo=m; else hi=m; }
+  t.style.fontSize=lo+'px'; return lo;
+}
+
+function showStatus(info,g){
+  const st=$('status'); st.innerHTML='';
+  if(info){
+    const s=document.createElement('div'); s.className='summary';
+    s.textContent = info.names
+      ? `${g.per} per sheet (${g.c} across × ${g.r} down, ${g.o}). ${info.names} label${info.names>1?'s':''} on ${info.pages} sheet${info.pages>1?'s':''}. ${g.c+1+g.r+1} cuts per sheet, ${Math.round(g.used*100)}% of the paper used.`
+      : `${g.per} per sheet (${g.c} across × ${g.r} down, ${g.o}). Type a name to start.`;
+    st.appendChild(s);
+  }
+  g.errs.forEach(m=>addMsg('err',m));
+  g.warns.forEach(m=>addMsg('warn',m));
+}
+function addMsg(kind,text){ const d=document.createElement('div'); d.className='msg '+kind; d.textContent=text; $('status').appendChild(d); }
+
+function scalePreview(){
+  const avail=$('preview').clientWidth-48, sw=sheetW*MM, sh=sheetH*MM, s=Math.min(1,avail/sw);
+  document.querySelectorAll('.sheet-wrap').forEach(w=>{
+    w.style.width=sw*s+'px'; w.style.height=sh*s+'px'; w.firstChild.style.transform=`scale(${s})`;
+  });
+}
+
+bind(); render();
+</script>
+</body>
+</html>

@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reckon — a notepad that does math</title>
+<style>
+  :root {
+    --bg: #0f1115; --panel: #13161c; --line: #1f242e; --text: #e8eaf0; --muted: #6b7280;
+    --num: #7dd3a0; --date: #f0b86e; --pct: #8ab4f8; --unit: #c3a6ff; --accent: #7dd3a0;
+    --sel: rgba(125,211,160,.12); --toast: #1b2029;
+  }
+  :root[data-theme="light"] {
+    --bg: #fbfaf7; --panel: #f3f1ea; --line: #e3e0d6; --text: #1d1f24; --muted: #8a8f9c;
+    --num: #1d8a52; --date: #b86e12; --pct: #2b63c9; --unit: #6b3fd6; --accent: #1d8a52;
+    --sel: rgba(29,138,82,.10); --toast: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font: 15px/28px ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    display: flex; flex-direction: column; overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  header, footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px; height: 48px; flex: none; background: var(--panel);
+    border-bottom: 1px solid var(--line); font-size: 13px; color: var(--muted);
+  }
+  footer { border-bottom: 0; border-top: 1px solid var(--line); }
+  .brand { color: var(--text); font-weight: 600; letter-spacing: .02em; }
+  .brand span { color: var(--accent); }
+  .tag { margin-left: 12px; }
+  .btns button {
+    background: transparent; border: 1px solid var(--line); color: var(--muted);
+    font: inherit; font-size: 12px; line-height: 24px; padding: 0 10px; border-radius: 6px;
+    margin-left: 6px; cursor: pointer; transition: color .15s, border-color .15s;
+  }
+  .btns button:hover { color: var(--text); border-color: var(--muted); }
+  kbd { font: inherit; font-size: 11px; padding: 1px 5px; border: 1px solid var(--line); border-radius: 4px; color: var(--muted); }
+  main { flex: 1; display: flex; min-height: 0; position: relative; }
+  textarea {
+    flex: 1; min-width: 0; margin: 0; padding: 24px 24px 50vh 28px; border: 0; outline: 0; resize: none;
+    background: transparent; color: var(--text); font: inherit; white-space: pre; overflow: auto;
+    caret-color: var(--accent); tab-size: 4;
+  }
+  textarea::selection { background: var(--sel); }
+  #res {
+    width: 260px; flex: none; border-left: 1px solid var(--line); overflow: hidden; position: relative;
+    background: var(--panel);
+  }
+  #resInner { padding: 24px 24px 50vh 16px; will-change: transform; }
+  .row {
+    height: 28px; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    color: var(--num); cursor: pointer; border-radius: 4px; padding: 0 6px; margin: 0 -6px;
+    opacity: .92; transition: background .12s;
+  }
+  .row:hover { background: var(--sel); }
+  .row.active { opacity: 1; background: var(--sel); }
+  .row.date { color: var(--date); }
+  .row.pct { color: var(--pct); }
+  .row.unit { color: var(--unit); }
+  .row.empty { cursor: default; }
+  .row.empty:hover { background: transparent; }
+  #sum b { color: var(--text); font-weight: 500; }
+  #help {
+    position: absolute; inset: 0; background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 10;
+  }
+  #help[hidden] { display: none; }
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 28px 32px;
+    width: min(720px, 92vw); max-height: 86vh; overflow: auto; font-size: 13px; line-height: 22px;
+    box-shadow: 0 30px 80px rgba(0,0,0,.35);
+  }
+  .card h2 { margin: 0 0 4px; font-size: 16px; font-weight: 600; }
+  .card p { margin: 0 0 18px; color: var(--muted); }
+  .card table { width: 100%; border-collapse: collapse; }
+  .card td { padding: 3px 0; vertical-align: top; border-bottom: 1px solid var(--line); }
+  .card td:first-child { color: var(--muted); width: 32%; padding-right: 12px; }
+  .card td:last-child { color: var(--num); }
+  .card .close { float: right; color: var(--muted); cursor: pointer; }
+  #toast {
+    position: absolute; left: 50%; bottom: 64px; transform: translate(-50%, 10px); opacity: 0;
+    background: var(--toast); border: 1px solid var(--line); color: var(--text); font-size: 13px;
+    padding: 6px 14px; border-radius: 8px; pointer-events: none; transition: all .2s; z-index: 20;
+    box-shadow: 0 10px 30px rgba(0,0,0,.3);
+  }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); }
+  @media (max-width: 640px) { #res { width: 150px; } .tag, #hint { display: none; } }
+</style>
+</head>
+<body>
+<header>
+  <div><span class="brand">Rec<span>kon</span></span><span class="tag">a notepad that does math</span></div>
+  <div class="btns">
+    <button id="bHelp" title="Keyboard: Ctrl/⌘ + /">Help</button>
+    <button id="bShare" title="Copy a link that contains this whole document">Share</button>
+    <button id="bDown" title="Download as .txt">Download</button>
+    <button id="bTheme" title="Toggle theme">Theme</button>
+  </div>
+</header>
+<main>
+  <textarea id="src" spellcheck="false" wrap="off" autofocus></textarea>
+  <div id="res"><div id="resInner"></div></div>
+  <div id="help" hidden>
+    <div class="card">
+      <span class="close" id="bClose">esc ✕</span>
+      <h2>How Reckon reads your notes</h2>
+      <p>Write naturally. Words are ignored; numbers, units, dates and variables compute. Results land on the right — click one to copy it. Everything autosaves in your browser; nothing leaves it.</p>
+      <table>
+        <tr><td>plain math</td><td>latte 5.25 * 22 workdays &nbsp;→&nbsp; 115.5</td></tr>
+        <tr><td>percentages</td><td>120 + 8.5% &nbsp;·&nbsp; 20% of 450 &nbsp;·&nbsp; 80 - 25%</td></tr>
+        <tr><td>variables</td><td>hourly rate = 95 &nbsp;·&nbsp; hourly rate * 32</td></tr>
+        <tr><td>units</td><td>26.2 miles in km &nbsp;·&nbsp; 72 F in C &nbsp;·&nbsp; 2 GB in MB &nbsp;·&nbsp; 3 hours 20 min in minutes</td></tr>
+        <tr><td>dates</td><td>today + 90 days &nbsp;·&nbsp; until dec 25 &nbsp;·&nbsp; 2027-03-01 - today &nbsp;·&nbsp; since 7/4/2026 &nbsp;·&nbsp; dec 25 - today</td></tr>
+        <tr><td>running totals</td><td>total / sum / avg / count &nbsp;— of the lines above, up to the last blank line</td></tr>
+        <tr><td>previous line</td><td>prev * 1.5</td></tr>
+        <tr><td>functions</td><td>sqrt, round(x, 2), floor, ceil, abs, min, max, avg, sin, cos, log, ln, pi, e</td></tr>
+        <tr><td>shorthand</td><td>4k = 4,000 &nbsp;·&nbsp; 2.5M = 2,500,000 &nbsp;·&nbsp; $ € £ are kept in the result</td></tr>
+        <tr><td>comments</td><td>lines starting with # or // and lines ending with : are headings</td></tr>
+        <tr><td>keys</td><td><kbd>⌘/</kbd> help &nbsp; <kbd>⌘S</kbd> download &nbsp; <kbd>Tab</kbd> indent</td></tr>
+      </table>
+    </div>
+  </div>
+  <div id="toast"></div>
+</main>
+<footer>
+  <div id="sum"></div>
+  <div id="hint">autosaved locally · <kbd>⌘/</kbd> for help</div>
+</footer>
+
+<script>
+'use strict';
+/* ───────────────────────── Engine ───────────────────────── */
+const UNITS = {};
+const DISPLAY = {};
+[
+  ['len',1,['m','meter','meters','metre','metres']], ['len',.001,['mm','millimeter','millimeters']],
+  ['len',.01,['cm','centimeter','centimeters']], ['len',1000,['km','kilometer','kilometers','kilometre','kilometres']],
+  ['len',.0254,['in','inch','inches']], ['len',.3048,['ft','foot','feet']], ['len',.9144,['yd','yard','yards']],
+  ['len',1609.344,['mi','mile','miles']],
+  ['mass',1,['g','gram','grams']], ['mass',1000,['kg','kilogram','kilograms','kilo','kilos']], ['mass',.001,['mg','milligram','milligrams']],
+  ['mass',28.349523125,['oz','ounce','ounces']], ['mass',453.59237,['lb','lbs','pound','pounds']],
+  ['vol',1,['l','liter','liters','litre','litres']], ['vol',.001,['ml','milliliter','milliliters']],
+  ['vol',3.785411784,['gal','gallon','gallons']], ['vol',.946352946,['qt','quart','quarts']], ['vol',.473176473,['pt','pint','pints']],
+  ['vol',.2365882365,['cup','cups']], ['vol',.0147867648,['tbsp','tablespoon','tablespoons']], ['vol',.00492892159,['tsp','teaspoon','teaspoons']],
+  ['vol',.0295735296,['floz']],
+  ['time',1,['s','sec','secs','second','seconds']], ['time',60,['min','mins','minute','minutes']], ['time',3600,['h','hr','hrs','hour','hours']],
+  ['time',86400,['day','days']], ['time',604800,['week','weeks','wk','wks']], ['time',2629800,['month','months','mo']],
+  ['time',31557600,['year','years','yr','yrs']],
+  ['data',1,['B','byte','bytes']], ['data',1e3,['KB','kb','kilobyte','kilobytes']], ['data',1e6,['MB','mb','megabyte','megabytes']],
+  ['data',1e9,['GB','gb','gigabyte','gigabytes']], ['data',1e12,['TB','tb','terabyte','terabytes']],
+  ['temp',null,['C','c','celsius']], ['temp',null,['F','f','fahrenheit']], ['temp',null,['K','k','kelvin']],
+].forEach(([cat,f,names]) => names.forEach(n => UNITS[n] = {cat, f, canon: names[0]}));
+Object.assign(DISPLAY, {h:'hr', day:'day', week:'week', month:'month', year:'year', cup:'cup', C:'°C', F:'°F', K:'K'});
+const PLURAL = new Set(['hr','day','week','month','year','cup']);
+const FNS = {
+  sqrt:Math.sqrt, abs:Math.abs, floor:Math.floor, ceil:Math.ceil, sin:Math.sin, cos:Math.cos, tan:Math.tan,
+  log:Math.log10, ln:Math.log, exp:Math.exp,
+  round:(x,d=0)=>{const p=10**d; return Math.round(x*p)/p;},
+  min:(...a)=>Math.min(...a), max:(...a)=>Math.max(...a),
+  avg:(...a)=>a.reduce((s,x)=>s+x,0)/a.length, mean:(...a)=>a.reduce((s,x)=>s+x,0)/a.length,
+};
+const AGGS = new Set(['sum','total','avg','average','mean','count','prev','previous']);
+const KWS = new Set(['of','in','to','as','mod','until','since','per','x']);
+const MONTHS = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+const monthIdx = w => { w=w.toLowerCase(); if(w.length<3) return -1; const i=MONTHS.findIndex(m=>m.startsWith(w)); return i; };
+const today = () => { const d=new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); };
+const mkDate = (y,m,d) => new Date(y,m,d);
+const num = (v,unit) => unit ? {v,unit} : {v};
+const fail = () => { throw 0; };
+
+function tokenize(src, vars, atStartAllowed) {
+  const toks=[]; let i=0, cur='';
+  const push=(t,v)=>toks.push({t,v});
+  const varNames = Object.keys(vars).sort((a,b)=>b.length-a.length);
+  while (i<src.length) {
+    const c=src[i], rest=src.slice(i); let m;
+    if (/\s/.test(c)) { i++; continue; }
+    if ((m=rest.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?!\d)/))) { push('date', mkDate(+m[1],+m[2]-1,+m[3])); i+=m[0].length; continue; }
+    if ((m=rest.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?(?![\d.\/])/)) && +m[1]>=1 && +m[1]<=12 && +m[2]>=1 && +m[2]<=31) {
+      const prev=toks[toks.length-1];
+      const dateish = m[3] || (prev&&prev.t==='kw'&&(prev.v==='until'||prev.v==='since'));
+      if (dateish) {
+        let y=m[3]?+m[3]:today().getFullYear(); if(y<100) y+=2000;
+        push('date', mkDate(y,+m[1]-1,+m[2])); i+=m[0].length; continue;
+      }
+    }
+    if ((m=rest.match(/^(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?|^\.\d+/))) {
+      let n=parseFloat(m[0].replace(/,/g,'')); i+=m[0].length;
+      const s=src.slice(i).match(/^(k|M|bn)(?![A-Za-z])/);
+      if (s) { n*= s[1]==='k'?1e3 : s[1]==='M'?1e6 : 1e9; i+=s[0].length; }
+      push('num', n); continue;
+    }
+    if ('$€£¥'.includes(c)) { cur=cur||c; i++; continue; }
+    if (c==='%') { push('pct'); i++; continue; }
+    if ('+-*/^(),'.includes(c)) { push('op', c); i++; continue; }
+    if (c==='×'||c==='·') { push('op','*'); i++; continue; }
+    if (c==='÷') { push('op','/'); i++; continue; }
+    if (c==='−'||c==='–') { push('op','-'); i++; continue; }
+    if ((m=rest.match(/^[A-Za-z_][A-Za-z0-9_]*(?:[ \t]+[A-Za-z_][A-Za-z0-9_]*){0,3}/))) {
+      // multi-word variable match (longest first)
+      const phrase=m[0].toLowerCase().replace(/\s+/g,' ');
+      const hit=varNames.find(n => phrase===n || phrase.startsWith(n+' '));
+      if (hit) { push('var', hit); i+=hit.length; while(i<src.length&&/[ \t]/.test(src[i])) i++; continue; }
+      const w=src.slice(i).match(/^[A-Za-z_][A-Za-z0-9_]*/)[0]; i+=w.length;
+      const lw=w.toLowerCase();
+      const nextNonSpace=src.slice(i).match(/^\s*(\S)/);
+      const callish = nextNonSpace && nextNonSpace[1]==='(';
+      if (AGGS.has(lw) && !callish) { if (toks.length===0 && atStartAllowed) push('agg', lw); continue; }
+      if (FNS[lw] && (callish || !(UNITS[w] || UNITS[lw]))) { push('fn', lw); continue; }
+      if (lw==='today') { push('date', today()); continue; }
+      if (lw==='now') { push('date', new Date()); continue; }
+      if (lw==='tomorrow') { const d=today(); d.setDate(d.getDate()+1); push('date', d); continue; }
+      if (lw==='yesterday') { const d=today(); d.setDate(d.getDate()-1); push('date', d); continue; }
+      if (lw==='pi') { push('num', Math.PI); continue; }
+      if (lw==='e' && !UNITS[w]) { push('num', Math.E); continue; }
+      const mi=monthIdx(lw);
+      if (mi>=0) {
+        const dm=src.slice(i).match(/^\s+(\d{1,2})(?:st|nd|rd|th)?(?:,?\s+(\d{4}))?(?![\d.])/);
+        if (dm) { push('date', mkDate(dm[2]?+dm[2]:today().getFullYear(), mi, +dm[1])); i+=dm[0].length; continue; }
+      }
+      if (KWS.has(lw)) { toks.push({t:'kw', v:lw, bare: !/^\s*[A-Za-z]/.test(src.slice(i))}); continue; }
+      if (UNITS[w]) { push('unit', UNITS[w].canon); continue; }
+      if (UNITS[lw]) { push('unit', UNITS[lw].canon); continue; }
+      continue; // unknown word → ignored
+    }
+    i++;
+  }
+  return {toks, cur};
+}
+
+const cat = u => UNITS[u].cat;
+const isTime = a => a.unit && cat(a.unit)==='time';
+function toBase(v,u){ const d=UNITS[u]; if(d.cat==='temp') return u==='C'?v+273.15 : u==='F'?(v+459.67)*5/9 : v; return v*d.f; }
+function fromBase(v,u){ const d=UNITS[u]; if(d.cat==='temp') return u==='C'?v-273.15 : u==='F'?v*9/5-459.67 : v; return v/d.f; }
+function convert(a,u){ if(a.date||a.pct) fail(); if(!a.unit) return num(a.v,u); if(cat(a.unit)!==cat(u)) fail(); return num(fromBase(toBase(a.v,a.unit),u),u); }
+function withUnit(a,u){ if(a.date||a.pct) fail(); return a.unit ? convert(a,u) : num(a.v,u); }
+function addDur(d,n,u){ const r=new Date(d); const c=UNITS[u].canon;
+  if(c==='month') r.setMonth(r.getMonth()+n); else if(c==='year') r.setFullYear(r.getFullYear()+n);
+  else if(c==='day') r.setDate(r.getDate()+n); else if(c==='week') r.setDate(r.getDate()+7*n);
+  else r.setTime(r.getTime()+n*UNITS[u].f*1000); return r; }
+function add(a,b){
+  if(a.date&&b.date) fail();
+  if(a.date||b.date){ const d=a.date?a:b, n=a.date?b:a; if(!isTime(n)) fail(); return {date:addDur(d.date,n.v,n.unit)}; }
+  if(b.pct&&!a.pct) return num(a.v*(1+b.v/100),a.unit);
+  if(a.pct&&!b.pct) return num(b.v*(1+a.v/100),b.unit);
+  if(a.pct&&b.pct) return {v:a.v+b.v,pct:true};
+  if(a.unit&&b.unit) return num(a.v+convert(b,a.unit).v,a.unit);
+  return num(a.v+b.v,a.unit||b.unit);
+}
+function sub(a,b){
+  if(a.date&&b.date) return num(Math.round((a.date-b.date)/864e5),'day');
+  if(a.date){ if(!isTime(b)) fail(); return {date:addDur(a.date,-b.v,b.unit)}; }
+  if(b.date) fail();
+  if(b.pct&&!a.pct) return num(a.v*(1-b.v/100),a.unit);
+  if(a.pct&&b.pct) return {v:a.v-b.v,pct:true};
+  if(a.pct||b.pct) fail();
+  if(a.unit&&b.unit) return num(a.v-convert(b,a.unit).v,a.unit);
+  return num(a.v-b.v,a.unit||b.unit);
+}
+function mul(a,b){
+  if(a.date||b.date) fail();
+  if(a.pct&&b.pct) return {v:a.v*b.v/100,pct:true};
+  if(a.pct) return num(b.v*a.v/100,b.unit);
+  if(b.pct) return num(a.v*b.v/100,a.unit);
+  if(a.unit&&b.unit) fail();
+  return num(a.v*b.v,a.unit||b.unit);
+}
+function div(a,b){
+  if(a.date||b.date||b.v===0) fail();
+  if(a.unit&&b.unit){ if(cat(a.unit)!==cat(b.unit)) fail(); return num(toBase(a.v,a.unit)/toBase(b.v,b.unit)); }
+  const av=a.pct?a.v/100:a.v, bv=b.pct?b.v/100:b.v;
+  return num(av/bv,a.unit||b.unit);
+}
+function ofv(a,b){ if(a.pct&&!b.date&&!b.pct) return num(b.v*a.v/100,b.unit); fail(); }
+function powv(a,b){ if(a.date||b.date||a.pct||b.pct||b.unit) fail(); return num(Math.pow(a.v,b.v),a.unit); }
+function modv(a,b){ if(a.date||b.date||a.pct||b.pct) fail(); return num(a.v%b.v,a.unit); }
+function neg(a){ if(a.date) fail(); return Object.assign({},a,{v:-a.v}); }
+function toPct(a){ if(a.unit||a.date) fail(); return {v:a.v,pct:true}; }
+function callFn(name,args){
+  if(!args.length) fail();
+  const unit=args.find(x=>x.unit)?.unit;
+  args.forEach(x=>{ if(x.date) fail(); });
+  const vals=args.map(x => x.pct ? x.v/100 : (unit&&x.unit ? convert(x,unit).v : x.v));
+  const keep = ['round','floor','ceil','abs','min','max','avg','mean'].includes(name);
+  const r=FNS[name](...vals); if(!isFinite(r)) fail();
+  return num(r, keep?unit:undefined);
+}
+
+class Parser {
+  constructor(toks,env){ this.t=toks; this.i=0; this.env=env; }
+  peek(k=0){ return this.t[this.i+k]; }
+  next(){ return this.t[this.i++]; }
+  isOp(c){ const t=this.peek(); return !!t && t.t==='op' && t.v===c; }
+  isKw(c){ const t=this.peek(); return !!t && t.t==='kw' && t.v===c; }
+  expr(){ return this.sum(); }
+  sum(){ let a=this.term(); while(this.isOp('+')||this.isOp('-')){ const op=this.next().v; const b=this.term(); a= op==='+'?add(a,b):sub(a,b); } return a; }
+  term(){
+    let a=this.unary();
+    for(;;){
+      if(this.isOp('*')||this.isKw('x')){ this.next(); a=mul(a,this.unary()); }
+      else if(this.isOp('/')||this.isKw('per')){ this.next(); a=div(a,this.unary()); }
+      else if(this.isKw('mod')){ this.next(); a=modv(a,this.unary()); }
+      else break;
+    }
+    return a;
+  }
+  unary(){ if(this.isOp('-')){ this.next(); return neg(this.unary()); } if(this.isOp('+')){ this.next(); return this.unary(); } return this.power(); }
+  power(){ const a=this.postfix(); if(this.isOp('^')){ this.next(); return powv(a,this.unary()); } return a; }
+  postfix(){
+    let a=this.primary();
+    for(;;){
+      const t=this.peek(); if(!t) break;
+      if(t.t==='pct'){ this.next(); a=toPct(a); continue; }
+      if(t.t==='unit'){
+        this.next(); a=withUnit(a,t.v);
+        // juxtaposed compound units: "3 hours 20 min"
+        while(this.peek()&&this.peek().t==='num'&&this.peek(1)&&this.peek(1).t==='unit'&&cat(this.peek(1).v)===cat(t.v)){
+          const n=this.next().v, u=this.next().v; a=add(a,num(n,u));
+        }
+        continue;
+      }
+      if(t.t==='kw'&&(t.v==='in'||t.v==='to'||t.v==='as')){
+        const u=this.peek(1);
+        if(u&&u.t==='unit'){ this.next(); this.next(); a=convert(a,u.v); continue; }
+        this.next();
+        if(t.v==='in'&&(t.bare||(u&&u.t==='kw'&&u.v==='in'))&&!a.unit&&!a.pct&&!a.date){ a=withUnit(a,'in'); }
+        continue;
+      }
+      if(t.t==='kw'&&t.v==='of'){ this.next(); a=ofv(a,this.unary()); continue; }
+      break;
+    }
+    return a;
+  }
+  primary(){
+    const t=this.next(); if(!t) fail();
+    if(t.t==='num') return num(t.v);
+    if(t.t==='date') return {date:t.v};
+    if(t.t==='var'){ const v=this.env.vars[t.v]; if(!v) fail(); return v; }
+    if(t.t==='agg') return this.env.agg(t.v);
+    if(t.t==='fn'){
+      if(this.isOp('(')){
+        this.next(); const args=[];
+        if(!this.isOp(')')){ args.push(this.expr()); while(this.isOp(',')){ this.next(); args.push(this.expr()); } }
+        if(!this.isOp(')')) fail(); this.next(); return callFn(t.v,args);
+      }
+      return callFn(t.v,[this.unary()]);
+    }
+    if(t.t==='op'&&t.v==='('){ const v=this.expr(); if(!this.isOp(')')) fail(); this.next(); return v; }
+    if(t.t==='kw'&&t.v==='until'){ const d=this.unary(); if(!d.date) fail(); return sub(d,{date:today()}); }
+    if(t.t==='kw'&&t.v==='since'){ const d=this.unary(); if(!d.date) fail(); return sub({date:today()},d); }
+    fail();
+  }
+}
+
+/** Evaluate a whole document. Returns [{val, cur, agg}] per line (val null when the line is prose). */
+function evaluateDoc(text){
+  const lines=text.split('\n'); const vars={}; const out=[];
+  const agg = (idx) => (name) => {
+    if(name==='prev'||name==='previous'){ for(let j=idx-1;j>=0;j--){ if(out[j].val) return out[j].val; if(!lines[j].trim()) break; } fail(); }
+    const block=[];
+    for(let j=idx-1;j>=0;j--){
+      if(!lines[j].trim()) break;
+      if(out[j].agg) continue;
+      if(out[j].val&&!out[j].val.date) block.unshift(out[j].val);
+    }
+    if(!block.length) fail();
+    if(name==='count') return num(block.length);
+    const s=block.reduce((a,b)=>{ try{ return add(a,b); }catch(e){ return num(a.v+b.v); } });
+    if(name==='sum'||name==='total') return s;
+    return num(s.v/block.length,s.unit);
+  };
+  lines.forEach((raw,idx)=>{
+    const line=raw.trim(); const r={val:null,cur:'',agg:false}; out.push(r);
+    if(!line||/^(#|\/\/)/.test(line)||/:$/.test(line)) return;
+    let src=line, name=null;
+    const am=line.match(/^([A-Za-z_][A-Za-z0-9_ ]*?)\s*=(?!=)\s*(.+)$/);
+    if(am){ name=am[1].trim().toLowerCase().replace(/\s+/g,' '); src=am[2]; }
+    try{
+      const {toks,cur}=tokenize(src,vars,!name);
+      if(!toks.length) return;
+      r.agg = toks[0].t==='agg';
+      const p=new Parser(toks,{vars,agg:agg(idx)});
+      const v=p.expr();
+      if(p.i<toks.length) fail();
+      if(v.v!==undefined && !isFinite(v.v)) fail();
+      r.val=v; r.cur=cur;
+      if(name) vars[name]=v;
+    }catch(e){ r.val=null; }
+  });
+  return out;
+}
+
+function fmtNum(v){
+  const a=Math.abs(v);
+  if(a!==0&&(a>=1e15||a<1e-6)) return v.toExponential(3).replace(/\.?0+e/,'e');
+  return v.toLocaleString('en-US',{maximumFractionDigits: a<1?6 : a<1000?4 : 2});
+}
+function unitLabel(u,v){ const base=DISPLAY[u]||u; return PLURAL.has(base)&&Math.abs(v)!==1 ? base+'s' : base; }
+function fmtVal(r){
+  const v=r.val; if(!v) return '';
+  if(v.date){
+    const d=v.date, hasTime=d.getHours()||d.getMinutes();
+    return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}) +
+      (hasTime ? ' '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) : '');
+  }
+  if(v.pct) return fmtNum(v.v)+'%';
+  if(v.unit) return fmtNum(v.v)+' '+unitLabel(v.unit,v.v);
+  return r.cur+fmtNum(v.v);
+}
+const kindOf = v => !v ? 'empty' : v.date ? 'date' : v.pct ? 'pct' : v.unit ? 'unit' : 'num';
+
+/* ───────────────────────── UI ───────────────────────── */
+const DEMO = `# Reckon — a notepad that does math.
+Just write. Words are ignored; numbers, units and dates compute →
+
+## Coffee habit
+latte 5.25 * 22 workdays
+pastry 3.75 * 8 times
+total
+
+## Freelance quote
+hourly rate = 95
+hours worked = 32
+subtotal = hourly rate * hours worked
+subtotal + 8.5% tax
+20% of subtotal as a deposit
+
+## Trip
+flights $420 * 2
+hotel 5 nights * 180
+rental car 4 * 55
+total
+avg
+
+## Units & dates
+26.2 miles in km
+72 F in C
+2 GB in MB
+3 hours 20 min in minutes
+today + 90 days
+until dec 25
+launch 2027-03-01 - today
+
+## Scratch
+avg(12, 18, 7, 22)
+sqrt(2) * pi
+prev ^ 2
+round(1/3, 4)`;
+
+const src=document.getElementById('src'), resInner=document.getElementById('resInner'),
+      sumEl=document.getElementById('sum'), help=document.getElementById('help'), toast=document.getElementById('toast');
+const KEY='reckon.doc', TKEY='reckon.theme';
+let rows=[], results=[], activeLine=0, toastT=0;
+
+function load(){
+  const h=location.hash;
+  if(h.startsWith('#d=')){ try{ return decodeURIComponent(escape(atob(h.slice(3).replace(/-/g,'+').replace(/_/g,'/')))); }catch(e){} }
+  return localStorage.getItem(KEY) ?? DEMO;
+}
+function render(){
+  const text=src.value;
+  results=evaluateDoc(text);
+  const n=results.length;
+  while(rows.length<n){ const d=document.createElement('div'); d.className='row'; d.dataset.i=rows.length; rows.push(d); resInner.appendChild(d); }
+  while(rows.length>n){ rows.pop().remove(); }
+  let total=0, count=0, shown=0;
+  results.forEach((r,i)=>{
+    const s=fmtVal(r), k=kindOf(r.val);
+    const cls='row '+k+(i===activeLine?' active':'');
+    if(rows[i].textContent!==s) rows[i].textContent=s;
+    if(rows[i].className!==cls) rows[i].className=cls;
+    if(r.val) shown++;
+    if(r.val&&!r.agg&&!r.val.date&&!r.val.unit&&!r.val.pct){ total+=r.val.v; count++; }
+  });
+  sumEl.innerHTML = `${n} line${n===1?'':'s'} · ${shown} result${shown===1?'':'s'}` + (count>1 ? ` · Σ <b>${fmtNum(total)}</b>` : '');
+  try{ localStorage.setItem(KEY,text); }catch(e){}
+}
+function syncScroll(){ resInner.style.transform=`translate(0,${-src.scrollTop}px)`; }
+function updateActive(){
+  const l=src.value.slice(0,src.selectionStart).split('\n').length-1;
+  if(l===activeLine) return;
+  rows[activeLine]?.classList.remove('active'); activeLine=l; rows[activeLine]?.classList.add('active');
+}
+function showToast(msg){ toast.textContent=msg; toast.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>toast.classList.remove('show'),1400); }
+function copy(text,msg){ navigator.clipboard?.writeText(text).then(()=>showToast(msg)).catch(()=>showToast('Copy failed')); }
+function download(){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([src.value],{type:'text/plain'})); a.download='reckon.txt'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function share(){
+  const b=btoa(unescape(encodeURIComponent(src.value))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  const url=location.href.split('#')[0]+'#d='+b; copy(url,'Link copied — it contains the whole document');
+}
+function setTheme(t){ document.documentElement.dataset.theme=t; try{ localStorage.setItem(TKEY,t);}catch(e){} }
+
+src.value=load();
+setTheme(localStorage.getItem(TKEY) || (matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'));
+render();
+src.setSelectionRange(0,0); src.scrollTop=0; src.focus();
+let raf=0;
+src.addEventListener('input',()=>{ cancelAnimationFrame(raf); raf=requestAnimationFrame(()=>{ render(); updateActive(); }); });
+src.addEventListener('scroll',syncScroll,{passive:true});
+document.addEventListener('selectionchange',()=>{ if(document.activeElement===src) updateActive(); });
+src.addEventListener('keydown',e=>{
+  if(e.key==='Tab'){ e.preventDefault(); const s=src.selectionStart,en=src.selectionEnd; src.setRangeText('  ',s,en,'end'); src.dispatchEvent(new Event('input')); }
+});
+resInner.addEventListener('click',e=>{
+  const row=e.target.closest('.row'); if(!row||!row.textContent) return;
+  copy(row.textContent,'Copied '+row.textContent);
+});
+document.addEventListener('keydown',e=>{
+  const mod=e.metaKey||e.ctrlKey;
+  if(mod&&e.key==='/'){ e.preventDefault(); help.hidden=!help.hidden; }
+  else if(mod&&e.key.toLowerCase()==='s'){ e.preventDefault(); download(); }
+  else if(e.key==='Escape'){ help.hidden=true; src.focus(); }
+});
+document.getElementById('bHelp').onclick=()=>help.hidden=false;
+document.getElementById('bClose').onclick=()=>{ help.hidden=true; src.focus(); };
+help.addEventListener('click',e=>{ if(e.target===help){ help.hidden=true; src.focus(); } });
+document.getElementById('bShare').onclick=share;
+document.getElementById('bDown').onclick=download;
+document.getElementById('bTheme').onclick=()=>setTheme(document.documentElement.dataset.theme==='light'?'dark':'light');
+window.addEventListener('hashchange',()=>{ if(location.hash.startsWith('#d=')){ src.value=load(); render(); } });
+</script>
+</body>
+</html>

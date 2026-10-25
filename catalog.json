@@ -28,7 +28,8 @@
             "wait": 500
           }
         ]
-      }
+      },
+      "category": "image"
     },
     "foldwork": {
       "title": "Foldwork",
@@ -45,7 +46,8 @@
           "date": "2026-10-21",
           "sha": "c9eab6f58cd7"
         }
-      ]
+      ],
+      "category": "tool"
     },
     "genesis-universe": {
       "title": "Genesis",
@@ -81,7 +83,8 @@
             "wait": 2500
           }
         ]
-      }
+      },
+      "category": "art"
     },
     "kaleido": {
       "title": "Kaleido",
@@ -144,7 +147,8 @@
             "wait": 800
           }
         ]
-      }
+      },
+      "category": "art"
     },
     "ledger": {
       "title": "Ledger",
@@ -161,7 +165,8 @@
           "date": "2026-10-23",
           "sha": "290019c18967"
         }
-      ]
+      ],
+      "category": "finance"
     },
     "meadowsong": {
       "title": "Meadowsong",
@@ -200,7 +205,8 @@
             "wait": 1200
           }
         ]
-      }
+      },
+      "category": "audio"
     },
     "position": {
       "title": "Position",
@@ -217,7 +223,8 @@
           "date": "2026-10-23",
           "sha": "ef66cf12d600"
         }
-      ]
+      ],
+      "category": "tool"
     },
     "reckon": {
       "title": "Reckon",
@@ -247,7 +254,8 @@
             "wait": 500
           }
         ]
-      }
+      },
+      "category": "tool"
     },
     "ripple": {
       "title": "Ripple",
@@ -289,7 +297,8 @@
             "wait": 1500
           }
         ]
-      }
+      },
+      "category": "sim"
     },
     "sonogram": {
       "title": "Sonogram",
@@ -343,7 +352,8 @@
             "wait": 800
           }
         ]
-      }
+      },
+      "category": "audio"
     },
     "sprout-garden": {
       "title": "Sprout",
@@ -400,7 +410,8 @@
             "wait": 2500
           }
         ]
-      }
+      },
+      "category": "art"
     },
     "stillpoint": {
       "title": "Stillpoint",
@@ -417,7 +428,8 @@
           "date": "2026-10-21",
           "sha": "25b715301e51"
         }
-      ]
+      ],
+      "category": "focus"
     },
     "tradeoff": {
       "title": "Tradeoff",
@@ -434,7 +446,8 @@
           "date": "2026-10-22",
           "sha": "69ffaf5a8e79"
         }
-      ]
+      ],
+      "category": "tool"
     },
     "budget": {
       "title": "Budget",
@@ -451,7 +464,8 @@
           "date": "2026-10-25",
           "sha": "506f6bff1777"
         }
-      ]
+      ],
+      "category": "finance"
     },
     "crosslight": {
       "title": "Crosslight",
@@ -481,7 +495,8 @@
             "wait": 300
           }
         ]
-      }
+      },
+      "category": "game"
     },
     "hilbert": {
       "title": "Hilbert",
@@ -511,7 +526,8 @@
             "wait": 300
           }
         ]
-      }
+      },
+      "category": "dev"
     },
     "labelmaker": {
       "title": "Label sheets",
@@ -528,7 +544,8 @@
           "date": "2026-10-05",
           "sha": "32b4397ea346"
         }
-      ]
+      ],
+      "category": "tool"
     },
     "tessera": {
       "title": "Tessera",
@@ -561,7 +578,8 @@
             "wait": 800
           }
         ]
-      }
+      },
+      "category": "art"
     },
     "chroma-desk": {
       "title": "Chroma Desk",
@@ -578,7 +596,8 @@
           "date": "2026-10-25",
           "sha": "07fbd74082ba"
         }
-      ]
+      ],
+      "category": "image"
     },
     "dayblock": {
       "title": "Dayblock",
@@ -608,7 +627,8 @@
             "wait": 800
           }
         ]
-      }
+      },
+      "category": "tool"
     },
     "pantry-clock": {
       "title": "Pantry Clock",
@@ -638,7 +658,8 @@
             "wait": 800
           }
         ]
-      }
+      },
+      "category": "tool"
     }
   },
   "generated": "2026-10-25"

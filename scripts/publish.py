@@ -24,7 +24,7 @@ from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-APPS, THUMBS = ROOT / "apps", ROOT / "thumbs"
+APPS, THUMBS, PREVIEWS = ROOT / "apps", ROOT / "thumbs", ROOT / "previews"
 CATALOG = ROOT / "catalog.json"
 
 ENGINE_SUFFIX = {
@@ -84,12 +84,19 @@ GENERIC_ACTIONS = [
     {"wait": 1500},
 ]
 
-def screenshot(app_path: Path, out: Path, actions):
+def screenshot(app_path: Path, out: Path, actions, preview_out: Path = None):
+    """Screenshot (and, if preview_out is given, a ~4s silent WebM of the same interaction)."""
     from playwright.sync_api import sync_playwright
     W, H = 1280, 800
+    tmpv = out.parent / ".vid"
     with sync_playwright() as p:
         b = p.chromium.launch()
-        pg = b.new_page(viewport={"width": W, "height": H}, device_scale_factor=1)
+        ctx_kw = {"viewport": {"width": W, "height": H}, "device_scale_factor": 1}
+        if preview_out:
+            tmpv.mkdir(exist_ok=True)
+            ctx_kw.update(record_video_dir=str(tmpv), record_video_size={"width": 640, "height": 400})
+        ctx = b.new_context(**ctx_kw)
+        pg = ctx.new_page()
         pg.goto(app_path.resolve().as_uri())
         for a in actions:
             try:
@@ -111,7 +118,14 @@ def screenshot(app_path: Path, out: Path, actions):
             except Exception as e:  # a failed step never kills the capture
                 print(f"   (thumb step {a} skipped: {type(e).__name__})")
         pg.screenshot(path=str(out.with_suffix(".png")))
-        b.close()
+        vid = pg.video.path() if preview_out else None
+        ctx.close(); b.close()
+    if preview_out and vid:
+        # trim to the last 4s (skip the blank load), cap size; silent, loops in <video autoplay muted loop>
+        r = subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-sseof", "-4", "-i", vid,
+                            "-an", "-c:v", "libvpx-vp9", "-b:v", "350k", "-crf", "34", "-r", "20", str(preview_out)])
+        shutil.rmtree(tmpv, ignore_errors=True)
+        if r.returncode != 0 and preview_out.exists(): preview_out.unlink()
     # downscale to 640x400 webp
     from PIL import Image
     im = Image.open(out.with_suffix(".png")).convert("RGB").resize((640, 400), Image.LANCZOS)
@@ -138,7 +152,7 @@ def main():
 
     catalog = json.loads(CATALOG.read_text()) if CATALOG.exists() else {"apps": {}}
     apps = catalog["apps"]
-    APPS.mkdir(exist_ok=True); THUMBS.mkdir(exist_ok=True)
+    APPS.mkdir(exist_ok=True); THUMBS.mkdir(exist_ok=True); PREVIEWS.mkdir(exist_ok=True)
 
     changed, blocked = [], []
     for f in sorted(src.glob("*.html")):
@@ -181,8 +195,9 @@ def main():
         for slug in sorted(set(changed) | force):
             e = apps[slug]; out = THUMBS / f"{slug}.webp"
             try:
-                screenshot(APPS / f"{slug}.html", out, e.get("thumb", {}).get("actions", GENERIC_ACTIONS))
-                print(f"  📷 {slug}")
+                screenshot(APPS / f"{slug}.html", out, e.get("thumb", {}).get("actions", GENERIC_ACTIONS),
+                           preview_out=PREVIEWS / f"{slug}.webm")
+                print(f"  📷 {slug}" + ("  🎬" if (PREVIEWS / f"{slug}.webm").exists() else ""))
             except Exception as ex:
                 print(f"  ⚠ {slug}: screenshot failed ({ex}); fallback card")
                 fallback_card(slug, e["title"], e["engine"], out)

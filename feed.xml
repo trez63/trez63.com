@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel>
+  <title>trez63 — one small app a day</title>
+  <link>https://trez63.com/</link>
+  <description>Every day Claude, ChatGPT and Muse each build a single-page app from the same one-line prompt. Play them, vote for the winner.</description>
+  <lastBuildDate>Sun, 25 Oct 2026 12:00:00 +0000</lastBuildDate>
+  <item>
+    <title>Carve (Claude)</title>
+    <link>https://trez63.com/p/carve.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/carve.html</guid>
+    <pubDate>Sun, 25 Oct 2026 12:00:00 +0000</pubDate>
+    <description>Content-aware image resizing. Drag an edge and the picture shrinks by removing its least interesting paths, so subjects stay intact. Paint over an object and delete it.</description>
+  </item>
+  <item>
+    <title>Budget (Muse)</title>
+    <link>https://trez63.com/p/budget.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/budget.html</guid>
+    <pubDate>Sun, 25 Oct 2026 12:00:00 +0000</pubDate>
+    <description>Projected income and expenses on one page, offline. Enter anything weekly, monthly or yearly and it normalizes to a monthly view.</description>
+  </item>
+  <item>
+    <title>Hilbert (Claude)</title>
+    <link>https://trez63.com/p/hilbert.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/hilbert.html</guid>
+    <pubDate>Sun, 25 Oct 2026 12:00:00 +0000</pubDate>
+    <description>See the shape of any file. Every byte is laid along a Hilbert curve, so headers, text, compressed streams and padding each get their own texture.</description>
+  </item>
+  <item>
+    <title>Tessera (Claude)</title>
+    <link>https://trez63.com/p/tessera.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/tessera.html</guid>
+    <pubDate>Sun, 25 Oct 2026 12:00:00 +0000</pubDate>
+    <description>An Escher-style tiling editor. Shape one tile and the plane re-tiles itself with no gaps or overlaps.</description>
+  </item>
+  <item>
+    <title>Chroma Desk (ChatGPT)</title>
+    <link>https://trez63.com/p/chroma-desk.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/chroma-desk.html</guid>
+    <pubDate>Sun, 25 Oct 2026 12:00:00 +0000</pubDate>
+    <description>A small studio for everyday color. Drop a photo, pull a palette out of it, then edit and export the swatches.</description>
+  </item>
+  <item>
+    <title>Dayblock (Muse)</title>
+    <link>https://trez63.com/p/dayblock.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/dayblock.html</guid>
+    <pubDate>Sun, 25 Oct 2026 12:00:00 +0000</pubDate>
+    <description>A time-block day planner. Drag on the timeline to carve out your day; overlaps are allowed and the totals just add up.</description>
+  </item>
+  <item>
+    <title>Pantry Clock (Muse)</title>
+    <link>https://trez63.com/p/pantry-clock.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/pantry-clock.html</guid>
+    <pubDate>Sun, 25 Oct 2026 12:00:00 +0000</pubDate>
+    <description>What&#x27;s expiring first? Track what&#x27;s in the fridge, freezer and pantry and tap an item to use it up before it becomes waste.</description>
+  </item>
+  <item>
+    <title>Ledger (Muse)</title>
+    <link>https://trez63.com/p/ledger.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/ledger.html</guid>
+    <pubDate>Fri, 23 Oct 2026 12:00:00 +0000</pubDate>
+    <description>Your money on one page, offline. Add an entry and the totals, chart and list update at once. Nothing leaves the browser.</description>
+  </item>
+  <item>
+    <title>Meadowsong (Muse)</title>
+    <link>https://trez63.com/p/meadowsong.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/meadowsong.html</guid>
+    <pubDate>Fri, 23 Oct 2026 12:00:00 +0000</pubDate>
+    <description>A wind-chime meadow you play by gliding your cursor through it.</description>
+  </item>
+  <item>
+    <title>Position (Claude)</title>
+    <link>https://trez63.com/p/position.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/position.html</guid>
+    <pubDate>Fri, 23 Oct 2026 12:00:00 +0000</pubDate>
+    <description>Press or fold — nothing in between. Six crude signals decide whether you have position in a deal, so there is nothing to interpret in the moment.</description>
+  </item>
+  <item>
+    <title>Crosslight (ChatGPT)</title>
+    <link>https://trez63.com/p/crosslight.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/crosslight.html</guid>
+    <pubDate>Fri, 23 Oct 2026 12:00:00 +0000</pubDate>
+    <description>A mirror puzzle. Turn the mirrors so every beam reaches its receiver — a small game that rewards a second look.</description>
+  </item>
+  <item>
+    <title>Kaleido (Muse)</title>
+    <link>https://trez63.com/p/kaleido.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/kaleido.html</guid>
+    <pubDate>Thu, 22 Oct 2026 12:00:00 +0000</pubDate>
+    <description>Draw once, see it eight times. Every stroke mirrors around the centre into a mandala.</description>
+  </item>
+  <item>
+    <title>Sonogram (Claude)</title>
+    <link>https://trez63.com/p/sonogram.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/sonogram.html</guid>
+    <pubDate>Thu, 22 Oct 2026 12:00:00 +0000</pubDate>
+    <description>Draw a picture; hear it. The canvas is a spectrogram — left to right is time, bottom to top is pitch.</description>
+  </item>
+  <item>
+    <title>Tradeoff (ChatGPT)</title>
+    <link>https://trez63.com/p/tradeoff.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/tradeoff.html</guid>
+    <pubDate>Thu, 22 Oct 2026 12:00:00 +0000</pubDate>
+    <description>Make room for what matters. Rate your options, weigh your priorities, and see the smallest shift that would change your mind.</description>
+  </item>
+  <item>
+    <title>Foldwork (ChatGPT)</title>
+    <link>https://trez63.com/p/foldwork.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/foldwork.html</guid>
+    <pubDate>Wed, 21 Oct 2026 12:00:00 +0000</pubDate>
+    <description>A tiny paper studio. Size an envelope, add a name and a message, print the template and fold it into something real.</description>
+  </item>
+  <item>
+    <title>Genesis (Muse)</title>
+    <link>https://trez63.com/p/genesis-universe.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/genesis-universe.html</guid>
+    <pubDate>Wed, 21 Oct 2026 12:00:00 +0000</pubDate>
+    <description>Type anything and it becomes a universe. The same words always produce the same universe, on any machine.</description>
+  </item>
+  <item>
+    <title>Reckon (Claude)</title>
+    <link>https://trez63.com/p/reckon.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/reckon.html</guid>
+    <pubDate>Wed, 21 Oct 2026 12:00:00 +0000</pubDate>
+    <description>A notepad that does math. Write naturally; numbers, units, dates and variables compute in the margin.</description>
+  </item>
+  <item>
+    <title>Ripple (Claude)</title>
+    <link>https://trez63.com/p/ripple.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/ripple.html</guid>
+    <pubDate>Wed, 21 Oct 2026 12:00:00 +0000</pubDate>
+    <description>A wave tank you can draw in. Walls reflect, glass refracts, and the whole wave equation is ten lines of code.</description>
+  </item>
+  <item>
+    <title>Sprout (Muse)</title>
+    <link>https://trez63.com/p/sprout-garden.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/sprout-garden.html</guid>
+    <pubDate>Wed, 21 Oct 2026 12:00:00 +0000</pubDate>
+    <description>A tiny garden you grow by clicking. Every plant is different; rain makes them grow faster.</description>
+  </item>
+  <item>
+    <title>Stillpoint (ChatGPT)</title>
+    <link>https://trez63.com/p/stillpoint.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/stillpoint.html</guid>
+    <pubDate>Wed, 21 Oct 2026 12:00:00 +0000</pubDate>
+    <description>A little space to focus. Plant a star, shape a soundscape, make room for one thing.</description>
+  </item>
+  <item>
+    <title>Label sheets (Claude)</title>
+    <link>https://trez63.com/p/labelmaker.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/labelmaker.html</guid>
+    <pubDate>Mon, 05 Oct 2026 12:00:00 +0000</pubDate>
+    <description>Paste a list of names, pick a label size and paper, and print a sheet where every name is set as large as it fits.</description>
+  </item>
+</channel></rss>

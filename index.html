@@ -17,103 +17,133 @@
 <meta name="twitter:title" content="trez63 — one small app a day">
 <meta name="twitter:description" content="Every day ChatGPT, Claude and Muse each build a single-page app from the same one-line prompt. Play them, vote for the winner.">
 <meta name="twitter:image" content="https://trez63.com/thumbs/carve.webp">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
 <style>
-:root{--bg:#fbfbfd;--panel:#ffffff;--line:#e4e6ef;--fg:#0b0d17;--mute:#5b6075;--acc:#2b5cff;--acc-fg:#fff;--acc-soft:#e9efff;
-  --shadow:0 1px 2px rgba(11,13,23,.04),0 12px 32px -12px rgba(11,13,23,.14);--shadow-hover:0 2px 4px rgba(11,13,23,.05),0 24px 48px -16px rgba(11,13,23,.22);
-  --claude:#ff7a59;--chatgpt:#00b67a;--muse:#7c5cff;--gemini:#3b82f6;--grok:#111;--llama:#0866ff;--mistral:#f7931a;--deepseek:#4d6bfe;--copilot:#7c5cff;--other:#6b7280}
-@media (prefers-color-scheme: dark){:root{--bg:#0b0d17;--panel:#12152a;--line:#232742;--fg:#eef0ff;--mute:#8d93b0;--acc:#5b8cff;--acc-soft:#1a2347;
-  --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px -12px rgba(0,0,0,.5);--shadow-hover:0 2px 4px rgba(0,0,0,.35),0 24px 48px -16px rgba(0,0,0,.6)}}
+:root{--bg:#eff1f5;--panel:#fff;--line:#dce1e9;--fg:#17212d;--mute:#677180;--acc:#244fe5;--acc-fg:#fff;--acc-soft:#eef2ff;--yellow:#e5ff80;--soft:#f6f8fb;--radius:16px;
+  --claude:#c25a2c;--chatgpt:#2c816b;--muse:#6b4fe0;--gemini:#244fe5;--grok:#17212d;--llama:#0866ff;--mistral:#d9781a;--deepseek:#4d6bfe;--copilot:#6b4fe0;--other:#677180;color-scheme:light}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 "Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.6 Arial,Helvetica,sans-serif;font-synthesis:none;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
-header,main,section,footer{max-width:1240px;margin:0 auto;padding-left:24px;padding-right:24px}
-header{padding-top:56px;padding-bottom:8px}
-h1{font-size:clamp(34px,5.6vw,58px);font-weight:800;line-height:1.02;margin:0 0 14px;letter-spacing:-.04em;text-wrap:balance}
+button{font:inherit}
+.shell{max-width:1320px;margin:0 auto;padding:0 44px}
+@media (max-width:720px){.shell{padding:0 18px}}
+.topbar{height:88px;display:flex;align-items:center;justify-content:space-between;gap:15px;border-bottom:1px solid #d5dbe5}
+.logo{display:flex;align-items:center;gap:10px;font-size:25px;font-weight:800;letter-spacing:-1.1px}
+.logo i{width:27px;height:27px;border-radius:7px;background:var(--acc);display:inline-block;position:relative}
+.logo i::after{content:"";position:absolute;inset:8px;border-radius:3px;background:var(--yellow)}
+.nav{display:flex;align-items:center;gap:8px}
+.nav a{padding:10px 13px;border-radius:7px;font-size:12px;font-weight:700}
+.nav a:hover{background:#e2e6ee}
+.nav a.new{background:var(--fg);color:#fff}
+.privacy{font:10px/1.3 "Courier New",monospace;letter-spacing:.7px;color:var(--mute);display:flex;gap:6px;align-items:center;margin-right:8px}
+.privacy::before{content:"";width:6px;height:6px;background:#2c816b;border-radius:50%;flex:none}
+@media (max-width:720px){.privacy{display:none}}
+.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:25px;padding:36px 0 30px;flex-wrap:wrap}
+.eyebrow{font:11px/1.4 "Courier New",monospace;letter-spacing:1.1px;color:var(--acc);text-transform:uppercase;margin-bottom:12px}
+h1{font-size:clamp(40px,5.2vw,65px);line-height:.99;letter-spacing:-3.2px;font-weight:800;margin:0;max-width:11ch}
 h1 em{font-style:normal;color:var(--acc)}
-.lede{color:var(--mute);margin:0 0 20px;max-width:58ch;font-size:17px}
-.cta{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 6px}
-.cta a{padding:11px 18px;border-radius:999px;font-weight:700;font-size:14px;border:1px solid var(--line);background:var(--panel)}
-.cta a.p{background:var(--acc);color:var(--acc-fg);border-color:var(--acc);box-shadow:0 8px 24px -6px rgba(43,92,255,.45)}
-.cta a:hover{border-color:var(--mute)}
-.cta a.p:hover{filter:brightness(1.06);border-color:var(--acc)}
-.toolbar{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center}
-#q{font:inherit;font-size:15px;padding:9px 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--fg);width:min(100%,340px);outline:none}
-#q{box-shadow:var(--shadow)}
-#q:focus{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 25%,transparent)}
-.filters{display:flex;flex-wrap:wrap;gap:8px}
-.filters button{font:inherit;font-size:13px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer}
-.filters button{font-weight:600}
-.filters button[aria-pressed=true]{background:var(--acc);color:var(--acc-fg);border-color:var(--acc)}
-.sort{margin-left:auto}
-.sort button[aria-pressed=true]{background:var(--fg);border-color:var(--fg);color:var(--bg)}
-.cats{margin-top:10px}
-.cats button[aria-pressed=true]{background:var(--acc-soft);border-color:var(--acc);color:var(--acc)}
-.prompt{margin-top:22px;border:1px solid var(--line);border-radius:14px;background:var(--panel);max-width:70ch;box-shadow:var(--shadow)}
-.prompt summary{cursor:pointer;padding:12px 16px;font-weight:600;list-style:none;display:flex;align-items:center;gap:8px}
-.prompt summary::before{content:"▸";color:var(--acc);transition:transform .15s}
-.prompt[open] summary::before{transform:rotate(90deg)}
+@media (max-width:720px){h1{letter-spacing:-2px}}
+.hero-copy{max-width:300px;font-size:14px;color:var(--mute);line-height:1.65;padding-bottom:2px}
+.hero-copy strong{color:var(--fg)}
+.cta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.cta a{padding:10px 13px;border-radius:7px;font-size:12px;font-weight:700;border:1px solid var(--line);background:#fff}
+.cta a.p{background:var(--fg);color:#fff;border-color:var(--fg)}
+.cta a:hover{filter:brightness(.97)}
+.lede{display:none}
+.decision{display:flex;align-items:center;gap:20px;padding:18px 23px;background:var(--fg);color:#fff;border-radius:12px;margin-bottom:17px;flex-wrap:wrap}
+.decision label{font:10px/1.5 "Courier New",monospace;letter-spacing:1.1px;flex:none;color:#c0c9d7}
+.decision .q{flex:1;min-width:200px;font-size:19px;font-weight:600;letter-spacing:-.4px;line-height:1.3}
+.decision .example-tag{font-size:10px;background:var(--yellow);color:var(--fg);padding:7px 10px;border-radius:5px;white-space:nowrap;font-weight:700}
+.prompt{border:0;background:none;max-width:none;margin:0 0 17px}
+.prompt summary{cursor:pointer;list-style:none;display:block}
 .prompt summary::-webkit-details-marker{display:none}
-.prompt-body{padding:0 16px 16px;color:var(--mute);font-size:14px}
+.prompt summary .decision{margin:0}
+.prompt[open] summary .decision{border-radius:12px 12px 0 0}
+.prompt-body{background:#fff;border:1px solid var(--line);border-top:0;border-radius:0 0 12px 12px;padding:18px 23px 20px;color:var(--mute);font-size:14px;line-height:1.65}
 .prompt-body blockquote{margin:10px 0;padding:2px 0 2px 14px;border-left:3px solid var(--acc);color:var(--fg)}
 .prompt-body blockquote p{margin:8px 0}
-.prompt-body .small{font-size:13px;margin:8px 0 0}
+.prompt-body .small{font-size:12px;margin:8px 0 0}
 .prompt-body a{text-decoration:underline}
-.mh{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 16px;margin:0 0 12px}
-.mh h2{font-size:22px;margin:0;letter-spacing:-.01em}
-.dim{color:var(--mute);font-size:13px;font-weight:400}
-.matchup{padding-top:36px}
-.mgrid{display:grid;gap:22px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
-.score{padding-top:36px}
-.score table{border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-width:min(100%,460px);box-shadow:var(--shadow)}
-.score th,.score td{padding:10px 16px;text-align:left;border-top:1px solid var(--line)}
-.score th{font-size:12px;color:var(--mute);font-weight:600;border-top:0;background:color-mix(in srgb,var(--fg) 3%,var(--panel))}
-.score .num{text-align:right;font-variant-numeric:tabular-nums}
-.all{padding-top:36px}
-main{padding-top:12px;padding-bottom:80px;display:grid;gap:22px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow);transition:transform .18s,box-shadow .18s}
-.card:hover{transform:translateY(-3px);box-shadow:var(--shadow-hover)}
+.board{background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin-bottom:17px}
+.board-top{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:20px 23px 17px;flex-wrap:wrap}
+.board-title{font-size:14px;font-weight:700;display:flex;gap:11px;align-items:center;margin:0}
+.step-tag{font:11px "Courier New",monospace;color:var(--acc);background:var(--acc-soft);border-radius:4px;padding:5px 7px;letter-spacing:.5px}
+.board-note{font-size:12px;color:var(--mute)}
+.board-note .example-tag{font-size:10px;background:var(--yellow);color:var(--fg);padding:5px 8px;border-radius:5px;font-weight:700;margin-left:8px}
+.board-body{padding:0 23px 23px}
+.mgrid,main{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
+.mgrid{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.card{background:var(--soft);border:1px solid var(--line);border-radius:12px;overflow:visible;display:flex;flex-direction:column;position:relative}
 .card[hidden]{display:none}
-.card.big .body p{font-size:15px}
-.shot{display:block;aspect-ratio:16/10;background:#000;overflow:hidden;position:relative}
+.card:has(.share[open]){z-index:30}
+.shot{display:block;aspect-ratio:16/10;background:#000;overflow:hidden;position:relative;border-radius:12px 12px 0 0;border-bottom:1px solid var(--line)}
 .shot img,.shot video{width:100%;height:100%;object-fit:cover;display:block}
 .shot video{position:absolute;inset:0;opacity:0;transition:opacity .25s}
 .card:hover .shot video.ready{opacity:1}
-.body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
+.body{padding:13px 15px 15px;display:flex;flex-direction:column;gap:6px;flex:1}
 .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
-h2{font-size:18px;margin:0;letter-spacing:-.01em}
-.badge{font-size:11px;font-weight:700;letter-spacing:.02em;padding:3px 9px;border-radius:999px;color:#fff;white-space:nowrap}
+h2{margin:0}
+.card h2{font-size:16px;letter-spacing:-.3px;font-weight:700}
+.badge{font:10px "Courier New",monospace;letter-spacing:.8px;text-transform:uppercase;padding:4px 7px;border-radius:4px;color:#fff;white-space:nowrap}
 .badge.claude{background:var(--claude)}.badge.chatgpt{background:var(--chatgpt)}.badge.muse{background:var(--muse)}.badge.gemini{background:var(--gemini)}.badge.grok{background:var(--grok)}.badge.llama{background:var(--llama)}.badge.mistral{background:var(--mistral)}.badge.deepseek{background:var(--deepseek)}.badge.copilot{background:var(--copilot)}.badge.other{background:var(--other)}
-.body p{margin:0;color:var(--mute);font-size:14px;flex:1}
-.meta{display:flex;flex-wrap:wrap;gap:6px;font-size:12px;color:var(--mute);align-items:center}
+.body p{margin:0;color:var(--mute);font-size:13px;flex:1;line-height:1.55}
+.meta{display:flex;flex-wrap:wrap;gap:6px;font:11px "Courier New",monospace;color:var(--mute);align-items:center;letter-spacing:.3px}
 .meta a{text-decoration:underline dotted}
-.meta .rate{margin-left:auto;text-decoration:none;color:var(--acc-fg);background:var(--acc);font-weight:700;padding:4px 11px;border-radius:999px}
-.meta .rate:hover{text-decoration:none;filter:brightness(1.06)}
-.share.mini>button{font-size:12px;padding:3px 9px}
-.card{overflow:visible}
-.card .shot{border-radius:16px 16px 0 0}
-.card:has(.share[open]){z-index:30}
+.meta .acts{margin-left:auto;display:flex;gap:6px;align-items:center}
+.meta .rate{text-decoration:none;background:var(--fg);color:#fff;font:700 11px Arial,Helvetica,sans-serif;padding:6px 10px;border-radius:6px}
+.meta .rate:hover{filter:brightness(1.15)}
 .card .share menu{top:auto;bottom:calc(100% + 6px)}
-footer{padding-bottom:48px;color:var(--mute);font-size:13px}
+.share.mini>button{font-size:11px;font-weight:700;padding:5px 10px;border-radius:6px;border:1px solid var(--line);background:#fff}
+.score table{border-collapse:separate;border-spacing:0;width:100%;max-width:560px}
+.score th,.score td{padding:11px 23px;text-align:left;border-top:1px solid var(--line);font-size:14px}
+.score th{font:11px "Courier New",monospace;letter-spacing:1px;text-transform:uppercase;color:var(--mute);border-top:0;padding-top:0}
+.score .num{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;padding:0 23px 14px}
+#q{font:inherit;font-size:14px;padding:10px 13px;border-radius:7px;border:1px solid var(--line);background:#fff;color:var(--fg);width:min(100%,320px);outline:none}
+#q:focus-visible{outline:3px solid var(--acc);outline-offset:3px}
+.filters{display:flex;flex-wrap:wrap;gap:7px}
+.filters button{padding:9px 12px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--fg);cursor:pointer;font-size:11px;font-weight:700}
+.filters button:hover{background:#e2e6ee}
+.filters button[aria-pressed=true]{background:var(--fg);color:#fff;border-color:var(--fg)}
+.sort{margin-left:auto}
+.sort button[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:#fff}
+.cats{padding:0 23px 20px}
+.cats button{font:11px "Courier New",monospace;letter-spacing:.5px;background:var(--soft)}
+.cats button[aria-pressed=true]{background:var(--acc-soft);color:var(--acc);border-color:var(--acc)}
+#empty{padding:0 23px 20px;color:var(--mute);font-size:13px;margin:0}
+main{padding:0 23px 23px}
+footer{padding:10px 0 48px;color:var(--mute);font:11px "Courier New",monospace;letter-spacing:.5px}
 footer a{text-decoration:underline}
 
 .share{position:relative}
-.share>button{font:inherit;font-weight:600;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:999px;padding:6px 12px;white-space:nowrap}
-.share>button:hover{border-color:var(--mute)}
-.share menu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;margin:0;padding:6px;list-style:none;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 14px 40px rgba(0,0,0,.3);min-width:180px;display:none}
+.share>button{font:inherit;font-weight:700;font-size:12px;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--fg);border-radius:7px;padding:9px 12px;white-space:nowrap}
+.share>button:hover{background:#e2e6ee}
+.share menu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;margin:0;padding:6px;list-style:none;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 14px 40px rgba(23,33,45,.18);min-width:180px;display:none}
 .share[open] menu{display:block}
-.share menu a,.share menu button{display:block;width:100%;text-align:left;font:inherit;font-size:14px;background:none;border:0;color:var(--fg);padding:8px 10px;border-radius:7px;cursor:pointer;text-decoration:none}
-.share menu a:hover,.share menu button:hover{background:var(--line)}
+.share menu a,.share menu button{display:block;width:100%;text-align:left;font:inherit;font-size:13px;background:none;border:0;color:var(--fg);padding:8px 10px;border-radius:7px;cursor:pointer;text-decoration:none}
+.share menu a:hover,.share menu button:hover{background:#eef2ff}
 </style>
 </head>
 <body>
-<header>
-  <h1>One small app <em>a day.</em></h1>
-  <p class="lede">Every day three AI models — ChatGPT, Claude and Muse — each build a single-page app from the same one-line prompt. They land here untouched. Play them, then vote for the one that should win. Everything runs in your browser; nothing is uploaded anywhere.</p>
-  <div class="cta"><a class="p" href="#matchup">Play today's three</a><a href="#prompt">How it works</a></div>
-  
+<div class="shell">
+<div class="topbar">
+  <a class="logo" href="./"><i></i>trez63</a>
+  <nav class="nav">
+    <span class="privacy">RUNS IN YOUR BROWSER · NOTHING UPLOADED</span>
+    <a href="#prompt">The prompt</a>
+    <a href="feed.xml">RSS</a>
+    <a class="new" href="#matchup">Play today's three</a>
+  </nav>
+</div>
+<header class="hero">
+  <div>
+    <div class="eyebrow">three models · one prompt · every day</div>
+    <h1>One small app <em>a day.</em></h1>
+  </div>
+  <p class="hero-copy"><strong>ChatGPT, Claude and Muse</strong> each build a single-page app from the same one-line brief. They land here untouched. Play them, then vote for the one that should win.</p>
+</header>
+
   <details class="prompt" id="prompt">
-    <summary>The prompt every model gets</summary>
+    <summary><div class="decision"><label>THE PROMPT</label><span class="q">Every model gets the same brief. Click to read it.</span><span class="example-tag">SAME FOR ALL</span></div></summary>
     <div class="prompt-body">
       <p>Each model is given the same brief, once a day, with no follow-up. What you see here is exactly what came back.</p>
       <blockquote>
@@ -125,14 +155,13 @@ footer a{text-decoration:underline}
       <p class="small">Updates happen when the model is asked to add a feature to an existing app; the card's version number ticks up and the old version stays in the <a href="https://github.com/trez63/trez63.com">repo</a> history.</p>
     </div>
   </details>
-</header>
 
-<section class="matchup" id="matchup" aria-label="Latest matchup">
-  <div class="mh">
-    <h2>Latest matchup <span class="dim">· Oct 25, 2026</span></h2>
-    <span class="dim">Voting open — winner locks Nov 1, 2026</span>
+<section class="board matchup" id="matchup" aria-label="Latest matchup">
+  <div class="board-top">
+    <h2 class="board-title"><span class="step-tag">01</span>Latest matchup <span class="board-note">Oct 25, 2026</span></h2>
+    <span class="board-note">Voting open — winner locks Nov 1, 2026<span class="example-tag">VOTING OPEN</span></span>
   </div>
-  <div class="mgrid">
+  <div class="board-body"><div class="mgrid">
     <article class="card big" data-engine="ChatGPT" data-cat="image" data-up="0" data-date="2026-10-25" data-search="chroma desk a small studio for everyday color. drop a photo, pull a palette out of it, then edit and export the swatches. chroma-desk image chatgpt">
       <a class="shot" href="p/chroma-desk.html" aria-label="Open Chroma Desk"><img src="thumbs/chroma-desk.webp" alt=""  width="640" height="400"><video src="previews/chroma-desk.webm" muted loop playsinline preload="none" poster="thumbs/chroma-desk.webp"></video></a>
       <div class="body">
@@ -146,8 +175,7 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/chroma-desk.html" title="Version history on GitHub">v1</a>
           <span>· Image</span>
-          <a class="rate" href="rate.html?app=chroma-desk" title="Vote for this app">👍 Vote</a>
-          <span class="share mini" data-url="https://trez63.com/p/chroma-desk.html" data-title="Chroma Desk — trez63" data-text="Chroma Desk — a one-page app built by ChatGPT from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
+          <span class="acts"><a class="rate" href="rate.html?app=chroma-desk" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/chroma-desk.html" data-title="Chroma Desk — trez63" data-text="Chroma Desk — a one-page app built by ChatGPT from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
         </div>
       </div>
     </article>
@@ -164,8 +192,7 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/carve.html" title="Version history on GitHub">v1</a>
           <span>· Image</span>
-          <a class="rate" href="rate.html?app=carve" title="Vote for this app">👍 Vote</a>
-          <span class="share mini" data-url="https://trez63.com/p/carve.html" data-title="Carve — trez63" data-text="Carve — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
+          <span class="acts"><a class="rate" href="rate.html?app=carve" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/carve.html" data-title="Carve — trez63" data-text="Carve — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
         </div>
       </div>
     </article>
@@ -182,19 +209,23 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/budget.html" title="Version history on GitHub">v1</a>
           <span>· Finance</span>
-          <a class="rate" href="rate.html?app=budget" title="Vote for this app">👍 Vote</a>
-          <span class="share mini" data-url="https://trez63.com/p/budget.html" data-title="Budget — trez63" data-text="Budget — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
+          <span class="acts"><a class="rate" href="rate.html?app=budget" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/budget.html" data-title="Budget — trez63" data-text="Budget — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
         </div>
       </div>
-    </article></div>
+    </article></div></div>
 </section>
 
-<section class="score" aria-label="Scoreboard">
-  <div class="mh"><h2>Scoreboard</h2><span class="dim">0 rounds decided · a day's winner is the app with the most 👍 7 days after it ships; ties split</span></div>
+<section class="board score" aria-label="Scoreboard">
+  <div class="board-top">
+    <h2 class="board-title"><span class="step-tag">02</span>Scoreboard</h2>
+    <span class="board-note">0 rounds decided · a day's winner is the app with the most 👍 7 days after it ships; ties split</span>
+  </div>
   <table><thead><tr><th>Model</th><th class="num">Wins</th><th class="num">Total 👍</th><th class="num">Apps</th></tr></thead><tbody><tr><td><span class="badge claude">Claude</span></td><td class="num">0</td><td class="num">2</td><td class="num">8</td></tr><tr><td><span class="badge chatgpt">ChatGPT</span></td><td class="num">0</td><td class="num">0</td><td class="num">5</td></tr><tr><td><span class="badge muse">Muse</span></td><td class="num">0</td><td class="num">0</td><td class="num">8</td></tr></tbody></table>
 </section>
-<section class="all">
-  <div class="mh"><h2>All apps <span class="dim">· 21</span></h2></div>
+<section class="board all">
+  <div class="board-top">
+    <h2 class="board-title"><span class="step-tag">03</span>All apps <span class="board-note">21</span></h2>
+  </div>
   <div class="toolbar">
     <input id="q" type="search" placeholder="Search apps…" aria-label="Search apps by title or description" autocomplete="off">
     <div class="filters engines" role="group" aria-label="Filter by model">
@@ -205,9 +236,8 @@ footer a{text-decoration:underline}
     </div>
   </div>
   <div class="filters cats" role="group" aria-label="Filter by category"><button data-cat="audio">Audio</button><button data-cat="dev">Dev tools</button><button data-cat="finance">Finance</button><button data-cat="focus">Focus</button><button data-cat="game">Games</button><button data-cat="art">Generative art</button><button data-cat="image">Image</button><button data-cat="sim">Simulations</button><button data-cat="tool">Tools</button></div>
-  <p id="empty" class="lede" hidden>No apps match that.</p>
-</section>
-<main id="grid">
+  <p id="empty" hidden>No apps match that.</p>
+  <main id="grid">
     <article class="card" data-engine="Claude" data-cat="image" data-up="0" data-date="2026-10-25" data-search="carve content-aware image resizing. drag an edge and the picture shrinks by removing its least interesting paths, so subjects stay intact. paint over an object and delete it. carve image claude">
       <a class="shot" href="p/carve.html" aria-label="Open Carve"><img src="thumbs/carve.webp" alt="" loading=lazy width="640" height="400"><video src="previews/carve.webm" muted loop playsinline preload="none" poster="thumbs/carve.webp"></video></a>
       <div class="body">
@@ -221,8 +251,7 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/carve.html" title="Version history on GitHub">v1</a>
           <span>· Image</span>
-          <a class="rate" href="rate.html?app=carve" title="Vote for this app">👍 Vote</a>
-          <span class="share mini" data-url="https://trez63.com/p/carve.html" data-title="Carve — trez63" data-text="Carve — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
+          <span class="acts"><a class="rate" href="rate.html?app=carve" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/carve.html" data-title="Carve — trez63" data-text="Carve — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
         </div>
       </div>
     </article>
@@ -239,8 +268,7 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/budget.html" title="Version history on GitHub">v1</a>
           <span>· Finance</span>
-          <a class="rate" href="rate.html?app=budget" title="Vote for this app">👍 Vote</a>
-          <span class="share mini" data-url="https://trez63.com/p/budget.html" data-title="Budget — trez63" data-text="Budget — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
+          <span class="acts"><a class="rate" href="rate.html?app=budget" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/budget.html" data-title="Budget — trez63" data-text="Budget — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
         </div>
       </div>
     </article>
@@ -257,8 +285,7 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/hilbert.html" title="Version history on GitHub">v1</a>
           <span>· Dev tools</span>
-          <a class="rate" href="rate.html?app=hilbert" title="Vote for this app">👍 Vote</a>
-          <span class="share mini" data-url="https://trez63.com/p/hilbert.html" data-title="Hilbert — trez63" data-text="Hilbert — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
+          <span class="acts"><a class="rate" href="rate.html?app=hilbert" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/hilbert.html" data-title="Hilbert — trez63" data-text="Hilbert — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
         </div>
       </div>
     </article>
@@ -275,8 +302,7 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/tessera.html" title="Version history on GitHub">v1</a>
           <span>· Generative art</span>
-          <a class="rate" href="rate.html?app=tessera" title="Vote for this app">👍 Vote</a>
-          <span class="share mini" data-url="https://trez63.com/p/tessera.html" data-title="Tessera — trez63" data-text="Tessera — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
+          <span class="acts"><a class="rate" href="rate.html?app=tessera" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/tessera.html" data-title="Tessera — trez63" data-text="Tessera — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
         </div>
       </div>
     </article>
@@ -293,8 +319,7 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/chroma-desk.html" title="Version history on GitHub">v1</a>
           <span>· Image</span>
-          <a class="rate" href="rate.html?app=chroma-desk" title="Vote for this app">👍 Vote</a>
-          <span class="share mini" data-url="https://trez63.com/p/chroma-desk.html" data-title="Chroma Desk — trez63" data-text="Chroma Desk — a one-page app built by ChatGPT from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
+          <span class="acts"><a class="rate" href="rate.html?app=chroma-desk" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/chroma-desk.html" data-title="Chroma Desk — trez63" data-text="Chroma Desk — a one-page app built by ChatGPT from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
         </div>
       </div>
     </article>
@@ -311,8 +336,7 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/dayblock.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
-          <a class="rate" href="rate.html?app=dayblock" title="Vote for this app">👍 Vote</a>
-          <span class="share mini" data-url="https://trez63.com/p/dayblock.html" data-title="Dayblock — trez63" data-text="Dayblock — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
+          <span class="acts"><a class="rate" href="rate.html?app=dayblock" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/dayblock.html" data-title="Dayblock — trez63" data-text="Dayblock — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
         </div>
       </div>
     </article>
@@ -329,8 +353,7 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/pantry-clock.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
-          <a class="rate" href="rate.html?app=pantry-clock" title="Vote for this app">👍 Vote</a>
-          <span class="share mini" data-url="https://trez63.com/p/pantry-clock.html" data-title="Pantry Clock — trez63" data-text="Pantry Clock — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
+          <span class="acts"><a class="rate" href="rate.html?app=pantry-clock" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/pantry-clock.html" data-title="Pantry Clock — trez63" data-text="Pantry Clock — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
         </div>
       </div>
     </article>
@@ -347,8 +370,7 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/ledger.html" title="Version history on GitHub">v1</a>
           <span>· Finance</span>
-          <a class="rate" href="rate.html?app=ledger" title="Vote for this app">👍 Vote</a>
-          <span class="share mini" data-url="https://trez63.com/p/ledger.html" data-title="Ledger — trez63" data-text="Ledger — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
+          <span class="acts"><a class="rate" href="rate.html?app=ledger" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/ledger.html" data-title="Ledger — trez63" data-text="Ledger — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
         </div>
       </div>
     </article>
@@ -365,8 +387,7 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/meadowsong.html" title="Version history on GitHub">v1</a>
           <span>· Audio</span>
-          <a class="rate" href="rate.html?app=meadowsong" title="Vote for this app">👍 Vote</a>
-          <span class="share mini" data-url="https://trez63.com/p/meadowsong.html" data-title="Meadowsong — trez63" data-text="Meadowsong — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
+          <span class="acts"><a class="rate" href="rate.html?app=meadowsong" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/meadowsong.html" data-title="Meadowsong — trez63" data-text="Meadowsong — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
         </div>
       </div>
     </article>
@@ -383,8 +404,7 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/position.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
-          <a class="rate" href="rate.html?app=position" title="Vote for this app">👍 Vote</a>
-          <span class="share mini" data-url="https://trez63.com/p/position.html" data-title="Position — trez63" data-text="Position — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
+          <span class="acts"><a class="rate" href="rate.html?app=position" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/position.html" data-title="Position — trez63" data-text="Position — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
         </div>
       </div>
     </article>
@@ -401,8 +421,7 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/crosslight.html" title="Version history on GitHub">v1</a>
           <span>· Games</span>
-          <a class="rate" href="rate.html?app=crosslight" title="Vote for this app">👍 Vote</a>
-          <span class="share mini" data-url="https://trez63.com/p/crosslight.html" data-title="Crosslight — trez63" data-text="Crosslight — a one-page app built by ChatGPT from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
+          <span class="acts"><a class="rate" href="rate.html?app=crosslight" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/crosslight.html" data-title="Crosslight — trez63" data-text="Crosslight — a one-page app built by ChatGPT from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
         </div>
       </div>
     </article>
@@ -419,8 +438,7 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/kaleido.html" title="Version history on GitHub">v1</a>
           <span>· Generative art</span>
-          <a class="rate" href="rate.html?app=kaleido" title="Vote for this app">👍 Vote</a>
-          <span class="share mini" data-url="https://trez63.com/p/kaleido.html" data-title="Kaleido — trez63" data-text="Kaleido — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
+          <span class="acts"><a class="rate" href="rate.html?app=kaleido" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/kaleido.html" data-title="Kaleido — trez63" data-text="Kaleido — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
         </div>
       </div>
     </article>
@@ -437,8 +455,7 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/sonogram.html" title="Version history on GitHub">v1</a>
           <span>· Audio</span>
-          <a class="rate" href="rate.html?app=sonogram" title="Vote for this app">👍 1</a>
-          <span class="share mini" data-url="https://trez63.com/p/sonogram.html" data-title="Sonogram — trez63" data-text="Sonogram — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
+          <span class="acts"><a class="rate" href="rate.html?app=sonogram" title="Vote for this app">👍 1</a><span class="share mini" data-url="https://trez63.com/p/sonogram.html" data-title="Sonogram — trez63" data-text="Sonogram — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
         </div>
       </div>
     </article>
@@ -455,8 +472,7 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/tradeoff.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
-          <a class="rate" href="rate.html?app=tradeoff" title="Vote for this app">👍 Vote</a>
-          <span class="share mini" data-url="https://trez63.com/p/tradeoff.html" data-title="Tradeoff — trez63" data-text="Tradeoff — a one-page app built by ChatGPT from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
+          <span class="acts"><a class="rate" href="rate.html?app=tradeoff" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/tradeoff.html" data-title="Tradeoff — trez63" data-text="Tradeoff — a one-page app built by ChatGPT from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
         </div>
       </div>
     </article>
@@ -473,8 +489,7 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/foldwork.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
-          <a class="rate" href="rate.html?app=foldwork" title="Vote for this app">👍 Vote</a>
-          <span class="share mini" data-url="https://trez63.com/p/foldwork.html" data-title="Foldwork — trez63" data-text="Foldwork — a one-page app built by ChatGPT from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
+          <span class="acts"><a class="rate" href="rate.html?app=foldwork" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/foldwork.html" data-title="Foldwork — trez63" data-text="Foldwork — a one-page app built by ChatGPT from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
         </div>
       </div>
     </article>
@@ -491,8 +506,7 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/genesis-universe.html" title="Version history on GitHub">v1</a>
           <span>· Generative art</span>
-          <a class="rate" href="rate.html?app=genesis-universe" title="Vote for this app">👍 Vote</a>
-          <span class="share mini" data-url="https://trez63.com/p/genesis-universe.html" data-title="Genesis — trez63" data-text="Genesis — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
+          <span class="acts"><a class="rate" href="rate.html?app=genesis-universe" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/genesis-universe.html" data-title="Genesis — trez63" data-text="Genesis — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
         </div>
       </div>
     </article>
@@ -509,8 +523,7 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/reckon.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
-          <a class="rate" href="rate.html?app=reckon" title="Vote for this app">👍 Vote</a>
-          <span class="share mini" data-url="https://trez63.com/p/reckon.html" data-title="Reckon — trez63" data-text="Reckon — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
+          <span class="acts"><a class="rate" href="rate.html?app=reckon" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/reckon.html" data-title="Reckon — trez63" data-text="Reckon — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
         </div>
       </div>
     </article>
@@ -527,8 +540,7 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/ripple.html" title="Version history on GitHub">v1</a>
           <span>· Simulations</span>
-          <a class="rate" href="rate.html?app=ripple" title="Vote for this app">👍 1</a>
-          <span class="share mini" data-url="https://trez63.com/p/ripple.html" data-title="Ripple — trez63" data-text="Ripple — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
+          <span class="acts"><a class="rate" href="rate.html?app=ripple" title="Vote for this app">👍 1</a><span class="share mini" data-url="https://trez63.com/p/ripple.html" data-title="Ripple — trez63" data-text="Ripple — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
         </div>
       </div>
     </article>
@@ -545,8 +557,7 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/sprout-garden.html" title="Version history on GitHub">v1</a>
           <span>· Generative art</span>
-          <a class="rate" href="rate.html?app=sprout-garden" title="Vote for this app">👍 Vote</a>
-          <span class="share mini" data-url="https://trez63.com/p/sprout-garden.html" data-title="Sprout — trez63" data-text="Sprout — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
+          <span class="acts"><a class="rate" href="rate.html?app=sprout-garden" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/sprout-garden.html" data-title="Sprout — trez63" data-text="Sprout — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
         </div>
       </div>
     </article>
@@ -563,8 +574,7 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/stillpoint.html" title="Version history on GitHub">v1</a>
           <span>· Focus</span>
-          <a class="rate" href="rate.html?app=stillpoint" title="Vote for this app">👍 Vote</a>
-          <span class="share mini" data-url="https://trez63.com/p/stillpoint.html" data-title="Stillpoint — trez63" data-text="Stillpoint — a one-page app built by ChatGPT from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
+          <span class="acts"><a class="rate" href="rate.html?app=stillpoint" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/stillpoint.html" data-title="Stillpoint — trez63" data-text="Stillpoint — a one-page app built by ChatGPT from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
         </div>
       </div>
     </article>
@@ -581,13 +591,14 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/labelmaker.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
-          <a class="rate" href="rate.html?app=labelmaker" title="Vote for this app">👍 Vote</a>
-          <span class="share mini" data-url="https://trez63.com/p/labelmaker.html" data-title="Label sheets — trez63" data-text="Label sheets — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
+          <span class="acts"><a class="rate" href="rate.html?app=labelmaker" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/labelmaker.html" data-title="Label sheets — trez63" data-text="Label sheets — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
         </div>
       </div>
     </article>
-</main>
-<footer>Source and full version history on <a href="https://github.com/trez63/trez63.com">GitHub</a> · <a href="feed.xml">RSS</a> · Last published Oct 25, 2026.</footer>
+  </main>
+</section>
+<footer>SOURCE AND FULL VERSION HISTORY ON <a href="https://github.com/trez63/trez63.com">GITHUB</a> · <a href="feed.xml">RSS</a> · LAST PUBLISHED OCT 25, 2026</footer>
+</div>
 <script>
 const q=document.getElementById('q'), grid=document.getElementById('grid'), cards=[...grid.querySelectorAll('.card')], empty=document.getElementById('empty');
 let engine='all', cat='all', sort='new';

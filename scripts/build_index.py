@@ -20,12 +20,12 @@ CAT_LABEL = {"tool": "Tools", "art": "Generative art", "game": "Games", "audio":
              "image": "Image", "finance": "Finance", "dev": "Dev tools", "focus": "Focus", "text": "Text", "edu": "Explainers"}
 SHARE_CSS = """
 .share{position:relative}
-.share>button{font:inherit;font-weight:600;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:999px;padding:6px 12px;white-space:nowrap}
-.share>button:hover{border-color:var(--mute)}
-.share menu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;margin:0;padding:6px;list-style:none;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 14px 40px rgba(0,0,0,.3);min-width:180px;display:none}
+.share>button{font:inherit;font-weight:700;font-size:12px;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--fg);border-radius:7px;padding:9px 12px;white-space:nowrap}
+.share>button:hover{background:#e2e6ee}
+.share menu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;margin:0;padding:6px;list-style:none;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 14px 40px rgba(23,33,45,.18);min-width:180px;display:none}
 .share[open] menu{display:block}
-.share menu a,.share menu button{display:block;width:100%;text-align:left;font:inherit;font-size:14px;background:none;border:0;color:var(--fg);padding:8px 10px;border-radius:7px;cursor:pointer;text-decoration:none}
-.share menu a:hover,.share menu button:hover{background:var(--line)}
+.share menu a,.share menu button{display:block;width:100%;text-align:left;font:inherit;font-size:13px;background:none;border:0;color:var(--fg);padding:8px 10px;border-radius:7px;cursor:pointer;text-decoration:none}
+.share menu a:hover,.share menu button:hover{background:#eef2ff}
 """
 SHARE_JS = """
 (function(){
@@ -118,8 +118,7 @@ def card(slug, e, big=False):
           <span>·</span>
           <a href="{REPO}/commits/main/apps/{slug}.html" title="Version history on GitHub">v{e['version']}</a>
           {f'<span>· {E(CAT_LABEL.get(cat, cat))}</span>' if cat else ''}
-          <a class="rate" href="rate.html?app={slug}" title="Vote for this app">👍 {u if u else 'Vote'}</a>
-          {share_el(slug, e, "share mini")}
+          <span class="acts"><a class="rate" href="rate.html?app={slug}" title="Vote for this app">👍 {u if u else 'Vote'}</a>{share_el(slug, e, "share mini")}</span>
         </div>
       </div>
     </article>"""
@@ -137,12 +136,12 @@ if len(matchup) >= 2:
     status = ("Winner locked" if matchup_locked else
               f"Voting open — winner locks {fmt((date.fromisoformat(matchup_date) + timedelta(days=WIN_AFTER_DAYS)).isoformat())}")
     matchup_html = f"""
-<section class="matchup" id="matchup" aria-label="Latest matchup">
-  <div class="mh">
-    <h2>Latest matchup <span class="dim">· {fmt(matchup_date)}</span></h2>
-    <span class="dim">{status}{' · ' + str(lead) + ' votes leads' if lead else ''}</span>
+<section class="board matchup" id="matchup" aria-label="Latest matchup">
+  <div class="board-top">
+    <h2 class="board-title"><span class="step-tag">01</span>Latest matchup <span class="board-note">{fmt(matchup_date)}</span></h2>
+    <span class="board-note">{status}{' · ' + str(lead) + ' votes leads' if lead else ''}{'' if matchup_locked else '<span class="example-tag">VOTING OPEN</span>'}</span>
   </div>
-  <div class="mgrid">{cols}</div>
+  <div class="board-body"><div class="mgrid">{cols}</div></div>
 </section>"""
 
 rows = "".join(
@@ -150,88 +149,109 @@ rows = "".join(
     f'<td class="num">{wins[en]:g}</td><td class="num">{totals[en]}</td><td class="num">{counts[en]}</td></tr>'
     for en in board)
 score_html = f"""
-<section class="score" aria-label="Scoreboard">
-  <div class="mh"><h2>Scoreboard</h2><span class="dim">{rounds_locked} round{'s' if rounds_locked != 1 else ''} decided · a day's winner is the app with the most 👍 {WIN_AFTER_DAYS} days after it ships; ties split</span></div>
+<section class="board score" aria-label="Scoreboard">
+  <div class="board-top">
+    <h2 class="board-title"><span class="step-tag">02</span>Scoreboard</h2>
+    <span class="board-note">{rounds_locked} round{'s' if rounds_locked != 1 else ''} decided · a day's winner is the app with the most 👍 {WIN_AFTER_DAYS} days after it ships; ties split</span>
+  </div>
   <table><thead><tr><th>Model</th><th class="num">Wins</th><th class="num">Total 👍</th><th class="num">Apps</th></tr></thead><tbody>{rows}</tbody></table>
 </section>"""
 
 CSS = """
-:root{--bg:#fbfbfd;--panel:#ffffff;--line:#e4e6ef;--fg:#0b0d17;--mute:#5b6075;--acc:#2b5cff;--acc-fg:#fff;--acc-soft:#e9efff;
-  --shadow:0 1px 2px rgba(11,13,23,.04),0 12px 32px -12px rgba(11,13,23,.14);--shadow-hover:0 2px 4px rgba(11,13,23,.05),0 24px 48px -16px rgba(11,13,23,.22);
-  --claude:#ff7a59;--chatgpt:#00b67a;--muse:#7c5cff;--gemini:#3b82f6;--grok:#111;--llama:#0866ff;--mistral:#f7931a;--deepseek:#4d6bfe;--copilot:#7c5cff;--other:#6b7280}
-@media (prefers-color-scheme: dark){:root{--bg:#0b0d17;--panel:#12152a;--line:#232742;--fg:#eef0ff;--mute:#8d93b0;--acc:#5b8cff;--acc-soft:#1a2347;
-  --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px -12px rgba(0,0,0,.5);--shadow-hover:0 2px 4px rgba(0,0,0,.35),0 24px 48px -16px rgba(0,0,0,.6)}}
+:root{--bg:#eff1f5;--panel:#fff;--line:#dce1e9;--fg:#17212d;--mute:#677180;--acc:#244fe5;--acc-fg:#fff;--acc-soft:#eef2ff;--yellow:#e5ff80;--soft:#f6f8fb;--radius:16px;
+  --claude:#c25a2c;--chatgpt:#2c816b;--muse:#6b4fe0;--gemini:#244fe5;--grok:#17212d;--llama:#0866ff;--mistral:#d9781a;--deepseek:#4d6bfe;--copilot:#6b4fe0;--other:#677180;color-scheme:light}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 "Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.6 Arial,Helvetica,sans-serif;font-synthesis:none;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
-header,main,section,footer{max-width:1240px;margin:0 auto;padding-left:24px;padding-right:24px}
-header{padding-top:56px;padding-bottom:8px}
-h1{font-size:clamp(34px,5.6vw,58px);font-weight:800;line-height:1.02;margin:0 0 14px;letter-spacing:-.04em;text-wrap:balance}
+button{font:inherit}
+.shell{max-width:1320px;margin:0 auto;padding:0 44px}
+@media (max-width:720px){.shell{padding:0 18px}}
+.topbar{height:88px;display:flex;align-items:center;justify-content:space-between;gap:15px;border-bottom:1px solid #d5dbe5}
+.logo{display:flex;align-items:center;gap:10px;font-size:25px;font-weight:800;letter-spacing:-1.1px}
+.logo i{width:27px;height:27px;border-radius:7px;background:var(--acc);display:inline-block;position:relative}
+.logo i::after{content:"";position:absolute;inset:8px;border-radius:3px;background:var(--yellow)}
+.nav{display:flex;align-items:center;gap:8px}
+.nav a{padding:10px 13px;border-radius:7px;font-size:12px;font-weight:700}
+.nav a:hover{background:#e2e6ee}
+.nav a.new{background:var(--fg);color:#fff}
+.privacy{font:10px/1.3 "Courier New",monospace;letter-spacing:.7px;color:var(--mute);display:flex;gap:6px;align-items:center;margin-right:8px}
+.privacy::before{content:"";width:6px;height:6px;background:#2c816b;border-radius:50%;flex:none}
+@media (max-width:720px){.privacy{display:none}}
+.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:25px;padding:36px 0 30px;flex-wrap:wrap}
+.eyebrow{font:11px/1.4 "Courier New",monospace;letter-spacing:1.1px;color:var(--acc);text-transform:uppercase;margin-bottom:12px}
+h1{font-size:clamp(40px,5.2vw,65px);line-height:.99;letter-spacing:-3.2px;font-weight:800;margin:0;max-width:11ch}
 h1 em{font-style:normal;color:var(--acc)}
-.lede{color:var(--mute);margin:0 0 20px;max-width:58ch;font-size:17px}
-.cta{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 6px}
-.cta a{padding:11px 18px;border-radius:999px;font-weight:700;font-size:14px;border:1px solid var(--line);background:var(--panel)}
-.cta a.p{background:var(--acc);color:var(--acc-fg);border-color:var(--acc);box-shadow:0 8px 24px -6px rgba(43,92,255,.45)}
-.cta a:hover{border-color:var(--mute)}
-.cta a.p:hover{filter:brightness(1.06);border-color:var(--acc)}
-.toolbar{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center}
-#q{font:inherit;font-size:15px;padding:9px 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--fg);width:min(100%,340px);outline:none}
-#q{box-shadow:var(--shadow)}
-#q:focus{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 25%,transparent)}
-.filters{display:flex;flex-wrap:wrap;gap:8px}
-.filters button{font:inherit;font-size:13px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer}
-.filters button{font-weight:600}
-.filters button[aria-pressed=true]{background:var(--acc);color:var(--acc-fg);border-color:var(--acc)}
-.sort{margin-left:auto}
-.sort button[aria-pressed=true]{background:var(--fg);border-color:var(--fg);color:var(--bg)}
-.cats{margin-top:10px}
-.cats button[aria-pressed=true]{background:var(--acc-soft);border-color:var(--acc);color:var(--acc)}
-.prompt{margin-top:22px;border:1px solid var(--line);border-radius:14px;background:var(--panel);max-width:70ch;box-shadow:var(--shadow)}
-.prompt summary{cursor:pointer;padding:12px 16px;font-weight:600;list-style:none;display:flex;align-items:center;gap:8px}
-.prompt summary::before{content:"▸";color:var(--acc);transition:transform .15s}
-.prompt[open] summary::before{transform:rotate(90deg)}
+@media (max-width:720px){h1{letter-spacing:-2px}}
+.hero-copy{max-width:300px;font-size:14px;color:var(--mute);line-height:1.65;padding-bottom:2px}
+.hero-copy strong{color:var(--fg)}
+.cta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.cta a{padding:10px 13px;border-radius:7px;font-size:12px;font-weight:700;border:1px solid var(--line);background:#fff}
+.cta a.p{background:var(--fg);color:#fff;border-color:var(--fg)}
+.cta a:hover{filter:brightness(.97)}
+.lede{display:none}
+.decision{display:flex;align-items:center;gap:20px;padding:18px 23px;background:var(--fg);color:#fff;border-radius:12px;margin-bottom:17px;flex-wrap:wrap}
+.decision label{font:10px/1.5 "Courier New",monospace;letter-spacing:1.1px;flex:none;color:#c0c9d7}
+.decision .q{flex:1;min-width:200px;font-size:19px;font-weight:600;letter-spacing:-.4px;line-height:1.3}
+.decision .example-tag{font-size:10px;background:var(--yellow);color:var(--fg);padding:7px 10px;border-radius:5px;white-space:nowrap;font-weight:700}
+.prompt{border:0;background:none;max-width:none;margin:0 0 17px}
+.prompt summary{cursor:pointer;list-style:none;display:block}
 .prompt summary::-webkit-details-marker{display:none}
-.prompt-body{padding:0 16px 16px;color:var(--mute);font-size:14px}
+.prompt summary .decision{margin:0}
+.prompt[open] summary .decision{border-radius:12px 12px 0 0}
+.prompt-body{background:#fff;border:1px solid var(--line);border-top:0;border-radius:0 0 12px 12px;padding:18px 23px 20px;color:var(--mute);font-size:14px;line-height:1.65}
 .prompt-body blockquote{margin:10px 0;padding:2px 0 2px 14px;border-left:3px solid var(--acc);color:var(--fg)}
 .prompt-body blockquote p{margin:8px 0}
-.prompt-body .small{font-size:13px;margin:8px 0 0}
+.prompt-body .small{font-size:12px;margin:8px 0 0}
 .prompt-body a{text-decoration:underline}
-.mh{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 16px;margin:0 0 12px}
-.mh h2{font-size:22px;margin:0;letter-spacing:-.01em}
-.dim{color:var(--mute);font-size:13px;font-weight:400}
-.matchup{padding-top:36px}
-.mgrid{display:grid;gap:22px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
-.score{padding-top:36px}
-.score table{border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-width:min(100%,460px);box-shadow:var(--shadow)}
-.score th,.score td{padding:10px 16px;text-align:left;border-top:1px solid var(--line)}
-.score th{font-size:12px;color:var(--mute);font-weight:600;border-top:0;background:color-mix(in srgb,var(--fg) 3%,var(--panel))}
-.score .num{text-align:right;font-variant-numeric:tabular-nums}
-.all{padding-top:36px}
-main{padding-top:12px;padding-bottom:80px;display:grid;gap:22px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow);transition:transform .18s,box-shadow .18s}
-.card:hover{transform:translateY(-3px);box-shadow:var(--shadow-hover)}
+.board{background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin-bottom:17px}
+.board-top{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:20px 23px 17px;flex-wrap:wrap}
+.board-title{font-size:14px;font-weight:700;display:flex;gap:11px;align-items:center;margin:0}
+.step-tag{font:11px "Courier New",monospace;color:var(--acc);background:var(--acc-soft);border-radius:4px;padding:5px 7px;letter-spacing:.5px}
+.board-note{font-size:12px;color:var(--mute)}
+.board-note .example-tag{font-size:10px;background:var(--yellow);color:var(--fg);padding:5px 8px;border-radius:5px;font-weight:700;margin-left:8px}
+.board-body{padding:0 23px 23px}
+.mgrid,main{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
+.mgrid{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.card{background:var(--soft);border:1px solid var(--line);border-radius:12px;overflow:visible;display:flex;flex-direction:column;position:relative}
 .card[hidden]{display:none}
-.card.big .body p{font-size:15px}
-.shot{display:block;aspect-ratio:16/10;background:#000;overflow:hidden;position:relative}
+.card:has(.share[open]){z-index:30}
+.shot{display:block;aspect-ratio:16/10;background:#000;overflow:hidden;position:relative;border-radius:12px 12px 0 0;border-bottom:1px solid var(--line)}
 .shot img,.shot video{width:100%;height:100%;object-fit:cover;display:block}
 .shot video{position:absolute;inset:0;opacity:0;transition:opacity .25s}
 .card:hover .shot video.ready{opacity:1}
-.body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
+.body{padding:13px 15px 15px;display:flex;flex-direction:column;gap:6px;flex:1}
 .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
-h2{font-size:18px;margin:0;letter-spacing:-.01em}
-.badge{font-size:11px;font-weight:700;letter-spacing:.02em;padding:3px 9px;border-radius:999px;color:#fff;white-space:nowrap}
+h2{margin:0}
+.card h2{font-size:16px;letter-spacing:-.3px;font-weight:700}
+.badge{font:10px "Courier New",monospace;letter-spacing:.8px;text-transform:uppercase;padding:4px 7px;border-radius:4px;color:#fff;white-space:nowrap}
 .badge.claude{background:var(--claude)}.badge.chatgpt{background:var(--chatgpt)}.badge.muse{background:var(--muse)}.badge.gemini{background:var(--gemini)}.badge.grok{background:var(--grok)}.badge.llama{background:var(--llama)}.badge.mistral{background:var(--mistral)}.badge.deepseek{background:var(--deepseek)}.badge.copilot{background:var(--copilot)}.badge.other{background:var(--other)}
-.body p{margin:0;color:var(--mute);font-size:14px;flex:1}
-.meta{display:flex;flex-wrap:wrap;gap:6px;font-size:12px;color:var(--mute);align-items:center}
+.body p{margin:0;color:var(--mute);font-size:13px;flex:1;line-height:1.55}
+.meta{display:flex;flex-wrap:wrap;gap:6px;font:11px "Courier New",monospace;color:var(--mute);align-items:center;letter-spacing:.3px}
 .meta a{text-decoration:underline dotted}
-.meta .rate{margin-left:auto;text-decoration:none;color:var(--acc-fg);background:var(--acc);font-weight:700;padding:4px 11px;border-radius:999px}
-.meta .rate:hover{text-decoration:none;filter:brightness(1.06)}
-.share.mini>button{font-size:12px;padding:3px 9px}
-.card{overflow:visible}
-.card .shot{border-radius:16px 16px 0 0}
-.card:has(.share[open]){z-index:30}
+.meta .acts{margin-left:auto;display:flex;gap:6px;align-items:center}
+.meta .rate{text-decoration:none;background:var(--fg);color:#fff;font:700 11px Arial,Helvetica,sans-serif;padding:6px 10px;border-radius:6px}
+.meta .rate:hover{filter:brightness(1.15)}
 .card .share menu{top:auto;bottom:calc(100% + 6px)}
-footer{padding-bottom:48px;color:var(--mute);font-size:13px}
+.share.mini>button{font-size:11px;font-weight:700;padding:5px 10px;border-radius:6px;border:1px solid var(--line);background:#fff}
+.score table{border-collapse:separate;border-spacing:0;width:100%;max-width:560px}
+.score th,.score td{padding:11px 23px;text-align:left;border-top:1px solid var(--line);font-size:14px}
+.score th{font:11px "Courier New",monospace;letter-spacing:1px;text-transform:uppercase;color:var(--mute);border-top:0;padding-top:0}
+.score .num{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;padding:0 23px 14px}
+#q{font:inherit;font-size:14px;padding:10px 13px;border-radius:7px;border:1px solid var(--line);background:#fff;color:var(--fg);width:min(100%,320px);outline:none}
+#q:focus-visible{outline:3px solid var(--acc);outline-offset:3px}
+.filters{display:flex;flex-wrap:wrap;gap:7px}
+.filters button{padding:9px 12px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--fg);cursor:pointer;font-size:11px;font-weight:700}
+.filters button:hover{background:#e2e6ee}
+.filters button[aria-pressed=true]{background:var(--fg);color:#fff;border-color:var(--fg)}
+.sort{margin-left:auto}
+.sort button[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:#fff}
+.cats{padding:0 23px 20px}
+.cats button{font:11px "Courier New",monospace;letter-spacing:.5px;background:var(--soft)}
+.cats button[aria-pressed=true]{background:var(--acc-soft);color:var(--acc);border-color:var(--acc)}
+#empty{padding:0 23px 20px;color:var(--mute);font-size:13px;margin:0}
+main{padding:0 23px 23px}
+footer{padding:10px 0 48px;color:var(--mute);font:11px "Courier New",monospace;letter-spacing:.5px}
 footer a{text-decoration:underline}
 """
 
@@ -269,7 +289,7 @@ document.querySelectorAll('.card').forEach(c=>{
 
 PROMPT = f"""
   <details class="prompt" id="prompt">
-    <summary>The prompt every model gets</summary>
+    <summary><div class="decision"><label>THE PROMPT</label><span class="q">Every model gets the same brief. Click to read it.</span><span class="example-tag">SAME FOR ALL</span></div></summary>
     <div class="prompt-body">
       <p>Each model is given the same brief, once a day, with no follow-up. What you see here is exactly what came back.</p>
       <blockquote>
@@ -309,20 +329,33 @@ page = f"""<!doctype html>
 <link rel="canonical" href="{SITE}/">
 <link rel="alternate" type="application/rss+xml" title="trez63 — new apps" href="{SITE}/feed.xml">
 {og("trez63 — one small app a day", SITE_DESC, f"{SITE}/thumbs/{newest_slug}.webp", SITE + "/")}
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
 <style>{CSS}{SHARE_CSS}</style>
 </head>
 <body>
-<header>
-  <h1>One small app <em>a day.</em></h1>
-  <p class="lede">Every day {n_word} AI models — {eng_list} — each build a single-page app from the same one-line prompt. They land here untouched. Play them, then vote for the one that should win. Everything runs in your browser; nothing is uploaded anywhere.</p>
-  <div class="cta"><a class="p" href="#matchup">Play today's {n_word}</a><a href="#prompt">How it works</a></div>
-  {PROMPT}
+<div class="shell">
+<div class="topbar">
+  <a class="logo" href="./"><i></i>trez63</a>
+  <nav class="nav">
+    <span class="privacy">RUNS IN YOUR BROWSER · NOTHING UPLOADED</span>
+    <a href="#prompt">The prompt</a>
+    <a href="feed.xml">RSS</a>
+    <a class="new" href="#matchup">Play today's {n_word}</a>
+  </nav>
+</div>
+<header class="hero">
+  <div>
+    <div class="eyebrow">{n_word} models · one prompt · every day</div>
+    <h1>One small app <em>a day.</em></h1>
+  </div>
+  <p class="hero-copy"><strong>{eng_list}</strong> each build a single-page app from the same one-line brief. They land here untouched. Play them, then vote for the one that should win.</p>
 </header>
+{PROMPT}
 {matchup_html}
 {score_html}
-<section class="all">
-  <div class="mh"><h2>All apps <span class="dim">· {len(apps)}</span></h2></div>
+<section class="board all">
+  <div class="board-top">
+    <h2 class="board-title"><span class="step-tag">03</span>All apps <span class="board-note">{len(apps)}</span></h2>
+  </div>
   <div class="toolbar">
     <input id="q" type="search" placeholder="Search apps…" aria-label="Search apps by title or description" autocomplete="off">
     <div class="filters engines" role="group" aria-label="Filter by model">
@@ -333,11 +366,12 @@ page = f"""<!doctype html>
     </div>
   </div>
   <div class="filters cats" role="group" aria-label="Filter by category">{cat_filters}</div>
-  <p id="empty" class="lede" hidden>No apps match that.</p>
+  <p id="empty" hidden>No apps match that.</p>
+  <main id="grid">{cards}
+  </main>
 </section>
-<main id="grid">{cards}
-</main>
-<footer>Source and full version history on <a href="{REPO}">GitHub</a> · <a href="feed.xml">RSS</a> · Last published {fmt(catalog.get('generated', TODAY.isoformat()))}.</footer>
+<footer>SOURCE AND FULL VERSION HISTORY ON <a href="{REPO}">GITHUB</a> · <a href="feed.xml">RSS</a> · LAST PUBLISHED {fmt(catalog.get('generated', TODAY.isoformat())).upper()}</footer>
+</div>
 <script>{JS}{SHARE_JS}</script>
 </body>
 </html>
@@ -360,21 +394,21 @@ for slug, e in apps.items():
 <meta name="description" content="{E(desc)}">
 <link rel="canonical" href="{SITE}/p/{slug}.html">
 {og(e['title'] + ' — built by ' + e['engine'], desc, f"{SITE}/thumbs/{slug}.webp", f"{SITE}/p/{slug}.html")}
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
 <style>
-:root{{--bg:#fbfbfd;--panel:#ffffff;--line:#e4e6ef;--fg:#0b0d17;--mute:#5b6075;--acc:#2b5cff;--acc-fg:#fff;--claude:#ff7a59;--chatgpt:#00b67a;--muse:#7c5cff;--gemini:#3b82f6;--grok:#111;--llama:#0866ff;--mistral:#f7931a;--deepseek:#4d6bfe;--copilot:#7c5cff;--other:#6b7280}}
-@media (prefers-color-scheme: dark){{:root{{--bg:#0b0d17;--panel:#12152a;--line:#232742;--fg:#eef0ff;--mute:#8d93b0;--acc:#5b8cff}}}}
+:root{{--bg:#eff1f5;--panel:#fff;--line:#dce1e9;--fg:#17212d;--mute:#677180;--acc:#244fe5;--acc-fg:#fff;--yellow:#e5ff80;--claude:#c25a2c;--chatgpt:#2c816b;--muse:#6b4fe0;--gemini:#244fe5;--grok:#17212d;--llama:#0866ff;--mistral:#d9781a;--deepseek:#4d6bfe;--copilot:#6b4fe0;--other:#677180;color-scheme:light}}
 *{{box-sizing:border-box}}html,body{{height:100%;margin:0}}
-body{{display:flex;flex-direction:column;background:var(--bg);color:var(--fg);font:14px "Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}}
-.bar{{display:flex;align-items:center;gap:12px;padding:8px 14px;background:var(--panel);border-bottom:1px solid var(--line);flex:none}}
+body{{display:flex;flex-direction:column;background:var(--bg);color:var(--fg);font:13px Arial,Helvetica,sans-serif}}
+.bar{{display:flex;align-items:center;gap:12px;padding:0 16px;height:52px;background:var(--panel);border-bottom:1px solid #d5dbe5;flex:none}}
 .bar a{{color:inherit;text-decoration:none}}
 .back{{color:var(--mute)}} .back:hover{{color:var(--fg)}}
-.title{{font-weight:600}}
-.badge{{font-size:10px;font-weight:700;letter-spacing:.02em;padding:2px 8px;border-radius:999px;color:#fff}}
+.title{{font-weight:800;font-size:16px;letter-spacing:-.4px}}
+.badge{{font:10px "Courier New",monospace;letter-spacing:.8px;text-transform:uppercase;padding:4px 7px;border-radius:4px;color:#fff}}
 .badge.claude{{background:var(--claude)}}.badge.chatgpt{{background:var(--chatgpt)}}.badge.muse{{background:var(--muse)}}.badge.gemini{{background:var(--gemini)}}.badge.grok{{background:var(--grok)}}.badge.llama{{background:var(--llama)}}.badge.mistral{{background:var(--mistral)}}.badge.deepseek{{background:var(--deepseek)}}.badge.copilot{{background:var(--copilot)}}.badge.other{{background:var(--other)}}
 .desc{{color:var(--mute);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:1;min-width:0}}
-.vote{{background:var(--acc);color:#fff!important;font-weight:700;padding:6px 13px;border-radius:999px;white-space:nowrap;box-shadow:0 6px 16px -6px rgba(43,92,255,.5)}}
-.raw{{color:var(--mute);white-space:nowrap}} .raw:hover{{color:var(--fg)}}
+.vote{{background:var(--fg);color:#fff!important;font-weight:700;font-size:12px;padding:9px 13px;border-radius:7px;white-space:nowrap}}
+.vote:hover{{filter:brightness(1.15)}}
+.raw{{color:var(--mute);white-space:nowrap;font:11px "Courier New",monospace;letter-spacing:.5px}} .raw:hover{{color:var(--fg)}}
+.back{{font-weight:800;font-size:15px;letter-spacing:-.6px;color:var(--fg)!important}}
 iframe{{flex:1;border:0;width:100%;background:#fff}}
 @media (max-width:640px){{.desc,.raw{{display:none}}}}
 {SHARE_CSS}

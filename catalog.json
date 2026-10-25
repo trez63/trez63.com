@@ -298,7 +298,14 @@
           }
         ]
       },
-      "category": "sim"
+      "category": "sim",
+      "votes": {
+        "up": 1,
+        "reactions": 1,
+        "comments": 0,
+        "url": "https://github.com/trez63/trez63.com/discussions/6",
+        "fetched": "2026-10-25"
+      }
     },
     "sonogram": {
       "title": "Sonogram",
@@ -353,7 +360,14 @@
           }
         ]
       },
-      "category": "audio"
+      "category": "audio",
+      "votes": {
+        "up": 1,
+        "reactions": 1,
+        "comments": 0,
+        "url": "https://github.com/trez63/trez63.com/discussions/7",
+        "fetched": "2026-10-25"
+      }
     },
     "sprout-garden": {
       "title": "Sprout",
@@ -597,7 +611,14 @@
           "sha": "07fbd74082ba"
         }
       ],
-      "category": "image"
+      "category": "image",
+      "votes": {
+        "up": 0,
+        "reactions": 1,
+        "comments": 0,
+        "url": "https://github.com/trez63/trez63.com/discussions/8",
+        "fetched": "2026-10-25"
+      }
     },
     "dayblock": {
       "title": "Dayblock",
@@ -662,5 +683,6 @@
       "category": "tool"
     }
   },
-  "generated": "2026-10-25"
+  "generated": "2026-10-25",
+  "votes_fetched": "2026-10-25"
 }

@@ -20,7 +20,7 @@ CAT_LABEL = {"tool": "Tools", "art": "Generative art", "game": "Games", "audio":
              "image": "Image", "finance": "Finance", "dev": "Dev tools", "focus": "Focus", "text": "Text", "edu": "Explainers"}
 SHARE_CSS = """
 .share{position:relative}
-.share>button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:999px;padding:6px 12px;white-space:nowrap}
+.share>button{font:inherit;font-weight:600;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:999px;padding:6px 12px;white-space:nowrap}
 .share>button:hover{border-color:var(--mute)}
 .share menu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;margin:0;padding:6px;list-style:none;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 14px 40px rgba(0,0,0,.3);min-width:180px;display:none}
 .share[open] menu{display:block}
@@ -137,7 +137,7 @@ if len(matchup) >= 2:
     status = ("Winner locked" if matchup_locked else
               f"Voting open — winner locks {fmt((date.fromisoformat(matchup_date) + timedelta(days=WIN_AFTER_DAYS)).isoformat())}")
     matchup_html = f"""
-<section class="matchup" aria-label="Latest matchup">
+<section class="matchup" id="matchup" aria-label="Latest matchup">
   <div class="mh">
     <h2>Latest matchup <span class="dim">· {fmt(matchup_date)}</span></h2>
     <span class="dim">{status}{' · ' + str(lead) + ' votes leads' if lead else ''}</span>
@@ -156,28 +156,37 @@ score_html = f"""
 </section>"""
 
 CSS = """
-:root{--bg:#0f1115;--panel:#161a21;--line:#242a34;--fg:#e8e9ec;--mute:#8b93a1;--acc:#ff6a45;
-  --claude:#d97757;--chatgpt:#10a37f;--muse:#8b5cf6;--gemini:#4285f4;--grok:#1d1d1f;--llama:#0866ff;--mistral:#f7931a;--deepseek:#4d6bfe;--copilot:#8b5cf6;--other:#6b7280}
-@media (prefers-color-scheme: light){:root{--bg:#f6f4ef;--panel:#ffffff;--line:#e2ded4;--fg:#1c1b19;--mute:#6f6a60}}
+:root{--bg:#fbfbfd;--panel:#ffffff;--line:#e4e6ef;--fg:#0b0d17;--mute:#5b6075;--acc:#2b5cff;--acc-fg:#fff;--acc-soft:#e9efff;
+  --shadow:0 1px 2px rgba(11,13,23,.04),0 12px 32px -12px rgba(11,13,23,.14);--shadow-hover:0 2px 4px rgba(11,13,23,.05),0 24px 48px -16px rgba(11,13,23,.22);
+  --claude:#ff7a59;--chatgpt:#00b67a;--muse:#7c5cff;--gemini:#3b82f6;--grok:#111;--llama:#0866ff;--mistral:#f7931a;--deepseek:#4d6bfe;--copilot:#7c5cff;--other:#6b7280}
+@media (prefers-color-scheme: dark){:root{--bg:#0b0d17;--panel:#12152a;--line:#232742;--fg:#eef0ff;--mute:#8d93b0;--acc:#5b8cff;--acc-soft:#1a2347;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px -12px rgba(0,0,0,.5);--shadow-hover:0 2px 4px rgba(0,0,0,.35),0 24px 48px -16px rgba(0,0,0,.6)}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 "Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
 header,main,section,footer{max-width:1240px;margin:0 auto;padding-left:24px;padding-right:24px}
 header{padding-top:56px;padding-bottom:8px}
-h1{font-size:clamp(28px,5vw,44px);margin:0 0 6px;letter-spacing:-.02em}
+h1{font-size:clamp(34px,5.6vw,58px);font-weight:800;line-height:1.02;margin:0 0 14px;letter-spacing:-.04em;text-wrap:balance}
 h1 em{font-style:normal;color:var(--acc)}
-.lede{color:var(--mute);margin:0 0 22px;max-width:60ch}
+.lede{color:var(--mute);margin:0 0 20px;max-width:58ch;font-size:17px}
+.cta{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 6px}
+.cta a{padding:11px 18px;border-radius:999px;font-weight:700;font-size:14px;border:1px solid var(--line);background:var(--panel)}
+.cta a.p{background:var(--acc);color:var(--acc-fg);border-color:var(--acc);box-shadow:0 8px 24px -6px rgba(43,92,255,.45)}
+.cta a:hover{border-color:var(--mute)}
+.cta a.p:hover{filter:brightness(1.06);border-color:var(--acc)}
 .toolbar{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center}
 #q{font:inherit;font-size:15px;padding:9px 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--fg);width:min(100%,340px);outline:none}
+#q{box-shadow:var(--shadow)}
 #q:focus{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 25%,transparent)}
 .filters{display:flex;flex-wrap:wrap;gap:8px}
 .filters button{font:inherit;font-size:13px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer}
-.filters button[aria-pressed=true]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.filters button{font-weight:600}
+.filters button[aria-pressed=true]{background:var(--acc);color:var(--acc-fg);border-color:var(--acc)}
 .sort{margin-left:auto}
-.sort button[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:#fff}
+.sort button[aria-pressed=true]{background:var(--fg);border-color:var(--fg);color:var(--bg)}
 .cats{margin-top:10px}
-.cats button[aria-pressed=true]{background:var(--mute);border-color:var(--mute);color:var(--bg)}
-.prompt{margin-top:22px;border:1px solid var(--line);border-radius:12px;background:var(--panel);max-width:70ch}
+.cats button[aria-pressed=true]{background:var(--acc-soft);border-color:var(--acc);color:var(--acc)}
+.prompt{margin-top:22px;border:1px solid var(--line);border-radius:14px;background:var(--panel);max-width:70ch;box-shadow:var(--shadow)}
 .prompt summary{cursor:pointer;padding:12px 16px;font-weight:600;list-style:none;display:flex;align-items:center;gap:8px}
 .prompt summary::before{content:"▸";color:var(--acc);transition:transform .15s}
 .prompt[open] summary::before{transform:rotate(90deg)}
@@ -193,14 +202,14 @@ h1 em{font-style:normal;color:var(--acc)}
 .matchup{padding-top:36px}
 .mgrid{display:grid;gap:22px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
 .score{padding-top:36px}
-.score table{border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;min-width:min(100%,460px)}
+.score table{border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-width:min(100%,460px);box-shadow:var(--shadow)}
 .score th,.score td{padding:10px 16px;text-align:left;border-top:1px solid var(--line)}
-.score th{font-size:12px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;border-top:0}
+.score th{font-size:12px;color:var(--mute);font-weight:600;border-top:0;background:color-mix(in srgb,var(--fg) 3%,var(--panel))}
 .score .num{text-align:right;font-variant-numeric:tabular-nums}
 .all{padding-top:36px}
 main{padding-top:12px;padding-bottom:80px;display:grid;gap:22px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;transition:transform .15s,box-shadow .15s}
-.card:hover{transform:translateY(-3px);box-shadow:0 14px 40px rgba(0,0,0,.25)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow);transition:transform .18s,box-shadow .18s}
+.card:hover{transform:translateY(-3px);box-shadow:var(--shadow-hover)}
 .card[hidden]{display:none}
 .card.big .body p{font-size:15px}
 .shot{display:block;aspect-ratio:16/10;background:#000;overflow:hidden;position:relative}
@@ -210,16 +219,16 @@ main{padding-top:12px;padding-bottom:80px;display:grid;gap:22px;grid-template-co
 .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
 .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
 h2{font-size:18px;margin:0;letter-spacing:-.01em}
-.badge{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:6px;color:#fff;white-space:nowrap}
+.badge{font-size:11px;font-weight:700;letter-spacing:.02em;padding:3px 9px;border-radius:999px;color:#fff;white-space:nowrap}
 .badge.claude{background:var(--claude)}.badge.chatgpt{background:var(--chatgpt)}.badge.muse{background:var(--muse)}.badge.gemini{background:var(--gemini)}.badge.grok{background:var(--grok)}.badge.llama{background:var(--llama)}.badge.mistral{background:var(--mistral)}.badge.deepseek{background:var(--deepseek)}.badge.copilot{background:var(--copilot)}.badge.other{background:var(--other)}
 .body p{margin:0;color:var(--mute);font-size:14px;flex:1}
 .meta{display:flex;flex-wrap:wrap;gap:6px;font-size:12px;color:var(--mute);align-items:center}
 .meta a{text-decoration:underline dotted}
-.meta .rate{margin-left:auto;text-decoration:none;color:var(--acc);font-weight:600}
-.meta .rate:hover{text-decoration:underline}
+.meta .rate{margin-left:auto;text-decoration:none;color:var(--acc-fg);background:var(--acc);font-weight:700;padding:4px 11px;border-radius:999px}
+.meta .rate:hover{text-decoration:none;filter:brightness(1.06)}
 .share.mini>button{font-size:12px;padding:3px 9px}
 .card{overflow:visible}
-.card .shot{border-radius:14px 14px 0 0}
+.card .shot{border-radius:16px 16px 0 0}
 .card:has(.share[open]){z-index:30}
 .card .share menu{top:auto;bottom:calc(100% + 6px)}
 footer{padding-bottom:48px;color:var(--mute);font-size:13px}
@@ -300,12 +309,14 @@ page = f"""<!doctype html>
 <link rel="canonical" href="{SITE}/">
 <link rel="alternate" type="application/rss+xml" title="trez63 — new apps" href="{SITE}/feed.xml">
 {og("trez63 — one small app a day", SITE_DESC, f"{SITE}/thumbs/{newest_slug}.webp", SITE + "/")}
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
 <style>{CSS}{SHARE_CSS}</style>
 </head>
 <body>
 <header>
-  <h1>One small app <em>a day</em>.</h1>
-  <p class="lede">Every day {n_word} AI models ({eng_list}) each build a single-page app from the same one-line prompt. They land here, untouched. Play them, then vote for the one that should win. Everything runs in your browser — nothing is uploaded anywhere.</p>
+  <h1>One small app <em>a day.</em></h1>
+  <p class="lede">Every day {n_word} AI models — {eng_list} — each build a single-page app from the same one-line prompt. They land here untouched. Play them, then vote for the one that should win. Everything runs in your browser; nothing is uploaded anywhere.</p>
+  <div class="cta"><a class="p" href="#matchup">Play today's {n_word}</a><a href="#prompt">How it works</a></div>
   {PROMPT}
 </header>
 {matchup_html}
@@ -349,19 +360,20 @@ for slug, e in apps.items():
 <meta name="description" content="{E(desc)}">
 <link rel="canonical" href="{SITE}/p/{slug}.html">
 {og(e['title'] + ' — built by ' + e['engine'], desc, f"{SITE}/thumbs/{slug}.webp", f"{SITE}/p/{slug}.html")}
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
 <style>
-:root{{--bg:#0f1115;--panel:#161a21;--line:#242a34;--fg:#e8e9ec;--mute:#8b93a1;--acc:#ff6a45;--claude:#d97757;--chatgpt:#10a37f;--muse:#8b5cf6;--gemini:#4285f4;--grok:#1d1d1f;--llama:#0866ff;--mistral:#f7931a;--deepseek:#4d6bfe;--copilot:#8b5cf6;--other:#6b7280}}
-@media (prefers-color-scheme: light){{:root{{--bg:#f6f4ef;--panel:#ffffff;--line:#e2ded4;--fg:#1c1b19;--mute:#6f6a60}}}}
+:root{{--bg:#fbfbfd;--panel:#ffffff;--line:#e4e6ef;--fg:#0b0d17;--mute:#5b6075;--acc:#2b5cff;--acc-fg:#fff;--claude:#ff7a59;--chatgpt:#00b67a;--muse:#7c5cff;--gemini:#3b82f6;--grok:#111;--llama:#0866ff;--mistral:#f7931a;--deepseek:#4d6bfe;--copilot:#7c5cff;--other:#6b7280}}
+@media (prefers-color-scheme: dark){{:root{{--bg:#0b0d17;--panel:#12152a;--line:#232742;--fg:#eef0ff;--mute:#8d93b0;--acc:#5b8cff}}}}
 *{{box-sizing:border-box}}html,body{{height:100%;margin:0}}
-body{{display:flex;flex-direction:column;background:var(--bg);color:var(--fg);font:14px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}}
+body{{display:flex;flex-direction:column;background:var(--bg);color:var(--fg);font:14px "Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}}
 .bar{{display:flex;align-items:center;gap:12px;padding:8px 14px;background:var(--panel);border-bottom:1px solid var(--line);flex:none}}
 .bar a{{color:inherit;text-decoration:none}}
 .back{{color:var(--mute)}} .back:hover{{color:var(--fg)}}
 .title{{font-weight:600}}
-.badge{{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:5px;color:#fff}}
+.badge{{font-size:10px;font-weight:700;letter-spacing:.02em;padding:2px 8px;border-radius:999px;color:#fff}}
 .badge.claude{{background:var(--claude)}}.badge.chatgpt{{background:var(--chatgpt)}}.badge.muse{{background:var(--muse)}}.badge.gemini{{background:var(--gemini)}}.badge.grok{{background:var(--grok)}}.badge.llama{{background:var(--llama)}}.badge.mistral{{background:var(--mistral)}}.badge.deepseek{{background:var(--deepseek)}}.badge.copilot{{background:var(--copilot)}}.badge.other{{background:var(--other)}}
 .desc{{color:var(--mute);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:1;min-width:0}}
-.vote{{background:var(--acc);color:#fff!important;font-weight:600;padding:6px 12px;border-radius:999px;white-space:nowrap}}
+.vote{{background:var(--acc);color:#fff!important;font-weight:700;padding:6px 13px;border-radius:999px;white-space:nowrap;box-shadow:0 6px 16px -6px rgba(43,92,255,.5)}}
 .raw{{color:var(--mute);white-space:nowrap}} .raw:hover{{color:var(--fg)}}
 iframe{{flex:1;border:0;width:100%;background:#fff}}
 @media (max-width:640px){{.desc,.raw{{display:none}}}}

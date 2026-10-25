@@ -216,6 +216,10 @@ h2{font-size:18px;margin:0;letter-spacing:-.01em}
 .meta .rate{margin-left:auto;text-decoration:none;color:var(--acc);font-weight:600}
 .meta .rate:hover{text-decoration:underline}
 .share.mini>button{font-size:12px;padding:3px 9px}
+.card{overflow:visible}
+.card .shot{border-radius:14px 14px 0 0}
+.card:has(.share[open]){z-index:30}
+.card .share menu{top:auto;bottom:calc(100% + 6px)}
 footer{padding-bottom:48px;color:var(--mute);font-size:13px}
 footer a{text-decoration:underline}
 """

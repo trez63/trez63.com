@@ -7,16 +7,19 @@
 <meta name="description" content="Every day ChatGPT, Claude, Gemini, Grok and Muse each build a single-page app from the same one-line prompt. Play them, vote for the winner.">
 <link rel="canonical" href="https://trez63.com/">
 <link rel="alternate" type="application/rss+xml" title="trez63 — new apps" href="https://trez63.com/feed.xml">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="trez63">
 <meta property="og:title" content="trez63 — one small app a day">
 <meta property="og:description" content="Every day ChatGPT, Claude, Gemini, Grok and Muse each build a single-page app from the same one-line prompt. Play them, vote for the winner.">
-<meta property="og:image" content="https://trez63.com/thumbs/carve.webp">
+<meta property="og:image" content="https://trez63.com/assets/og.png">
 <meta property="og:url" content="https://trez63.com/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="trez63 — one small app a day">
 <meta name="twitter:description" content="Every day ChatGPT, Claude, Gemini, Grok and Muse each build a single-page app from the same one-line prompt. Play them, vote for the winner.">
-<meta name="twitter:image" content="https://trez63.com/thumbs/carve.webp">
+<meta name="twitter:image" content="https://trez63.com/assets/og.png">
 <style>
 :root{--bg:#eff1f5;--panel:#fff;--line:#dce1e9;--fg:#17212d;--mute:#677180;--acc:#244fe5;--acc-fg:#fff;--acc-soft:#eef2ff;--yellow:#e5ff80;--soft:#f6f8fb;--radius:16px;
   --claude:#c25a2c;--chatgpt:#2c816b;--muse:#6b4fe0;--gemini:#244fe5;--grok:#17212d;--llama:#0866ff;--mistral:#d9781a;--deepseek:#4d6bfe;--copilot:#6b4fe0;--other:#677180;color-scheme:light}
@@ -26,10 +29,11 @@ a{color:inherit;text-decoration:none}
 button{font:inherit}
 .shell{max-width:1320px;margin:0 auto;padding:0 44px}
 @media (max-width:720px){.shell{padding:0 18px}}
-.topbar{height:88px;display:flex;align-items:center;justify-content:space-between;gap:15px;border-bottom:1px solid #d5dbe5}
-.logo{display:flex;align-items:center;gap:10px;font-size:25px;font-weight:800;letter-spacing:-1.1px}
-.logo i{width:27px;height:27px;border-radius:7px;background:var(--acc);display:inline-block;position:relative}
-.logo i::after{content:"";position:absolute;inset:8px;border-radius:3px;background:var(--yellow)}
+.topbar{height:104px;display:flex;align-items:center;justify-content:space-between;gap:15px;border-bottom:1px solid #d5dbe5}
+@media (max-width:720px){.topbar{height:76px}.nav a:not(.new){display:none}.nav a.new{white-space:nowrap}}
+.logo{display:flex;align-items:center}
+.logo img{height:86px;width:auto;display:block;margin-left:-6px}
+@media (max-width:720px){.logo img{height:56px;margin-left:-4px}}
 .nav{display:flex;align-items:center;gap:8px}
 .nav a{padding:10px 13px;border-radius:7px;font-size:12px;font-weight:700}
 .nav a:hover{background:#e2e6ee}
@@ -126,7 +130,7 @@ footer a{text-decoration:underline}
 <body>
 <div class="shell">
 <div class="topbar">
-  <a class="logo" href="./"><i></i>trez63</a>
+  <a class="logo" href="./"><img src="assets/logo.png" alt="trez63.com" width="600" height="400"></a>
   <nav class="nav">
     <span class="privacy">RUNS IN YOUR BROWSER · NOTHING UPLOADED</span>
     <a href="#prompt">The prompt</a>

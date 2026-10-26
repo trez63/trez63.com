@@ -166,10 +166,11 @@ a{color:inherit;text-decoration:none}
 button{font:inherit}
 .shell{max-width:1320px;margin:0 auto;padding:0 44px}
 @media (max-width:720px){.shell{padding:0 18px}}
-.topbar{height:88px;display:flex;align-items:center;justify-content:space-between;gap:15px;border-bottom:1px solid #d5dbe5}
-.logo{display:flex;align-items:center;gap:10px;font-size:25px;font-weight:800;letter-spacing:-1.1px}
-.logo i{width:27px;height:27px;border-radius:7px;background:var(--acc);display:inline-block;position:relative}
-.logo i::after{content:"";position:absolute;inset:8px;border-radius:3px;background:var(--yellow)}
+.topbar{height:104px;display:flex;align-items:center;justify-content:space-between;gap:15px;border-bottom:1px solid #d5dbe5}
+@media (max-width:720px){.topbar{height:76px}.nav a:not(.new){display:none}.nav a.new{white-space:nowrap}}
+.logo{display:flex;align-items:center}
+.logo img{height:86px;width:auto;display:block;margin-left:-6px}
+@media (max-width:720px){.logo img{height:56px;margin-left:-4px}}
 .nav{display:flex;align-items:center;gap:8px}
 .nav a{padding:10px 13px;border-radius:7px;font-size:12px;font-weight:700}
 .nav a:hover{background:#e2e6ee}
@@ -328,13 +329,16 @@ page = f"""<!doctype html>
 <meta name="description" content="{SITE_DESC}">
 <link rel="canonical" href="{SITE}/">
 <link rel="alternate" type="application/rss+xml" title="trez63 — new apps" href="{SITE}/feed.xml">
-{og("trez63 — one small app a day", SITE_DESC, f"{SITE}/thumbs/{newest_slug}.webp", SITE + "/")}
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+{og("trez63 — one small app a day", SITE_DESC, f"{SITE}/assets/og.png", SITE + "/")}
 <style>{CSS}{SHARE_CSS}</style>
 </head>
 <body>
 <div class="shell">
 <div class="topbar">
-  <a class="logo" href="./"><i></i>trez63</a>
+  <a class="logo" href="./"><img src="assets/logo.png" alt="trez63.com" width="{int(400*1175/783)}" height="400"></a>
   <nav class="nav">
     <span class="privacy">RUNS IN YOUR BROWSER · NOTHING UPLOADED</span>
     <a href="#prompt">The prompt</a>
@@ -393,6 +397,9 @@ for slug, e in apps.items():
 <title>{E(e['title'])} — trez63</title>
 <meta name="description" content="{E(desc)}">
 <link rel="canonical" href="{SITE}/p/{slug}.html">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
 {og(e['title'] + ' — built by ' + e['engine'], desc, f"{SITE}/thumbs/{slug}.webp", f"{SITE}/p/{slug}.html")}
 <style>
 :root{{--bg:#eff1f5;--panel:#fff;--line:#dce1e9;--fg:#17212d;--mute:#677180;--acc:#244fe5;--acc-fg:#fff;--yellow:#e5ff80;--claude:#c25a2c;--chatgpt:#2c816b;--muse:#6b4fe0;--gemini:#244fe5;--grok:#17212d;--llama:#0866ff;--mistral:#d9781a;--deepseek:#4d6bfe;--copilot:#6b4fe0;--other:#677180;color-scheme:light}}
@@ -408,7 +415,7 @@ body{{display:flex;flex-direction:column;background:var(--bg);color:var(--fg);fo
 .vote{{background:var(--fg);color:#fff!important;font-weight:700;font-size:12px;padding:9px 13px;border-radius:7px;white-space:nowrap}}
 .vote:hover{{filter:brightness(1.15)}}
 .raw{{color:var(--mute);white-space:nowrap;font:11px "Courier New",monospace;letter-spacing:.5px}} .raw:hover{{color:var(--fg)}}
-.back{{font-weight:800;font-size:15px;letter-spacing:-.6px;color:var(--fg)!important}}
+.back img{{height:36px;width:auto;display:block}}
 iframe{{flex:1;border:0;width:100%;background:#fff}}
 @media (max-width:640px){{.desc,.raw{{display:none}}}}
 {SHARE_CSS}
@@ -416,7 +423,7 @@ iframe{{flex:1;border:0;width:100%;background:#fff}}
 </head>
 <body>
 <div class="bar">
-  <a class="back" href="../">← trez63</a>
+  <a class="back" href="../" title="All apps"><img src="../assets/mark-192.png" alt="trez63" width="192" height="192"></a>
   <span class="title">{E(e['title'])}</span>
   <span class="badge {cls}">{eng}</span>
   <span class="desc">{E(desc)}</span>

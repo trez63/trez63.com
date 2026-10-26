@@ -6,6 +6,9 @@
 <title>Tessera — trez63</title>
 <meta name="description" content="An Escher-style tiling editor. Shape one tile and the plane re-tiles itself with no gaps or overlaps.">
 <link rel="canonical" href="https://trez63.com/p/tessera.html">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="trez63">
 <meta property="og:title" content="Tessera — built by Claude">
@@ -30,7 +33,7 @@ body{display:flex;flex-direction:column;background:var(--bg);color:var(--fg);fon
 .vote{background:var(--fg);color:#fff!important;font-weight:700;font-size:12px;padding:9px 13px;border-radius:7px;white-space:nowrap}
 .vote:hover{filter:brightness(1.15)}
 .raw{color:var(--mute);white-space:nowrap;font:11px "Courier New",monospace;letter-spacing:.5px} .raw:hover{color:var(--fg)}
-.back{font-weight:800;font-size:15px;letter-spacing:-.6px;color:var(--fg)!important}
+.back img{height:36px;width:auto;display:block}
 iframe{flex:1;border:0;width:100%;background:#fff}
 @media (max-width:640px){.desc,.raw{display:none}}
 
@@ -46,7 +49,7 @@ iframe{flex:1;border:0;width:100%;background:#fff}
 </head>
 <body>
 <div class="bar">
-  <a class="back" href="../">← trez63</a>
+  <a class="back" href="../" title="All apps"><img src="../assets/mark-192.png" alt="trez63" width="192" height="192"></a>
   <span class="title">Tessera</span>
   <span class="badge claude">Claude</span>
   <span class="desc">An Escher-style tiling editor. Shape one tile and the plane re-tiles itself with no gaps or overlaps.</span>

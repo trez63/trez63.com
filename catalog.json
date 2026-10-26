@@ -35,7 +35,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/9",
-        "fetched": "2026-10-25"
+        "fetched": "2026-10-26"
       }
     },
     "foldwork": {
@@ -311,7 +311,7 @@
         "reactions": 1,
         "comments": 1,
         "url": "https://github.com/trez63/trez63.com/discussions/6",
-        "fetched": "2026-10-25"
+        "fetched": "2026-10-26"
       }
     },
     "sonogram": {
@@ -373,7 +373,7 @@
         "reactions": 1,
         "comments": 1,
         "url": "https://github.com/trez63/trez63.com/discussions/7",
-        "fetched": "2026-10-25"
+        "fetched": "2026-10-26"
       }
     },
     "sprout-garden": {
@@ -474,7 +474,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/11",
-        "fetched": "2026-10-25"
+        "fetched": "2026-10-26"
       }
     },
     "budget": {
@@ -579,7 +579,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/10",
-        "fetched": "2026-10-25"
+        "fetched": "2026-10-26"
       }
     },
     "tessera": {
@@ -638,7 +638,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/8",
-        "fetched": "2026-10-25"
+        "fetched": "2026-10-26"
       }
     },
     "dayblock": {
@@ -737,7 +737,14 @@
           "sha": "fb211c7a079f"
         }
       ],
-      "category": "audio"
+      "category": "audio",
+      "votes": {
+        "up": 1,
+        "reactions": 1,
+        "comments": 0,
+        "url": "https://github.com/trez63/trez63.com/discussions/12",
+        "fetched": "2026-10-26"
+      }
     },
     "cosmic-breath": {
       "title": "Cosmic Breath",
@@ -789,6 +796,6 @@
       }
     }
   },
-  "generated": "2026-10-25",
-  "votes_fetched": "2026-10-25"
+  "generated": "2026-10-26",
+  "votes_fetched": "2026-10-26"
 }

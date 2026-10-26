@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Breath</title>
+    <style>
+        :root {
+            --bg-color: #050505;
+            --text-color: #f0f0f0;
+        }
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: system-ui, -apple-system, sans-serif;
+            user-select: none;
+        }
+        canvas {
+            display: block;
+        }
+        #ui-layer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: none;
+        }
+        h1 {
+            font-weight: 300;
+            letter-spacing: 0.2em;
+            margin: 0 0 10px 0;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+        }
+        #phase {
+            font-size: 1.2rem;
+            font-weight: 100;
+            letter-spacing: 0.1em;
+            opacity: 0.8;
+            text-transform: uppercase;
+        }
+        #controls {
+            position: absolute;
+            bottom: 30px;
+            width: 100%;
+            text-align: center;
+            font-size: 0.8rem;
+            opacity: 0.5;
+            letter-spacing: 0.05em;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="universe"></canvas>
+    
+    <div id="ui-layer">
+        <h1>COSMIC BREATH</h1>
+        <div id="phase">Click to begin</div>
+    </div>
+
+    <div id="controls">
+        Move cursor to influence gravity • Relax and breathe with the universe
+    </div>
+
+    <script>
+        /**
+         * COSMIC BREATH
+         * 
+         * Elegance: Minimalist DOM footprint, single `<canvas>` for all heavy lifting.
+         * Performance: Uses requestAnimationFrame, typed object pooling, and vanilla JS.
+         * Utility: A 4-7-8 breathing meditation timer disguised as a particle simulator.
+         */
+
+        const canvas = document.getElementById('universe');
+        const ctx = canvas.getContext('2d', { alpha: false }); // Optimize rendering
+        const phaseText = document.getElementById('phase');
+        
+        let width, height, cx, cy;
+        const PARTICLE_COUNT = 1500;
+        const particles = [];
+        
+        // Interaction state
+        let mouse = { x: -1000, y: -1000, active: false };
+        let isBreathing = false;
+        
+        // Breathing state (4-7-8 method)
+        const PHASES = [
+            { name: "INHALE", duration: 4000, targetRadius: 1.8 },
+            { name: "HOLD", duration: 7000, targetRadius: 1.8 },
+            { name: "EXHALE", duration: 8000, targetRadius: 0.3 },
+            { name: "REST", duration: 1000, targetRadius: 0.3 }
+        ];
+        let currentPhase = 0;
+        let phaseStartTime = 0;
+        let globalRadiusMultiplier = 0.3;
+
+        // Resize handler
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            cx = width / 2;
+            cy = height / 2;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Particle Class
+        class Particle {
+            constructor() {
+                this.angle = Math.random() * Math.PI * 2;
+                this.baseRadius = 50 + Math.random() * (Math.min(width, height) / 2.5);
+                this.radius = this.baseRadius;
+                this.x = cx + Math.cos(this.angle) * this.radius;
+                this.y = cy + Math.sin(this.angle) * this.radius;
+                this.vx = 0;
+                this.vy = 0;
+                this.size = Math.random() * 1.5 + 0.5;
+                
+                // Aesthetic color palette (Stellar blues, purples, and whites)
+                const hue = 220 + Math.random() * 60;
+                this.color = `hsla(${hue}, 80%, 70%, Math.random())`;
+                this.alpha = Math.random() * 0.8 + 0.2;
+            }
+
+            update(timeScale, forceCenterRadius) {
+                // Orbital mechanics
+                this.angle += 0.002;
+                
+                // Determine target position based on breathing phase
+                const targetX = cx + Math.cos(this.angle) * (this.baseRadius * forceCenterRadius);
+                const targetY = cy + Math.sin(this.angle) * (this.baseRadius * forceCenterRadius);
+                
+                // Mouse interaction (repulsion)
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                if (mouse.active && dist < 150) {
+                    const force = (150 - dist) / 150;
+                    this.vx -= (dx / dist) * force * 2;
+                    this.vy -= (dy / dist) * force * 2;
+                }
+
+                // Spring physics towards target orbital path
+                this.vx += (targetX - this.x) * 0.01;
+                this.vy += (targetY - this.y) * 0.01;
+                
+                // Friction
+                this.vx *= 0.92;
+                this.vy *= 0.92;
+
+                this.x += this.vx;
+                this.y += this.vy;
+            }
+
+            draw() {
+                ctx.fillStyle = this.color.replace('Math.random()', this.alpha);
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Initialize particles
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+            particles.push(new Particle());
+        }
+
+        // Breathing Logic
+        function updateBreathing(timestamp) {
+            if (!isBreathing) return;
+            
+            if (!phaseStartTime) phaseStartTime = timestamp;
+            const phase = PHASES[currentPhase];
+            const elapsed = timestamp - phaseStartTime;
+
+            // Transition logic
+            if (elapsed > phase.duration) {
+                currentPhase = (currentPhase + 1) % PHASES.length;
+                phaseStartTime = timestamp;
+                phaseText.innerText = PHASES[currentPhase].name;
+            } else {
+                // Smoothly interpolate the universe radius based on breathing phase
+                const progress = elapsed / phase.duration;
+                const prevPhase = PHASES[(currentPhase - 1 + PHASES.length) % PHASES.length];
+                
+                // Easing function for organic expansion/contraction
+                const easeInOut = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
+                
+                globalRadiusMultiplier = prevPhase.targetRadius + (phase.targetRadius - prevPhase.targetRadius) * easeInOut;
+            }
+        }
+
+        // Main Animation Loop
+        function animate(timestamp) {
+            ctx.fillStyle = 'rgba(5, 5, 5, 0.2)'; // Trailing effect for elegance
+            ctx.fillRect(0, 0, width, height);
+            
+            updateBreathing(timestamp);
+
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                particles[i].update(timestamp, globalRadiusMultiplier);
+                particles[i].draw();
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // Event Listeners
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+            mouse.active = true;
+        });
+        
+        window.addEventListener('mouseout', () => mouse.active = false);
+
+        window.addEventListener('click', (e) => {
+            if (!isBreathing) {
+                isBreathing = true;
+                phaseStartTime = performance.now();
+                phaseText.innerText = PHASES[currentPhase].name;
+                
+                // Small explosion effect on start
+                particles.forEach(p => {
+                    p.vx = (Math.random() - 0.5) * 50;
+                    p.vy = (Math.random() - 0.5) * 50;
+                });
+            }
+        });
+
+        // Start loop
+        requestAnimationFrame(animate);
+    </script>
+</body>
+</html>

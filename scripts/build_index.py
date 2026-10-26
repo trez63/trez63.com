@@ -139,7 +139,7 @@ if len(matchup) >= 2:
 <section class="board matchup" id="matchup" aria-label="Latest matchup">
   <div class="board-top">
     <h2 class="board-title"><span class="step-tag">01</span>Latest matchup <span class="board-note">{fmt(matchup_date)}</span></h2>
-    <span class="board-note">{status}{' · ' + str(lead) + ' votes leads' if lead else ''}{'' if matchup_locked else '<span class="example-tag">VOTING OPEN</span>'}</span>
+    <span class="board-note">{status}{' · ' + str(lead) + (' vote' if lead == 1 else ' votes') + ' leads' if lead else ''}{'' if matchup_locked else '<span class="example-tag">VOTING OPEN</span>'}</span>
   </div>
   <div class="board-body"><div class="mgrid">{cols}</div></div>
 </section>"""
@@ -211,7 +211,7 @@ h1 em{font-style:normal;color:var(--acc)}
 .board-note .example-tag{font-size:10px;background:var(--yellow);color:var(--fg);padding:5px 8px;border-radius:5px;font-weight:700;margin-left:8px}
 .board-body{padding:0 23px 23px}
 .mgrid,main{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
-.mgrid{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.mgrid{grid-template-columns:repeat(auto-fit,minmax(215px,1fr))}
 .card{background:var(--soft);border:1px solid var(--line);border-radius:12px;overflow:visible;display:flex;flex-direction:column;position:relative}
 .card[hidden]{display:none}
 .card:has(.share[open]){z-index:30}

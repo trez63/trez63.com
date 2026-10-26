@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aether — Cosmic Particle Weaver</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #050510;
+    overflow: hidden;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: #e0e8ff;
+    user-select: none;
+  }
+  canvas {
+    display: block;
+    position: absolute;
+    inset: 0;
+  }
+  #ui {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 280px;
+    pointer-events: none;
+  }
+  #ui > * { pointer-events: auto; }
+  h1 {
+    font-size: 1.4rem;
+    font-weight: 300;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #a8c0ff;
+    text-shadow: 0 0 20px rgba(120,160,255,0.5);
+  }
+  .subtitle {
+    font-size: 0.75rem;
+    opacity: 0.6;
+    margin-top: -6px;
+    letter-spacing: 0.05em;
+  }
+  .panel {
+    background: rgba(10,15,40,0.75);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(120,160,255,0.18);
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+  button {
+    background: rgba(80,120,255,0.15);
+    border: 1px solid rgba(140,180,255,0.3);
+    color: #c8d8ff;
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 0.03em;
+  }
+  button:hover {
+    background: rgba(100,150,255,0.3);
+    border-color: rgba(180,210,255,0.6);
+    transform: translateY(-1px);
+  }
+  button.active {
+    background: rgba(100,160,255,0.45);
+    border-color: #a0c0ff;
+    color: #fff;
+  }
+  label {
+    font-size: 0.72rem;
+    opacity: 0.7;
+    display: block;
+    margin-bottom: 4px;
+  }
+  input[type=range] {
+    width: 100%;
+    accent-color: #7aa0ff;
+  }
+  #hint {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.8rem;
+    opacity: 0.55;
+    letter-spacing: 0.04em;
+    text-align: center;
+    pointer-events: none;
+    transition: opacity 1.5s;
+  }
+  #stats {
+    font-size: 0.7rem;
+    opacity: 0.5;
+    margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="ui">
+  <div>
+    <h1>Aether</h1>
+    <div class="subtitle">Cosmic Particle Weaver</div>
+  </div>
+
+  <div class="panel">
+    <label>Mode</label>
+    <div class="row">
+      <button id="mode-attract" class="active">Attract</button>
+      <button id="mode-orbit">Orbit</button>
+      <button id="mode-chaos">Chaos</button>
+      <button id="mode-paint">Paint</button>
+    </div>
+
+    <label style="margin-top:14px">Gravity</label>
+    <input type="range" id="gravity" min="0.1" max="3" step="0.1" value="1.2">
+
+    <label style="margin-top:12px">Trail Fade</label>
+    <input type="range" id="fade" min="0.02" max="0.25" step="0.01" value="0.08">
+
+    <div class="row" style="margin-top:14px">
+      <button id="btn-seed">Seed Stars</button>
+      <button id="btn-clear">Clear</button>
+      <button id="btn-burst">Burst</button>
+    </div>
+    <div id="stats">particles: 0</div>
+  </div>
+</div>
+
+<div id="hint">Move mouse to weave · Click to plant a star · Scroll to change force</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  let W, H, dpr;
+
+  const particles = [];
+  const stars = [];          // fixed attractors the user plants
+  let mouse = { x: 0, y: 0, down: false };
+  let mode = 'attract';
+  let G = 1.2;
+  let fade = 0.08;
+  let frame = 0;
+
+  // ─── helpers ───────────────────────────────────────────────
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function rand(a, b) { return a + Math.random() * (b - a); }
+  function hue(h) { return `hsl(${h}, 80%, 65%)`; }
+
+  // ─── Particle ──────────────────────────────────────────────
+  class Particle {
+    constructor(x, y, vx = 0, vy = 0, life = 1) {
+      this.x = x; this.y = y;
+      this.vx = vx; this.vy = vy;
+      this.life = life;
+      this.maxLife = life;
+      this.size = rand(1.2, 2.8);
+      this.hue = rand(190, 260) + (Math.random() < 0.15 ? 80 : 0); // mostly blue-violet, occasional gold
+      this.mass = this.size * 0.6;
+    }
+
+    update(dt) {
+      // attraction / force from mouse + planted stars
+      const targets = [...stars];
+      if (mode !== 'paint') targets.push({ x: mouse.x, y: mouse.y, mass: 18 * G });
+
+      for (const t of targets) {
+        const dx = t.x - this.x;
+        const dy = t.y - this.y;
+        const distSq = dx * dx + dy * dy + 40; // softening
+        const dist = Math.sqrt(distSq);
+        let force = (t.mass * this.mass * G) / distSq;
+
+        if (mode === 'orbit') force *= 0.55;
+        if (mode === 'chaos') force *= (Math.sin(frame * 0.02 + this.x * 0.01) * 0.5 + 0.8);
+
+        this.vx += (dx / dist) * force * dt;
+        this.vy += (dy / dist) * force * dt;
+      }
+
+      // light damping so things don't fly to infinity
+      this.vx *= 0.992;
+      this.vy *= 0.992;
+
+      this.x += this.vx * dt;
+      this.y += this.vy * dt;
+
+      // soft wrap
+      if (this.x < -50) this.x = W + 50;
+      if (this.x > W + 50) this.x = -50;
+      if (this.y < -50) this.y = H + 50;
+      if (this.y > H + 50) this.y = -50;
+
+      this.life -= 0.0015 * dt;
+    }
+
+    draw() {
+      const alpha = Math.max(0, this.life / this.maxLife);
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(${this.hue}, 85%, 68%, ${alpha * 0.9})`;
+      ctx.fill();
+    }
+  }
+
+  // ─── Star (fixed attractor) ────────────────────────────────
+  function plantStar(x, y) {
+    stars.push({
+      x, y,
+      mass: rand(12, 28) * G,
+      hue: rand(200, 280),
+      pulse: Math.random() * Math.PI * 2
+    });
+    // small burst of particles around it
+    for (let i = 0; i < 18; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const sp = rand(0.5, 3);
+      particles.push(new Particle(x, y, Math.cos(a) * sp, Math.sin(a) * sp, rand(0.7, 1.4)));
+    }
+  }
+
+  // ─── seeding & bursts ──────────────────────────────────────
+  function seed(count = 90) {
+    for (let i = 0; i < count; i++) {
+      particles.push(new Particle(
+        rand(0, W), rand(0, H),
+        rand(-0.4, 0.4), rand(-0.4, 0.4),
+        rand(0.8, 1.6)
+      ));
+    }
+  }
+
+  function burst(x = W / 2, y = H / 2, n = 60) {
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2 + rand(-0.1, 0.1);
+      const sp = rand(2, 7);
+      particles.push(new Particle(x, y, Math.cos(a) * sp, Math.sin(a) * sp, rand(0.9, 1.5)));
+    }
+  }
+
+  // ─── main loop ─────────────────────────────────────────────
+  let last = performance.now();
+  function loop(now) {
+    const dt = Math.min((now - last) / 16.67, 2.5); // normalize to ~60fps
+    last = now;
+    frame++;
+
+    // trail fade
+    ctx.fillStyle = `rgba(5,5,16,${fade})`;
+    ctx.fillRect(0, 0, W, H);
+
+    // very subtle background starfield
+    if (frame % 4 === 0) {
+      ctx.fillStyle = 'rgba(180,200,255,0.03)';
+      for (let i = 0; i < 3; i++) {
+        ctx.fillRect(Math.random() * W, Math.random() * H, 1, 1);
+      }
+    }
+
+    // update & draw particles
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.update(dt);
+      p.draw();
+      if (p.life <= 0) particles.splice(i, 1);
+    }
+
+    // draw planted stars
+    for (const s of stars) {
+      s.pulse += 0.03;
+      const r = 4 + Math.sin(s.pulse) * 1.5;
+      const g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, r * 4);
+      g.addColorStop(0, `hsla(${s.hue},90%,75%,0.9)`);
+      g.addColorStop(0.4, `hsla(${s.hue},80%,60%,0.25)`);
+      g.addColorStop(1, 'transparent');
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, r * 4, 0, Math.PI * 2);
+      ctx.fillStyle = g;
+      ctx.fill();
+    }
+
+    // mouse cursor glow
+    if (mode !== 'paint') {
+      const g = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 40);
+      g.addColorStop(0, 'rgba(160,200,255,0.15)');
+      g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(mouse.x, mouse.y, 40, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // limit particle count for performance
+    if (particles.length > 1400) {
+      particles.splice(0, particles.length - 1400);
+    }
+
+    document.getElementById('stats').textContent = `particles: ${particles.length} · stars: ${stars.length}`;
+    requestAnimationFrame(loop);
+  }
+
+  // ─── interaction ───────────────────────────────────────────
+  window.addEventListener('mousemove', e => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+    if (mode === 'paint' && mouse.down) {
+      for (let i = 0; i < 3; i++) {
+        particles.push(new Particle(
+          mouse.x + rand(-8, 8), mouse.y + rand(-8, 8),
+          rand(-1, 1), rand(-1, 1),
+          rand(0.6, 1.2)
+        ));
+      }
+    }
+  });
+
+  window.addEventListener('mousedown', e => {
+    mouse.down = true;
+    if (e.button === 0 && mode !== 'paint') {
+      plantStar(e.clientX, e.clientY);
+    }
+  });
+  window.addEventListener('mouseup', () => mouse.down = false);
+
+  window.addEventListener('wheel', e => {
+    e.preventDefault();
+    G = Math.max(0.1, Math.min(3.5, G + (e.deltaY > 0 ? -0.15 : 0.15)));
+    document.getElementById('gravity').value = G;
+  }, { passive: false });
+
+  // UI wiring
+  document.getElementById('gravity').addEventListener('input', e => G = +e.target.value);
+  document.getElementById('fade').addEventListener('input', e => fade = +e.target.value);
+
+  ['attract', 'orbit', 'chaos', 'paint'].forEach(m => {
+    document.getElementById('mode-' + m).addEventListener('click', () => {
+      mode = m;
+      document.querySelectorAll('.panel button').forEach(b => b.classList.remove('active'));
+      document.getElementById('mode-' + m).classList.add('active');
+    });
+  });
+
+  document.getElementById('btn-seed').addEventListener('click', () => seed(80));
+  document.getElementById('btn-clear').addEventListener('click', () => {
+    particles.length = 0;
+    stars.length = 0;
+  });
+  document.getElementById('btn-burst').addEventListener('click', () => burst(mouse.x, mouse.y, 70));
+
+  // hide hint after a while
+  setTimeout(() => {
+    document.getElementById('hint').style.opacity = '0';
+  }, 9000);
+
+  // boot
+  resize();
+  window.addEventListener('resize', resize);
+  seed(110);
+  // a few gentle starter stars
+  plantStar(W * 0.3, H * 0.4);
+  plantStar(W * 0.7, H * 0.55);
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

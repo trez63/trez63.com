@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PulseForge — Offline Step Sequencer</title>
+<style>
+:root {
+  --bg: #0d0f14; --surface: #161922; --border: #2a2e3a; --text: #e8eaed;
+  --accent: #5eead4; --accent2: #818cf8; --step: #1e2230; --active: #0f766e;
+  --current: #f59e0b; --muted: #64748b;
+}
+[data-theme="light"] {
+  --bg: #f8fafc; --surface: #ffffff; --border: #e2e8f0; --text: #0f172a;
+  --accent: #0d9488; --accent2: #4f46e5; --step: #f1f5f9; --active: #ccfbf1;
+  --current: #d97706; --muted: #94a3b8;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text);
+  min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 1rem;
+  transition: background .2s, color .2s;
+}
+header { width: 100%; max-width: 920px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; }
+h1 span { color: var(--accent); }
+.controls { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+button, select, input[type=range] {
+  background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 8px;
+  padding: .45rem .8rem; font-size: .9rem; cursor: pointer; transition: all .15s;
+}
+button:hover { border-color: var(--accent); }
+button.primary { background: var(--accent); color: #0d0f14; border: none; font-weight: 600; }
+button.primary:hover { filter: brightness(1.1); }
+#tempo { width: 120px; }
+.seq {
+  width: 100%; max-width: 920px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 1rem; margin-bottom: 1rem; overflow-x: auto;
+}
+.track { display: flex; align-items: center; margin-bottom: .4rem; gap: .5rem; }
+.track label { width: 70px; font-size: .8rem; font-weight: 600; color: var(--muted); text-transform: uppercase; }
+.steps { display: flex; gap: 4px; flex: 1; }
+.step {
+  width: 28px; height: 28px; background: var(--step); border: 1px solid var(--border); border-radius: 4px;
+  cursor: pointer; transition: all .1s; flex-shrink: 0;
+}
+.step.on { background: var(--active); border-color: var(--accent); }
+.step.current { box-shadow: 0 0 0 2px var(--current); }
+.step:hover { transform: scale(1.08); }
+.footer { width: 100%; max-width: 920px; display: flex; justify-content: space-between; font-size: .8rem; color: var(--muted); flex-wrap: wrap; gap: .5rem; }
+.overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.7); display: none; align-items: center; justify-content: center; z-index: 10;
+}
+.overlay.show { display: flex; }
+.modal {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; max-width: 420px; width: 90%;
+}
+.modal h2 { margin-bottom: .8rem; }
+.modal ul { padding-left: 1.2rem; line-height: 1.6; font-size: .9rem; }
+.modal button { margin-top: 1rem; }
+@media (max-width: 640px) {
+  .step { width: 22px; height: 22px; }
+  .track label { width: 52px; font-size: .7rem; }
+  header { flex-direction: column; gap: .5rem; align-items: flex-start; }
+}
+</style>
+</head>
+<body data-theme="dark">
+<header>
+  <h1>Pulse<span>Forge</span></h1>
+  <div class="controls">
+    <button id="play" class="primary">▶ Play</button>
+    <button id="clear">Clear</button>
+    <button id="random">Random</button>
+    <label>Tempo <input id="tempo" type="range" min="60" max="180" value="120"></label>
+    <span id="bpm">120</span>
+    <button id="theme">Theme</button>
+    <button id="help">?</button>
+  </div>
+</header>
+<div class="seq" id="seq"></div>
+<div class="footer">
+  <span>Space: play/pause · R: random · C: clear · T: theme · H/?: help · ←→: tempo</span>
+  <span>Pure Web Audio · No dependencies</span>
+</div>
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2>PulseForge Controls</h2>
+    <ul>
+      <li><strong>Click steps</strong> to toggle notes</li>
+      <li><strong>Space</strong> — Play / Pause</li>
+      <li><strong>R</strong> — Randomize pattern</li>
+      <li><strong>C</strong> — Clear all</li>
+      <li><strong>T</strong> — Toggle dark/light theme</li>
+      <li><strong>← / →</strong> — Adjust tempo</li>
+      <li><strong>H or ?</strong> — Toggle this help</li>
+    </ul>
+    <p style="margin-top:.8rem;font-size:.85rem;color:var(--muted)">Tracks: Kick, Snare, Hat, Clap, Bass, Lead, Pad, FX. Pre-loaded demo pattern ready to play.</p>
+    <button id="closeHelp">Got it</button>
+  </div>
+</div>
+<script>
+const STEPS = 16;
+const TRACKS = [
+  { name: 'Kick',  freq: 60,  type: 'sine',  noise: false, gain: 0.9, decay: 0.15 },
+  { name: 'Snare', freq: 180, type: 'triangle', noise: true,  gain: 0.6, decay: 0.12 },
+  { name: 'Hat',   freq: 8000,type: 'square', noise: true,  gain: 0.3, decay: 0.04 },
+  { name: 'Clap',  freq: 400, type: 'square', noise: true,  gain: 0.45,decay: 0.08 },
+  { name: 'Bass',  freq: 110, type: 'sawtooth',noise: false, gain: 0.5, decay: 0.3 },
+  { name: 'Lead',  freq: 440, type: 'square', noise: false, gain: 0.35,decay: 0.2 },
+  { name: 'Pad',   freq: 220, type: 'sine',  noise: false, gain: 0.25,decay: 0.6 },
+  { name: 'FX',    freq: 1200,type: 'sawtooth',noise: true, gain: 0.2, decay: 0.1 }
+];
+let pattern = TRACKS.map(() => Array(STEPS).fill(false));
+// Pre-loaded demo beat
+const demo = [
+  [1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0],
+  [0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0],
+  [1,0,0,0,1,0,1,0,1,0,0,0,1,0,1,0],
+  [0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0],
+  [1,0,0,1,0,0,1,0,1,0,0,1,0,0,1,0],
+  [0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0]
+];
+demo.forEach((row, i) => row.forEach((v, j) => pattern[i][j] = !!v));
+
+const seqEl = document.getElementById('seq');
+TRACKS.forEach((t, ti) => {
+  const row = document.createElement('div');
+  row.className = 'track';
+  row.innerHTML = `<label>${t.name}</label><div class="steps" data-track="${ti}"></div>`;
+  const steps = row.querySelector('.steps');
+  for (let s = 0; s < STEPS; s++) {
+    const step = document.createElement('div');
+    step.className = 'step' + (pattern[ti][s] ? ' on' : '');
+    step.dataset.step = s;
+    step.onclick = () => {
+      pattern[ti][s] = !pattern[ti][s];
+      step.classList.toggle('on');
+    };
+    steps.appendChild(step);
+  }
+  seqEl.appendChild(row);
+});
+
+let audioCtx, playing = false, currentStep = 0, nextNoteTime = 0, timerID;
+const lookahead = 25, scheduleAhead = 0.1;
+const tempoEl = document.getElementById('tempo');
+const bpmEl = document.getElementById('bpm');
+let bpm = 120;
+
+function makeNoiseBuffer() {
+  const bufferSize = audioCtx.sampleRate * 0.5;
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+  return buffer;
+}
+
+function playSound(track, time) {
+  const t = TRACKS[track];
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = t.type;
+  osc.frequency.setValueAtTime(t.freq, time);
+  gain.gain.setValueAtTime(t.gain, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + t.decay);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(time);
+  osc.stop(time + t.decay + 0.05);
+  if (t.noise) {
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = makeNoiseBuffer();
+    const nGain = audioCtx.createGain();
+    nGain.gain.setValueAtTime(t.gain * 0.6, time);
+    nGain.gain.exponentialRampToValueAtTime(0.001, time + t.decay * 0.7);
+    noise.connect(nGain);
+    nGain.connect(audioCtx.destination);
+    noise.start(time);
+    noise.stop(time + t.decay);
+  }
+}
+
+function scheduler() {
+  while (nextNoteTime < audioCtx.currentTime + scheduleAhead) {
+    scheduleNote(currentStep, nextNoteTime);
+    nextNoteTime += 60 / bpm / 4;
+    currentStep = (currentStep + 1) % STEPS;
+  }
+  timerID = setTimeout(scheduler, lookahead);
+}
+
+function scheduleNote(step, time) {
+  for (let t = 0; t < TRACKS.length; t++) {
+    if (pattern[t][step]) playSound(t, time);
+  }
+  // visual
+  const delay = (time - audioCtx.currentTime) * 1000;
+  setTimeout(() => highlight(step), Math.max(0, delay));
+}
+
+function highlight(step) {
+  document.querySelectorAll('.step.current').forEach(s => s.classList.remove('current'));
+  document.querySelectorAll(`.steps`).forEach(row => {
+    row.children[step]?.classList.add('current');
+  });
+}
+
+function togglePlay() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  playing = !playing;
+  document.getElementById('play').textContent = playing ? '⏸ Pause' : '▶ Play';
+  if (playing) {
+    currentStep = 0;
+    nextNoteTime = audioCtx.currentTime + 0.05;
+    scheduler();
+  } else {
+    clearTimeout(timerID);
+    document.querySelectorAll('.step.current').forEach(s => s.classList.remove('current'));
+  }
+}
+
+document.getElementById('play').onclick = togglePlay;
+document.getElementById('clear').onclick = () => {
+  pattern.forEach(row => row.fill(false));
+  document.querySelectorAll('.step.on').forEach(s => s.classList.remove('on'));
+};
+document.getElementById('random').onclick = () => {
+  pattern.forEach((row, i) => {
+    for (let s = 0; s < STEPS; s++) {
+      row[s] = Math.random() > 0.72;
+      const el = document.querySelectorAll('.steps')[i].children[s];
+      el.classList.toggle('on', row[s]);
+    }
+  });
+};
+tempoEl.oninput = () => { bpm = +tempoEl.value; bpmEl.textContent = bpm; };
+
+function setTheme(t) {
+  document.body.dataset.theme = t;
+  localStorage.setItem('pf-theme', t);
+}
+document.getElementById('theme').onclick = () => setTheme(document.body.dataset.theme === 'dark' ? 'light' : 'dark');
+if (localStorage.getItem('pf-theme')) setTheme(localStorage.getItem('pf-theme'));
+
+const overlay = document.getElementById('overlay');
+function toggleHelp() { overlay.classList.toggle('show'); }
+document.getElementById('help').onclick = toggleHelp;
+document.getElementById('closeHelp').onclick = toggleHelp;
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+  if (e.key === 'r' || e.key === 'R') document.getElementById('random').click();
+  if (e.key === 'c' || e.key === 'C') document.getElementById('clear').click();
+  if (e.key === 't' || e.key === 'T') document.getElementById('theme').click();
+  if (e.key === '?' || e.key === 'h' || e.key === 'H') toggleHelp();
+  if (e.key === 'ArrowRight') { tempoEl.value = Math.min(180, +tempoEl.value + 5); tempoEl.oninput(); }
+  if (e.key === 'ArrowLeft')  { tempoEl.value = Math.max(60, +tempoEl.value - 5); tempoEl.oninput(); }
+});
+overlay.onclick = e => { if (e.target === overlay) toggleHelp(); };
+</script>
+</body>
+</html>

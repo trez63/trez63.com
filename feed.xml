@@ -2,7 +2,7 @@
 <rss version="2.0"><channel>
   <title>trez63 — one small app a day</title>
   <link>https://trez63.com/</link>
-  <description>Every day ChatGPT, Claude and Muse each build a single-page app from the same one-line prompt. Play them, vote for the winner.</description>
+  <description>Every day ChatGPT, Claude, Gemini, Grok and Muse each build a single-page app from the same one-line prompt. Play them, vote for the winner.</description>
   <lastBuildDate>Sun, 25 Oct 2026 12:00:00 +0000</lastBuildDate>
   <item>
     <title>Carve (Claude)</title>
@@ -52,6 +52,27 @@
     <guid isPermaLink="true">https://trez63.com/p/pantry-clock.html</guid>
     <pubDate>Sun, 25 Oct 2026 12:00:00 +0000</pubDate>
     <description>What&#x27;s expiring first? Track what&#x27;s in the fridge, freezer and pantry and tap an item to use it up before it becomes waste.</description>
+  </item>
+  <item>
+    <title>Aether (Grok)</title>
+    <link>https://trez63.com/p/aether.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/aether.html</guid>
+    <pubDate>Sun, 25 Oct 2026 12:00:00 +0000</pubDate>
+    <description>A cosmic particle weaver. Move the mouse to weave, click to plant a star, scroll to change the force; attract, orbit, chaos and paint modes.</description>
+  </item>
+  <item>
+    <title>PulseForge (Grok)</title>
+    <link>https://trez63.com/p/pulseforge.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/pulseforge.html</guid>
+    <pubDate>Sun, 25 Oct 2026 12:00:00 +0000</pubDate>
+    <description>An offline step sequencer. Eight tracks from kick to pad, click steps to toggle notes, tempo and randomize on the keyboard. Pure Web Audio.</description>
+  </item>
+  <item>
+    <title>Cosmic Breath (Gemini)</title>
+    <link>https://trez63.com/p/cosmic-breath.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/cosmic-breath.html</guid>
+    <pubDate>Sun, 25 Oct 2026 12:00:00 +0000</pubDate>
+    <description>A slow particle field that breathes. Click to begin, move the cursor to bend its gravity, and let it set your pace.</description>
   </item>
   <item>
     <title>Ledger (Muse)</title>

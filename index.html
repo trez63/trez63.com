@@ -4,18 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>trez63 — one small app a day</title>
-<meta name="description" content="Every day ChatGPT, Claude and Muse each build a single-page app from the same one-line prompt. Play them, vote for the winner.">
+<meta name="description" content="Every day ChatGPT, Claude, Gemini, Grok and Muse each build a single-page app from the same one-line prompt. Play them, vote for the winner.">
 <link rel="canonical" href="https://trez63.com/">
 <link rel="alternate" type="application/rss+xml" title="trez63 — new apps" href="https://trez63.com/feed.xml">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="trez63">
 <meta property="og:title" content="trez63 — one small app a day">
-<meta property="og:description" content="Every day ChatGPT, Claude and Muse each build a single-page app from the same one-line prompt. Play them, vote for the winner.">
+<meta property="og:description" content="Every day ChatGPT, Claude, Gemini, Grok and Muse each build a single-page app from the same one-line prompt. Play them, vote for the winner.">
 <meta property="og:image" content="https://trez63.com/thumbs/carve.webp">
 <meta property="og:url" content="https://trez63.com/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="trez63 — one small app a day">
-<meta name="twitter:description" content="Every day ChatGPT, Claude and Muse each build a single-page app from the same one-line prompt. Play them, vote for the winner.">
+<meta name="twitter:description" content="Every day ChatGPT, Claude, Gemini, Grok and Muse each build a single-page app from the same one-line prompt. Play them, vote for the winner.">
 <meta name="twitter:image" content="https://trez63.com/thumbs/carve.webp">
 <style>
 :root{--bg:#eff1f5;--panel:#fff;--line:#dce1e9;--fg:#17212d;--mute:#677180;--acc:#244fe5;--acc-fg:#fff;--acc-soft:#eef2ff;--yellow:#e5ff80;--soft:#f6f8fb;--radius:16px;
@@ -71,7 +71,7 @@ h1 em{font-style:normal;color:var(--acc)}
 .board-note .example-tag{font-size:10px;background:var(--yellow);color:var(--fg);padding:5px 8px;border-radius:5px;font-weight:700;margin-left:8px}
 .board-body{padding:0 23px 23px}
 .mgrid,main{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
-.mgrid{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.mgrid{grid-template-columns:repeat(auto-fit,minmax(215px,1fr))}
 .card{background:var(--soft);border:1px solid var(--line);border-radius:12px;overflow:visible;display:flex;flex-direction:column;position:relative}
 .card[hidden]{display:none}
 .card:has(.share[open]){z-index:30}
@@ -131,15 +131,15 @@ footer a{text-decoration:underline}
     <span class="privacy">RUNS IN YOUR BROWSER · NOTHING UPLOADED</span>
     <a href="#prompt">The prompt</a>
     <a href="feed.xml">RSS</a>
-    <a class="new" href="#matchup">Play today's three</a>
+    <a class="new" href="#matchup">Play today's five</a>
   </nav>
 </div>
 <header class="hero">
   <div>
-    <div class="eyebrow">three models · one prompt · every day</div>
+    <div class="eyebrow">five models · one prompt · every day</div>
     <h1>One small app <em>a day.</em></h1>
   </div>
-  <p class="hero-copy"><strong>ChatGPT, Claude and Muse</strong> each build a single-page app from the same one-line brief. They land here untouched. Play them, then vote for the one that should win.</p>
+  <p class="hero-copy"><strong>ChatGPT, Claude, Gemini, Grok and Muse</strong> each build a single-page app from the same one-line brief. They land here untouched. Play them, then vote for the one that should win.</p>
 </header>
 
   <details class="prompt" id="prompt">
@@ -159,7 +159,7 @@ footer a{text-decoration:underline}
 <section class="board matchup" id="matchup" aria-label="Latest matchup">
   <div class="board-top">
     <h2 class="board-title"><span class="step-tag">01</span>Latest matchup <span class="board-note">Oct 25, 2026</span></h2>
-    <span class="board-note">Voting open — winner locks Nov 1, 2026<span class="example-tag">VOTING OPEN</span></span>
+    <span class="board-note">Voting open — winner locks Nov 1, 2026 · 1 vote leads<span class="example-tag">VOTING OPEN</span></span>
   </div>
   <div class="board-body"><div class="mgrid">
     <article class="card big" data-engine="ChatGPT" data-cat="image" data-up="0" data-date="2026-10-25" data-search="chroma desk a small studio for everyday color. drop a photo, pull a palette out of it, then edit and export the swatches. chroma-desk image chatgpt">
@@ -179,7 +179,7 @@ footer a{text-decoration:underline}
         </div>
       </div>
     </article>
-    <article class="card big" data-engine="Claude" data-cat="image" data-up="0" data-date="2026-10-25" data-search="carve content-aware image resizing. drag an edge and the picture shrinks by removing its least interesting paths, so subjects stay intact. paint over an object and delete it. carve image claude">
+    <article class="card big" data-engine="Claude" data-cat="image" data-up="1" data-date="2026-10-25" data-search="carve content-aware image resizing. drag an edge and the picture shrinks by removing its least interesting paths, so subjects stay intact. paint over an object and delete it. carve image claude">
       <a class="shot" href="p/carve.html" aria-label="Open Carve"><img src="thumbs/carve.webp" alt=""  width="640" height="400"><video src="previews/carve.webm" muted loop playsinline preload="none" poster="thumbs/carve.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -192,7 +192,41 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/carve.html" title="Version history on GitHub">v1</a>
           <span>· Image</span>
-          <span class="acts"><a class="rate" href="rate.html?app=carve" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/carve.html" data-title="Carve — trez63" data-text="Carve — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
+          <span class="acts"><a class="rate" href="rate.html?app=carve" title="Vote for this app">👍 1</a><span class="share mini" data-url="https://trez63.com/p/carve.html" data-title="Carve — trez63" data-text="Carve — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
+        </div>
+      </div>
+    </article>
+    <article class="card big" data-engine="Gemini" data-cat="focus" data-up="0" data-date="2026-10-25" data-search="cosmic breath a slow particle field that breathes. click to begin, move the cursor to bend its gravity, and let it set your pace. cosmic-breath focus gemini">
+      <a class="shot" href="p/cosmic-breath.html" aria-label="Open Cosmic Breath"><img src="thumbs/cosmic-breath.webp" alt=""  width="640" height="400"><video src="previews/cosmic-breath.webm" muted loop playsinline preload="none" poster="thumbs/cosmic-breath.webp"></video></a>
+      <div class="body">
+        <div class="row">
+          <h2><a href="p/cosmic-breath.html">Cosmic Breath</a></h2>
+          <span class="badge gemini">Gemini</span>
+        </div>
+        <p>A slow particle field that breathes. Click to begin, move the cursor to bend its gravity, and let it set your pace.</p>
+        <div class="meta">
+          <span>Oct 25, 2026</span>
+          <span>·</span>
+          <a href="https://github.com/trez63/trez63.com/commits/main/apps/cosmic-breath.html" title="Version history on GitHub">v1</a>
+          <span>· Focus</span>
+          <span class="acts"><a class="rate" href="rate.html?app=cosmic-breath" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/cosmic-breath.html" data-title="Cosmic Breath — trez63" data-text="Cosmic Breath — a one-page app built by Gemini from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
+        </div>
+      </div>
+    </article>
+    <article class="card big" data-engine="Grok" data-cat="art" data-up="0" data-date="2026-10-25" data-search="aether a cosmic particle weaver. move the mouse to weave, click to plant a star, scroll to change the force; attract, orbit, chaos and paint modes. aether art grok">
+      <a class="shot" href="p/aether.html" aria-label="Open Aether"><img src="thumbs/aether.webp" alt=""  width="640" height="400"><video src="previews/aether.webm" muted loop playsinline preload="none" poster="thumbs/aether.webp"></video></a>
+      <div class="body">
+        <div class="row">
+          <h2><a href="p/aether.html">Aether</a></h2>
+          <span class="badge grok">Grok</span>
+        </div>
+        <p>A cosmic particle weaver. Move the mouse to weave, click to plant a star, scroll to change the force; attract, orbit, chaos and paint modes.</p>
+        <div class="meta">
+          <span>Oct 25, 2026</span>
+          <span>·</span>
+          <a href="https://github.com/trez63/trez63.com/commits/main/apps/aether.html" title="Version history on GitHub">v1</a>
+          <span>· Generative art</span>
+          <span class="acts"><a class="rate" href="rate.html?app=aether" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/aether.html" data-title="Aether — trez63" data-text="Aether — a one-page app built by Grok from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
         </div>
       </div>
     </article>
@@ -220,16 +254,16 @@ footer a{text-decoration:underline}
     <h2 class="board-title"><span class="step-tag">02</span>Scoreboard</h2>
     <span class="board-note">0 rounds decided · a day's winner is the app with the most 👍 7 days after it ships; ties split</span>
   </div>
-  <table><thead><tr><th>Model</th><th class="num">Wins</th><th class="num">Total 👍</th><th class="num">Apps</th></tr></thead><tbody><tr><td><span class="badge claude">Claude</span></td><td class="num">0</td><td class="num">2</td><td class="num">8</td></tr><tr><td><span class="badge chatgpt">ChatGPT</span></td><td class="num">0</td><td class="num">0</td><td class="num">5</td></tr><tr><td><span class="badge muse">Muse</span></td><td class="num">0</td><td class="num">0</td><td class="num">8</td></tr></tbody></table>
+  <table><thead><tr><th>Model</th><th class="num">Wins</th><th class="num">Total 👍</th><th class="num">Apps</th></tr></thead><tbody><tr><td><span class="badge claude">Claude</span></td><td class="num">0</td><td class="num">4</td><td class="num">8</td></tr><tr><td><span class="badge chatgpt">ChatGPT</span></td><td class="num">0</td><td class="num">1</td><td class="num">5</td></tr><tr><td><span class="badge gemini">Gemini</span></td><td class="num">0</td><td class="num">0</td><td class="num">1</td></tr><tr><td><span class="badge grok">Grok</span></td><td class="num">0</td><td class="num">0</td><td class="num">2</td></tr><tr><td><span class="badge muse">Muse</span></td><td class="num">0</td><td class="num">0</td><td class="num">8</td></tr></tbody></table>
 </section>
 <section class="board all">
   <div class="board-top">
-    <h2 class="board-title"><span class="step-tag">03</span>All apps <span class="board-note">21</span></h2>
+    <h2 class="board-title"><span class="step-tag">03</span>All apps <span class="board-note">24</span></h2>
   </div>
   <div class="toolbar">
     <input id="q" type="search" placeholder="Search apps…" aria-label="Search apps by title or description" autocomplete="off">
     <div class="filters engines" role="group" aria-label="Filter by model">
-      <button data-filter="all" aria-pressed="true">All</button><button data-filter="ChatGPT">ChatGPT</button><button data-filter="Claude">Claude</button><button data-filter="Muse">Muse</button>
+      <button data-filter="all" aria-pressed="true">All</button><button data-filter="ChatGPT">ChatGPT</button><button data-filter="Claude">Claude</button><button data-filter="Gemini">Gemini</button><button data-filter="Grok">Grok</button><button data-filter="Muse">Muse</button>
     </div>
     <div class="filters sort" role="group" aria-label="Sort">
       <button data-sort="new" aria-pressed="true">Newest</button><button data-sort="top">Top voted</button>
@@ -238,7 +272,7 @@ footer a{text-decoration:underline}
   <div class="filters cats" role="group" aria-label="Filter by category"><button data-cat="audio">Audio</button><button data-cat="dev">Dev tools</button><button data-cat="finance">Finance</button><button data-cat="focus">Focus</button><button data-cat="game">Games</button><button data-cat="art">Generative art</button><button data-cat="image">Image</button><button data-cat="sim">Simulations</button><button data-cat="tool">Tools</button></div>
   <p id="empty" hidden>No apps match that.</p>
   <main id="grid">
-    <article class="card" data-engine="Claude" data-cat="image" data-up="0" data-date="2026-10-25" data-search="carve content-aware image resizing. drag an edge and the picture shrinks by removing its least interesting paths, so subjects stay intact. paint over an object and delete it. carve image claude">
+    <article class="card" data-engine="Claude" data-cat="image" data-up="1" data-date="2026-10-25" data-search="carve content-aware image resizing. drag an edge and the picture shrinks by removing its least interesting paths, so subjects stay intact. paint over an object and delete it. carve image claude">
       <a class="shot" href="p/carve.html" aria-label="Open Carve"><img src="thumbs/carve.webp" alt="" loading=lazy width="640" height="400"><video src="previews/carve.webm" muted loop playsinline preload="none" poster="thumbs/carve.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -251,7 +285,7 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/carve.html" title="Version history on GitHub">v1</a>
           <span>· Image</span>
-          <span class="acts"><a class="rate" href="rate.html?app=carve" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/carve.html" data-title="Carve — trez63" data-text="Carve — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
+          <span class="acts"><a class="rate" href="rate.html?app=carve" title="Vote for this app">👍 1</a><span class="share mini" data-url="https://trez63.com/p/carve.html" data-title="Carve — trez63" data-text="Carve — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
         </div>
       </div>
     </article>
@@ -357,6 +391,57 @@ footer a{text-decoration:underline}
         </div>
       </div>
     </article>
+    <article class="card" data-engine="Grok" data-cat="art" data-up="0" data-date="2026-10-25" data-search="aether a cosmic particle weaver. move the mouse to weave, click to plant a star, scroll to change the force; attract, orbit, chaos and paint modes. aether art grok">
+      <a class="shot" href="p/aether.html" aria-label="Open Aether"><img src="thumbs/aether.webp" alt="" loading=lazy width="640" height="400"><video src="previews/aether.webm" muted loop playsinline preload="none" poster="thumbs/aether.webp"></video></a>
+      <div class="body">
+        <div class="row">
+          <h2><a href="p/aether.html">Aether</a></h2>
+          <span class="badge grok">Grok</span>
+        </div>
+        <p>A cosmic particle weaver. Move the mouse to weave, click to plant a star, scroll to change the force; attract, orbit, chaos and paint modes.</p>
+        <div class="meta">
+          <span>Oct 25, 2026</span>
+          <span>·</span>
+          <a href="https://github.com/trez63/trez63.com/commits/main/apps/aether.html" title="Version history on GitHub">v1</a>
+          <span>· Generative art</span>
+          <span class="acts"><a class="rate" href="rate.html?app=aether" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/aether.html" data-title="Aether — trez63" data-text="Aether — a one-page app built by Grok from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
+        </div>
+      </div>
+    </article>
+    <article class="card" data-engine="Grok" data-cat="audio" data-up="0" data-date="2026-10-25" data-search="pulseforge an offline step sequencer. eight tracks from kick to pad, click steps to toggle notes, tempo and randomize on the keyboard. pure web audio. pulseforge audio grok">
+      <a class="shot" href="p/pulseforge.html" aria-label="Open PulseForge"><img src="thumbs/pulseforge.webp" alt="" loading=lazy width="640" height="400"><video src="previews/pulseforge.webm" muted loop playsinline preload="none" poster="thumbs/pulseforge.webp"></video></a>
+      <div class="body">
+        <div class="row">
+          <h2><a href="p/pulseforge.html">PulseForge</a></h2>
+          <span class="badge grok">Grok</span>
+        </div>
+        <p>An offline step sequencer. Eight tracks from kick to pad, click steps to toggle notes, tempo and randomize on the keyboard. Pure Web Audio.</p>
+        <div class="meta">
+          <span>Oct 25, 2026</span>
+          <span>·</span>
+          <a href="https://github.com/trez63/trez63.com/commits/main/apps/pulseforge.html" title="Version history on GitHub">v1</a>
+          <span>· Audio</span>
+          <span class="acts"><a class="rate" href="rate.html?app=pulseforge" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/pulseforge.html" data-title="PulseForge — trez63" data-text="PulseForge — a one-page app built by Grok from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
+        </div>
+      </div>
+    </article>
+    <article class="card" data-engine="Gemini" data-cat="focus" data-up="0" data-date="2026-10-25" data-search="cosmic breath a slow particle field that breathes. click to begin, move the cursor to bend its gravity, and let it set your pace. cosmic-breath focus gemini">
+      <a class="shot" href="p/cosmic-breath.html" aria-label="Open Cosmic Breath"><img src="thumbs/cosmic-breath.webp" alt="" loading=lazy width="640" height="400"><video src="previews/cosmic-breath.webm" muted loop playsinline preload="none" poster="thumbs/cosmic-breath.webp"></video></a>
+      <div class="body">
+        <div class="row">
+          <h2><a href="p/cosmic-breath.html">Cosmic Breath</a></h2>
+          <span class="badge gemini">Gemini</span>
+        </div>
+        <p>A slow particle field that breathes. Click to begin, move the cursor to bend its gravity, and let it set your pace.</p>
+        <div class="meta">
+          <span>Oct 25, 2026</span>
+          <span>·</span>
+          <a href="https://github.com/trez63/trez63.com/commits/main/apps/cosmic-breath.html" title="Version history on GitHub">v1</a>
+          <span>· Focus</span>
+          <span class="acts"><a class="rate" href="rate.html?app=cosmic-breath" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/cosmic-breath.html" data-title="Cosmic Breath — trez63" data-text="Cosmic Breath — a one-page app built by Gemini from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
+        </div>
+      </div>
+    </article>
     <article class="card" data-engine="Muse" data-cat="finance" data-up="0" data-date="2026-10-23" data-search="ledger your money on one page, offline. add an entry and the totals, chart and list update at once. nothing leaves the browser. ledger finance muse">
       <a class="shot" href="p/ledger.html" aria-label="Open Ledger"><img src="thumbs/ledger.webp" alt="" loading=lazy width="640" height="400"><video src="previews/ledger.webm" muted loop playsinline preload="none" poster="thumbs/ledger.webp"></video></a>
       <div class="body">
@@ -459,7 +544,7 @@ footer a{text-decoration:underline}
         </div>
       </div>
     </article>
-    <article class="card" data-engine="ChatGPT" data-cat="tool" data-up="0" data-date="2026-10-22" data-search="tradeoff make room for what matters. rate your options, weigh your priorities, and see the smallest shift that would change your mind. tradeoff tool chatgpt">
+    <article class="card" data-engine="ChatGPT" data-cat="tool" data-up="1" data-date="2026-10-22" data-search="tradeoff make room for what matters. rate your options, weigh your priorities, and see the smallest shift that would change your mind. tradeoff tool chatgpt">
       <a class="shot" href="p/tradeoff.html" aria-label="Open Tradeoff"><img src="thumbs/tradeoff.webp" alt="" loading=lazy width="640" height="400"><video src="previews/tradeoff.webm" muted loop playsinline preload="none" poster="thumbs/tradeoff.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -472,7 +557,7 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/tradeoff.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
-          <span class="acts"><a class="rate" href="rate.html?app=tradeoff" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/tradeoff.html" data-title="Tradeoff — trez63" data-text="Tradeoff — a one-page app built by ChatGPT from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
+          <span class="acts"><a class="rate" href="rate.html?app=tradeoff" title="Vote for this app">👍 1</a><span class="share mini" data-url="https://trez63.com/p/tradeoff.html" data-title="Tradeoff — trez63" data-text="Tradeoff — a one-page app built by ChatGPT from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
         </div>
       </div>
     </article>
@@ -578,7 +663,7 @@ footer a{text-decoration:underline}
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Claude" data-cat="tool" data-up="0" data-date="2026-10-05" data-search="label sheets paste a list of names, pick a label size and paper, and print a sheet where every name is set as large as it fits. labelmaker tool claude">
+    <article class="card" data-engine="Claude" data-cat="tool" data-up="1" data-date="2026-10-05" data-search="label sheets paste a list of names, pick a label size and paper, and print a sheet where every name is set as large as it fits. labelmaker tool claude">
       <a class="shot" href="p/labelmaker.html" aria-label="Open Label sheets"><img src="thumbs/labelmaker.webp" alt="" loading=lazy width="640" height="400"><video src="previews/labelmaker.webm" muted loop playsinline preload="none" poster="thumbs/labelmaker.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -591,7 +676,7 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/labelmaker.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
-          <span class="acts"><a class="rate" href="rate.html?app=labelmaker" title="Vote for this app">👍 Vote</a><span class="share mini" data-url="https://trez63.com/p/labelmaker.html" data-title="Label sheets — trez63" data-text="Label sheets — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
+          <span class="acts"><a class="rate" href="rate.html?app=labelmaker" title="Vote for this app">👍 1</a><span class="share mini" data-url="https://trez63.com/p/labelmaker.html" data-title="Label sheets — trez63" data-text="Label sheets — a one-page app built by Claude from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span></span>
         </div>
       </div>
     </article>

@@ -29,7 +29,14 @@
           }
         ]
       },
-      "category": "image"
+      "category": "image",
+      "votes": {
+        "up": 1,
+        "reactions": 1,
+        "comments": 0,
+        "url": "https://github.com/trez63/trez63.com/discussions/9",
+        "fetched": "2026-10-25"
+      }
     },
     "foldwork": {
       "title": "Foldwork",
@@ -302,7 +309,7 @@
       "votes": {
         "up": 1,
         "reactions": 1,
-        "comments": 0,
+        "comments": 1,
         "url": "https://github.com/trez63/trez63.com/discussions/6",
         "fetched": "2026-10-25"
       }
@@ -364,7 +371,7 @@
       "votes": {
         "up": 1,
         "reactions": 1,
-        "comments": 0,
+        "comments": 1,
         "url": "https://github.com/trez63/trez63.com/discussions/7",
         "fetched": "2026-10-25"
       }
@@ -461,7 +468,14 @@
           "sha": "69ffaf5a8e79"
         }
       ],
-      "category": "tool"
+      "category": "tool",
+      "votes": {
+        "up": 1,
+        "reactions": 1,
+        "comments": 0,
+        "url": "https://github.com/trez63/trez63.com/discussions/11",
+        "fetched": "2026-10-25"
+      }
     },
     "budget": {
       "title": "Budget",
@@ -559,7 +573,14 @@
           "sha": "32b4397ea346"
         }
       ],
-      "category": "tool"
+      "category": "tool",
+      "votes": {
+        "up": 1,
+        "reactions": 1,
+        "comments": 0,
+        "url": "https://github.com/trez63/trez63.com/discussions/10",
+        "fetched": "2026-10-25"
+      }
     },
     "tessera": {
       "title": "Tessera",
@@ -681,6 +702,91 @@
         ]
       },
       "category": "tool"
+    },
+    "aether": {
+      "title": "Aether",
+      "engine": "Grok",
+      "description": "A cosmic particle weaver. Move the mouse to weave, click to plant a star, scroll to change the force; attract, orbit, chaos and paint modes.",
+      "source_file": "Aether-Grok.html",
+      "first_published": "2026-10-25",
+      "last_updated": "2026-10-25",
+      "version": 1,
+      "sha": "3ef1130baa50",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-25",
+          "sha": "3ef1130baa50"
+        }
+      ],
+      "category": "art"
+    },
+    "pulseforge": {
+      "title": "PulseForge",
+      "engine": "Grok",
+      "description": "An offline step sequencer. Eight tracks from kick to pad, click steps to toggle notes, tempo and randomize on the keyboard. Pure Web Audio.",
+      "source_file": "PulseForge-Grok.html",
+      "first_published": "2026-10-25",
+      "last_updated": "2026-10-25",
+      "version": 1,
+      "sha": "fb211c7a079f",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-25",
+          "sha": "fb211c7a079f"
+        }
+      ],
+      "category": "audio"
+    },
+    "cosmic-breath": {
+      "title": "Cosmic Breath",
+      "engine": "Gemini",
+      "description": "A slow particle field that breathes. Click to begin, move the cursor to bend its gravity, and let it set your pace.",
+      "source_file": "Cosmic-Breathgemini.html",
+      "first_published": "2026-10-25",
+      "last_updated": "2026-10-25",
+      "version": 1,
+      "sha": "99367e2e757d",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-25",
+          "sha": "99367e2e757d"
+        }
+      ],
+      "category": "focus",
+      "thumb": {
+        "actions": [
+          {
+            "wait": 800
+          },
+          {
+            "click": [
+              0.5,
+              0.5
+            ]
+          },
+          {
+            "wait": 2500
+          },
+          {
+            "drag": [
+              [
+                0.3,
+                0.4
+              ],
+              [
+                0.7,
+                0.6
+              ]
+            ]
+          },
+          {
+            "wait": 1500
+          }
+        ]
+      }
     }
   },
   "generated": "2026-10-25",

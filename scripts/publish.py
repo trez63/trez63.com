@@ -41,6 +41,10 @@ def slug_and_engine(filename: str):
     m = re.match(r"^(.*?)-(" + "|".join(ENGINE_SUFFIX) + r")$", stem)
     if m:
         return m.group(1), ENGINE_SUFFIX[m.group(2)]
+    # tolerate a glued suffix with no hyphen, e.g. "cosmic-breathgemini"
+    m = re.match(r"^(.*?[a-z0-9])(" + "|".join(k for k in ENGINE_SUFFIX if len(k) >= 4) + r")$", stem)
+    if m and len(m.group(1)) >= 3:
+        return m.group(1).rstrip("-"), ENGINE_SUFFIX[m.group(2)]
     return stem, None
 
 def sha(p: Path):

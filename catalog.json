@@ -794,6 +794,96 @@
           }
         ]
       }
+    },
+    "chromawave": {
+      "title": "ChromaWave",
+      "engine": "Gemini",
+      "description": "A synthesizer in the browser. Play the keys A to K, pick a waveform, turn the filter and delay knobs, and watch the waveform draw itself as it sounds.",
+      "source_file": "ChromaWave-gemini.html",
+      "first_published": "2026-10-26",
+      "last_updated": "2026-10-26",
+      "version": 1,
+      "sha": "9bef8b13a052",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-26",
+          "sha": "9bef8b13a052"
+        }
+      ],
+      "category": "audio"
+    },
+    "orrery-calude": {
+      "title": "Orrery",
+      "engine": "Claude",
+      "description": "The solar system from above and the sky overhead, computed from orbital elements. Scrub time forward or back, pick a city, and click any body for its position, phase and rise and set times.",
+      "source_file": "Orrery-Calude.html",
+      "first_published": "2026-10-26",
+      "last_updated": "2026-10-26",
+      "version": 1,
+      "sha": "9613e61b015e",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-26",
+          "sha": "9613e61b015e"
+        }
+      ],
+      "category": "sim"
+    },
+    "tidytext": {
+      "title": "Tidy Text",
+      "engine": "Muse",
+      "description": "Paste messy copied text and clean copy appears beside it. Toggle the rules: join wrapped lines, collapse blanks, fix double spaces, straighten quotes. Copy or download the result.",
+      "source_file": "TidyText-Muse.html",
+      "first_published": "2026-10-26",
+      "last_updated": "2026-10-26",
+      "version": 1,
+      "sha": "51ada2865877",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-26",
+          "sha": "51ada2865877"
+        }
+      ],
+      "category": "text"
+    },
+    "turtleloom": {
+      "title": "TurtleLoom",
+      "engine": "Grok",
+      "description": "Turtle graphics with live sliders. Drag repeats, sides, turn step and hue and the pattern redraws as you go; edit the generated commands to go further, then save a PNG.",
+      "source_file": "TurtleLoom-Grok.html",
+      "first_published": "2026-10-26",
+      "last_updated": "2026-10-26",
+      "version": 1,
+      "sha": "a31e4d40ad58",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-26",
+          "sha": "a31e4d40ad58"
+        }
+      ],
+      "category": "art"
+    },
+    "backplan": {
+      "title": "Backplan",
+      "engine": "ChatGPT",
+      "description": "Plan backward from a deadline. Set the finish time, list the steps with their minutes and prerequisites, and it works out the latest you can start and which steps have no slack.",
+      "source_file": "backplan-Codex.html",
+      "first_published": "2026-10-26",
+      "last_updated": "2026-10-26",
+      "version": 1,
+      "sha": "e7e661b4d9e4",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-26",
+          "sha": "e7e661b4d9e4"
+        }
+      ],
+      "category": "tool"
     }
   },
   "generated": "2026-10-26",

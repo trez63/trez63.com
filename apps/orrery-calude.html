@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Orrery</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: a night-sky instrument panel. Two round dials (solar system, your sky) and an almanac column. */
+:root {
+  --bg: #0a0e1a; --panel: #111728; --line: #26304a; --fg: #e4e8f3; --muted: #8b95b0;
+  --accent: #f2c14e; --sun: #ffc857; --sky-day: #2e6fb5; --sky-twi: #5a3a5c; --sky-night: #0b1226;
+  --disc: #0e1424; --mode: dark; --display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace; color-scheme: dark;
+}
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
+  --bg: #edf0f6; --panel: #ffffff; --line: #d3d9e6; --fg: #1a2133; --muted: #5d6881; --accent: #b8860b;
+  --sun: #e9a700; --sky-day: #a9cdf0; --sky-twi: #f0b48a; --sky-night: #2c355a; --disc: #f7f9fd; --mode: light; color-scheme: light; } }
+:root[data-theme="light"] {
+  --bg: #edf0f6; --panel: #ffffff; --line: #d3d9e6; --fg: #1a2133; --muted: #5d6881; --accent: #b8860b;
+  --sun: #e9a700; --sky-day: #a9cdf0; --sky-twi: #f0b48a; --sky-night: #2c355a; --disc: #f7f9fd; --mode: light; color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+  padding-block: 10px 24px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding-bottom: 10px; }
+h1 { font: 400 26px/1 var(--display); letter-spacing: .02em; margin: 0; }
+h1 small { font: 12px/1 system-ui, sans-serif; color: var(--muted); margin-left: 8px; letter-spacing: .06em; text-transform: uppercase; }
+.ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-left: auto; }
+button, select, input { font: inherit; color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 5px 9px; }
+button { cursor: pointer; } button:hover { border-color: var(--accent); } button.on { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+input[type=number] { width: 86px; font-family: var(--mono); }
+main { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr) 304px; gap: 14px; }
+@media (max-width: 1100px) { main { grid-template-columns: minmax(0,1fr) minmax(0,1fr); } aside { grid-column: 1 / -1; } }
+@media (max-width: 680px) { main { grid-template-columns: minmax(0,1fr); } aside { grid-column: auto; } }
+.pane { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px; min-width: 0; position: relative; }
+.pane h2 { margin: 0 0 4px; font: 500 12px/1.3 system-ui, sans-serif; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; display: flex; flex-wrap: wrap; gap: 2px 10px; justify-content: space-between; }
+.pane h2 span { font-weight: 400; text-transform: none; letter-spacing: 0; font-family: var(--mono); }
+canvas { display: block; width: 100%; max-width: 100%; touch-action: manipulation; }
+aside { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.card h3 { margin: 0 0 6px; font: 500 12px/1 system-ui, sans-serif; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; font-variant-numeric: tabular-nums; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; text-align: right; font-family: var(--mono); font-size: 13px; }
+.moonrow { display: flex; gap: 12px; align-items: center; }
+.big { font: 400 28px/1 var(--display); }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th { text-align: left; font-weight: 500; color: var(--muted); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; padding: 2px 4px; }
+td { padding: 3px 4px; border-top: 1px solid var(--line); font-family: var(--mono); font-size: 12.5px; white-space: nowrap; }
+td:first-child { font-family: inherit; font-size: 13px; cursor: pointer; }
+tr.sel td { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+tr.down td { color: var(--muted); }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+.pill { font-size: 10px; padding: 1px 6px; border-radius: 10px; border: 1px solid var(--line); color: var(--muted); font-family: system-ui, sans-serif; margin-left: 6px; }
+tr:not(.down) .pill { color: var(--accent); border-color: var(--accent); }
+#help[hidden] { display: none; }
+#help { position: fixed; inset: 0; background: color-mix(in srgb, var(--bg) 82%, transparent); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 20; }
+#help .box { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px 24px; max-width: 560px; width: 100%; max-height: 90vh; overflow: auto; }
+#help h2 { margin: 0 0 8px; font: 400 24px/1.1 var(--display); }
+#help p { margin: 6px 0; color: var(--muted); }
+kbd { font-family: var(--mono); font-size: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; }
+.keys { display: grid; grid-template-columns: auto 1fr; gap: 5px 14px; margin: 12px 0; }
+.foot { color: var(--muted); font-size: 12px; margin-top: 8px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Orrery <small>the sky, computed</small></h1>
+  <div class="ctl">
+    <input type="datetime-local" id="when" aria-label="Date and time">
+    <button id="now" title="Jump to now (N)">Now</button>
+    <button id="back" title="Back one day (←)">◀</button>
+    <button id="play" title="Play / pause (Space)">▶</button>
+    <button id="fwd" title="Forward one day (→)">▶▶</button>
+    <select id="speed" aria-label="Playback speed"><option value="3600000">1 h / s</option><option value="86400000" selected>1 day / s</option><option value="604800000">1 week / s</option><option value="2592000000">30 days / s</option></select>
+    <select id="city" aria-label="Location"></select>
+    <input type="number" id="lat" step="0.01" min="-89.9" max="89.9" aria-label="Latitude">
+    <input type="number" id="lon" step="0.01" min="-180" max="180" aria-label="Longitude">
+    <button id="scale" title="Orbit scale (S)">√ scale</button>
+    <button id="theme" title="Theme (T)">◐</button>
+    <button id="helpBtn" title="Help (Ctrl + /)">?</button>
+  </div>
+</header>
+<main>
+  <section class="pane"><h2>Solar system, from above <span id="orreryCap"></span></h2><canvas id="orrery"></canvas></section>
+  <section class="pane"><h2>Your sky, looking up <span id="skyCap"></span></h2><canvas id="sky"></canvas></section>
+  <aside>
+    <div class="card" id="sunCard"></div>
+    <div class="card" id="moonCard"></div>
+    <div class="card" id="bodyCard"></div>
+    <div class="card"><h3>Rise and set today</h3><table id="tbl"></table></div>
+  </aside>
+</main>
+<div id="help" hidden><div class="box">
+  <h2>Orrery</h2>
+  <p>Every position on this page is computed, right here, from orbital mechanics: the planets from the JPL Keplerian elements (1800–2050), the Moon from a 19-term lunar series, then rotated into the sky above your latitude and longitude. No data is fetched. Planet positions are good to a few arcminutes, the Moon to about 0.1°, rise and set times to a couple of minutes.</p>
+  <div class="keys">
+    <kbd>Space</kbd><span>Play / pause time</span>
+    <kbd>← →</kbd><span>Step one day (hold Shift for 30 days)</span>
+    <kbd>↑ ↓</kbd><span>Step one hour</span>
+    <kbd>[ ]</kbd><span>Slower / faster playback</span>
+    <kbd>N</kbd><span>Back to now (the clock then follows real time)</span>
+    <kbd>1 – 9</kbd><span>Select Sun, Moon, Mercury … Neptune</span>
+    <kbd>S</kbd><span>Orbit scale: √distance or true</span>
+    <kbd>T</kbd><span>Dark / light theme</span>
+    <kbd>Ctrl /</kbd><span>This help (Esc closes)</span>
+  </div>
+  <p>Click any body in either dial, or in the table, for its coordinates, distance, phase and rise/set times. Left dial: the Sun at centre, planets at today's true positions, counter-clockwise motion, ♈ marks the vernal equinox. Right dial: the dome of sky overhead, north at the top, east on the left as when you look up. The dashed curve is the ecliptic, the road the Sun, Moon and planets travel.</p>
+  <p class="foot">Times are shown in your device's time zone. Pick a city or type a latitude and longitude for any other place on Earth.</p>
+</div></div>
+
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const D2R = Math.PI / 180, R2D = 180 / Math.PI;
+const norm = a => ((a % 360) + 360) % 360;
+const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+
+// ======================= ASTRONOMY (pure) =======================
+// @astro-begin
+const Astro = (() => {
+  // JPL approximate Keplerian elements (Standish), J2000 ecliptic, valid 1800–2050.
+  // el = [a AU, e, i°, L°, ϖ°, Ω°]; rate = change per Julian century.
+  const P = (name, color, size, el, rate) => ({ name, color, size, el, rate });
+  const PLANETS = [
+    P('Mercury', '#b9b4a8', 3,   [0.38709927, 0.20563593, 7.00497902, 252.25032350, 77.45779628, 48.33076593], [0.00000037, 0.00001906, -0.00594749, 149472.67411175, 0.16047689, -0.12534081]),
+    P('Venus',   '#f0d9a6', 4.5, [0.72333566, 0.00677672, 3.39467605, 181.97909950, 131.60246718, 76.67984255], [0.00000390, -0.00004107, -0.00078890, 58517.81538729, 0.00268329, -0.27769418]),
+    P('Earth',   '#5aa9e6', 4.5, [1.00000261, 0.01671123, -0.00001531, 100.46457166, 102.93768193, 0.0], [0.00000562, -0.00004392, -0.01294668, 35999.37244981, 0.32327364, 0.0]),
+    P('Mars',    '#e2714a', 3.5, [1.52371034, 0.09339410, 1.84969142, -4.55343205, -23.94362959, 49.55953891], [0.00001847, 0.00007882, -0.00813131, 19140.30268499, 0.44441088, -0.29257343]),
+    P('Jupiter', '#d9b38c', 7,   [5.20288700, 0.04838624, 1.30439695, 34.39644051, 14.72847983, 100.47390909], [-0.00011607, -0.00013253, -0.00183714, 3034.74612775, 0.21252668, 0.20469106]),
+    P('Saturn',  '#e7d59b', 6,   [9.53667594, 0.05386179, 2.48599187, 49.95424423, 92.59887831, 113.66242448], [-0.00125060, -0.00050991, 0.00193609, 1222.49362201, -0.41897216, -0.28867794]),
+    P('Uranus',  '#9fd8dc', 5,   [19.18916464, 0.04725744, 0.77263783, 313.23810451, 170.95427630, 74.01692503], [-0.00196176, -0.00004397, -0.00242939, 428.48202785, 0.40805281, 0.04240589]),
+    P('Neptune', '#6f8fe0', 5,   [30.06992276, 0.00859048, 1.77004347, -55.12002969, 44.96476227, 131.78422574], [0.00026291, 0.00005105, 0.00035372, 218.45945325, -0.32241464, -0.00508664]),
+  ];
+  const jd = ms => ms / 86400000 + 2440587.5;
+
+  function kepler(M, e) { // solve E - e sin E = M by Newton's method
+    let E = e < 0.8 ? M : Math.PI;
+    for (let i = 0; i < 40; i++) { const d = (E - e * Math.sin(E) - M) / (1 - e * Math.cos(E)); E -= d; if (Math.abs(d) < 1e-9) break; }
+    return E;
+  }
+  // Heliocentric J2000 ecliptic position (AU). Mdeg overrides the mean anomaly (used to trace orbits).
+  function helio(p, T, Mdeg) {
+    const [a, e, I, L, w, O] = p.el.map((v, i) => v + p.rate[i] * T);
+    const E = kepler((Mdeg === undefined ? norm(L - w) : Mdeg) * D2R, e);
+    const xp = a * (Math.cos(E) - e), yp = a * Math.sqrt(1 - e * e) * Math.sin(E);
+    const om = (w - O) * D2R, Om = O * D2R, inc = I * D2R;
+    const cw = Math.cos(om), sw = Math.sin(om), cO = Math.cos(Om), sO = Math.sin(Om), ci = Math.cos(inc), si = Math.sin(inc);
+    return { x: (cw * cO - sw * sO * ci) * xp + (-sw * cO - cw * sO * ci) * yp,
+             y: (cw * sO + sw * cO * ci) * xp + (-sw * sO + cw * cO * ci) * yp,
+             z: sw * si * xp + cw * si * yp };
+  }
+  // Geocentric Moon, ecliptic of date, distance in Earth radii (Schlyter's low-precision series).
+  function moon(jdv) {
+    const d = jdv - 2451543.5, s = x => Math.sin(x * D2R), c = x => Math.cos(x * D2R);
+    const N = norm(125.1228 - 0.0529538083 * d), i = 5.1454, w = norm(318.0634 + 0.1643573223 * d);
+    const a = 60.2666, e = 0.054900, M = norm(115.3654 + 13.0649929509 * d);
+    const E = kepler(M * D2R, e);
+    const xv = a * (Math.cos(E) - e), yv = a * Math.sqrt(1 - e * e) * Math.sin(E);
+    const v = Math.atan2(yv, xv) * R2D, r = Math.hypot(xv, yv);
+    const xh = r * (c(N) * c(v + w) - s(N) * s(v + w) * c(i)), yh = r * (s(N) * c(v + w) + c(N) * s(v + w) * c(i)), zh = r * s(v + w) * s(i);
+    let lon = Math.atan2(yh, xh) * R2D, lat = Math.atan2(zh, Math.hypot(xh, yh)) * R2D;
+    const Ms = norm(356.0470 + 0.9856002585 * d), Ls = 282.9404 + 4.70935e-5 * d + Ms, Lm = N + w + M, D = Lm - Ls, F = Lm - N;
+    lon += -1.274 * s(M - 2 * D) + 0.658 * s(2 * D) - 0.186 * s(Ms) - 0.059 * s(2 * M - 2 * D) - 0.057 * s(M - 2 * D + Ms)
+         + 0.053 * s(M + 2 * D) + 0.046 * s(2 * D - Ms) + 0.041 * s(M - Ms) - 0.035 * s(D) - 0.031 * s(M + Ms) - 0.015 * s(2 * F - 2 * D) + 0.011 * s(M - 4 * D);
+    lat += -0.173 * s(F - 2 * D) - 0.055 * s(M - F - 2 * D) - 0.046 * s(M + F - 2 * D) + 0.033 * s(F + 2 * D) + 0.017 * s(2 * M + F);
+    return { lon: norm(lon), lat, dist: r - 0.58 * c(M - 2 * D) - 0.46 * c(2 * D) };
+  }
+  const sep = (a, b) => Math.acos(clamp(Math.sin(a.dec * D2R) * Math.sin(b.dec * D2R) + Math.cos(a.dec * D2R) * Math.cos(b.dec * D2R) * Math.cos((a.ra - b.ra) * D2R), -1, 1)) * R2D;
+
+  // Everything about the sky at one instant for an observer at lat, lon (degrees, east positive).
+  function compute(jdv, lat, lon) {
+    const T = (jdv - 2451545) / 36525;
+    const eps = (23.439291 - 0.0130042 * T) * D2R;
+    const prec = 1.39717 * T;                                             // J2000 → ecliptic of date
+    const lst = norm(280.46061837 + 360.98564736629 * (jdv - 2451545) + lon); // local sidereal time
+    const earth = helio(PLANETS[2], T), Rsun = Math.hypot(earth.x, earth.y, earth.z);
+    const bodies = [];
+    const place = (name, color, size, lonD, latD, dist, extra) => {
+      const l = lonD * D2R, b = latD * D2R;
+      const x = Math.cos(b) * Math.cos(l), y = Math.cos(b) * Math.sin(l), z = Math.sin(b);
+      const ye = y * Math.cos(eps) - z * Math.sin(eps), ze = y * Math.sin(eps) + z * Math.cos(eps);
+      const ra = norm(Math.atan2(ye, x) * R2D), dec = Math.asin(ze) * R2D;
+      const H = (lst - ra) * D2R, ph = lat * D2R, de = dec * D2R;
+      let alt = Math.asin(Math.sin(ph) * Math.sin(de) + Math.cos(ph) * Math.cos(de) * Math.cos(H)) * R2D;
+      const az = norm(Math.atan2(Math.sin(H), Math.cos(H) * Math.sin(ph) - Math.tan(de) * Math.cos(ph)) * R2D + 180);
+      if (name === 'Moon') alt -= Math.asin(1 / dist) * R2D * Math.cos(alt * D2R);    // topocentric parallax
+      bodies.push(Object.assign({ name, color, size, lon: norm(lonD), lat: latD, ra, dec, alt, az, dist }, extra));
+    };
+    place('Sun', '#ffc857', 9, Math.atan2(-earth.y, -earth.x) * R2D + prec, Math.atan2(-earth.z, Math.hypot(earth.x, earth.y)) * R2D, Rsun, { k: 1 });
+    const m = moon(jdv);
+    place('Moon', '#e8e4d8', 7, m.lon, m.lat, m.dist, {});
+    for (const p of PLANETS) {
+      if (p.name === 'Earth') continue;
+      const h = helio(p, T), gx = h.x - earth.x, gy = h.y - earth.y, gz = h.z - earth.z;
+      const dl = Math.hypot(gx, gy, gz), r = Math.hypot(h.x, h.y, h.z);
+      const cosi = clamp((r * r + dl * dl - Rsun * Rsun) / (2 * r * dl), -1, 1);           // phase angle at the planet
+      place(p.name, p.color, p.size, Math.atan2(gy, gx) * R2D + prec, Math.atan2(gz, Math.hypot(gx, gy)) * R2D, dl, { k: (1 + cosi) / 2, helio: h, r });
+    }
+    const S = bodies[0], M = bodies[1];
+    for (const b of bodies) b.elong = sep(b, S);
+    M.k = (1 - Math.cos(M.elong * D2R)) / 2;
+    M.phase = norm(M.lon - S.lon);            // 0 new, 90 first quarter, 180 full, 270 last quarter
+    M.age = M.phase / 360 * 29.530589;
+    return { T, lst, earth, bodies };
+  }
+  // Rise, set and transit for every body over one local day (10-minute scan, then bisection).
+  function dayEvents(dayStart, lat, lon) {
+    const H0 = { Sun: -0.833, Moon: 0.125 }, step = 600000, n = 145, alts = [];
+    for (let i = 0; i < n; i++) alts.push(compute(jd(dayStart + i * step), lat, lon).bodies.map(b => b.alt));
+    const names = compute(jd(dayStart), lat, lon).bodies.map(b => b.name), ev = {};
+    names.forEach((name, bi) => {
+      const h0 = H0[name] ?? -0.567, e = { rise: null, set: null, transit: null, maxAlt: -90 };
+      const f = ms => compute(jd(ms), lat, lon).bodies[bi].alt - h0;
+      for (let i = 1; i < n; i++) {
+        const a0 = alts[i - 1][bi] - h0, a1 = alts[i][bi] - h0;
+        if ((a0 < 0) !== (a1 < 0)) {
+          let lo = dayStart + (i - 1) * step, hi = lo + step, flo = a0;
+          for (let k = 0; k < 11; k++) { const mid = (lo + hi) / 2, fm = f(mid); if ((flo < 0) === (fm < 0)) { lo = mid; flo = fm; } else hi = mid; }
+          const t = (lo + hi) / 2;
+          if (a1 >= 0) e.rise ??= t; else e.set ??= t;
+        }
+        if (alts[i][bi] > e.maxAlt) { e.maxAlt = alts[i][bi]; e.transit = dayStart + i * step; }
+      }
+      ev[name] = e;
+    });
+    return ev;
+  }
+  // Next new and full Moon after ms (hourly scan, then bisection).
+  function nextPhases(ms) {
+    const ph = t => compute(jd(t), 0, 0).bodies[1].phase, step = 3600000, found = {};
+    let prev = ph(ms);
+    for (let t = ms + step; t < ms + 32 * 86400000 && !(found.new && found.full); t += step) {
+      const cur = ph(t);
+      for (const [key, target] of [['new', 0], ['full', 180]]) {
+        const g = x => ((x - target + 540) % 360) - 180;
+        if (!found[key] && g(prev) < 0 && g(cur) >= 0) {
+          let lo = t - step, hi = t;
+          for (let k = 0; k < 14; k++) { const mid = (lo + hi) / 2; if (g(ph(mid)) < 0) lo = mid; else hi = mid; }
+          found[key] = (lo + hi) / 2;
+        }
+      }
+      prev = cur;
+    }
+    return found;
+  }
+  return { PLANETS, jd, helio, moon, compute, dayEvents, nextPhases };
+})();
+// @astro-end
+
+// ======================= STATE =======================
+const CITIES = [['Los Angeles', 34.05, -118.24], ['New York', 40.71, -74.01], ['Mexico City', 19.43, -99.13], ['São Paulo', -23.55, -46.63], ['London', 51.51, -0.13], ['Paris', 48.86, 2.35], ['Cairo', 30.04, 31.24], ['Nairobi', -1.29, 36.82], ['Tehran', 35.69, 51.39], ['Mumbai', 19.08, 72.88], ['Tokyo', 35.68, 139.69], ['Sydney', -33.87, 151.21], ['Reykjavík', 64.15, -21.94], ['Custom', NaN, NaN]];
+const S = { t: Date.now(), follow: true, playing: false, speed: 86400000, lat: 34.05, lon: -118.24, sel: 'Moon', scale: 'sqrt', hits: [] };
+const DAY = 86400000;
+const cache = { evKey: '', ev: null, phKey: '', ph: null };
+
+// ======================= FORMATTING =======================
+const fmtT = ms => ms == null ? '—' : new Date(ms).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+const fmtD = ms => new Date(ms).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+const deg = (x, n = 1) => x.toFixed(n) + '°';
+const compass = az => ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round(az / 45) % 8];
+const fmtRA = ra => { const h = ra / 15, m = (h % 1) * 60; return `${Math.floor(h)}h ${m.toFixed(1).padStart(4, '0')}m`; };
+const fmtDec = d => `${d < 0 ? '−' : '+'}${Math.floor(Math.abs(d))}° ${Math.round((Math.abs(d) % 1) * 60).toString().padStart(2, '0')}′`;
+const dur = ms => `${Math.floor(ms / 3600000)}h ${Math.round(ms / 60000) % 60}m`;
+const phaseName = p => p < 8 || p > 352 ? 'New Moon' : p < 82 ? 'Waxing crescent' : p < 98 ? 'First quarter' : p < 172 ? 'Waxing gibbous' : p < 188 ? 'Full Moon' : p < 262 ? 'Waning gibbous' : p < 278 ? 'Last quarter' : 'Waning crescent';
+const toLocalInput = ms => { const d = new Date(ms), p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; };
+const dayStart = ms => { const d = new Date(ms); d.setHours(0, 0, 0, 0); return d.getTime(); };
+const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const hex2rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const mix = (a, b, t) => { const A = hex2rgb(a), B = hex2rgb(b); return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(',')})`; };
+
+// ======================= CANVAS SETUP =======================
+function fit(cv) {
+  const w = cv.parentElement.clientWidth - 20, h = Math.min(w, Math.max(300, innerHeight - 170)), dpr = devicePixelRatio || 1;
+  if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.height = h + 'px'; }
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h); return [ctx, w, h];
+}
+function glowDot(ctx, x, y, r, color, glow = 2.6) {
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r * glow);
+  g.addColorStop(0, color); g.addColorStop(0.35, color + 'aa'); g.addColorStop(1, color + '00');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r * glow, 0, 7); ctx.fill();
+  ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
+}
+function drawMoon(ctx, x, y, r, k, waxing, lit, dark) {
+  ctx.save(); ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.clip();
+  ctx.fillStyle = dark; ctx.fillRect(x - r, y - r, 2 * r, 2 * r);
+  ctx.fillStyle = lit; ctx.beginPath(); ctx.arc(x, y, r, -Math.PI / 2, Math.PI / 2, !waxing); ctx.fill();   // lit half
+  ctx.fillStyle = k > 0.5 ? lit : dark; ctx.beginPath(); ctx.ellipse(x, y, r * Math.abs(2 * k - 1), r, 0, 0, 7); ctx.fill(); // terminator
+  ctx.restore();
+  ctx.strokeStyle = lit + '66'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.stroke();
+}
+let placed = [];   // label boxes already drawn on the current dial, so neighbours step down instead of overlapping
+function label(ctx, text, x, y, color, align = 'left') {
+  ctx.font = '12px system-ui, sans-serif'; ctx.textAlign = align; ctx.textBaseline = 'middle'; ctx.fillStyle = color;
+  const w = ctx.measureText(text).width, bx = align === 'left' ? x : align === 'right' ? x - w : x - w / 2;
+  for (let i = 0; i < 6 && placed.some(p => Math.abs(p.y - y) < 13 && bx < p.x + p.w && bx + w > p.x); i++) y += 13;
+  placed.push({ x: bx, y, w }); ctx.fillText(text, x, y);
+}
+
+// ======================= THE TWO DIALS =======================
+function drawOrrery(sky) {
+  const cv = $('#orrery'), [ctx, W, H] = fit(cv), cx = W / 2, cy = H / 2, R = Math.min(W, H) / 2 - 40;
+  const f = S.scale === 'sqrt' ? Math.sqrt : (x => x), map = d => R * f(d) / f(31);
+  const line = css('--line'), muted = css('--muted'), fg = css('--fg'), accent = css('--accent');
+  placed = [];
+  ctx.fillStyle = css('--disc'); ctx.beginPath(); ctx.arc(cx, cy, R + 14, 0, 7); ctx.fill();
+  // vernal equinox direction
+  ctx.strokeStyle = line; ctx.setLineDash([3, 5]); ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + R + 14, cy); ctx.stroke(); ctx.setLineDash([]);
+  label(ctx, '♈', cx + R + 24, cy, muted, 'center');
+  // orbits traced from the same elements
+  for (const p of Astro.PLANETS) {
+    ctx.strokeStyle = p.name === S.sel ? p.color + 'aa' : line; ctx.lineWidth = p.name === S.sel ? 1.4 : 1; ctx.beginPath();
+    for (let i = 0; i <= 120; i++) { const h = Astro.helio(p, sky.T, i * 3), d = Math.hypot(h.x, h.y, h.z), s = map(d) / d; ctx.lineTo(cx + h.x * s, cy - h.y * s); }
+    ctx.closePath(); ctx.stroke();
+  }
+  glowDot(ctx, cx, cy, 7, css('--sun'), 3.5);
+  const pos = {}, E = sky.earth; { const d = Math.hypot(E.x, E.y, E.z), s = map(d) / d; pos.Earth = [cx + E.x * s, cy - E.y * s]; }
+  for (const b of sky.bodies) if (b.helio) { const d = b.r, s = map(d) / d; pos[b.name] = [cx + b.helio.x * s, cy - b.helio.y * s]; }
+  if (pos[S.sel]) { ctx.strokeStyle = accent + '88'; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(...pos.Earth); ctx.lineTo(...pos[S.sel]); ctx.stroke(); ctx.setLineDash([]); }
+  S.hits = S.hits.filter(h => h.cv !== cv);
+  const draw = (name, color, size) => { const [x, y] = pos[name]; if (name === S.sel) { ctx.strokeStyle = accent; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x, y, size + 5, 0, 7); ctx.stroke(); }
+    glowDot(ctx, x, y, size, color); const right = x > W - 70; label(ctx, name, x + (right ? -1 : 1) * (size + 5), y, name === S.sel ? fg : muted, right ? 'right' : 'left'); S.hits.push({ cv, x, y, r: size + 8, name }); };
+  draw('Earth', '#5aa9e6', 4.5);
+  for (const b of sky.bodies) if (b.helio) draw(b.name, b.color, b.size * 0.8);
+  label(ctx, S.scale === 'sqrt' ? 'radial scale: √ distance' : 'radial scale: true', 8, H - 10, muted);
+}
+
+function drawSky(sky) {
+  const cv = $('#sky'), [ctx, W, H] = fit(cv), cx = W / 2, cy = H / 2, R = Math.min(W, H) / 2 - 26;
+  const line = css('--line'), muted = css('--muted'), fg = css('--fg'), accent = css('--accent'), lit = css('--mode') === 'dark' ? '#f1ecdd' : '#fff6d6';
+  const proj = (alt, az) => { const r = R * Math.tan((90 - alt) / 2 * D2R), a = az * D2R; return [cx - r * Math.sin(a), cy - r * Math.cos(a)]; };
+  const rim = (r, az) => [cx - r * Math.sin(az * D2R), cy - r * Math.cos(az * D2R)];
+  const sun = sky.bodies[0];
+  placed = [];
+  // sky colour follows the Sun: night below −12°, twilight, full day above +8°
+  const t = sun.alt < -12 ? 0 : sun.alt < -3 ? (sun.alt + 12) / 9 : 1, u = clamp((sun.alt + 3) / 11, 0, 1);
+  ctx.fillStyle = t < 1 ? mix(css('--sky-night'), css('--sky-twi'), t) : mix(css('--sky-twi'), css('--sky-day'), u);
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.fill();
+  if (sun.alt < 0 && sun.alt > -18) { const [sx, sy] = proj(0, sun.az), g = ctx.createRadialGradient(sx, sy, 0, sx, sy, R * 0.7);
+    g.addColorStop(0, `rgba(255,170,80,${0.55 * (1 + sun.alt / 18)})`); g.addColorStop(1, 'rgba(255,170,80,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.fill(); }
+  // altitude rings and compass
+  ctx.strokeStyle = line; ctx.lineWidth = 1;
+  for (const a of [30, 60]) { ctx.setLineDash([2, 5]); ctx.beginPath(); ctx.arc(cx, cy, R * Math.tan((90 - a) / 2 * D2R), 0, 7); ctx.stroke(); }
+  ctx.setLineDash([]); ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.stroke();
+  for (let az = 0; az < 360; az += 15) { const [x1, y1] = rim(R, az), [x2, y2] = rim(R + (az % 90 ? 5 : 9), az); ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
+  [['N', 0], ['E', 90], ['S', 180], ['W', 270]].forEach(([n, az]) => { const [x, y] = rim(R + 18, az); ctx.font = '600 13px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = fg; ctx.fillText(n, x, y); });
+  // the ecliptic, sampled every 4° of longitude
+  ctx.strokeStyle = accent + '99'; ctx.setLineDash([5, 5]); ctx.beginPath(); let pen = false;
+  for (let L = 0; L <= 360; L += 4) {
+    const l = L * D2R, eps = (23.439291 - 0.0130042 * sky.T) * D2R, ra = Math.atan2(Math.sin(l) * Math.cos(eps), Math.cos(l)) * R2D, dec = Math.asin(Math.sin(l) * Math.sin(eps)) * R2D;
+    const Hh = (sky.lst - ra) * D2R, ph = S.lat * D2R, de = dec * D2R;
+    const alt = Math.asin(Math.sin(ph) * Math.sin(de) + Math.cos(ph) * Math.cos(de) * Math.cos(Hh)) * R2D;
+    const az = norm(Math.atan2(Math.sin(Hh), Math.cos(Hh) * Math.sin(ph) - Math.tan(de) * Math.cos(ph)) * R2D + 180);
+    if (alt < 0) { pen = false; continue; } const [x, y] = proj(alt, az); pen ? ctx.lineTo(x, y) : ctx.moveTo(x, y); pen = true;
+  }
+  ctx.stroke(); ctx.setLineDash([]);
+  S.hits = S.hits.filter(h => h.cv !== cv);
+  for (const b of sky.bodies) {
+    if (b.alt < 0) continue;
+    const [x, y] = proj(b.alt, b.az);
+    if (b.name === S.sel) { ctx.strokeStyle = accent; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x, y, b.size + 6, 0, 7); ctx.stroke(); }
+    if (b.name === 'Moon') drawMoon(ctx, x, y, 8, b.k, b.phase < 180, lit, css('--mode') === 'dark' ? '#2a2f3d' : '#6b7390');
+    else glowDot(ctx, x, y, b.size, b.color, b.name === 'Sun' ? 4 : 2.6);
+    label(ctx, b.name, x + b.size + 6, y, b.name === S.sel ? fg : muted);
+    S.hits.push({ cv, x, y, r: b.size + 8, name: b.name });
+  }
+  label(ctx, `${S.lat.toFixed(2)}°, ${S.lon.toFixed(2)}°`, 8, H - 10, muted);
+}
+
+// ======================= ALMANAC PANEL =======================
+function renderPanel(sky) {
+  const ds = dayStart(S.t), key = `${ds}|${S.lat}|${S.lon}`;
+  if (cache.evKey !== key) { cache.ev = Astro.dayEvents(ds, S.lat, S.lon); cache.evKey = key; }
+  const hk = Math.floor(S.t / 3600000); if (cache.phKey !== hk) { cache.ph = Astro.nextPhases(S.t); cache.phKey = hk; }
+  const ev = cache.ev, ph = cache.ph, sun = sky.bodies[0], moon = sky.bodies[1];
+  const se = ev.Sun, daylen = se.rise != null && se.set != null ? (se.set - se.rise + (se.set < se.rise ? DAY : 0)) : null;
+  $('#sunCard').innerHTML = `<h3>Sun · ${fmtD(S.t)}</h3><dl class="kv"><dt>Sunrise</dt><dd>${fmtT(se.rise)}</dd><dt>Sunset</dt><dd>${fmtT(se.set)}</dd><dt>Daylight</dt><dd>${daylen ? dur(daylen) : se.maxAlt > 0 ? 'all day' : 'none'}</dd><dt>Solar noon</dt><dd>${fmtT(se.transit)} · ${deg(se.maxAlt, 0)}</dd><dt>Now</dt><dd>${sun.alt >= 0 ? 'up, ' : 'below horizon, '}${deg(sun.alt, 0)}</dd></dl>`;
+  const mc = document.createElement('canvas'); mc.width = mc.height = 112; mc.style.width = mc.style.height = '56px';
+  drawMoon(mc.getContext('2d'), 56, 56, 50, moon.k, moon.phase < 180, css('--mode') === 'dark' ? '#f1ecdd' : '#e8d9a0', css('--mode') === 'dark' ? '#2a2f3d' : '#6b7390');
+  $('#moonCard').innerHTML = `<h3>Moon</h3><div class="moonrow"><div id="moonPic"></div><div><div class="big">${Math.round(moon.k * 100)}%</div><div>${phaseName(moon.phase)} · ${moon.age.toFixed(1)} days old</div></div></div><dl class="kv" style="margin-top:8px"><dt>Next new</dt><dd>${ph.new ? fmtD(ph.new) + ' ' + fmtT(ph.new) : '—'}</dd><dt>Next full</dt><dd>${ph.full ? fmtD(ph.full) + ' ' + fmtT(ph.full) : '—'}</dd><dt>Distance</dt><dd>${Math.round(moon.dist * 6371).toLocaleString()} km</dd></dl>`;
+  $('#moonPic').appendChild(mc);
+  const b = sky.bodies.find(x => x.name === S.sel), e = ev[S.sel];
+  const dist = b.name === 'Moon' ? `${Math.round(b.dist * 6371).toLocaleString()} km` : `${b.dist.toFixed(3)} AU · ${(b.dist * 499.005 / 60).toFixed(1)} light-min`;
+  $('#bodyCard').innerHTML = `<h3 style="color:color-mix(in srgb, ${b.color} 55%, var(--fg))">${b.name}</h3><dl class="kv"><dt>Altitude</dt><dd>${deg(b.alt)}</dd><dt>Azimuth</dt><dd>${deg(b.az)} ${compass(b.az)}</dd><dt>RA / Dec</dt><dd>${fmtRA(b.ra)} / ${fmtDec(b.dec)}</dd><dt>Ecliptic</dt><dd>${deg(b.lon)} / ${deg(b.lat)}</dd><dt>Distance</dt><dd>${dist}</dd>${b.name !== 'Sun' ? `<dt>From Sun</dt><dd>${deg(b.elong, 0)}</dd><dt>Illuminated</dt><dd>${(b.k * 100).toFixed(b.name === 'Moon' ? 0 : 1)}%</dd>` : ''}<dt>Rise · set</dt><dd>${fmtT(e.rise)} · ${fmtT(e.set)}</dd><dt>Highest</dt><dd>${fmtT(e.transit)} · ${deg(e.maxAlt, 0)}</dd></dl>`;
+  $('#tbl').innerHTML = `<tr><th>Body</th><th>Alt</th><th>Az</th><th>Rise</th><th>Set</th></tr>` + sky.bodies.map(x => `<tr class="${x.name === S.sel ? 'sel' : ''} ${x.alt < 0 ? 'down' : ''}" data-n="${x.name}"><td><span class="dot" style="background:${x.color}"></span>${x.name}${x.alt >= 0 ? '<span class="pill">up</span>' : ''}</td><td>${deg(x.alt, 0)}</td><td>${compass(x.az)}</td><td>${fmtT(ev[x.name].rise)}</td><td>${fmtT(ev[x.name].set)}</td></tr>`).join('');
+  $('#orreryCap').textContent = new Date(S.t).toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
+  $('#skyCap').textContent = new Date(S.t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + ' ' + (Intl.DateTimeFormat().resolvedOptions().timeZone || '');
+}
+
+// ======================= RENDER LOOP =======================
+let lastFrame = performance.now(), lastPanel = -1;
+function render() {
+  const sky = Astro.compute(Astro.jd(S.t), S.lat, S.lon);
+  drawOrrery(sky); drawSky(sky);
+  const pk = Math.floor(S.t / 60000) + S.sel + S.lat + S.lon;
+  if (pk !== lastPanel) { renderPanel(sky); lastPanel = pk; }
+  if (document.activeElement !== $('#when')) $('#when').value = toLocalInput(S.t);
+  $('#play').textContent = S.playing ? '❚❚' : '▶'; $('#play').classList.toggle('on', S.playing); $('#now').classList.toggle('on', S.follow);
+}
+function tick(now) {
+  const dt = (now - lastFrame) / 1000; lastFrame = now;
+  if (S.playing) S.t += dt * S.speed; else if (S.follow) S.t = Date.now();
+  render(); requestAnimationFrame(tick);
+}
+function setTime(ms, follow = false) { S.t = ms; S.follow = follow; render(); }
+
+// ======================= CONTROLS =======================
+const sel = $('#city'); CITIES.forEach(([n]) => sel.add(new Option(n)));
+function syncLoc(fromCity) {
+  if (fromCity) { const c = CITIES[sel.selectedIndex]; if (!isNaN(c[1])) { S.lat = c[1]; S.lon = c[2]; } }
+  else { S.lat = clamp(+$('#lat').value || 0, -89.9, 89.9); S.lon = clamp(+$('#lon').value || 0, -180, 180); const i = CITIES.findIndex(c => c[1] === S.lat && c[2] === S.lon); sel.selectedIndex = i < 0 ? CITIES.length - 1 : i; }
+  $('#lat').value = S.lat; $('#lon').value = S.lon; render();
+}
+sel.onchange = () => syncLoc(true); $('#lat').onchange = $('#lon').onchange = () => syncLoc(false);
+$('#when').onchange = e => { const v = new Date(e.target.value).getTime(); if (!isNaN(v)) setTime(v); };
+$('#now').onclick = () => setTime(Date.now(), true);
+$('#back').onclick = () => setTime(S.t - DAY); $('#fwd').onclick = () => setTime(S.t + DAY);
+$('#play').onclick = () => { S.playing = !S.playing; S.follow = false; render(); };
+$('#speed').onchange = e => S.speed = +e.target.value;
+$('#scale').onclick = () => { S.scale = S.scale === 'sqrt' ? 'true' : 'sqrt'; $('#scale').textContent = S.scale === 'sqrt' ? '√ scale' : 'true scale'; render(); };
+$('#theme').onclick = () => { document.documentElement.dataset.theme = css('--mode') === 'dark' ? 'light' : 'dark'; render(); };
+const help = $('#help'); const toggleHelp = () => { help.hidden = !help.hidden; };
+$('#helpBtn').onclick = toggleHelp; help.onclick = e => { if (e.target === help) toggleHelp(); };
+$('#tbl').onclick = e => { const tr = e.target.closest('tr[data-n]'); if (tr) { S.sel = tr.dataset.n; render(); } };
+for (const cv of [$('#orrery'), $('#sky')]) {
+  const hit = e => { const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;   // nearest body under the pointer
+    return S.hits.filter(h => h.cv === cv && h.name !== 'Earth' && Math.hypot(h.x - x, h.y - y) <= h.r).sort((a, b) => Math.hypot(a.x - x, a.y - y) - Math.hypot(b.x - x, b.y - y))[0]; };
+  cv.onmousemove = e => cv.style.cursor = hit(e) ? 'pointer' : 'default';
+  cv.onclick = e => { const h = hit(e); if (h) { S.sel = h.name; render(); } };
+}
+const BODIES = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune'];
+addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === '/') { e.preventDefault(); toggleHelp(); return; }
+  if (e.key === 'Escape' && !help.hidden) { toggleHelp(); return; }
+  if (/INPUT|SELECT|TEXTAREA/.test(e.target.tagName) || e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key, speeds = [...$('#speed').options].map(o => +o.value);
+  if (k === ' ') $('#play').click();
+  else if (k === 'ArrowLeft') setTime(S.t - (e.shiftKey ? 30 : 1) * DAY);
+  else if (k === 'ArrowRight') setTime(S.t + (e.shiftKey ? 30 : 1) * DAY);
+  else if (k === 'ArrowUp') setTime(S.t + 3600000);
+  else if (k === 'ArrowDown') setTime(S.t - 3600000);
+  else if (k === '[' || k === ']') { const i = clamp(speeds.indexOf(S.speed) + (k === ']' ? 1 : -1), 0, speeds.length - 1); S.speed = speeds[i]; $('#speed').value = S.speed; }
+  else if (k === 'n' || k === 'N') $('#now').click();
+  else if (k === 's' || k === 'S') $('#scale').click();
+  else if (k === 't' || k === 'T') $('#theme').click();
+  else if (k === '?') toggleHelp();
+  else if (/^[1-9]$/.test(k)) { S.sel = BODIES[+k - 1]; render(); }
+  else return;
+  e.preventDefault();
+});
+addEventListener('resize', render);
+
+// ======================= START: a year of motion, then now =======================
+syncLoc(true);
+const target = Date.now(), t0 = performance.now(), reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function intro(now) {
+  const p = reduce ? 1 : Math.min(1, (now - t0) / 2200), ease = 1 - Math.pow(1 - p, 3);
+  S.t = target - 365 * DAY * (1 - ease); S.follow = p >= 1; render();
+  if (p < 1) requestAnimationFrame(intro); else { lastFrame = performance.now(); requestAnimationFrame(tick); }
+}
+requestAnimationFrame(intro);
+</script>
+
+</body>
+</html>

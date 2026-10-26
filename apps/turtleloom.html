@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live TurtleLoom</title>
+<style>
+:root {
+  --bg: #0f1117; --fg: #e8eaed; --panel: #1a1d27; --accent: #6ee7b7; --border: #2d3142;
+  --error: #f87171; --muted: #9ca3af; --track: #2d3142;
+}
+[data-theme="light"] {
+  --bg: #f8fafc; --fg: #1e293b; --panel: #ffffff; --accent: #059669; --border: #e2e8f0;
+  --error: #dc2626; --muted: #64748b; --track: #e2e8f0;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; font-family: system-ui, -apple-system, sans-serif;
+  background: var(--bg); color: var(--fg); height: 100vh;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.6rem 1rem; border-bottom: 1px solid var(--border);
+  background: var(--panel); flex-shrink: 0;
+}
+header h1 { margin: 0; font-size: 1.2rem; font-weight: 600; }
+header h1 span { color: var(--accent); }
+.controls { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+button {
+  background: var(--accent); color: #0f1117; border: none;
+  padding: 0.35rem 0.7rem; border-radius: 6px; cursor: pointer;
+  font-weight: 600; font-size: 0.8rem;
+}
+button.secondary { background: transparent; color: var(--fg); border: 1px solid var(--border); }
+button:hover { opacity: 0.9; }
+main { display: flex; flex: 1; min-height: 0; }
+.sidebar {
+  width: 300px; display: flex; flex-direction: column;
+  border-right: 1px solid var(--border); background: var(--panel); overflow: auto;
+}
+.sliders { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
+.slider-row {
+  display: grid; grid-template-columns: 1fr 60px; gap: 0.4rem;
+  align-items: center; margin-bottom: 0.65rem; font-size: 0.85rem;
+}
+.slider-row label { color: var(--muted); }
+input[type="range"] {
+  width: 100%; accent-color: var(--accent); cursor: pointer;
+}
+.val { text-align: right; font-variant-numeric: tabular-nums; color: var(--fg); }
+textarea {
+  flex: 1; width: 100%; border: none; background: transparent;
+  color: var(--fg); font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8rem; padding: 0.75rem 1rem; resize: none; outline: none; line-height: 1.4;
+}
+.canvas-wrap {
+  flex: 1; position: relative; background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+}
+canvas {
+  max-width: 100%; max-height: 100%;
+  border: 1px solid var(--border); background: #fff;
+}
+[data-theme="dark"] canvas { background: #111827; }
+.status {
+  padding: 0.4rem 1rem; font-size: 0.78rem; color: var(--muted);
+  border-top: 1px solid var(--border); background: var(--panel); min-height: 1.5rem;
+}
+.overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+  display: none; align-items: center; justify-content: center; z-index: 20;
+}
+.overlay.show { display: flex; }
+.modal {
+  background: var(--panel); color: var(--fg); padding: 1.4rem;
+  border-radius: 12px; max-width: 520px; width: 92%; max-height: 82vh;
+  overflow: auto; border: 1px solid var(--border);
+}
+.modal h2 { margin-top: 0; }
+.modal kbd {
+  background: var(--bg); padding: 0.1rem 0.35rem; border-radius: 4px;
+  border: 1px solid var(--border); font-size: 0.85em;
+}
+.modal pre {
+  background: var(--bg); padding: 0.7rem; border-radius: 6px;
+  overflow: auto; font-size: 0.78rem;
+}
+@media (max-width: 720px) {
+  main { flex-direction: column; }
+  .sidebar { width: 100%; height: 42%; border-right: none; border-bottom: 1px solid var(--border); }
+  .canvas-wrap { height: 58%; }
+}
+</style>
+</head>
+<body data-theme="dark">
+<header>
+  <h1>Live Turtle<span>Loom</span></h1>
+  <div class="controls">
+    <button id="runBtn">Run</button>
+    <button id="clearBtn" class="secondary">Clear</button>
+    <button id="dlBtn" class="secondary">PNG</button>
+    <button id="themeBtn" class="secondary">Theme</button>
+    <button id="helpBtn" class="secondary">?</button>
+  </div>
+</header>
+<main>
+  <div class="sidebar">
+    <div class="sliders">
+      <div class="slider-row">
+        <label>Outer repeats</label>
+        <span class="val" id="vOuter">36</span>
+        <input type="range" id="sOuter" min="3" max="72" value="36">
+      </div>
+      <div class="slider-row">
+        <label>Side length</label>
+        <span class="val" id="vLen">70</span>
+        <input type="range" id="sLen" min="10" max="160" value="70">
+      </div>
+      <div class="slider-row">
+        <label>Polygon sides</label>
+        <span class="val" id="vSides">4</span>
+        <input type="range" id="sSides" min="3" max="12" value="4">
+      </div>
+      <div class="slider-row">
+        <label>Turn step (°)</label>
+        <span class="val" id="vTurn">10</span>
+        <input type="range" id="sTurn" min="1" max="30" value="10">
+      </div>
+      <div class="slider-row">
+        <label>Hue</label>
+        <span class="val" id="vHue">150</span>
+        <input type="range" id="sHue" min="0" max="360" value="150">
+      </div>
+    </div>
+    <textarea id="code" spellcheck="false"></textarea>
+  </div>
+  <div class="canvas-wrap">
+    <canvas id="canvas" width="640" height="480"></canvas>
+  </div>
+</main>
+<div class="status" id="status">Drag any slider — the pattern updates live.</div>
+<div class="overlay" id="help">
+  <div class="modal">
+    <h2>Live TurtleLoom</h2>
+    <p>Parametric turtle graphics with real-time sliders. Move a slider and the shape rebuilds instantly. The code panel always reflects the current parameters so you can copy or extend it.</p>
+    <h3>Sliders</h3>
+    <ul>
+      <li><strong>Outer repeats</strong> — how many times the polygon is rotated</li>
+      <li><strong>Side length</strong> — length of each edge</li>
+      <li><strong>Polygon sides</strong> — 3 = triangle, 4 = square, 5 = pentagon…</li>
+      <li><strong>Turn step</strong> — degrees added after each polygon</li>
+      <li><strong>Hue</strong> — pen color (HSL)</li>
+    </ul>
+    <h3>Commands (free editor)</h3>
+    <p>FORWARD / FD, BACK / BK, LEFT / LT, RIGHT / RT, PENUP / PU, PENDOWN / PD, HOME, CLEAR, COLOR r g b, REPEAT n [ … ]</p>
+    <h3>Shortcuts</h3>
+    <p>
+      <kbd>R</kbd> or <kbd>Ctrl</kbd>+<kbd>Enter</kbd> — run code<br>
+      <kbd>C</kbd> — clear · <kbd>T</kbd> — theme · <kbd>D</kbd> — PNG<br>
+      <kbd>?</kbd> / <kbd>H</kbd> — this help · <kbd>Esc</kbd> — close
+    </p>
+    <button id="closeHelp">Close</button>
+  </div>
+</div>
+<script>
+const codeEl = document.getElementById('code');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const statusEl = document.getElementById('status');
+const helpEl = document.getElementById('help');
+
+const sOuter = document.getElementById('sOuter');
+const sLen   = document.getElementById('sLen');
+const sSides = document.getElementById('sSides');
+const sTurn  = document.getElementById('sTurn');
+const sHue   = document.getElementById('sHue');
+
+const vOuter = document.getElementById('vOuter');
+const vLen   = document.getElementById('vLen');
+const vSides = document.getElementById('vSides');
+const vTurn  = document.getElementById('vTurn');
+const vHue   = document.getElementById('vHue');
+
+let turtle = { x: 320, y: 240, angle: -90, pen: true, color: '#6ee7b7' };
+let liveMode = true; // when true, sliders overwrite the code panel
+
+function setStatus(msg, isError = false) {
+  statusEl.textContent = msg;
+  statusEl.style.color = isError ? 'var(--error)' : 'var(--muted)';
+}
+
+function resetTurtle() {
+  turtle = {
+    x: canvas.width / 2,
+    y: canvas.height / 2,
+    angle: -90,
+    pen: true,
+    color: `hsl(${sHue.value}, 70%, 55%)`
+  };
+}
+
+function clearCanvas() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  resetTurtle();
+}
+
+function drawLine(x1, y1, x2, y2) {
+  if (!turtle.pen) return;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.strokeStyle = turtle.color;
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+}
+
+function tokenize(src) {
+  const tokens = [];
+  const re = /\[|\]|[A-Za-z]+|\d+(?:\.\d+)?/g;
+  let m;
+  while ((m = re.exec(src)) !== null) tokens.push(m[0]);
+  return tokens;
+}
+
+function parse(tokens) {
+  let i = 0;
+  function parseBlock() {
+    const cmds = [];
+    while (i < tokens.length && tokens[i] !== ']') {
+      const tok = tokens[i].toUpperCase();
+      if (tok === 'REPEAT') {
+        i++;
+        const n = parseFloat(tokens[i++]);
+        if (tokens[i] !== '[') throw new Error('Expected [ after REPEAT count');
+        i++;
+        const body = parseBlock();
+        if (tokens[i] !== ']') throw new Error('Expected ] to close REPEAT');
+        i++;
+        cmds.push({ type: 'repeat', n, body });
+      } else if (['FORWARD','FD','BACK','BK','LEFT','LT','RIGHT','RT'].includes(tok)) {
+        i++;
+        const n = parseFloat(tokens[i++]);
+        cmds.push({ type: tok, n });
+      } else if (['PENUP','PU','PENDOWN','PD','HOME','CLEAR'].includes(tok)) {
+        i++;
+        cmds.push({ type: tok });
+      } else if (tok === 'COLOR') {
+        i++;
+        const r = parseFloat(tokens[i++]);
+        const g = parseFloat(tokens[i++]);
+        const b = parseFloat(tokens[i++]);
+        cmds.push({ type: 'COLOR', r, g, b });
+      } else {
+        throw new Error('Unknown command: ' + tokens[i]);
+      }
+    }
+    return cmds;
+  }
+  return parseBlock();
+}
+
+function execute(cmds) {
+  for (const cmd of cmds) {
+    if (cmd.type === 'repeat') {
+      for (let k = 0; k < cmd.n; k++) execute(cmd.body);
+      continue;
+    }
+    const rad = turtle.angle * Math.PI / 180;
+    const dx = Math.cos(rad);
+    const dy = Math.sin(rad);
+    switch (cmd.type) {
+      case 'FORWARD': case 'FD': {
+        const nx = turtle.x + dx * cmd.n;
+        const ny = turtle.y + dy * cmd.n;
+        drawLine(turtle.x, turtle.y, nx, ny);
+        turtle.x = nx; turtle.y = ny;
+        break;
+      }
+      case 'BACK': case 'BK': {
+        const nx = turtle.x - dx * cmd.n;
+        const ny = turtle.y - dy * cmd.n;
+        drawLine(turtle.x, turtle.y, nx, ny);
+        turtle.x = nx; turtle.y = ny;
+        break;
+      }
+      case 'LEFT': case 'LT': turtle.angle -= cmd.n; break;
+      case 'RIGHT': case 'RT': turtle.angle += cmd.n; break;
+      case 'PENUP': case 'PU': turtle.pen = false; break;
+      case 'PENDOWN': case 'PD': turtle.pen = true; break;
+      case 'HOME': resetTurtle(); break;
+      case 'CLEAR': clearCanvas(); break;
+      case 'COLOR':
+        turtle.color = `rgb(${Math.round(cmd.r)},${Math.round(cmd.g)},${Math.round(cmd.b)})`;
+        break;
+    }
+  }
+}
+
+function buildProgram() {
+  const outer = +sOuter.value;
+  const len   = +sLen.value;
+  const sides = +sSides.value;
+  const turn  = +sTurn.value;
+  const hue   = +sHue.value;
+  // Convert HSL to approximate RGB for the COLOR command
+  const h = hue / 360, s = 0.7, l = 0.55;
+  const a = s * Math.min(l, 1 - l);
+  const f = n => {
+    const k = (n + h * 12) % 12;
+    return Math.round(255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))));
+  };
+  const r = f(0), g = f(8), b = f(4);
+
+  return `COLOR ${r} ${g} ${b}
+REPEAT ${outer} [
+  REPEAT ${sides} [
+    FORWARD ${len}
+    RIGHT ${360 / sides}
+  ]
+  RIGHT ${turn}
+]`;
+}
+
+function updateFromSliders() {
+  if (!liveMode) return;
+  vOuter.textContent = sOuter.value;
+  vLen.textContent   = sLen.value;
+  vSides.textContent = sSides.value;
+  vTurn.textContent  = sTurn.value;
+  vHue.textContent   = sHue.value;
+
+  const prog = buildProgram();
+  codeEl.value = prog;
+  try {
+    clearCanvas();
+    const tokens = tokenize(prog);
+    const ast = parse(tokens);
+    execute(ast);
+    setStatus(`Live · ${sOuter.value}×${sSides.value}-gon · length ${sLen.value} · step ${sTurn.value}°`);
+  } catch (e) {
+    setStatus('Error: ' + e.message, true);
+  }
+}
+
+function runCode() {
+  liveMode = false; // user is editing freely
+  try {
+    clearCanvas();
+    const tokens = tokenize(codeEl.value);
+    const ast = parse(tokens);
+    execute(ast);
+    setStatus('Code executed.');
+  } catch (e) {
+    setStatus('Error: ' + e.message, true);
+  }
+}
+
+function downloadPNG() {
+  const link = document.createElement('a');
+  link.download = 'liveturtleloom.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+  setStatus('PNG downloaded.');
+}
+
+function toggleTheme() {
+  const next = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.body.dataset.theme = next;
+  try { localStorage.setItem('liveturtle-theme', next); } catch (_) {}
+  setStatus('Theme: ' + next);
+}
+
+function toggleHelp() {
+  helpEl.classList.toggle('show');
+}
+
+// Wire sliders for live update
+[sOuter, sLen, sSides, sTurn, sHue].forEach(el => {
+  el.addEventListener('input', () => {
+    liveMode = true;
+    updateFromSliders();
+  });
+});
+
+// If user types in the editor, leave live mode so we don't overwrite their work
+codeEl.addEventListener('input', () => { liveMode = false; });
+
+document.getElementById('runBtn').onclick = runCode;
+document.getElementById('clearBtn').onclick = () => { clearCanvas(); setStatus('Canvas cleared.'); };
+document.getElementById('dlBtn').onclick = downloadPNG;
+document.getElementById('themeBtn').onclick = toggleTheme;
+document.getElementById('helpBtn').onclick = toggleHelp;
+document.getElementById('closeHelp').onclick = toggleHelp;
+
+document.addEventListener('keydown', e => {
+  if (e.key === '?' || e.key === 'h' || e.key === 'H') { e.preventDefault(); toggleHelp(); }
+  if (e.key === 'r' || e.key === 'R' || (e.ctrlKey && e.key === 'Enter')) { e.preventDefault(); runCode(); }
+  if ((e.key === 'c' || e.key === 'C') && !e.ctrlKey && !e.metaKey) clearCanvas();
+  if (e.key === 't' || e.key === 'T') toggleTheme();
+  if (e.key === 'd' || e.key === 'D') downloadPNG();
+  if (e.key === 'Escape') helpEl.classList.remove('show');
+});
+
+try {
+  const saved = localStorage.getItem('liveturtle-theme');
+  if (saved) document.body.dataset.theme = saved;
+} catch (_) {}
+
+// Initial live render
+updateFromSliders();
+</script>
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TIDY TEXT — Paste messy text, get clean copy</title>
+<!--
+  TIDY TEXT — 2026-10-26 daily single-page creation.
+  A work utility, not a toy: paste or type messy copied text on the
+  left, and clean copy appears on the right instantly. No input is
+  ever rejected — every toggle just changes how the cleaning works,
+  and turning them all off returns your text untouched.
+  One file, no libraries, no network, no external fonts. Double-click
+  to run, offline. Your text autosaves in this browser only.
+-->
+<style>
+  :root { --bg:#1c1917; --panel:#292524; --card:#fafaf9; --ink:#1c1917;
+    --muted:#78716c; --line:#e7e5e4; --amber:#f59e0b; --amber-dark:#b45309;
+    --green:#15803d; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:#f5f5f4;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  header { padding:22px 24px 10px; max-width:1100px; margin:0 auto; }
+  h1 { margin:0; font-size:28px; letter-spacing:-.02em; }
+  h1 span { color:var(--amber); }
+  header p { margin:8px 0 0; color:#d6d3d1; line-height:1.5; max-width:760px; }
+  main { max-width:1100px; margin:0 auto; padding:16px 24px 28px; }
+  /* Toggles: each one is a plain, visible rule — nothing hidden. */
+  .toggles { display:flex; flex-wrap:wrap; gap:8px 18px; padding:14px 16px;
+    background:var(--panel); border:1px solid #44403c; border-radius:12px; }
+  .toggles label { font-size:14px; cursor:pointer; }
+  .toggles input { accent-color:var(--amber); margin-right:6px; }
+  /* Two panes: type on the left, clean copy on the right. */
+  .panes { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:16px; }
+  @media (max-width:760px) { .panes { grid-template-columns:1fr; } }
+  .pane { background:var(--card); color:var(--ink); border-radius:12px; overflow:hidden; }
+  .pane h2 { margin:0; padding:12px 16px; font-size:14px; letter-spacing:.04em;
+    text-transform:uppercase; border-bottom:1px solid var(--line); }
+  .pane h2 small { float:right; color:var(--muted); font-weight:400; text-transform:none; letter-spacing:0; }
+  textarea { width:100%; height:340px; border:0; resize:vertical; padding:14px 16px;
+    font:15px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; color:var(--ink);
+    background:transparent; outline:none; }
+  textarea:focus { box-shadow:inset 0 0 0 2px var(--amber); }
+  /* Stats and actions. */
+  .stats { display:flex; flex-wrap:wrap; gap:8px 22px; padding:14px 16px;
+    background:var(--panel); border:1px solid #44403c; border-radius:12px; margin-top:16px; font-size:14px; }
+  .stats b { color:var(--amber); }
+  .actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+  button { border:0; border-radius:8px; padding:10px 16px; font-size:15px; cursor:pointer; }
+  .primary { background:var(--amber); color:#1c1917; font-weight:700; }
+  .secondary { background:#44403c; color:#f5f5f4; }
+  #msg { min-height:20px; margin-top:10px; color:#a8a29e; font-size:14px; }
+  #msg.good { color:#86efac; }
+  @media (prefers-reduced-motion:reduce) { * { scroll-behavior:auto !important; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>TIDY <span>TEXT</span></h1>
+  <p>Paste messy copied text on the left — double spaces, wrapped lines, extra blank lines, stray spaces — and clean copy appears on the right as you type. Nothing is ever rejected. Turn toggles off and your text comes back untouched.</p>
+</header>
+<main>
+  <!-- 1. Cleaning rules -->
+  <div class="toggles" id="toggles" aria-label="Cleaning options">
+    <label><input type="checkbox" id="optJoin" checked> Join wrapped lines</label>
+    <label><input type="checkbox" id="optBlanks" checked> Collapse blank lines</label>
+    <label><input type="checkbox" id="optSpaces" checked> Fix double spaces</label>
+    <label><input type="checkbox" id="optTrim" checked> Trim each line</label>
+    <label><input type="checkbox" id="optDashes" checked> Normalise dashes ( -- to — )</label>
+    <label><input type="checkbox" id="optQuotes" checked> Straighten quotes</label>
+    <label><input type="checkbox" id="optSentences"> One sentence per line</label>
+  </div>
+
+  <!-- 2. Input and output panes -->
+  <div class="panes">
+    <section class="pane">
+      <h2>Messy text <small id="inCount">0 words</small></h2>
+      <textarea id="input" spellcheck="false" aria-label="Messy text to clean"></textarea>
+    </section>
+    <section class="pane">
+      <h2>Clean copy <small id="outCount">0 words</small></h2>
+      <textarea id="output" spellcheck="false" readonly aria-label="Cleaned text"></textarea>
+    </section>
+  </div>
+
+  <!-- 3. Stats -->
+  <div class="stats" aria-live="polite">
+    <span>Words: <b id="statWords">0</b></span>
+    <span>Characters: <b id="statChars">0</b></span>
+    <span>Paragraphs: <b id="statParas">0</b></span>
+    <span>Reading time: <b id="statRead">0 min</b></span>
+    <span>Blank lines removed: <b id="statBlanks">0</b></span>
+    <span>Characters saved: <b id="statSaved">0</b></span>
+  </div>
+
+  <!-- 4. Actions -->
+  <div class="actions">
+    <button class="primary" id="copyBtn" type="button">Copy clean text</button>
+    <button class="secondary" id="downloadBtn" type="button">Download .txt</button>
+    <button class="secondary" id="sampleBtn" type="button">Restore sample</button>
+    <button class="secondary" id="clearBtn" type="button">Clear all</button>
+  </div>
+  <p id="msg">Showing a messy sample so you can see it work. Type or paste your own text to replace it.</p>
+</main>
+
+<script>
+"use strict";
+/* ================================================================
+   1. STATE + STORAGE — input and toggles autosave in this browser
+   only, under one key. If storage is unavailable, the page still
+   works in memory for the session.
+   ================================================================ */
+const KEY = "tidy-text-v1";
+const $ = id => document.getElementById(id);
+const SAMPLE =
+  "This  is  a  sample  with   double  spaces,  trailing spaces,   \n" +
+  "and lines that were wrapped\n" +
+  "in the middle of a sentence\n" +
+  "for no good reason.\n" +
+  "\n" +
+  "\n" +
+  "\n" +
+  "It also has “curly quotes”, a double -- dash, and\n" +
+  "\n" +
+  "far too many blank lines.  Paste your own text over it.";
+function loadSaved() {
+  try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && typeof s.input === "string") return s; } catch (e) {}
+  return null;
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify({ input: $("input").value, opts: readOpts() })); } catch (e) {}
+}
+function readOpts() {
+  return { join: $("optJoin").checked, blanks: $("optBlanks").checked, spaces: $("optSpaces").checked,
+    trim: $("optTrim").checked, dashes: $("optDashes").checked, quotes: $("optQuotes").checked,
+    sentences: $("optSentences").checked };
+}
+function applyOpts(o) {
+  if (!o) return;
+  $("optJoin").checked = !!o.join; $("optBlanks").checked = !!o.blanks; $("optSpaces").checked = !!o.spaces;
+  $("optTrim").checked = !!o.trim; $("optDashes").checked = !!o.dashes; $("optQuotes").checked = !!o.quotes;
+  $("optSentences").checked = !!o.sentences;
+}
+
+/* ================================================================
+   2. CLEANING — pure function, one visible rule per toggle, in
+   order. No input can fail: with every toggle off, text passes
+   through unchanged. Joining wrapped lines only joins single
+   newlines; a blank line always stays a paragraph break.
+   ================================================================ */
+function cleanText(text, o) {
+  let out = text.replace(/\r\n?/g, "\n");
+  if (o.quotes) out = out.replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
+  if (o.dashes) out = out.replace(/ -- /g, " — ");
+  if (o.trim) out = out.split("\n").map(l => l.replace(/^[ \t]+|[ \t]+$/g, "")).join("\n");
+  if (o.join) {
+    // Split into paragraphs on blank lines, join single newlines
+    // inside each paragraph with a space, then rejoin paragraphs.
+    out = out.split(/\n[ \t]*\n/).map(p => p.replace(/\n[ \t]*/g, " ").trim()).join("\n\n");
+  }
+  if (o.spaces) out = out.replace(/ {2,}/g, " ");
+  if (o.blanks) out = out.replace(/\n{3,}/g, "\n\n");
+  if (o.sentences) out = out.replace(/([.!?]) +/g, "$1\n");
+  if (o.trim) out = out.replace(/^\n+|\n+$/g, "");
+  return out;
+}
+function countWords(t) { const m = t.trim().match(/\S+/g); return m ? m.length : 0; }
+
+/* ================================================================
+   3. RENDER — clean on every keystroke and every toggle change,
+   update both word counts and the stats bar at once.
+   ================================================================ */
+function render() {
+  const input = $("input").value, opts = readOpts();
+  const output = cleanText(input, opts);
+  $("output").value = output;
+  $("inCount").textContent = countWords(input) + " words";
+  $("outCount").textContent = countWords(output) + " words";
+  $("statWords").textContent = countWords(output);
+  $("statChars").textContent = output.length;
+  $("statParas").textContent = output.trim() ? output.trim().split(/\n\s*\n/).length : 0;
+  $("statRead").textContent = Math.max(1, Math.ceil(countWords(output) / 200)) + " min";
+  const inBlanks = (input.match(/\n\s*\n/g) || []).length, outBlanks = (output.match(/\n\s*\n/g) || []).length;
+  $("statBlanks").textContent = Math.max(0, inBlanks - outBlanks);
+  $("statSaved").textContent = Math.max(0, input.length - output.length);
+  save();
+}
+function say(text, good) { const m = $("msg"); m.textContent = text; m.className = good ? "good" : ""; }
+
+/* ================================================================
+   4. ACTIONS — copy, download, sample, clear. Copy falls back to
+   selecting the output if the clipboard API is unavailable.
+   ================================================================ */
+$("copyBtn").addEventListener("click", async () => {
+  const text = $("output").value;
+  try { await navigator.clipboard.writeText(text); say("Clean text copied.", true); }
+  catch (e) { $("output").select(); document.execCommand("copy"); say("Clean text selected — press Ctrl+C / Cmd+C to copy.", true); }
+});
+$("downloadBtn").addEventListener("click", () => {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([$("output").value], { type: "text/plain" }));
+  a.download = "tidy-text.txt"; a.click(); URL.revokeObjectURL(a.href);
+  say("Downloaded tidy-text.txt.", true);
+});
+$("sampleBtn").addEventListener("click", () => { $("input").value = SAMPLE; render(); say("Sample restored.", true); });
+$("clearBtn").addEventListener("click", () => {
+  if (!$("input").value) return;
+  if (!confirm("Clear the input text? The clean copy will clear too.")) return;
+  $("input").value = ""; render(); say("Cleared. Paste or type new text.", false);
+});
+$("input").addEventListener("input", render);
+document.querySelectorAll("#toggles input").forEach(el => el.addEventListener("change", render));
+
+/* ================================================================
+   5. START — restore a saved draft if there is one, otherwise
+   show the messy sample so the first screen already demonstrates
+   the cleaning. Never start blank.
+   ================================================================ */
+const saved = loadSaved();
+if (saved) { $("input").value = saved.input; applyOpts(saved.opts); say("Restored your last draft.", false); }
+else { $("input").value = SAMPLE; }
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChromaWave — Web Audio Synthesizer & Visualizer</title>
+    <style>
+        :root {
+            --bg: #0d0f12; --card: #161920; --border: #2a2f3a;
+            --text: #f0f4f8; --sub: #8b95a5; --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.4); --active: #22c55e;
+        }
+        [data-theme="light"] {
+            --bg: #f8fafc; --card: #ffffff; --border: #e2e8f0;
+            --text: #0f172a; --sub: #64748b; --accent: #4f46e5;
+            --accent-glow: rgba(79, 70, 229, 0.25); --active: #16a34a;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; transition: background 0.2s, color 0.2s; }
+        header { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; background: var(--card); border-bottom: 1px solid var(--border); }
+        .logo { font-weight: 700; font-size: 1.1rem; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px; }
+        .logo-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+        .actions { display: flex; gap: 8px; }
+        button { background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
+        button:hover { border-color: var(--accent); color: var(--accent); }
+        button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+        button.primary:hover { opacity: 0.9; color: #fff; }
+        
+        main { flex: 1; display: grid; grid-template-rows: 1fr auto; gap: 16px; padding: 16px; max-width: 1200px; width: 100%; margin: 0 auto; }
+        .viz-container { position: relative; background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; min-height: 220px; }
+        canvas { width: 100%; height: 100%; display: block; }
+        
+        .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+        .panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+        .panel-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--sub); margin-bottom: 12px; }
+        .control-group { display: flex; flex-direction: column; gap: 10px; }
+        .control { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
+        input[type="range"] { accent-color: var(--accent); width: 110px; cursor: pointer; }
+        select { background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; }
+        
+        .keyboard { display: flex; gap: 4px; justify-content: center; overflow-x: auto; padding: 8px 0; }
+        .key { width: 36px; height: 100px; background: var(--bg); border: 1px solid var(--border); border-radius: 0 0 6px 6px; cursor: pointer; position: relative; flex-shrink: 0; user-select: none; }
+        .key.black { width: 24px; height: 60px; background: var(--text); color: var(--bg); margin: 0 -13px; z-index: 2; }
+        .key.active { background: var(--accent) !important; color: #fff !important; }
+        .key span { position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; color: var(--sub); pointer-events: none; }
+        
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.2s; z-index: 100; }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal { background: var(--card); border: 1px solid var(--border); border-radius: 12px; width: 90%; max-width: 480px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3); }
+        .modal h2 { margin-bottom: 12px; font-size: 1.2rem; }
+        .modal p { font-size: 0.9rem; color: var(--sub); line-height: 1.5; margin-bottom: 16px; }
+        .shortcut-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.85rem; margin-bottom: 20px; }
+        .shortcut-item { display: flex; justify-content: space-between; padding: 4px 8px; background: var(--bg); border-radius: 4px; }
+        kbd { background: var(--card); border: 1px solid var(--border); padding: 2px 6px; border-radius: 3px; font-size: 0.75rem; }
+
+        @media (max-width: 600px) {
+            header { padding: 10px; }
+            .logo span { display: none; }
+            main { padding: 8px; gap: 8px; }
+            .controls { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo"><div class="logo-dot"></div> ChromaWave <span>Synthesizer</span></div>
+        <div class="actions">
+            <button id="playBtn" class="primary">▶ Demo Loop</button>
+            <button id="themeBtn">🌓 Theme</button>
+            <button id="helpBtn">❓ Help</button>
+        </div>
+    </header>
+
+    <main>
+        <div class="viz-container">
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <div class="controls">
+            <div class="panel">
+                <div class="panel-title">Oscillator</div>
+                <div class="control-group">
+                    <div class="control">
+                        <label>Waveform</label>
+                        <select id="waveform">
+                            <option value="sine">Sine</option>
+                            <option value="square" selected>Square</option>
+                            <option value="sawtooth">Sawtooth</option>
+                            <option value="triangle">Triangle</option>
+                        </select>
+                    </div>
+                    <div class="control">
+                        <label>Filter Cutoff</label>
+                        <input type="range" id="cutoff" min="100" max="8000" value="2500">
+                    </div>
+                    <div class="control">
+                        <label>Resonance</label>
+                        <input type="range" id="resonance" min="0" max="20" value="5">
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">Envelope & Effects</div>
+                <div class="control-group">
+                    <div class="control">
+                        <label>Attack (s)</label>
+                        <input type="range" id="attack" min="0.01" max="1" step="0.01" value="0.05">
+                    </div>
+                    <div class="control">
+                        <label>Release (s)</label>
+                        <input type="range" id="release" min="0.1" max="3" step="0.1" value="0.8">
+                    </div>
+                    <div class="control">
+                        <label>Delay Feedback</label>
+                        <input type="range" id="delay" min="0" max="0.8" step="0.05" value="0.3">
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">Interactive Keys</div>
+                <div class="keyboard" id="keyboard"></div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal">
+            <h2>ChromaWave Synth Guide</h2>
+            <p>A zero-dependency real-time Web Audio Synthesizer & Canvas Visualizer.</p>
+            <div class="shortcut-list">
+                <div classshortcut-item"><span>Demo Loop</span> <kbd>Space</kbd></div>
+                <div class="shortcut-item"><span>Play Keys</span> <kbd>A</kbd>-<kbd>K</kbd></div>
+                <div class="shortcut-item"><span>Toggle Theme</span> <kbd>T</kbd></div>
+                <div class="shortcut-item"><span>Close Help</span> <kbd>Esc</kbd></div>
+            </div>
+            <button id="closeHelp" class="primary" style="width: 100%; justify-content: center;">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Web Audio Engine ---
+        let audioCtx, masterGain, filter, delayNode, delayGain, analyser;
+        let isAudioInit = false;
+
+        function initAudio() {
+            if (isAudioInit) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            masterGain = audioCtx.createGain();
+            masterGain.gain.value = 0.3;
+
+            filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.value = document.getElementById('cutoff').value;
+            filter.Q.value = document.getElementById('resonance').value;
+
+            delayNode = audioCtx.createDelay();
+            delayNode.delayTime.value = 0.25;
+            delayGain = audioCtx.createGain();
+            delayGain.gain.value = document.getElementById('delay').value;
+
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 2048;
+
+            // Signal routing
+            filter.connect(masterGain);
+            masterGain.connect(delayNode);
+            delayNode.connect(delayGain);
+            delayGain.connect(delayNode);
+            delayGain.connect(masterGain);
+            masterGain.connect(analyser);
+            analyser.connect(audioCtx.destination);
+
+            isAudioInit = true;
+        }
+
+        function playNote(freq) {
+            initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const osc = audioCtx.createOscillator();
+            const noteGain = audioCtx.createGain();
+
+            osc.type = document.getElementById('waveform').value;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+            const attack = parseFloat(document.getElementById('attack').value);
+            const release = parseFloat(document.getElementById('release').value);
+
+            noteGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            noteGain.gain.linearRampToValueAtTime(1, audioCtx.currentTime + attack);
+            noteGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + attack + release);
+
+            osc.connect(noteGain);
+            noteGain.connect(filter);
+
+            osc.start();
+            osc.stop(audioCtx.currentTime + attack + release);
+        }
+
+        // --- Keyboard Setup ---
+        const NOTES = [
+            { note: 'C4', freq: 261.63, key: 'a', isBlack: false },
+            { note: 'C#4', freq: 277.18, key: 'w', isBlack: true },
+            { note: 'D4', freq: 293.66, key: 's', isBlack: false },
+            { note: 'D#4', freq: 311.13, key: 'e', isBlack: true },
+            { note: 'E4', freq: 329.63, key: 'd', isBlack: false },
+            { note: 'F4', freq: 349.23, key: 'f', isBlack: false },
+            { note: 'F#4', freq: 369.99, key: 't', isBlack: true },
+            { note: 'G4', freq: 392.00, key: 'g', isBlack: false },
+            { note: 'G#4', freq: 415.30, key: 'y', isBlack: true },
+            { note: 'A4', freq: 440.00, key: 'h', isBlack: false },
+            { note: 'A#4', freq: 466.16, key: 'u', isBlack: true },
+            { note: 'B4', freq: 493.88, key: 'j', isBlack: false },
+            { note: 'C5', freq: 523.25, key: 'k', isBlack: false }
+        ];
+
+        const keyboardEl = document.getElementById('keyboard');
+        const keyMap = {};
+
+        NOTES.forEach(n => {
+            const keyEl = document.createElement('div');
+            keyEl.className = `key ${n.isBlack ? 'black' : ''}`;
+            keyEl.innerHTML = `<span>${n.key.toUpperCase()}</span>`;
+            keyEl.addEventListener('mousedown', () => { triggerNote(n, keyEl); });
+            keyboardEl.appendChild(keyEl);
+            keyMap[n.key] = { note: n, element: keyEl };
+        });
+
+        function triggerNote(n, el) {
+            playNote(n.freq);
+            el.classList.add('active');
+            setTimeout(() => el.classList.remove('active'), 200);
+        }
+
+        // --- Demo Arpeggiator ---
+        let isDemoRunning = false;
+        let demoInterval;
+        const demoSequence = [261.63, 329.63, 392.00, 523.25, 392.00, 329.63];
+
+        function toggleDemo() {
+            initAudio();
+            const btn = document.getElementById('playBtn');
+            if (isDemoRunning) {
+                clearInterval(demoInterval);
+                isDemoRunning = false;
+                btn.innerText = '▶ Demo Loop';
+            } else {
+                let idx = 0;
+                isDemoRunning = true;
+                btn.innerText = '⏹ Stop Demo';
+                demoInterval = setInterval(() => {
+                    playNote(demoSequence[idx % demoSequence.length]);
+                    idx++;
+                }, 180);
+            }
+        }
+
+        // --- Visualizer ---
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function renderVisualizer() {
+            requestAnimationFrame(renderVisualizer);
+
+            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--card');
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (!analyser) return;
+
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            analyser.getByteTimeDomainData(dataArray);
+
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent');
+            ctx.beginPath();
+
+            const sliceWidth = canvas.width * 1.0 / bufferLength;
+            let x = 0;
+
+            for (let i = 0; i < bufferLength; i++) {
+                const v = dataArray[i] / 128.0;
+                const y = v * canvas.height / 2;
+
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+
+                x += sliceWidth;
+            }
+
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.stroke();
+        }
+        renderVisualizer();
+
+        // --- Event Controls & Shortcuts ---
+        document.getElementById('cutoff').addEventListener('input', e => { if (filter) filter.frequency.value = e.target.value; });
+        document.getElementById('resonance').addEventListener('input', e => { if (filter) filter.Q.value = e.target.value; });
+        document.getElementById('delay').addEventListener('input', e => { if (delayGain) delayGain.value = e.target.value; });
+
+        document.getElementById('playBtn').addEventListener('click', toggleDemo);
+        document.getElementById('themeBtn').addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-theme');
+            document.documentElement.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+        });
+
+        const helpModal = document.getElementById('helpModal');
+        document.getElementById('helpBtn').addEventListener('click', () => helpModal.classList.add('open'));
+        document.getElementById('closeHelp').addEventListener('click', () => helpModal.classList.remove('open'));
+
+        window.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+            const k = e.key.toLowerCase();
+            if (keyMap[k]) triggerNote(keyMap[k].note, keyMap[k].element);
+            if (e.code === 'Space') { e.preventDefault(); toggleDemo(); }
+            if (k === 't') document.getElementById('themeBtn').click();
+            if (e.code === 'Escape') helpModal.classList.remove('open');
+        });
+
+        // Pre-loaded state for instant delight
+        setTimeout(() => { toggleDemo(); }, 400);
+    </script>
+</body>
+</html>

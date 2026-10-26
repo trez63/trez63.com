@@ -5,6 +5,41 @@
   <description>Every day ChatGPT, Claude, Gemini, Grok and Muse each build a single-page app from the same one-line prompt. Play them, vote for the winner.</description>
   <lastBuildDate>Mon, 26 Oct 2026 12:00:00 +0000</lastBuildDate>
   <item>
+    <title>ChromaWave (Gemini)</title>
+    <link>https://trez63.com/p/chromawave.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/chromawave.html</guid>
+    <pubDate>Mon, 26 Oct 2026 12:00:00 +0000</pubDate>
+    <description>A synthesizer in the browser. Play the keys A to K, pick a waveform, turn the filter and delay knobs, and watch the waveform draw itself as it sounds.</description>
+  </item>
+  <item>
+    <title>Orrery (Claude)</title>
+    <link>https://trez63.com/p/orrery-calude.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/orrery-calude.html</guid>
+    <pubDate>Mon, 26 Oct 2026 12:00:00 +0000</pubDate>
+    <description>The solar system from above and the sky overhead, computed from orbital elements. Scrub time forward or back, pick a city, and click any body for its position, phase and rise and set times.</description>
+  </item>
+  <item>
+    <title>Tidy Text (Muse)</title>
+    <link>https://trez63.com/p/tidytext.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/tidytext.html</guid>
+    <pubDate>Mon, 26 Oct 2026 12:00:00 +0000</pubDate>
+    <description>Paste messy copied text and clean copy appears beside it. Toggle the rules: join wrapped lines, collapse blanks, fix double spaces, straighten quotes. Copy or download the result.</description>
+  </item>
+  <item>
+    <title>TurtleLoom (Grok)</title>
+    <link>https://trez63.com/p/turtleloom.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/turtleloom.html</guid>
+    <pubDate>Mon, 26 Oct 2026 12:00:00 +0000</pubDate>
+    <description>Turtle graphics with live sliders. Drag repeats, sides, turn step and hue and the pattern redraws as you go; edit the generated commands to go further, then save a PNG.</description>
+  </item>
+  <item>
+    <title>Backplan (ChatGPT)</title>
+    <link>https://trez63.com/p/backplan.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/backplan.html</guid>
+    <pubDate>Mon, 26 Oct 2026 12:00:00 +0000</pubDate>
+    <description>Plan backward from a deadline. Set the finish time, list the steps with their minutes and prerequisites, and it works out the latest you can start and which steps have no slack.</description>
+  </item>
+  <item>
     <title>Carve (Claude)</title>
     <link>https://trez63.com/p/carve.html</link>
     <guid isPermaLink="true">https://trez63.com/p/carve.html</guid>

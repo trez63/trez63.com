@@ -35,7 +35,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/9",
-        "fetched": "2026-10-26"
+        "fetched": "2026-10-27"
       }
     },
     "foldwork": {
@@ -311,7 +311,7 @@
         "reactions": 1,
         "comments": 1,
         "url": "https://github.com/trez63/trez63.com/discussions/6",
-        "fetched": "2026-10-26"
+        "fetched": "2026-10-27"
       }
     },
     "sonogram": {
@@ -373,7 +373,7 @@
         "reactions": 1,
         "comments": 1,
         "url": "https://github.com/trez63/trez63.com/discussions/7",
-        "fetched": "2026-10-26"
+        "fetched": "2026-10-27"
       }
     },
     "sprout-garden": {
@@ -474,7 +474,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/11",
-        "fetched": "2026-10-26"
+        "fetched": "2026-10-27"
       }
     },
     "budget": {
@@ -579,7 +579,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/10",
-        "fetched": "2026-10-26"
+        "fetched": "2026-10-27"
       }
     },
     "tessera": {
@@ -638,7 +638,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/8",
-        "fetched": "2026-10-26"
+        "fetched": "2026-10-27"
       }
     },
     "dayblock": {
@@ -743,7 +743,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/12",
-        "fetched": "2026-10-26"
+        "fetched": "2026-10-27"
       }
     },
     "cosmic-breath": {
@@ -829,7 +829,14 @@
           "sha": "9613e61b015e"
         }
       ],
-      "category": "sim"
+      "category": "sim",
+      "votes": {
+        "up": 1,
+        "reactions": 1,
+        "comments": 0,
+        "url": "https://github.com/trez63/trez63.com/discussions/13",
+        "fetched": "2026-10-27"
+      }
     },
     "tidytext": {
       "title": "Tidy Text",
@@ -884,8 +891,62 @@
         }
       ],
       "category": "tool"
+    },
+    "meeting-meter": {
+      "title": "Meeting Meter",
+      "engine": "Muse",
+      "description": "Set attendees, hourly cost and planned length with three sliders, then start the timer and watch the running cost of the meeting climb by the second. Presets for standups and all-hands; save or reload the setup as JSON.",
+      "source_file": "meeting-meter-Muse.html",
+      "first_published": "2026-10-27",
+      "last_updated": "2026-10-27",
+      "version": 1,
+      "sha": "997d9e2ac55e",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-27",
+          "sha": "997d9e2ac55e"
+        }
+      ],
+      "category": "tool"
+    },
+    "pipeline": {
+      "title": "KanbanFlow",
+      "engine": "Gemini",
+      "description": "A deal pipeline board. Drag cards between Lead, Contacted, Proposal, Negotiation and Won; each deal carries a value and win probability, and the bar on top keeps total, weighted forecast and won value current. Save and reopen the board as JSON.",
+      "source_file": "pipeline-gemini.html",
+      "first_published": "2026-10-27",
+      "last_updated": "2026-10-27",
+      "version": 1,
+      "sha": "91c85e78d56a",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-27",
+          "sha": "91c85e78d56a"
+        }
+      ],
+      "category": "tool"
+    },
+    "revision-room": {
+      "title": "Revision Room",
+      "engine": "ChatGPT",
+      "description": "Paste a before and after draft and compare them: a word-level redline shows what was removed and added, with counts and next/previous jumps between changes. Swap drafts, copy the notes, or save the session as JSON.",
+      "source_file": "revision-room-codex.html",
+      "first_published": "2026-10-27",
+      "last_updated": "2026-10-27",
+      "version": 1,
+      "sha": "875a714608d4",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-27",
+          "sha": "875a714608d4"
+        }
+      ],
+      "category": "text"
     }
   },
-  "generated": "2026-10-26",
-  "votes_fetched": "2026-10-26"
+  "generated": "2026-10-27",
+  "votes_fetched": "2026-10-27"
 }

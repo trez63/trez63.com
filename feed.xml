@@ -3,7 +3,28 @@
   <title>trez63 — one small app a day</title>
   <link>https://trez63.com/</link>
   <description>Every day ChatGPT, Claude, Gemini, Grok and Muse each build a single-page app from the same one-line prompt. Play them, vote for the winner.</description>
-  <lastBuildDate>Mon, 26 Oct 2026 12:00:00 +0000</lastBuildDate>
+  <lastBuildDate>Tue, 27 Oct 2026 12:00:00 +0000</lastBuildDate>
+  <item>
+    <title>Meeting Meter (Muse)</title>
+    <link>https://trez63.com/p/meeting-meter.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/meeting-meter.html</guid>
+    <pubDate>Tue, 27 Oct 2026 12:00:00 +0000</pubDate>
+    <description>Set attendees, hourly cost and planned length with three sliders, then start the timer and watch the running cost of the meeting climb by the second. Presets for standups and all-hands; save or reload the setup as JSON.</description>
+  </item>
+  <item>
+    <title>KanbanFlow (Gemini)</title>
+    <link>https://trez63.com/p/pipeline.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/pipeline.html</guid>
+    <pubDate>Tue, 27 Oct 2026 12:00:00 +0000</pubDate>
+    <description>A deal pipeline board. Drag cards between Lead, Contacted, Proposal, Negotiation and Won; each deal carries a value and win probability, and the bar on top keeps total, weighted forecast and won value current. Save and reopen the board as JSON.</description>
+  </item>
+  <item>
+    <title>Revision Room (ChatGPT)</title>
+    <link>https://trez63.com/p/revision-room.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/revision-room.html</guid>
+    <pubDate>Tue, 27 Oct 2026 12:00:00 +0000</pubDate>
+    <description>Paste a before and after draft and compare them: a word-level redline shows what was removed and added, with counts and next/previous jumps between changes. Swap drafts, copy the notes, or save the session as JSON.</description>
+  </item>
   <item>
     <title>ChromaWave (Gemini)</title>
     <link>https://trez63.com/p/chromawave.html</link>

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KanbanFlow — CRM & Deal Pipeline Studio</title>
+    <style>
+        :root {
+            --bg: #0f172a; --panel: #1e293b; --border: #334155; --text: #f8fafc;
+            --sub: #94a3b8; --accent: #3b82f6; --accent-hover: #2563eb; --card: #1e293b;
+            --card-inner: #0f172a; --tag-bg: #334155; --shadow: rgba(0,0,0,0.4);
+        }
+        [data-theme="light"] {
+            --bg: #f8fafc; --panel: #ffffff; --border: #e2e8f0; --text: #0f172a;
+            --sub: #64748b; --accent: #2563eb; --accent-hover: #1d4ed8; --card: #ffffff;
+            --card-inner: #f1f5f9; --tag-bg: #e2e8f0; --shadow: rgba(0,0,0,0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+        
+        /* Header & Bar */
+        header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; }
+        .brand { font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em; }
+        .brand-icon { width: 12px; height: 12px; background: var(--accent); border-radius: 3px; }
+        .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        
+        button, label.btn-label { background: var(--panel); color: var(--text); border: 1px solid var(--border); padding: 7px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; user-select: none; transition: background 0.15s; }
+        button:hover, label.btn-label:hover { border-color: var(--accent); color: var(--accent); }
+        button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+        button.primary:hover { background: var(--accent-hover); color: #fff; }
+        input[type="file"] { display: none; }
+
+        /* Metrics Bar */
+        .metrics-bar { background: var(--panel); border-bottom: 1px solid var(--border); padding: 10px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; font-size: 0.8rem; }
+        .metric-card { background: var(--card-inner); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); }
+        .metric-title { color: var(--sub); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+        .metric-val { font-size: 1.05rem; font-weight: 700; color: var(--text); }
+
+        /* Board & Columns */
+        main { flex: 1; padding: 16px; overflow-x: auto; display: flex; gap: 16px; align-items: flex-start; scrollbar-width: thin; }
+        .column { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; width: 280px; min-width: 280px; max-height: calc(100vh - 170px); display: flex; flex-direction: column; box-shadow: 0 4px 6px var(--shadow); }
+        .col-header { padding: 12px; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; }
+        .col-count { background: var(--tag-bg); color: var(--sub); font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; }
+        .col-body { padding: 10px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; min-height: 120px; }
+        .col-body.drag-over { background: rgba(59, 130, 246, 0.08); border-radius: 6px; }
+
+        /* Cards */
+        .deal-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px; cursor: grab; box-shadow: 0 2px 4px var(--shadow); transition: transform 0.15s, border-color 0.15s; position: relative; }
+        .deal-card:active { cursor: grabbing; transform: scale(0.98); }
+        .deal-card:hover { border-color: var(--accent); }
+        .deal-title { font-weight: 600; font-size: 0.88rem; margin-bottom: 6px; }
+        .deal-company { font-size: 0.78rem; color: var(--sub); margin-bottom: 8px; }
+        .deal-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; border-top: 1px solid var(--border); pt: 8px; margin-top: 8px; padding-top: 6px; }
+        .deal-value { font-weight: 700; color: #22c55e; }
+        .deal-prob { background: var(--tag-bg); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; color: var(--sub); }
+        
+        /* Modal & Overlays */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 200; padding: 16px; }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 440px; padding: 20px; box-shadow: 0 20px 25px -5px var(--shadow); }
+        .modal h3 { font-size: 1.1rem; margin-bottom: 12px; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 0.78rem; color: var(--sub); margin-bottom: 4px; font-weight: 500; }
+        .form-group input, .form-group select { width: 100%; padding: 8px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.85rem; outline: none; }
+        .form-group input:focus { border-color: var(--accent); }
+        .shortcut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem; margin: 12px 0 16px; }
+        .shortcut-row { display: flex; justify-content: space-between; background: var(--card-inner); padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border); }
+        kbd { background: var(--panel); border: 1px solid var(--border); padding: 1px 5px; border-radius: 3px; font-weight: 600; font-size: 0.75rem; }
+
+        @media (max-width: 600px) {
+            header { flex-direction: column; align-items: stretch; }
+            .actions { justify-content: space-between; }
+            main { padding: 8px; gap: 10px; }
+            .column { width: 82vw; min-width: 82vw; max-height: calc(100vh - 210px); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand"><div class="brand-icon"></div> KanbanFlow CRM</div>
+        <div class="actions">
+            <button id="addDealBtn" class="primary">＋ New Deal</button>
+            <button id="saveBtn">💾 Save JSON</button>
+            <label class="btn-label" for="openFile">📂 Open JSON</label>
+            <input type="file" id="openFile" accept=".json">
+            <button id="themeBtn">🌓 Theme</button>
+            <button id="helpBtn">❓ Help</button>
+        </div>
+    </header>
+
+    <div class="metrics-bar">
+        <div class="metric-card"><div class="metric-title">Total Pipeline</div><div class="metric-val" id="metricTotal">$0</div></div>
+        <div class="metric-card"><div class="metric-title">Weighted Forecast</div><div class="metric-val" id="metricWeighted">$0</div></div>
+        <div class="metric-card"><div class="metric-title">Active Deals</div><div class="metric-val" id="metricDeals">0</div></div>
+        <div class="metric-card"><div class="metric-title">Won Value</div><div class="metric-val" id="metricWon">$0</div></div>
+    </div>
+
+    <main id="board"></main>
+
+    <!-- New Deal Modal -->
+    <div class="modal-overlay" id="dealModal">
+        <div class="modal">
+            <h3 id="modalTitle">Create New Deal</h3>
+            <div class="form-group"><label>Deal Name</label><input type="text" id="dealTitleInput" placeholder="e.g., Enterprise Site License"></div>
+            <div class="form-group"><label>Company / Client</label><input type="text" id="dealCompanyInput" placeholder="e.g., Acme Corp"></div>
+            <div class="form-group"><label>Value ($)</label><input type="number" id="dealValueInput" placeholder="50000"></div>
+            <div class="form-group"><label>Probability (%)</label><input type="number" id="dealProbInput" placeholder="60" min="0" max="100"></div>
+            <div class="form-group"><label>Stage</label><select id="dealStageSelect"></select></div>
+            <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px;">
+                <button id="deleteDealBtn" style="color: #ef4444; border-color: #ef4444; display: none;">Delete</button>
+                <button id="cancelDealBtn">Cancel</button>
+                <button id="saveDealBtn" class="primary">Save Deal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal">
+            <h3>KanbanFlow Shortcuts & Help</h3>
+            <p style="font-size: 0.85rem; color: var(--sub); line-height: 1.4;">Zero-dependency CRM deal manager with real-time metrics, drag-and-drop mechanics, and local JSON persistence.</p>
+            <div class="shortcut-grid">
+                <div class="shortcut-row"><span>New Deal</span> <kbd>N</kbd></div>
+                <div class="shortcut-row"><span>Save State</span> <kbd>S</kbd></div>
+                <div class="shortcut-row"><span>Open File</span> <kbd>O</kbd></div>
+                <div class="shortcut-row"><span>Toggle Theme</span> <kbd>T</kbd></div>
+                <div class="shortcut-row"><span>Close Modal</span> <kbd>Esc</kbd></div>
+            </div>
+            <button id="closeHelpBtn" class="primary" style="width: 100%; justify-content: center;">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        // --- State Management ---
+        const STAGES = [
+            { id: 'lead', title: 'Lead Qualified' },
+            { id: 'contacted', title: 'Contact Made' },
+            { id: 'proposal', title: 'Proposal Sent' },
+            { id: 'negotiation', title: 'Negotiation' },
+            { id: 'won', title: 'Closed Won' }
+        ];
+
+        let deals = [
+            { id: 'd1', title: 'Cloud Infrastructure Migration', company: 'Apex Global', value: 85000, prob: 70, stage: 'proposal' },
+            { id: 'd2', title: 'Security Audit & Compliance', company: 'Starlight Retail', value: 24000, prob: 90, stage: 'negotiation' },
+            { id: 'd3', title: 'Custom CRM Integration', company: 'Nexus Logistics', value: 42000, prob: 40, stage: 'contacted' },
+            { id: 'd4', title: 'Annual SLA Renewal', company: 'BioTech Labs', value: 110000, prob: 100, stage: 'won' },
+            { id: 'd5', title: 'Mobile App Architecture', company: 'FinPulse Inc', value: 65000, prob: 25, stage: 'lead' }
+        ];
+
+        let editingDealId = null;
+
+        // --- Render Engine ---
+        const boardEl = document.getElementById('board');
+        const stageSelect = document.getElementById('dealStageSelect');
+
+        function initStageSelect() {
+            stageSelect.innerHTML = STAGES.map(s => `<option value="${s.id}">${s.title}</option>`).join('');
+        }
+
+        function renderBoard() {
+            boardEl.innerHTML = '';
+            
+            STAGES.forEach(stage => {
+                const stageDeals = deals.filter(d => d.stage === stage.id);
+                const colEl = document.createElement('div');
+                colEl.className = 'column';
+                colEl.dataset.stage = stage.id;
+                
+                colEl.innerHTML = `
+                    <div class="col-header">
+                        <span>${stage.title}</span>
+                        <span class="col-count">${stageDeals.length}</span>
+                    </div>
+                    <div class="col-body" data-stage="${stage.id}"></div>
+                `;
+
+                const colBody = colEl.querySelector('.col-body');
+
+                // Drag and Drop Events for Column
+                colBody.addEventListener('dragover', e => { e.preventDefault(); colBody.classList.add('drag-over'); });
+                colBody.addEventListener('dragleave', () => colBody.classList.remove('drag-over'));
+                colBody.addEventListener('drop', e => {
+                    e.preventDefault();
+                    colBody.classList.remove('drag-over');
+                    const dealId = e.dataTransfer.getData('text/plain');
+                    const targetDeal = deals.find(d => d.id === dealId);
+                    if (targetDeal) {
+                        targetDeal.stage = stage.id;
+                        renderBoard();
+                        updateMetrics();
+                    }
+                });
+
+                stageDeals.forEach(deal => {
+                    const card = document.createElement('div');
+                    card.className = 'deal-card';
+                    card.draggable = true;
+                    card.innerHTML = `
+                        <div class="deal-title">${escapeHtml(deal.title)}</div>
+                        <div class="deal-company">${escapeHtml(deal.company)}</div>
+                        <div class="deal-footer">
+                            <span class="deal-value">$${deal.value.toLocaleString()}</span>
+                            <span class="deal-prob">${deal.prob}% prob</span>
+                        </div>
+                    `;
+
+                    // Drag Events for Card
+                    card.addEventListener('dragstart', e => {
+                        e.dataTransfer.setData('text/plain', deal.id);
+                        card.style.opacity = '0.4';
+                    });
+                    card.addEventListener('dragend', () => card.style.opacity = '1');
+
+                    // Click/Touch to Edit
+                    card.addEventListener('click', () => openDealModal(deal));
+
+                    colBody.appendChild(card);
+                });
+
+                boardEl.appendChild(colEl);
+            });
+
+            updateMetrics();
+        }
+
+        function updateMetrics() {
+            const total = deals.reduce((sum, d) => sum + d.value, 0);
+            const weighted = deals.reduce((sum, d) => sum + (d.value * (d.prob / 100)), 0);
+            const won = deals.filter(d => d.stage === 'won').reduce((sum, d) => sum + d.value, 0);
+
+            document.getElementById('metricTotal').innerText = `$${Math.round(total).toLocaleString()}`;
+            document.getElementById('metricWeighted').innerText = `$${Math.round(weighted).toLocaleString()}`;
+            document.getElementById('metricDeals').innerText = deals.length;
+            document.getElementById('metricWon').innerText = `$${Math.round(won).toLocaleString()}`;
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag]));
+        }
+
+        // --- Modal & Form Logic ---
+        const dealModal = document.getElementById('dealModal');
+        const helpModal = document.getElementById('helpModal');
+        const deleteBtn = document.getElementById('deleteDealBtn');
+
+        function openDealModal(deal = null) {
+            editingDealId = deal ? deal.id : null;
+            document.getElementById('modalTitle').innerText = deal ? 'Edit Deal' : 'Create New Deal';
+            document.getElementById('dealTitleInput').value = deal ? deal.title : '';
+            document.getElementById('dealCompanyInput').value = deal ? deal.company : '';
+            document.getElementById('dealValueInput').value = deal ? deal.value : '';
+            document.getElementById('dealProbInput').value = deal ? deal.prob : 50;
+            stageSelect.value = deal ? deal.stage : 'lead';
+            deleteBtn.style.display = deal ? 'inline-flex' : 'none';
+            dealModal.classList.add('open');
+        }
+
+        function closeModals() {
+            dealModal.classList.remove('open');
+            helpModal.classList.remove('open');
+        }
+
+        document.getElementById('addDealBtn').addEventListener('click', () => openDealModal());
+        document.getElementById('cancelDealBtn').addEventListener('click', closeModals);
+        document.getElementById('helpBtn').addEventListener('click', () => helpModal.classList.add('open'));
+        document.getElementById('closeHelpBtn').addEventListener('click', closeModals);
+
+        document.getElementById('saveDealBtn').addEventListener('click', () => {
+            const title = document.getElementById('dealTitleInput').value.trim();
+            const company = document.getElementById('dealCompanyInput').value.trim();
+            const value = parseFloat(document.getElementById('dealValueInput').value) || 0;
+            const prob = parseInt(document.getElementById('dealProbInput').value) || 0;
+            const stage = stageSelect.value;
+
+            if (!title) return alert('Please enter a deal title.');
+
+            if (editingDealId) {
+                const deal = deals.find(d => d.id === editingDealId);
+                if (deal) Object.assign(deal, { title, company, value, prob, stage });
+            } else {
+                deals.push({ id: 'd_' + Date.now(), title, company, value, prob, stage });
+            }
+
+            closeModals();
+            renderBoard();
+        });
+
+        deleteBtn.addEventListener('click', () => {
+            if (editingDealId && confirm('Delete this deal?')) {
+                deals = deals.filter(d => d.id !== editingDealId);
+                closeModals();
+                renderBoard();
+            }
+        });
+
+        // --- Save and Open Persistence ---
+        document.getElementById('saveBtn').addEventListener('click', exportState);
+        document.getElementById('openFile').addEventListener('change', importState);
+
+        function exportState() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(deals, null, 2));
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", dataStr);
+            dlAnchor.setAttribute("download", `kanbanflow_pipeline_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(dlAnchor);
+            dlAnchor.click();
+            dlAnchor.remove();
+        }
+
+        function importState(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const imported = JSON.parse(evt.target.result);
+                    if (Array.isArray(imported)) {
+                        deals = imported;
+                        renderBoard();
+                    } else { alert('Invalid file format.'); }
+                } catch(err) { alert('Error reading JSON file.'); }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Theme & Shortcuts ---
+        document.getElementById('themeBtn').addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-theme');
+            document.documentElement.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+        });
+
+        // Non-overlapping keyboard shortcuts mapping:
+        // N = New Deal, S = Save JSON, O = Open File, T = Theme, Esc = Close Modal
+        window.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+            const key = e.key.toLowerCase();
+            if (key === 'n') { e.preventDefault(); openDealModal(); }
+            if (key === 's') { e.preventDefault(); exportState(); }
+            if (key === 'o') { e.preventDefault(); document.getElementById('openFile').click(); }
+            if (key === 't') { e.preventDefault(); document.getElementById('themeBtn').click(); }
+            if (e.key === 'Escape') closeModals();
+        });
+
+        // --- Init ---
+        initStageSelect();
+        renderBoard();
+    </script>
+</body>
+</html>

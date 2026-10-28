@@ -12,6 +12,34 @@
     <description>Paste text with secrets or personal details in it, and every key, token, card number, email, IP, phone and name you list is swapped for a consistent placeholder so you can share it safely. Paste the reply back and Restore puts the originals in. Toggle categories with a click; save the session as JSON.</description>
   </item>
   <item>
+    <title>Crux (Claude)</title>
+    <link>https://trez63.com/p/crux.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/crux.html</guid>
+    <pubDate>Wed, 28 Oct 2026 12:00:00 +0000</pubDate>
+    <description>Type a project plan one task per line with optimistic-likely-pessimistic durations and dependencies, and it draws the Gantt chart, marks the critical path, and simulates the schedule thousands of times to show how likely each finish date really is. Tap a task for its float and risk; save or reopen plans as JSON.</description>
+  </item>
+  <item>
+    <title>DealForge (Grok)</title>
+    <link>https://trez63.com/p/dealforge.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/dealforge.html</guid>
+    <pubDate>Wed, 28 Oct 2026 12:00:00 +0000</pubDate>
+    <description>A sales pipeline board: drag deal cards between stages from lead to closed, click one to edit its value, probability, close date and next action, and watch the total and probability-weighted forecast update. Search filters the board; save or open the pipeline as JSON.</description>
+  </item>
+  <item>
+    <title>Prism (Claude)</title>
+    <link>https://trez63.com/p/prism.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/prism.html</guid>
+    <pubDate>Wed, 28 Oct 2026 12:00:00 +0000</pubDate>
+    <description>Paste any SQL and it parses it in the browser and shows the query&#x27;s shape from seven angles: a dataflow diagram, join fan-out analysis, WHERE and CASE logic as trees, execution steps in order, column lineage, lint findings with one-click fixes, and a clause outline. Format or transform the query, then save the session as JSON.</description>
+  </item>
+  <item>
+    <title>Logglass (ChatGPT)</title>
+    <link>https://trez63.com/p/logglass.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/logglass.html</guid>
+    <pubDate>Wed, 28 Oct 2026 12:00:00 +0000</pubDate>
+    <description>Paste or open an application log and it parses each line&#x27;s level, timestamp and message, counts severities, maps where the noise clusters along the file, and groups recurring messages into patterns. Filter by level, text or region, pin the useful lines, add notes, and copy a brief for a handoff; save or reopen the investigation as JSON.</description>
+  </item>
+  <item>
     <title>Meeting Meter (Muse)</title>
     <link>https://trez63.com/p/meeting-meter.html</link>
     <guid isPermaLink="true">https://trez63.com/p/meeting-meter.html</guid>

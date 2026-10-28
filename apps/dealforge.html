@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>DealForge – Deal Pipeline</title>
+<style>
+:root {
+  --bg: #0f1117; --surface: #1a1d27; --border: #2a2e3a; --text: #e8eaed; --muted: #9aa0a6;
+  --accent: #6c8cff; --accent-hover: #8aa4ff; --success: #34d399; --warn: #fbbf24; --danger: #f87171;
+  --card-bg: #222632; --shadow: 0 4px 12px rgba(0,0,0,.4);
+}
+body.light {
+  --bg: #f5f7fa; --surface: #ffffff; --border: #e2e8f0; --text: #1a202c; --muted: #64748b;
+  --accent: #3b82f6; --accent-hover: #2563eb; --success: #10b981; --warn: #f59e0b; --danger: #ef4444;
+  --card-bg: #ffffff; --shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
+body { display: flex; flex-direction: column; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+header { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: var(--surface); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+h1 { font-size: 1.25rem; margin: 0; flex: 1; min-width: 140px; }
+button, input, select, textarea { font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; }
+button { cursor: pointer; background: var(--accent); color: white; border: none; }
+button:hover { background: var(--accent-hover); }
+button.secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+button.danger { background: var(--danger); }
+.stats { display: flex; gap: 16px; font-size: 0.85rem; color: var(--muted); }
+.stats strong { color: var(--text); }
+#board { flex: 1; display: flex; gap: 12px; padding: 12px; overflow-x: auto; overflow-y: hidden; }
+.column { flex: 0 0 260px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; display: flex; flex-direction: column; max-height: 100%; }
+.column h3 { margin: 0; padding: 10px 12px; font-size: 0.9rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
+.column .cards { flex: 1; overflow-y: auto; padding: 8px; min-height: 60px; }
+.card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 8px; cursor: grab; box-shadow: var(--shadow); position: relative; }
+.card:active { cursor: grabbing; }
+.card h4 { margin: 0 0 4px; font-size: 0.95rem; }
+.card .meta { font-size: 0.75rem; color: var(--muted); display: flex; justify-content: space-between; margin-top: 6px; }
+.card .prob { color: var(--success); font-weight: 600; }
+.card .value { font-weight: 600; }
+.search { max-width: 180px; }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+.overlay.open { display: flex; }
+.modal { background: var(--surface); border-radius: 10px; padding: 20px; max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto; border: 1px solid var(--border); }
+.modal h2 { margin-top: 0; }
+.form-row { margin-bottom: 12px; }
+.form-row label { display: block; font-size: 0.85rem; margin-bottom: 4px; color: var(--muted); }
+.form-row input, .form-row select, .form-row textarea { width: 100%; }
+.help kbd { background: var(--border); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; }
+@media (max-width: 700px) {
+  #board { flex-direction: column; overflow-x: hidden; overflow-y: auto; }
+  .column { flex: none; width: 100%; max-height: none; }
+  header { padding: 8px 12px; }
+  h1 { font-size: 1.1rem; }
+  .stats { flex-wrap: wrap; gap: 8px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>DealForge</h1>
+  <div class="stats">
+    <span>Pipeline: <strong id="totalVal">$0</strong></span>
+    <span>Weighted: <strong id="weightedVal">$0</strong></span>
+    <span>Deals: <strong id="dealCount">0</strong></span>
+  </div>
+  <input type="search" id="search" class="search" placeholder="Search deals…">
+  <button id="newBtn">+ Deal</button>
+  <button id="saveBtn" class="secondary">Save</button>
+  <button id="openBtn" class="secondary">Open</button>
+  <button id="themeBtn" class="secondary">Theme</button>
+  <input type="file" id="fileInput" accept=".json" style="display:none">
+</header>
+<div id="board"></div>
+
+<div id="helpOverlay" class="overlay">
+  <div class="modal help">
+    <h2>Help – DealForge</h2>
+    <p>Drag cards between stages. Edit by clicking a card. Weighted forecast = sum of (value × probability).</p>
+    <p><kbd>N</kbd> New deal &nbsp; <kbd>S</kbd> Focus search &nbsp; <kbd>T</kbd> Toggle theme</p>
+    <p><kbd>H</kbd> or <kbd>?</kbd> Toggle this help &nbsp; <kbd>Esc</kbd> Close overlays</p>
+    <p><kbd>Enter</kbd> Save edit &nbsp; <kbd>Del</kbd> Delete selected deal (when focused)</p>
+    <button onclick="toggleHelp()">Close</button>
+  </div>
+</div>
+
+<div id="editOverlay" class="overlay">
+  <div class="modal">
+    <h2 id="editTitle">Edit Deal</h2>
+    <div class="form-row"><label>Company</label><input id="eCompany"></div>
+    <div class="form-row"><label>Contact</label><input id="eContact"></div>
+    <div class="form-row"><label>Value ($)</label><input id="eValue" type="number" min="0"></div>
+    <div class="form-row"><label>Probability (%)</label><input id="eProb" type="number" min="0" max="100"></div>
+    <div class="form-row"><label>Stage</label><select id="eStage"></select></div>
+    <div class="form-row"><label>Close Date</label><input id="eDate" type="date"></div>
+    <div class="form-row"><label>Next Action</label><input id="eAction"></div>
+    <div class="form-row"><label>Notes</label><textarea id="eNotes" rows="3"></textarea></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="secondary" onclick="closeEdit()">Cancel</button>
+      <button class="danger" id="deleteBtn">Delete</button>
+      <button onclick="saveEdit()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const stages = ['Lead','Qualified','Proposal','Negotiation','Closed Won','Closed Lost'];
+let deals = [
+  {id:1,company:'Acme Corp',contact:'Jane Doe',value:48000,probability:60,stage:'Proposal',notes:'Requested custom SLA',nextAction:'Send revised proposal',closeDate:'2026-11-20'},
+  {id:2,company:'Northwind',contact:'Bob Smith',value:125000,probability:35,stage:'Qualified',notes:'Budget approved Q4',nextAction:'Schedule demo',closeDate:'2026-12-05'},
+  {id:3,company:'Globex',contact:'Alice Chen',value:22000,probability:80,stage:'Negotiation',notes:'Legal reviewing terms',nextAction:'Follow up on redlines',closeDate:'2026-11-12'},
+  {id:4,company:'Initech',contact:'Peter Gibbons',value:7500,probability:20,stage:'Lead',notes:'Inbound from website',nextAction:'Qualify pain points',closeDate:'2026-12-15'},
+  {id:5,company:'Umbrella',contact:'Claire Redfield',value:310000,probability:15,stage:'Lead',notes:'Enterprise pilot interest',nextAction:'Send case studies',closeDate:'2027-01-10'},
+  {id:6,company:'Stark Ind',contact:'Pepper Potts',value:89000,probability:90,stage:'Closed Won',notes:'Signed yesterday',nextAction:'Onboarding kickoff',closeDate:'2026-10-25'},
+  {id:7,company:'Wayne Ent',contact:'Lucius Fox',value:15000,probability:50,stage:'Proposal',notes:'Comparing two vendors',nextAction:'Highlight security features',closeDate:'2026-11-30'},
+  {id:8,company:'Cyberdyne',contact:'Miles Dyson',value:42000,probability:5,stage:'Closed Lost',notes:'Went with competitor',nextAction:'',closeDate:'2026-10-18'}
+];
+let nextId = 9;
+let editingId = null;
+let draggedId = null;
+
+const board = document.getElementById('board');
+const search = document.getElementById('search');
+const themeBtn = document.getElementById('themeBtn');
+const fileInput = document.getElementById('fileInput');
+
+function loadTheme() {
+  const t = localStorage.getItem('df-theme') || 'dark';
+  document.body.classList.toggle('light', t === 'light');
+  themeBtn.textContent = t === 'light' ? 'Dark' : 'Light';
+}
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light');
+  localStorage.setItem('df-theme', isLight ? 'light' : 'dark');
+  themeBtn.textContent = isLight ? 'Dark' : 'Light';
+}
+themeBtn.onclick = toggleTheme;
+
+function formatMoney(n) { return '$' + Math.round(n).toLocaleString(); }
+
+function updateStats() {
+  const visible = getVisibleDeals();
+  const total = visible.reduce((s,d) => s + d.value, 0);
+  const weighted = visible.reduce((s,d) => s + d.value * (d.probability/100), 0);
+  document.getElementById('totalVal').textContent = formatMoney(total);
+  document.getElementById('weightedVal').textContent = formatMoney(weighted);
+  document.getElementById('dealCount').textContent = visible.length;
+}
+
+function getVisibleDeals() {
+  const q = search.value.toLowerCase();
+  return deals.filter(d => !q || d.company.toLowerCase().includes(q) || d.contact.toLowerCase().includes(q) || (d.notes||'').toLowerCase().includes(q));
+}
+
+function render() {
+  board.innerHTML = '';
+  const visible = getVisibleDeals();
+  stages.forEach(stage => {
+    const col = document.createElement('div');
+    col.className = 'column';
+    col.dataset.stage = stage;
+    const count = visible.filter(d => d.stage === stage).length;
+    col.innerHTML = `<h3>${stage} <span style="color:var(--muted)">${count}</span></h3><div class="cards"></div>`;
+    const cardsEl = col.querySelector('.cards');
+    cardsEl.ondragover = e => e.preventDefault();
+    cardsEl.ondrop = e => { e.preventDefault(); if (draggedId) moveDeal(draggedId, stage); };
+    visible.filter(d => d.stage === stage).forEach(d => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.draggable = true;
+      card.dataset.id = d.id;
+      card.innerHTML = `<h4>${d.company}</h4><div>${d.contact}</div><div class="meta"><span class="value">${formatMoney(d.value)}</span><span class="prob">${d.probability}%</span></div><div class="meta"><span>${d.nextAction||'—'}</span><span>${d.closeDate||''}</span></div>`;
+      card.ondragstart = () => draggedId = d.id;
+      card.onclick = () => openEdit(d.id);
+      cardsEl.appendChild(card);
+    });
+    board.appendChild(col);
+  });
+  updateStats();
+}
+
+function moveDeal(id, stage) {
+  const d = deals.find(x => x.id === id);
+  if (d) { d.stage = stage; render(); }
+}
+
+function openEdit(id) {
+  editingId = id;
+  const d = deals.find(x => x.id === id) || {company:'',contact:'',value:0,probability:50,stage:'Lead',notes:'',nextAction:'',closeDate:''};
+  document.getElementById('editTitle').textContent = id ? 'Edit Deal' : 'New Deal';
+  document.getElementById('eCompany').value = d.company;
+  document.getElementById('eContact').value = d.contact;
+  document.getElementById('eValue').value = d.value;
+  document.getElementById('eProb').value = d.probability;
+  document.getElementById('eAction').value = d.nextAction || '';
+  document.getElementById('eNotes').value = d.notes || '';
+  document.getElementById('eDate').value = d.closeDate || '';
+  const sel = document.getElementById('eStage');
+  sel.innerHTML = stages.map(s => `<option ${s===d.stage?'selected':''}>${s}</option>`).join('');
+  document.getElementById('editOverlay').classList.add('open');
+  document.getElementById('deleteBtn').style.display = id ? 'inline-block' : 'none';
+}
+
+function closeEdit() { document.getElementById('editOverlay').classList.remove('open'); editingId = null; }
+
+function saveEdit() {
+  const data = {
+    company: document.getElementById('eCompany').value.trim() || 'Untitled',
+    contact: document.getElementById('eContact').value.trim(),
+    value: +document.getElementById('eValue').value || 0,
+    probability: Math.min(100, Math.max(0, +document.getElementById('eProb').value || 0)),
+    stage: document.getElementById('eStage').value,
+    nextAction: document.getElementById('eAction').value.trim(),
+    notes: document.getElementById('eNotes').value.trim(),
+    closeDate: document.getElementById('eDate').value
+  };
+  if (editingId) {
+    Object.assign(deals.find(d => d.id === editingId), data);
+  } else {
+    deals.push({id: nextId++, ...data});
+  }
+  closeEdit();
+  render();
+}
+
+function deleteDeal() {
+  if (editingId && confirm('Delete this deal?')) {
+    deals = deals.filter(d => d.id !== editingId);
+    closeEdit();
+    render();
+  }
+}
+document.getElementById('deleteBtn').onclick = deleteDeal;
+
+function toggleHelp() { document.getElementById('helpOverlay').classList.toggle('open'); }
+
+document.getElementById('newBtn').onclick = () => openEdit(null);
+document.getElementById('saveBtn').onclick = () => {
+  const blob = new Blob([JSON.stringify({deals, nextId}, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'dealforge-pipeline.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+document.getElementById('openBtn').onclick = () => fileInput.click();
+fileInput.onchange = e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const data = JSON.parse(r.result);
+      if (Array.isArray(data.deals)) { deals = data.deals; nextId = data.nextId || Math.max(...deals.map(d=>d.id),0)+1; render(); }
+    } catch(err) { alert('Invalid file'); }
+  };
+  r.readAsText(f);
+  fileInput.value = '';
+};
+search.oninput = render;
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+    if (e.key === 'Escape') { closeEdit(); document.getElementById('helpOverlay').classList.remove('open'); }
+    return;
+  }
+  const k = e.key.toLowerCase();
+  if (k === 'n') { e.preventDefault(); openEdit(null); }
+  else if (k === 's') { e.preventDefault(); search.focus(); }
+  else if (k === 't') { e.preventDefault(); toggleTheme(); }
+  else if (k === 'h' || k === '?') { e.preventDefault(); toggleHelp(); }
+  else if (k === 'escape') { closeEdit(); document.getElementById('helpOverlay').classList.remove('open'); }
+});
+
+loadTheme();
+render();
+</script>
+</body>
+</html>

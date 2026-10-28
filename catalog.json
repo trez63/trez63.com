@@ -35,7 +35,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/9",
-        "fetched": "2026-10-27"
+        "fetched": "2026-10-28"
       }
     },
     "foldwork": {
@@ -311,7 +311,7 @@
         "reactions": 1,
         "comments": 1,
         "url": "https://github.com/trez63/trez63.com/discussions/6",
-        "fetched": "2026-10-27"
+        "fetched": "2026-10-28"
       }
     },
     "sonogram": {
@@ -373,7 +373,7 @@
         "reactions": 1,
         "comments": 1,
         "url": "https://github.com/trez63/trez63.com/discussions/7",
-        "fetched": "2026-10-27"
+        "fetched": "2026-10-28"
       }
     },
     "sprout-garden": {
@@ -474,7 +474,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/11",
-        "fetched": "2026-10-27"
+        "fetched": "2026-10-28"
       }
     },
     "budget": {
@@ -579,7 +579,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/10",
-        "fetched": "2026-10-27"
+        "fetched": "2026-10-28"
       }
     },
     "tessera": {
@@ -638,7 +638,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/8",
-        "fetched": "2026-10-27"
+        "fetched": "2026-10-28"
       }
     },
     "dayblock": {
@@ -743,7 +743,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/12",
-        "fetched": "2026-10-27"
+        "fetched": "2026-10-28"
       }
     },
     "cosmic-breath": {
@@ -835,7 +835,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/13",
-        "fetched": "2026-10-27"
+        "fetched": "2026-10-28"
       }
     },
     "tidytext": {
@@ -963,8 +963,80 @@
         }
       ],
       "category": "tool"
+    },
+    "crux": {
+      "title": "Crux",
+      "engine": "Claude",
+      "description": "Type a project plan one task per line with optimistic-likely-pessimistic durations and dependencies, and it draws the Gantt chart, marks the critical path, and simulates the schedule thousands of times to show how likely each finish date really is. Tap a task for its float and risk; save or reopen plans as JSON.",
+      "source_file": "Crux-Claude.html",
+      "first_published": "2026-10-28",
+      "last_updated": "2026-10-28",
+      "version": 1,
+      "sha": "cb2a4b5b17d6",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-28",
+          "sha": "cb2a4b5b17d6"
+        }
+      ],
+      "category": "tool"
+    },
+    "dealforge": {
+      "title": "DealForge",
+      "engine": "Grok",
+      "description": "A sales pipeline board: drag deal cards between stages from lead to closed, click one to edit its value, probability, close date and next action, and watch the total and probability-weighted forecast update. Search filters the board; save or open the pipeline as JSON.",
+      "source_file": "DealForge-Grok.html",
+      "first_published": "2026-10-28",
+      "last_updated": "2026-10-28",
+      "version": 1,
+      "sha": "c42eb965caeb",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-28",
+          "sha": "c42eb965caeb"
+        }
+      ],
+      "category": "tool"
+    },
+    "prism": {
+      "title": "Prism",
+      "engine": "Claude",
+      "description": "Paste any SQL and it parses it in the browser and shows the query's shape from seven angles: a dataflow diagram, join fan-out analysis, WHERE and CASE logic as trees, execution steps in order, column lineage, lint findings with one-click fixes, and a clause outline. Format or transform the query, then save the session as JSON.",
+      "source_file": "Prism-Claude.html",
+      "first_published": "2026-10-28",
+      "last_updated": "2026-10-28",
+      "version": 1,
+      "sha": "eff606f39648",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-28",
+          "sha": "eff606f39648"
+        }
+      ],
+      "category": "dev"
+    },
+    "logglass": {
+      "title": "Logglass",
+      "engine": "ChatGPT",
+      "description": "Paste or open an application log and it parses each line's level, timestamp and message, counts severities, maps where the noise clusters along the file, and groups recurring messages into patterns. Filter by level, text or region, pin the useful lines, add notes, and copy a brief for a handoff; save or reopen the investigation as JSON.",
+      "source_file": "logglass-codex.html",
+      "first_published": "2026-10-28",
+      "last_updated": "2026-10-28",
+      "version": 1,
+      "sha": "de14e49204e2",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-28",
+          "sha": "de14e49204e2"
+        }
+      ],
+      "category": "dev"
     }
   },
   "generated": "2026-10-28",
-  "votes_fetched": "2026-10-27"
+  "votes_fetched": "2026-10-28"
 }

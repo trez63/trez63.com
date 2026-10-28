@@ -1,0 +1,405 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Daily Build 2026-10-27 — Crux</title>
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--fg:#1d1b17;--mute:#6d675c;--line:#e2ddd2;--accent:#c2410c;--accent2:#f59e0b;--soft:#fde8d8;--ok:#2f7d5b;--grid:#ebe7de;--wknd:#f0ece3;--bar:#9a948a}
+:root[data-theme=dark]{--bg:#141516;--panel:#1d1f21;--fg:#ece9e2;--mute:#9a968e;--line:#303336;--accent:#fb923c;--accent2:#fbbf24;--soft:#3a2415;--ok:#4ade80;--grid:#26292c;--wknd:#1a1c1e;--bar:#5c6066}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;padding:0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);overflow-x:hidden}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:5}
+h1{font-size:22px;margin:0 6px 0 0;letter-spacing:.5px}
+h1 span{color:var(--accent)}
+.tag{color:var(--mute);font-size:13px;margin-right:auto}
+button,select,input[type=date]{min-height:44px;min-width:44px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--fg);font:inherit;font-size:16px;cursor:pointer}
+button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+button:active{transform:translateY(1px)}
+main{display:grid;grid-template-columns:1fr;gap:16px;padding:16px;max-width:1500px;margin:0 auto}
+@media(min-width:960px){main{grid-template-columns:400px 1fr}.editor{position:sticky;top:76px;align-self:start}.editor textarea{min-height:calc(100vh - 180px)}}
+@media(max-width:959px){.editor{order:2}header{position:static}}
+.editor textarea{width:100%;min-height:300px;resize:vertical;font:16px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--fg);tab-size:4;white-space:pre;overflow-x:auto}
+.editor textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+.errs{margin:8px 0 0;padding:0;list-style:none;color:var(--accent);font-size:14px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.row label{color:var(--mute);font-size:13px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.card b{display:block;font-size:22px;font-weight:600}
+.card small,.card .d{color:var(--mute);font-size:13px}
+.card.hot{border-color:var(--accent)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:14px}
+.panel h2{font-size:14px;color:var(--mute);margin:0 0 8px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;display:flex;justify-content:space-between;gap:8px}
+.panel h2 span{text-transform:none;letter-spacing:0;font-weight:400}
+svg{display:block;width:100%;touch-action:manipulation}
+svg text{font:12px system-ui,sans-serif;fill:var(--fg)}
+svg .mute{fill:var(--mute)}
+svg .rowhit{fill:transparent;cursor:pointer}
+svg .rowhit:active{fill:var(--soft)}
+.cp{font-size:14px;line-height:1.7}
+.cp i{color:var(--mute);font-style:normal}
+.sheet{position:fixed;left:0;right:0;bottom:0;background:var(--panel);border-top:1px solid var(--line);border-radius:16px 16px 0 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(0,0,0,.18);transform:translateY(110%);transition:transform .2s;z-index:6}
+.sheet.open{transform:none}
+@media(min-width:960px){.sheet{left:auto;right:16px;bottom:16px;width:360px;border:1px solid var(--line);border-radius:16px}}
+.sheet h3{margin:0 0 6px;font-size:18px}
+.sheet dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0 0 10px;font-size:14px}
+.sheet dt{color:var(--mute)}.sheet dd{margin:0}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:16px;z-index:7}
+.overlay.open{display:flex}
+.help{background:var(--panel);border-radius:16px;padding:20px;max-width:560px;max-height:90vh;overflow:auto;font-size:15px}
+.help h2{margin:0 0 8px}.help h3{font-size:14px;color:var(--mute);margin:14px 0 4px;text-transform:uppercase;letter-spacing:.5px}
+.help kbd{font:13px ui-monospace,monospace;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:2px 6px}
+.help table{border-collapse:collapse;width:100%}.help td{padding:4px 0;vertical-align:top}.help td:first-child{white-space:nowrap;padding-right:12px}
+.help pre{background:var(--bg);padding:10px;border-radius:8px;font-size:13px;overflow:auto}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:12px 18px;border-radius:10px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:8;max-width:90vw}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <h1>Cru<span>x</span></h1><span class="tag">critical path &amp; schedule risk</span>
+  <select id="preset" aria-label="Example"><option value="">Examples…</option><option value="launch">Product launch</option><option value="website">Website redesign</option><option value="move">Office move</option></select>
+  <button id="workBtn" title="Toggle working-day calendar (W)">Workdays</button>
+  <button id="rollBtn" title="Re-run the simulation with a new seed (R)">Re-roll</button>
+  <button id="saveBtn" title="Save plan as JSON (Ctrl+S)">Save</button>
+  <button id="openBtn" title="Open a saved plan (Ctrl+O)">Open</button>
+  <button id="themeBtn" title="Theme (T)">Theme</button>
+  <button id="helpBtn" title="Help (Ctrl+/)">?</button>
+  <input type="file" id="file" accept=".json,application/json" hidden>
+</header>
+<main>
+  <aside class="editor">
+    <div class="row"><label for="startDate">Start</label><input type="date" id="startDate"><label>one task per line: <code>Name  3-5-9  after Dep</code></label></div>
+    <textarea id="src" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Plan"></textarea>
+    <ul class="errs" id="errs"></ul>
+  </aside>
+  <section class="results">
+    <div class="cards" id="cards"></div>
+    <div class="panel"><h2>Schedule <span id="ganttNote"></span></h2><div id="gantt"></div></div>
+    <div class="panel"><h2>Finish date, simulated <span id="histNote"></span></h2><div id="hist"></div></div>
+    <div class="panel"><h2>Critical path</h2><div class="cp" id="cp"></div></div>
+  </section>
+</main>
+<div class="sheet" id="sheet"></div>
+<div class="overlay" id="help"><div class="help">
+<h2>Crux</h2>
+<p>Type a plan, one task per line, and Crux computes the critical path (CPM) and then simulates the whole schedule thousands of times with PERT-beta durations to tell you how likely each finish date really is.</p>
+<h3>Syntax</h3>
+<pre>start 2026-11-02      # first day
+workdays on           # count Mon–Fri only
+runs 5000             # simulations
+Research   3-5-9      # optimistic-likely-pessimistic (days)
+Spec       2-3-5  after Research
+Build      10         # fixed duration
+QA         4-9   after Spec, Build   # min-max</pre>
+<h3>Reading the chart</h3>
+<p>Solid bars are the likely schedule; a dashed tail is the task's float (how late it can finish without moving the end). The percentage is how often the task sat on the critical path across all simulations. Tap any row for details and to jump to its line.</p>
+<h3>Keys</h3>
+<table>
+<tr><td><kbd>Ctrl</kbd>+<kbd>/</kbd> or <kbd>?</kbd></td><td>this help</td></tr>
+<tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd> / <kbd>Ctrl</kbd>+<kbd>O</kbd></td><td>save / open plan (JSON)</td></tr>
+<tr><td><kbd>Ctrl</kbd>+<kbd>Enter</kbd></td><td>re-roll simulation (also while typing)</td></tr>
+<tr><td><kbd>R</kbd> / <kbd>W</kbd> / <kbd>T</kbd></td><td>re-roll · workdays · theme</td></tr>
+<tr><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></td><td>load an example</td></tr>
+<tr><td><kbd>Esc</kbd></td><td>close panels</td></tr>
+</table>
+<p style="color:var(--mute);font-size:13px">Single-letter keys are ignored while you type. Save downloads a file when Crux is opened directly from disk (the artifact viewer blocks downloads). Nothing leaves your browser.</p>
+<p><button class="primary" id="helpClose">Close</button></p>
+</div></div>
+<div class="toast" id="toast"></div>
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const PRESETS = {
+launch: `# Crux — one task per line:  Name   optimistic-likely-pessimistic   after Dep, Dep
+start 2026-11-02
+workdays on
+runs 5000
+
+Research            3-5-9
+Spec                2-3-5      after Research
+Design              4-6-10     after Spec
+Build API           8-10-16    after Spec
+Build UI            6-8-14     after Design
+Content             3-4-6      after Spec
+Security review     2-3-7      after Build API
+QA                  4-5-9      after Build API, Build UI
+Beta                5-5-8      after QA, Content
+Launch prep         2-2-4      after Beta, Security review
+Launch              1          after Launch prep`,
+website: `start 2026-11-09
+workdays on
+runs 5000
+
+Discovery           2-3-5
+Sitemap             1-2-3      after Discovery
+Wireframes          3-4-7      after Sitemap
+Copywriting         4-6-12     after Sitemap
+Visual design       5-7-12     after Wireframes
+Photography         2-3-10     after Sitemap
+Front-end           6-8-13     after Visual design
+CMS setup           3-4-6      after Wireframes
+Content entry       2-3-5      after Copywriting, CMS setup, Photography
+QA & fixes          3-4-8      after Front-end, Content entry
+Go live             1          after QA & fixes`,
+move: `start 2026-12-01
+workdays off
+runs 8000
+
+Sign lease          1-2-6
+Space plan          3-4-6      after Sign lease
+Permits             5-10-25    after Space plan
+Fit-out             12-15-24   after Permits
+Furniture order     1-1-2      after Space plan
+Furniture delivery  14-21-35   after Furniture order
+Network & AV        3-4-7      after Fit-out
+Pack & move         2-2-3      after Fit-out, Furniture delivery
+Set up desks        1-2-3      after Pack & move, Network & AV
+First day           1          after Set up desks`};
+
+/* ---------- parsing: text → plan ---------- */
+const TASK_RE = /^(.+?)\s+(\d+(?:\.\d+)?)(?:-(\d+(?:\.\d+)?))?(?:-(\d+(?:\.\d+)?))?(?:\s*(?:after|<-|needs|:)\s*(.+))?$/i;
+function parse(text) {
+  const plan = { tasks: [], start: null, workdays: false, runs: 5000, errors: [] };
+  const seen = new Map();
+  text.split('\n').forEach((raw, n) => {
+    const line = raw.replace(/#.*$/, '').trim();
+    if (!line) return;
+    let m;
+    if ((m = line.match(/^start\s+(\d{4})-(\d{2})-(\d{2})$/i))) { plan.start = new Date(+m[1], m[2] - 1, +m[3]); return; }
+    if ((m = line.match(/^workdays\s+(on|off)$/i))) { plan.workdays = m[1].toLowerCase() === 'on'; return; }
+    if ((m = line.match(/^runs\s+(\d+)$/i))) { plan.runs = Math.min(50000, Math.max(100, +m[1])); return; }
+    if (!(m = line.match(TASK_RE))) { plan.errors.push({ line: n, msg: `line ${n + 1}: can't read "${line}"` }); return; }
+    const name = m[1].trim(), a = +m[2], b = m[3] == null ? null : +m[3], c = m[4] == null ? null : +m[4];
+    let o = a, mid = a, p = a;
+    if (c != null) { o = a; mid = b; p = c; } else if (b != null) { o = a; p = b; mid = (a + b) / 2; }
+    if (!(o <= mid && mid <= p)) { plan.errors.push({ line: n, msg: `line ${n + 1}: durations must be optimistic ≤ likely ≤ pessimistic` }); return; }
+    if (seen.has(name.toLowerCase())) { plan.errors.push({ line: n, msg: `line ${n + 1}: "${name}" is defined twice` }); return; }
+    seen.set(name.toLowerCase(), plan.tasks.length);
+    plan.tasks.push({ name, o, m: mid, p, deps: m[5] ? m[5].split(',').map(s => s.trim()).filter(Boolean) : [], line: n });
+  });
+  if (!plan.start) plan.start = new Date(new Date().setHours(0, 0, 0, 0));
+  plan.tasks.forEach(t => { t.pred = []; t.deps.forEach(d => {
+    const i = seen.get(d.toLowerCase());
+    if (i == null) plan.errors.push({ line: t.line, msg: `line ${t.line + 1}: unknown task "${d}"` }); else t.pred.push(i);
+  }); });
+  // Kahn's algorithm: topological order, and cycle detection
+  const indeg = plan.tasks.map(t => t.pred.length), succ = plan.tasks.map(() => []);
+  plan.tasks.forEach((t, i) => t.pred.forEach(p => succ[p].push(i)));
+  const order = [], q = indeg.map((d, i) => d === 0 ? i : -1).filter(i => i >= 0);
+  while (q.length) { const i = q.shift(); order.push(i); succ[i].forEach(s => { if (--indeg[s] === 0) q.push(s); }); }
+  if (order.length !== plan.tasks.length) plan.errors.push({ line: -1, msg: 'tasks depend on each other in a loop' });
+  plan.order = order; plan.succ = succ;
+  return plan;
+}
+
+/* ---------- CPM: forward and backward pass on likely durations ---------- */
+function cpm(plan) {
+  const { tasks, order, succ } = plan;
+  order.forEach(i => { const t = tasks[i]; t.es = Math.max(0, ...t.pred.map(p => tasks[p].ef)); t.ef = t.es + t.m; });
+  const finish = Math.max(0, ...tasks.map(t => t.ef));
+  [...order].reverse().forEach(i => { const t = tasks[i]; t.lf = Math.min(finish, ...succ[i].map(s => tasks[s].ls)); t.ls = t.lf - t.m; t.float = t.ls - t.es; t.critical = t.float < 1e-9; });
+  return finish;
+}
+
+/* ---------- Monte Carlo with PERT-beta durations ---------- */
+function mulberry32(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function makeSampler(rnd) {
+  const normal = () => Math.sqrt(-2 * Math.log(1 - rnd())) * Math.cos(2 * Math.PI * rnd());
+  const gamma = k => { // Marsaglia–Tsang, k ≥ 1
+    const d = k - 1 / 3, c = 1 / Math.sqrt(9 * d);
+    for (;;) { let x, v; do { x = normal(); v = 1 + c * x; } while (v <= 0); v *= v * v; const u = rnd();
+      if (u < 1 - 0.0331 * x ** 4 || Math.log(u) < 0.5 * x * x + d * (1 - v + Math.log(v))) return d * v; }
+  };
+  return (o, m, p) => { // PERT-beta: mean (o+4m+p)/6, shape from where the mode sits
+    if (p <= o) return o;
+    const a = 1 + 4 * (m - o) / (p - o), b = 1 + 4 * (p - m) / (p - o), x = gamma(a); return o + (p - o) * x / (x + gamma(b));
+  };
+}
+function simulate(plan, seed) {
+  const { tasks, order } = plan, n = tasks.length, N = plan.runs, sample = makeSampler(mulberry32(seed));
+  const es = new Float64Array(n), ef = new Float64Array(n), d = new Float64Array(n), crit = new Uint8Array(n);
+  const critCount = new Float64Array(n), sd = new Float64Array(n), sdd = new Float64Array(n), sdf = new Float64Array(n);
+  const finishes = new Float64Array(N); let sf = 0, sff = 0;
+  for (let r = 0; r < N; r++) {
+    let finish = 0;
+    for (const i of order) { const t = tasks[i]; d[i] = sample(t.o, t.m, t.p); let s = 0; for (const p of t.pred) if (ef[p] > s) s = ef[p]; es[i] = s; ef[i] = s + d[i]; if (ef[i] > finish) finish = ef[i]; }
+    // walk back from the finishing task(s) along tight links to mark this run's critical path
+    for (let i = 0; i < n; i++) crit[i] = ef[i] >= finish - 1e-9 ? 1 : 0;
+    for (let k = order.length - 1; k >= 0; k--) { const i = order[k]; if (!crit[i]) continue; for (const p of tasks[i].pred) if (ef[p] >= es[i] - 1e-9) crit[p] = 1; }
+    for (let i = 0; i < n; i++) { critCount[i] += crit[i]; sd[i] += d[i]; sdd[i] += d[i] * d[i]; sdf[i] += d[i] * finish; }
+    finishes[r] = finish; sf += finish; sff += finish * finish;
+  }
+  const varF = sff / N - (sf / N) ** 2;
+  tasks.forEach((t, i) => {
+    t.crit = critCount[i] / N;
+    const varD = sdd[i] / N - (sd[i] / N) ** 2, cov = sdf[i] / N - (sd[i] / N) * (sf / N);
+    t.sens = varD > 1e-12 && varF > 1e-12 ? Math.max(0, cov / Math.sqrt(varD * varF)) : 0; // correlation of duration with finish
+  });
+  const sorted = Float64Array.from(finishes).sort();
+  const pct = q => sorted[Math.min(N - 1, Math.floor(q * N))];
+  return { sorted, mean: sf / N, p50: pct(.5), p80: pct(.8), p90: pct(.9) };
+}
+
+/* ---------- calendar ---------- */
+function toDate(plan, units) {
+  const d = new Date(plan.start); let n = Math.round(units);
+  if (!plan.workdays) { d.setDate(d.getDate() + n); return d; }
+  while (n > 0) { d.setDate(d.getDate() + 1); if (d.getDay() % 6) n--; }
+  return d;
+}
+const fmt = d => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+const fmtLong = d => d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+const isoDate = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+/* ---------- state & rendering ---------- */
+const state = { plan: null, sim: null, finish: 0, seed: 7, selected: -1 };
+function recompute() {
+  const plan = parse($('#src').value);
+  $('#errs').innerHTML = plan.errors.map(e => `<li>${esc(e.msg)}</li>`).join('');
+  $('#startDate').value = isoDate(plan.start);
+  $('#workBtn').textContent = plan.workdays ? 'Workdays ✓' : 'Workdays';
+  $('#workBtn').setAttribute('aria-pressed', plan.workdays);
+  if (plan.errors.length || !plan.tasks.length) { if (!state.plan) renderEmpty(); return; }
+  state.plan = plan; state.finish = cpm(plan); state.sim = simulate(plan, state.seed);
+  renderCards(); renderGantt(); renderHist(); renderPath();
+  if (state.selected >= 0) openSheet(Math.min(state.selected, plan.tasks.length - 1));
+}
+function renderEmpty() { $('#cards').innerHTML = '<div class="card"><small>Add a task to begin</small></div>'; }
+function renderCards() {
+  const { plan, sim, finish } = state, days = plan.workdays ? 'wd' : 'd';
+  const card = (label, u, hot) => `<div class="card${hot ? ' hot' : ''}"><small>${label}</small><b>${fmt(toDate(plan, u))}</b><span class="d">${Math.round(u)} ${days}${u > finish + .5 ? ` · +${Math.round(u - finish)}` : ''}</span></div>`;
+  const risky = plan.tasks.reduce((a, t) => t.sens > a.sens ? t : a, plan.tasks[0]);
+  $('#cards').innerHTML = card('Likely finish (CPM)', finish) + card('50% confidence', sim.p50) + card('80% confidence', sim.p80, true) + card('90% confidence', sim.p90)
+    + `<div class="card"><small>Biggest risk</small><b style="font-size:17px">${esc(risky.name)}</b><span class="d">${Math.round(risky.sens * 100)}% correlation with finish</span></div>`;
+}
+function renderGantt() {
+  const { plan } = state, tasks = plan.tasks, W = $('#gantt').clientWidth || 600;
+  const labelW = Math.min(170, Math.round(W * .32)), top = 26, rowH = 44, padR = 44;
+  const maxU = Math.max(1, ...tasks.map(t => t.lf), state.sim.p90) * 1.02, px = (W - labelW - padR) / maxU, X = u => labelW + u * px;
+  const H = top + rowH * tasks.length + 6, rows = tasks.map((t, i) => i).sort((a, b) => tasks[a].es - tasks[b].es || a - b), yOf = {};
+  rows.forEach((i, r) => yOf[i] = top + r * rowH);
+  let s = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="Gantt chart">`;
+  s += `<defs><marker id="arr" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L6 3L0 6z" fill="var(--mute)"/></marker></defs>`;
+  if (!plan.workdays) for (let k = 0; k < maxU; k++) { const d = toDate(plan, k); if (d.getDay() % 6 === 0) s += `<rect x="${X(k)}" y="${top}" width="${px}" height="${H - top}" fill="var(--wknd)"/>`; }
+  const step = [1, 2, 5, 7, 10, 14, 20, 30, 60, 90].find(v => v * px >= 64) || 120;
+  for (let k = 0; k <= maxU; k += step) s += `<line x1="${X(k)}" y1="${top - 6}" x2="${X(k)}" y2="${H}" stroke="var(--grid)"/><text x="${X(k) + 3}" y="14" class="mute">${fmt(toDate(plan, k))}</text>`;
+  tasks.forEach((t, i) => t.pred.forEach(p => { const x1 = X(tasks[p].ef), x2 = X(t.es), y1 = yOf[p] + rowH / 2, y2 = yOf[i] + rowH / 2;
+    s += `<path d="M${x1} ${y1}h5V${y2}H${x2}" fill="none" stroke="var(--mute)" stroke-opacity=".5" marker-end="url(#arr)"/>`; }));
+  tasks.forEach((t, i) => {
+    const y = yOf[i], bx = X(t.es), bw = Math.max(2, (t.ef - t.es) * px), fill = t.critical ? 'var(--accent)' : t.crit > .25 ? 'var(--accent2)' : 'var(--bar)';
+    const pct = `${Math.round(t.crit * 100)}%`, px2 = X(t.lf) + 6, inside = px2 + 36 > W;
+    s += `<g data-i="${i}">` +
+      `<rect class="rowhit" x="0" y="${y}" width="${W}" height="${rowH}"${state.selected === i ? ' fill="var(--soft)"' : ''}/>` +
+      `<text x="${labelW - 10}" y="${y + rowH / 2 + 4}" text-anchor="end" font-weight="${t.critical ? 600 : 400}">${esc(t.name.length > 22 ? t.name.slice(0, 21) + '…' : t.name)}</text>` +
+      (t.float > 1e-9 ? `<rect x="${X(t.ef)}" y="${y + 12}" width="${t.float * px}" height="20" rx="4" fill="none" stroke="${fill}" stroke-dasharray="3 3" stroke-opacity=".8"/>` : '') +
+      `<rect x="${bx}" y="${y + 10}" width="${bw}" height="24" rx="5" fill="${fill}"/>` +
+      `<text x="${inside ? X(t.ef) - 6 : px2}" y="${y + rowH / 2 + 4}" class="${inside ? '' : 'mute'}" text-anchor="${inside ? 'end' : 'start'}" font-size="11"${inside ? ' fill="#fff"' : ''}>${pct}</text></g>`;
+  });
+  s += `<line x1="${X(state.finish)}" y1="${top - 6}" x2="${X(state.finish)}" y2="${H}" stroke="var(--accent)" stroke-dasharray="4 3"/></svg>`;
+  $('#gantt').innerHTML = s;
+  $('#ganttNote').textContent = `${tasks.length} tasks · bar = likely, dashes = float, % = how often critical`;
+}
+function renderHist() {
+  const { plan, sim, finish } = state, W = $('#hist').clientWidth || 600, H = 150, bins = 40, sorted = sim.sorted, N = sorted.length;
+  const lo = sorted[0], hi = sorted[N - 1] + 1e-9, span = hi - lo || 1, counts = new Array(bins).fill(0);
+  for (let i = 0; i < N; i++) counts[Math.min(bins - 1, Math.floor((sorted[i] - lo) / span * bins))]++;
+  const maxC = Math.max(...counts), X = u => 8 + (u - lo) / span * (W - 16), bw = (W - 16) / bins;
+  let s = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="Histogram of simulated finish dates">`;
+  counts.forEach((c, b) => { const u = lo + (b + .5) * span / bins, h = c / maxC * (H - 44), fill = u <= sim.p50 ? 'var(--accent)' : u <= sim.p80 ? 'var(--accent2)' : 'var(--bar)';
+    s += `<rect x="${8 + b * bw + .5}" y="${H - 22 - h}" width="${bw - 1}" height="${h}" fill="${fill}" rx="1"/>`; });
+  const mark = (u, label, y, dash) => `<line x1="${X(u)}" y1="${y}" x2="${X(u)}" y2="${H - 22}" stroke="var(--fg)" stroke-dasharray="${dash}"/><text x="${X(u) + 4}" y="${y + 4}" font-size="11" text-anchor="${X(u) > W - 70 ? 'end' : 'start'}" dx="${X(u) > W - 70 ? -8 : 0}">${label}</text>`;
+  s += mark(finish, `likely ${fmt(toDate(plan, finish))}`, 10, '4 3') + mark(sim.p50, `P50 ${fmt(toDate(plan, sim.p50))}`, 28, '0') + mark(sim.p80, `P80 ${fmt(toDate(plan, sim.p80))}`, 46, '0') + mark(sim.p90, `P90 ${fmt(toDate(plan, sim.p90))}`, 64, '0');
+  s += `<text x="8" y="${H - 6}" class="mute" font-size="11">${fmt(toDate(plan, lo))}</text><text x="${W - 8}" y="${H - 6}" class="mute" font-size="11" text-anchor="end">${fmt(toDate(plan, hi))}</text></svg>`;
+  $('#hist').innerHTML = s;
+  const late = Math.round(100 * sorted.filter(v => v > finish + .5).length / N);
+  $('#histNote').textContent = `${N.toLocaleString()} runs · ${late}% finish later than the CPM date`;
+}
+function renderPath() {
+  const { plan } = state, crit = plan.order.filter(i => plan.tasks[i].critical).map(i => plan.tasks[i]);
+  $('#cp').innerHTML = crit.map(t => `<span>${esc(t.name)} <i>${t.m}</i></span>`).join(' <i>→</i> ') + `<div><i>Longest chain on likely durations. Shortening a task here moves the finish; tasks with high "% critical" but off this path are the ones most likely to take over.</i></div>`;
+}
+function openSheet(i) {
+  const { plan } = state, t = plan.tasks[i]; state.selected = i;
+  const succ = plan.succ[i].map(s => plan.tasks[s].name);
+  $('#sheet').innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><h3>${esc(t.name)}</h3><button id="sheetClose" aria-label="Close">✕</button></div>
+  <dl><dt>Duration</dt><dd>${t.o === t.p ? t.m : `${t.o} · ${t.m} · ${t.p}`} ${plan.workdays ? 'workdays' : 'days'}</dd>
+  <dt>Likely dates</dt><dd>${fmtLong(toDate(plan, t.es))} → ${fmtLong(toDate(plan, t.ef))}</dd>
+  <dt>Float</dt><dd>${t.critical ? 'none — critical' : `${+t.float.toFixed(1)} ${plan.workdays ? 'workdays' : 'days'} (finish by ${fmt(toDate(plan, t.lf))})`}</dd>
+  <dt>Critical in</dt><dd>${Math.round(t.crit * 100)}% of simulations</dd>
+  <dt>Drives finish</dt><dd>${Math.round(t.sens * 100)}% correlation</dd>
+  <dt>After</dt><dd>${t.deps.length ? esc(t.deps.join(', ')) : '—'}</dd><dt>Before</dt><dd>${succ.length ? esc(succ.join(', ')) : '—'}</dd></dl>
+  <button class="primary" id="jump">Edit line ${t.line + 1}</button>`;
+  $('#sheet').classList.add('open');
+  $('#sheetClose').onclick = closeSheet;
+  $('#jump').onclick = () => { const ta = $('#src'), lines = ta.value.split('\n'); let pos = 0; for (let k = 0; k < t.line; k++) pos += lines[k].length + 1;
+    ta.focus(); ta.setSelectionRange(pos, pos + lines[t.line].length); ta.scrollIntoView({ block: 'center' }); closeSheet(); };
+  renderGantt();
+}
+function closeSheet() { $('#sheet').classList.remove('open'); if (state.selected >= 0) { state.selected = -1; if (state.plan) renderGantt(); } }
+
+/* ---------- editing helpers ---------- */
+function setLine(key, value) { // rewrite or insert a settings line in the plan text
+  const ta = $('#src'), re = new RegExp(`^${key}\\s+.*$`, 'im');
+  ta.value = re.test(ta.value) ? ta.value.replace(re, `${key} ${value}`) : `${key} ${value}\n${ta.value}`;
+  recompute();
+}
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 2800); }
+function save() {
+  const data = { app: 'Crux', version: 1, saved: new Date().toISOString(), text: $('#src').value, seed: state.seed, theme: document.documentElement.dataset.theme };
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+  a.download = `crux-${isoDate(new Date())}.json`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast('Saved ' + a.download);
+}
+function openFile(file) {
+  const rd = new FileReader();
+  rd.onload = () => { try {
+    const d = JSON.parse(rd.result);
+    if (d.app !== 'Crux' || d.version !== 1 || typeof d.text !== 'string') throw 0;
+    $('#src').value = d.text; if (d.seed) state.seed = d.seed; if (d.theme) setTheme(d.theme); state.selected = -1; closeSheet(); recompute(); toast('Opened ' + file.name);
+  } catch { toast('Not a Crux plan: expected JSON with app "Crux", version 1'); } };
+  rd.readAsText(file);
+}
+function setTheme(t) { document.documentElement.dataset.theme = t; }
+const typing = e => /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable;
+
+/* ---------- wiring ---------- */
+setTheme(matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+$('#src').value = PRESETS.launch;
+let timer; $('#src').addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(recompute, 120); });
+$('#preset').onchange = e => { if (e.target.value) { $('#src').value = PRESETS[e.target.value]; state.selected = -1; closeSheet(); recompute(); } e.target.value = ''; };
+$('#startDate').onchange = e => { if (e.target.value) setLine('start', e.target.value); };
+$('#workBtn').onclick = () => setLine('workdays', state.plan && state.plan.workdays ? 'off' : 'on');
+$('#rollBtn').onclick = reroll;
+function reroll() { state.seed = (state.seed * 48271 + 11) % 2147483647 || 1; recompute(); }
+$('#saveBtn').onclick = save;
+$('#openBtn').onclick = () => $('#file').click();
+$('#file').onchange = e => { if (e.target.files[0]) openFile(e.target.files[0]); e.target.value = ''; };
+$('#themeBtn').onclick = () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+const toggleHelp = () => $('#help').classList.toggle('open');
+$('#helpBtn').onclick = toggleHelp; $('#helpClose').onclick = toggleHelp;
+$('#help').addEventListener('click', e => { if (e.target === e.currentTarget) toggleHelp(); });
+$('#gantt').addEventListener('click', e => { const g = e.target.closest('[data-i]'); if (g) openSheet(+g.dataset.i); });
+addEventListener('resize', () => { if (state.plan) { renderGantt(); renderHist(); } });
+addEventListener('keydown', e => {
+  const mod = e.ctrlKey || e.metaKey;
+  if (mod && e.key === '/') { e.preventDefault(); toggleHelp(); return; }
+  if (mod && e.key.toLowerCase() === 's') { e.preventDefault(); save(); return; }
+  if (mod && e.key.toLowerCase() === 'o') { e.preventDefault(); $('#file').click(); return; }
+  if (mod && e.key === 'Enter') { e.preventDefault(); reroll(); return; }
+  if (e.key === 'Escape') { $('#help').classList.remove('open'); closeSheet(); return; }
+  if (mod || e.altKey || typing(e)) return;
+  const k = e.key.toLowerCase();
+  if (k === '?') toggleHelp(); else if (k === 'r') reroll(); else if (k === 't') $('#themeBtn').click(); else if (k === 'w') $('#workBtn').click();
+  else if ('123'.includes(k) && k) { $('#src').value = PRESETS[['launch', 'website', 'move'][+k - 1]]; state.selected = -1; closeSheet(); recompute(); }
+});
+recompute();
+</script>
+</body>
+</html>
+
+</body></html>

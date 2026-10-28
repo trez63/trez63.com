@@ -945,8 +945,26 @@
         }
       ],
       "category": "text"
+    },
+    "veil": {
+      "title": "Veil",
+      "engine": "Claude",
+      "description": "Paste text with secrets or personal details in it, and every key, token, card number, email, IP, phone and name you list is swapped for a consistent placeholder so you can share it safely. Paste the reply back and Restore puts the originals in. Toggle categories with a click; save the session as JSON.",
+      "source_file": "Veil-Claude.html",
+      "first_published": "2026-10-28",
+      "last_updated": "2026-10-28",
+      "version": 1,
+      "sha": "dbe0171eac1b",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-28",
+          "sha": "dbe0171eac1b"
+        }
+      ],
+      "category": "tool"
     }
   },
-  "generated": "2026-10-27",
+  "generated": "2026-10-28",
   "votes_fetched": "2026-10-27"
 }

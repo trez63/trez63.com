@@ -1,0 +1,292 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Daily Build 2026-10-26 — Veil</title>
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#1f1d1a;--muted:#6f6a60;--line:#e2ddd1;--accent:#8b4b1f;--accent-ink:#fff;--hi:#f1ecdf;
+ --c-key:#c0392b;--c-jwt:#8e44ad;--c-secret:#d35400;--c-password:#b03a6b;--c-card:#1e8449;--c-email:#2471a3;--c-ip:#117a8b;--c-phone:#7d6608;--c-uuid:#5d6d7e;--c-term:#6c3483;
+ color-scheme:light}
+:root[data-theme="dark"]{--bg:#141412;--panel:#1d1c19;--ink:#ece7dc;--muted:#9a948a;--line:#2f2d28;--accent:#e0a36a;--accent-ink:#1a1308;--hi:#262420;
+ --c-key:#ff7b6e;--c-jwt:#d08cff;--c-secret:#ffa552;--c-password:#ff86b6;--c-card:#5fd38a;--c-email:#6fb6ff;--c-ip:#4fd0e0;--c-phone:#e6c84a;--c-uuid:#a9b7c6;--c-term:#c995f0;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+ padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);display:flex;flex-direction:column;min-height:100dvh}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+h1{font-size:22px;margin:0 6px 0 0;letter-spacing:.5px;font-weight:700}
+h1 small{font-size:12px;color:var(--muted);font-weight:400;margin-left:8px;letter-spacing:0}
+.grow{flex:1}
+button,select,input[type=text]{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:10px;min-height:44px;padding:0 14px;font-size:16px}
+button{cursor:pointer;min-width:44px;touch-action:manipulation}
+button:hover{background:var(--hi)}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent;font-weight:600}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{border:0;border-radius:0;min-width:84px}
+.seg button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink)}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line)}
+.bar label{color:var(--muted);font-size:13px}
+#terms{flex:1;min-width:180px}
+main{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px 16px;flex:1;min-height:0}
+.pane{display:flex;flex-direction:column;min-height:0;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.pane h2{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:0;padding:10px 14px 6px;display:flex;gap:10px;align-items:baseline}
+.pane h2 .stat{margin-left:auto;text-transform:none;letter-spacing:0;font-weight:400}
+textarea,#out{flex:1;min-height:38vh;margin:0;padding:12px 14px;border:0;background:transparent;color:var(--ink);font:14px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;resize:none;outline:none;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
+textarea{font-size:16px}
+mark{background:color-mix(in srgb,var(--c) 22%,transparent);color:inherit;border-bottom:2px solid var(--c);border-radius:3px;padding:0 2px;cursor:pointer}
+mark.off{background:transparent;border-bottom-style:dotted;opacity:.7}
+.chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 16px 12px}
+.chip{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);font-size:14px}
+.chip i{width:10px;height:10px;border-radius:50%;background:var(--c);display:inline-block}
+.chip b{font-weight:600;font-variant-numeric:tabular-nums}
+.chip[aria-pressed=false]{opacity:.45;text-decoration:line-through}
+.chip kbd{font:11px ui-monospace,monospace;color:var(--muted)}
+details{padding:0 16px 16px;font-size:13px}
+summary{cursor:pointer;min-height:44px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;color:var(--muted)}
+table{border-collapse:collapse;width:100%;font:13px ui-monospace,monospace}
+td{padding:4px 8px;border-top:1px solid var(--line);vertical-align:top;overflow-wrap:anywhere}
+td:first-child{white-space:nowrap}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;opacity:0;transition:.25s;pointer-events:none;max-width:90vw}
+#toast.show{opacity:1;transform:translateX(-50%)}
+#help{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px}
+#help[open]{display:flex}
+#help .card{background:var(--panel);border-radius:16px;max-width:560px;width:100%;max-height:90dvh;overflow:auto;padding:20px 22px}
+#help h3{margin:0 0 8px}
+#help table td:first-child{white-space:nowrap}
+kbd.k{display:inline-block;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 6px;font:12px ui-monospace,monospace;background:var(--hi)}
+.hint{color:var(--muted);font-size:13px}
+/* Phone: one column, page scrolls, panes keep a readable height */
+@media (max-width:760px){html,body{height:auto}main{grid-template-columns:1fr;min-height:auto;flex:none}.pane{min-height:auto}textarea,#out{min-height:30vh;max-height:45vh}h1 small{display:none}.seg button{min-width:70px}}
+</style>
+</head>
+<body>
+<header>
+ <h1>Veil<small>redact secrets &amp; PII before you paste — then restore the reply</small></h1>
+ <div class="seg" role="group" aria-label="Mode">
+  <button id="mRedact" aria-pressed="true">Redact</button><button id="mRestore" aria-pressed="false">Restore</button>
+ </div>
+ <span class="grow"></span>
+ <button id="copy" class="primary" title="Copy output (Ctrl+Enter)">Copy</button>
+ <button id="save" title="Save session (Ctrl+S)">Save</button>
+ <button id="open" title="Open session (Ctrl+O)">Open</button>
+ <input id="file" type="file" accept=".json,application/json" hidden>
+ <button id="theme" title="Theme (T)" aria-label="Toggle theme">◐</button>
+ <button id="helpBtn" title="Help (Ctrl+/)" aria-label="Help">?</button>
+</header>
+<div class="bar">
+ <label for="style">Placeholders</label>
+ <select id="style"><option value="tag">Tags — [EMAIL_1]</option><option value="real">Realistic — user1@example.com</option></select>
+ <label for="terms">Also hide</label>
+ <input id="terms" type="text" placeholder="names, companies, hostnames — comma separated">
+</div>
+<main>
+ <section class="pane"><h2 id="inTitle">Original <span class="stat hint" id="inStat"></span></h2>
+  <textarea id="in" spellcheck="false" aria-label="Input text"></textarea></section>
+ <section class="pane"><h2 id="outTitle">Redacted <span class="stat hint" id="outStat"></span></h2>
+  <pre id="out" aria-live="polite"></pre></section>
+</main>
+<div class="chips" id="chips"></div>
+<details id="mapBox"><summary>Mapping <span id="mapCount"></span> — <span class="hint">placeholder → original, kept here for Restore</span></summary><table id="mapTable"></table></details>
+<div id="toast" role="status"></div>
+<div id="help" role="dialog" aria-modal="true"><div class="card">
+ <h3>Veil</h3>
+ <p>Paste logs, configs, tickets or emails. Veil finds private keys, API tokens, JWTs, passwords, card numbers, emails, IPs, phone numbers, UUIDs and your own terms, and swaps each for a consistent placeholder: the same value always gets the same token, so the structure of the text survives. Share the redacted copy (with a colleague, a ticket, an LLM), then paste the reply into <b>Restore</b> to map every placeholder back.</p>
+ <p><b>Tap a highlight</b> to keep that one value visible; tap a chip to switch a whole category off. Nothing leaves the page: there are zero network requests.</p>
+ <table>
+  <tr><td><kbd class="k">Ctrl/⌘</kbd>+<kbd class="k">/</kbd></td><td>Toggle this help</td></tr>
+  <tr><td><kbd class="k">Esc</kbd></td><td>Close help</td></tr>
+  <tr><td><kbd class="k">Ctrl/⌘</kbd>+<kbd class="k">Enter</kbd></td><td>Copy the output</td></tr>
+  <tr><td><kbd class="k">Ctrl/⌘</kbd>+<kbd class="k">S</kbd></td><td>Save session (text, settings, mapping) as JSON</td></tr>
+  <tr><td><kbd class="k">Ctrl/⌘</kbd>+<kbd class="k">O</kbd></td><td>Open a saved session</td></tr>
+  <tr><td><kbd class="k">M</kbd></td><td>Switch Redact / Restore</td></tr>
+  <tr><td><kbd class="k">P</kbd></td><td>Switch placeholder style</td></tr>
+  <tr><td><kbd class="k">T</kbd></td><td>Toggle dark / light theme</td></tr>
+  <tr><td><kbd class="k">1</kbd>–<kbd class="k">9</kbd>, <kbd class="k">0</kbd></td><td>Toggle detector categories</td></tr>
+ </table>
+ <p class="hint">Letter and digit shortcuts are ignored while you type. Save downloads a file when Veil is opened directly from disk; the artifact viewer blocks page downloads.</p>
+ <p style="text-align:right;margin:0"><button id="helpClose" class="primary">Close</button></p>
+</div></div>
+
+<script>
+/*PURE-START*/ // Everything in this block is DOM-free so it can be unit-tested in node.
+const CATS=[
+ {id:'key',label:'Private keys'},{id:'jwt',label:'JWTs'},{id:'secret',label:'API keys & tokens'},{id:'password',label:'Passwords'},
+ {id:'card',label:'Card numbers'},{id:'email',label:'Emails'},{id:'ip',label:'IP addresses'},{id:'phone',label:'Phones'},
+ {id:'uuid',label:'UUIDs'},{id:'term',label:'Your terms'}];
+const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+function luhn(d){let s=0,alt=false;for(let i=d.length-1;i>=0;i--){let n=+d[i];if(alt){n*=2;if(n>9)n-=9}s+=n;alt=!alt}return s%10===0}
+function entropy(s){const f={};for(const c of s)f[c]=(f[c]||0)+1;let h=0;for(const k in f){const p=f[k]/s.length;h-=p*Math.log2(p)}return h}
+// Each detector yields {s,e,v}. Order = priority when matches overlap.
+const DETECT={
+ key:t=>scan(t,/-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g),
+ jwt:t=>scan(t,/\beyJ[\w-]{8,}\.[\w-]{8,}\.[\w-]{8,}\b/g),
+ secret:t=>[...scan(t,/\b(?:AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|gho_[A-Za-z0-9]{36}|github_pat_[\w]{22,}|glpat-[\w-]{20}|xox[baprs]-[A-Za-z0-9-]{10,}|sk_(?:live|test)_[A-Za-z0-9]{10,}|AIza[\w-]{35}|SG\.[\w-]{22}\.[\w-]{43})\b/g),
+   ...scan(t,/(?<=\bBearer\s+)[A-Za-z0-9._~+/=-]{16,}/g),
+   ...scan(t,/\b[A-Za-z0-9+/_=-]{32,}\b/g).filter(m=>/[a-z]/i.test(m.v)&&/\d/.test(m.v)&&entropy(m.v)>4.2)],
+ password:t=>[...scan(t,/(?<=:\/\/[^\s:@/]+:)[^\s@/]+(?=@)/g), // user:pass@host in connection strings
+   ...scan(t,/\b(?:pass(?:word|wd|phrase)?|pwd|secret|token|api[_-]?key|access[_-]?key|client[_-]?secret)\b["']?\s*[:=]\s*["']?([^\s"',;&]+)/gid,1)],
+ card:t=>scan(t,/\b(?:\d[ -]?){12,18}\d\b/g).filter(m=>{const d=m.v.replace(/\D/g,'');return d.length>=13&&d.length<=19&&luhn(d)&&(/[ -]/.test(m.v)||d.length===15||d.length===16)}),
+ email:t=>scan(t,/\b[\w.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g),
+ ip:t=>[...scan(t,/\b(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)\b/g),
+   ...scan(t,/(?<![\w:.])(?:[0-9a-f]{0,4}:){2,7}[0-9a-f]{1,4}(?![\w:])/gi).filter(m=>/::|[a-f]/i.test(m.v))],
+ phone:t=>scan(t,/(?<!\w)(?:\+?1[ .-]?)?\(?\d{3}\)?[ .-]?\d{3}[ .-]\d{4}\b/g),
+ uuid:t=>scan(t,/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi),
+ term:(t,terms)=>terms.length?scan(t,new RegExp('(?<![\\w])(?:'+terms.map(esc).join('|')+')(?![\\w])','gi')):[]
+};
+function scan(t,re,group){const out=[];let m;while((m=re.exec(t))){if(group){const [s,e]=m.indices[group];out.push({s,e,v:t.slice(s,e)})}else out.push({s:m.index,e:m.index+m[0].length,v:m[0]});if(m[0].length===0)re.lastIndex++}return out}
+// Terms match case-insensitively but map to the spelling the user typed.
+const normKey=(cat,v,terms)=>cat+':'+(cat==='term'?(terms.find(t=>t.toLowerCase()===v.toLowerCase())||v):v);
+// Find all matches, resolve overlaps by priority then length, return sorted spans.
+function detect(text,terms){
+ const taken=new Uint8Array(text.length),found=[];
+ for(const {id} of CATS){
+  const ms=DETECT[id](text,terms||[]).sort((a,b)=>(b.e-b.s)-(a.e-a.s));
+  for(const m of ms){let free=true;for(let i=m.s;i<m.e;i++)if(taken[i]){free=false;break}
+   if(!free)continue;taken.fill(1,m.s,m.e);found.push({...m,cat:id})}
+ }
+ return found.sort((a,b)=>a.s-b.s);
+}
+function placeholder(cat,n,v,style){
+ if(style==='real'){
+  if(cat==='email')return `user${n}@example.com`;
+  if(cat==='ip')return v.includes(':')?`2001:db8::${n.toString(16)}`:n<255?`203.0.113.${n}`:`198.51.100.${n-254}`;
+  if(cat==='phone'&&n<100)return `555-01${String(n).padStart(2,'0')}`;
+  if(cat==='uuid')return `00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
+ }
+ return `[${cat.toUpperCase()}_${n}]`;
+}
+// state: {map:{key->n}, counts:{cat->n}, enabled:{cat->bool}, ignore:Set(key), style}
+function redact(text,state,terms){
+ const spans=detect(text,terms),parts=[];let pos=0;
+ for(const sp of spans){
+  const k=normKey(sp.cat,sp.v,terms),off=!state.enabled[sp.cat]||state.ignore.has(k);
+  if(sp.s>pos)parts.push({t:text.slice(pos,sp.s)});
+  if(off){parts.push({t:sp.v,cat:sp.cat,off:true,key:k})}
+  else{if(!(k in state.map))state.map[k]=state.counts[sp.cat]=(state.counts[sp.cat]||0)+1;
+   parts.push({t:placeholder(sp.cat,state.map[k],sp.v,state.style),cat:sp.cat,key:k,orig:sp.v})}
+  pos=sp.e;
+ }
+ if(pos<text.length)parts.push({t:text.slice(pos)});
+ return parts;
+}
+// Every placeholder this mapping could have produced (both styles), longest first.
+function reverseMap(state){
+ const rev=new Map();
+ for(const k in state.map){const i=k.indexOf(':'),cat=k.slice(0,i),v=k.slice(i+1),n=state.map[k];
+  rev.set(placeholder(cat,n,v,'tag'),{v,cat});rev.set(placeholder(cat,n,v,'real'),{v,cat})}
+ return rev;
+}
+function restore(text,state){
+ const rev=reverseMap(state);if(!rev.size)return [{t:text}];
+ const re=new RegExp([...rev.keys()].sort((a,b)=>b.length-a.length).map(esc).join('|'),'g'),parts=[];let pos=0,m;
+ while((m=re.exec(text))){if(m.index>pos)parts.push({t:text.slice(pos,m.index)});const r=rev.get(m[0]);parts.push({t:r.v,cat:r.cat,orig:m[0]});pos=m.index+m[0].length}
+ if(pos<text.length)parts.push({t:text.slice(pos)});
+ return parts;
+}
+const parseTerms=s=>s.split(',').map(x=>x.trim()).filter(Boolean);
+/*PURE-END*/
+if(typeof module!=='undefined')module.exports={CATS,luhn,entropy,detect,redact,restore,placeholder,parseTerms,reverseMap};
+</script>
+<script>
+const $=id=>document.getElementById(id);
+const DEMO=`Hi Priya — pasting the incident notes before I send them to the vendor. Can you sanity-check?
+
+Customer: Dana Whitfield <dana.whitfield@acme-corp.com>, callback +1 (415) 555-2671
+Card on file ending: 4242 4242 4242 4242 (they read the whole number out, do not store this!)
+Account id: 7f3b9c2e-4d1a-4b8e-9f0a-2c6d8e1b3a57
+
+10.42.7.19 - - [27/Oct/2026:09:14:02 -0700] "POST /api/v2/login HTTP/1.1" 401 219 "-" "Mozilla/5.0"
+10.42.7.19 - - [27/Oct/2026:09:14:05 -0700] "POST /api/v2/login HTTP/1.1" 200 1187
+198.18.4.77 - - [27/Oct/2026:09:14:09 -0700] "GET /api/v2/me HTTP/1.1" 200 943
+fe80::1c2a:9ff:fe3b:4c5d tried the same credentials 40 seconds later.
+
+# what ops found in the deploy env
+AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+DATABASE_URL=postgres://acme_app:Tr0ub4dor&3@db-prod.acme-corp.internal:5432/acme
+password: Summer2026!
+curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkYW5hLndoaXRmaWVsZCIsInRlbmFudCI6ImFjbWUiLCJpYXQiOjE3OTMwOTkyNDJ9.Qf9kJ3tXzzb0k0mMhc2m6HNsTQbhvjTl9B9W6wfvqk8" https://api.acme-corp.com/v2/me
+slack webhook: xoxb-DEMO-NOT-A-REAL-TOKEN-0000
+stripe: sk_test_DemoNotRealKey00
+
+-----BEGIN RSA PRIVATE KEY-----
+MIIBOgIBAAJBAK3b6kQx2hJ7n5Rk1yYQ4d8nFvZbH9UxG1gL2gE3wTm0Ck6sVbJz
+9oVHsx3P4kqF2wXEf1nJ0bU6yC7dRtA8PmQ2kLsCAwEAAQJAX5rN3hLq9pGz2bWk
+-----END RSA PRIVATE KEY-----
+
+Commit a3f5c9e2b1d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2 is the fix; release 2.14.3 goes out Thursday.
+— Tan`;
+const DEMO_RESTORE=`Thanks — three things stand out in the notes you shared:
+
+1. The login from [IP_1] succeeded on the second attempt with [PASSWORD_2], and [IP_2] then used the same session from a different network. Rotate the credential for [EMAIL_1] and invalidate [JWT_1]. The database password [PASSWORD_1] is in a connection string on [TERM_3] hosts; rotate it as well.
+2. [SECRET_1] is an AWS access key committed to the deploy env; revoke it in IAM before anything else. The Slack token [SECRET_2] and Stripe key [SECRET_3] should be rotated too, and [KEY_1] must be regenerated.
+3. Strike the card number [CARD_1] from the ticket entirely; replace it with the last four digits only. Account [UUID_1] is otherwise fine.
+
+Call [TERM_2] back at [PHONE_1] once the rotation is done.`;
+const state={map:{},counts:{},enabled:Object.fromEntries(CATS.map(c=>[c.id,true])),ignore:new Set(),style:'tag',mode:'redact',texts:{redact:DEMO,restore:DEMO_RESTORE},terms:'Acme Corp, acme-corp, Dana Whitfield, Priya'};
+const escHtml=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+let outParts=[];
+function render(){
+ const t0=performance.now(),text=$('in').value;state.texts[state.mode]=text;
+ const terms=parseTerms($('terms').value);
+ outParts=state.mode==='redact'?redact(text,state,terms):restore(text,state);
+ $('out').innerHTML=outParts.map(p=>p.cat?`<mark class="${p.off?'off':''}" style="--c:var(--c-${p.cat})" data-key="${escHtml(p.key||'')}" title="${escHtml(p.off?'tap to redact':p.orig||'')}">${escHtml(p.t)}</mark>`:escHtml(p.t)).join('');
+ const n=outParts.filter(p=>p.cat&&!p.off).length,ms=(performance.now()-t0).toFixed(1);
+ $('inStat').textContent=`${text.length.toLocaleString()} chars`;
+ $('outStat').textContent=state.mode==='redact'?`${n} redacted · ${ms} ms`:`${n} restored · ${ms} ms`;
+ const per={};for(const p of outParts)if(p.cat&&!p.off)per[p.cat]=(per[p.cat]||0)+1;
+ $('chips').innerHTML=CATS.map((c,i)=>`<button class="chip" data-cat="${c.id}" aria-pressed="${state.enabled[c.id]}" style="--c:var(--c-${c.id})"><i></i>${c.label} <b>${per[c.id]||0}</b><kbd>${(i+1)%10}</kbd></button>`).join('');
+ const keys=Object.keys(state.map);$('mapCount').textContent=`(${keys.length})`;
+ $('mapTable').innerHTML=keys.map(k=>{const i=k.indexOf(':'),cat=k.slice(0,i),v=k.slice(i+1);return `<tr><td style="color:var(--c-${cat})">${escHtml(placeholder(cat,state.map[k],v,state.style))}</td><td>${escHtml(v.length>90?v.slice(0,87)+'…':v)}</td></tr>`}).join('');
+}
+function setMode(m){state.texts[state.mode]=$('in').value;state.mode=m;$('in').value=state.texts[m];
+ $('mRedact').setAttribute('aria-pressed',m==='redact');$('mRestore').setAttribute('aria-pressed',m==='restore');
+ $('inTitle').firstChild.textContent=m==='redact'?'Original ':'Redacted reply ';$('outTitle').firstChild.textContent=m==='redact'?'Redacted ':'Restored ';
+ $('in').placeholder=m==='redact'?'Paste anything sensitive here…':'Paste the reply that contains placeholders…';render()}
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('show'),2200)}
+function setTheme(th){document.documentElement.dataset.theme=th;try{localStorage.setItem('veil-theme',th)}catch(e){}}
+function toggleTheme(){setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark')}
+async function copyOut(){const txt=outParts.map(p=>p.t).join('');try{await navigator.clipboard.writeText(txt);toast('Output copied')}catch(e){const r=document.createRange();r.selectNodeContents($('out'));getSelection().removeAllRanges();getSelection().addRange(r);toast('Clipboard blocked — text selected, press copy')}}
+function snapshot(){state.texts[state.mode]=$('in').value;return {app:'Veil',version:1,savedAt:new Date().toISOString(),mode:state.mode,style:state.style,terms:$('terms').value,enabled:state.enabled,ignore:[...state.ignore],map:state.map,counts:state.counts,texts:state.texts}}
+function save(){const d=new Date(),ymd=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+ const blob=new Blob([JSON.stringify(snapshot(),null,1)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`veil-${ymd}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);toast('Saved veil-'+ymd+'.json')}
+function load(obj){
+ if(!obj||obj.app!=='Veil'||obj.version!==1)throw new Error('Not a Veil session file (expected app "Veil", version 1).');
+ state.map=obj.map||{};state.counts=obj.counts||{};state.ignore=new Set(obj.ignore||[]);state.style=obj.style==='real'?'real':'tag';
+ for(const c of CATS)state.enabled[c.id]=obj.enabled?.[c.id]!==false;
+ state.texts={redact:String(obj.texts?.redact??''),restore:String(obj.texts?.restore??'')};$('terms').value=obj.terms||'';$('style').value=state.style;
+ setMode(obj.mode==='restore'?'restore':'redact');toast('Session restored')}
+$('file').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{load(JSON.parse(r.result))}catch(err){toast('Could not open: '+err.message)}};r.readAsText(f);e.target.value=''};
+$('in').addEventListener('input',()=>requestAnimationFrame(render));
+$('terms').addEventListener('input',()=>requestAnimationFrame(render));
+$('style').onchange=e=>{state.style=e.target.value;render()};
+$('mRedact').onclick=()=>setMode('redact');$('mRestore').onclick=()=>setMode('restore');
+$('copy').onclick=copyOut;$('save').onclick=save;$('open').onclick=()=>$('file').click();$('theme').onclick=toggleTheme;
+$('helpBtn').onclick=()=>$('help').toggleAttribute('open');$('helpClose').onclick=()=>$('help').removeAttribute('open');
+$('help').onclick=e=>{if(e.target===$('help'))$('help').removeAttribute('open')};
+$('chips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;state.enabled[b.dataset.cat]=!state.enabled[b.dataset.cat];render()};
+$('out').onclick=e=>{const m=e.target.closest('mark');if(!m||state.mode!=='redact'||!m.dataset.key)return;const k=m.dataset.key;state.ignore.has(k)?state.ignore.delete(k):state.ignore.add(k);render()};
+document.addEventListener('keydown',e=>{
+ const mod=e.ctrlKey||e.metaKey,typing=/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)||e.target.isContentEditable;
+ if(mod&&e.key==='/'){e.preventDefault();$('help').toggleAttribute('open');return}
+ if(e.key==='Escape'&&$('help').hasAttribute('open')){$('help').removeAttribute('open');return}
+ if(mod&&e.key==='Enter'){e.preventDefault();copyOut();return}
+ if(mod&&!e.shiftKey&&e.key.toLowerCase()==='s'){e.preventDefault();save();return}
+ if(mod&&!e.shiftKey&&e.key.toLowerCase()==='o'){e.preventDefault();$('file').click();return}
+ if(typing||mod||e.altKey)return;
+ const k=e.key.toLowerCase();
+ if(k==='t')toggleTheme();else if(k==='m')setMode(state.mode==='redact'?'restore':'redact');
+ else if(k==='p'){state.style=$('style').value=state.style==='tag'?'real':'tag';render()}
+ else if(/^[0-9]$/.test(k)){const c=CATS[(+k+9)%10];state.enabled[c.id]=!state.enabled[c.id];render()}
+});
+(function init(){
+ let th=null;try{th=localStorage.getItem('veil-theme')}catch(e){}
+ setTheme(th||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'));
+ $('terms').value=state.terms;$('in').value=DEMO;render();
+})();
+</script>
+</body>
+</html>
+
+</body></html>

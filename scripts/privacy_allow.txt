@@ -1,0 +1,20 @@
+# Exact strings the privacy scanner may skip. Every entry must be a well-known fake
+# or demo value that identifies nobody (test cards, documentation keys, 555 numbers,
+# sample text baked into an app). One value per line; the --terms list is never
+# affected by this file. Add a line only after reading the surrounding text yourself.
+
+# Public test/doc values
+4242 4242 4242 4242
+AKIAIOSFODNN7EXAMPLE
+
+# veil — the redaction demo's sample incident notes (Acme Corp, "Dana Whitfield", fake tokens)
+dana.whitfield@acme-corp.com
++1 (415) 555-2671
+10.42.7.19
+3@db-prod.acme-corp.internal
+eyJzdWIiOiJkYW5hLndoaXRmaWVsZCIsInRlbmFudCI6ImFjbWUiLCJpYXQiOjE3OTMwOTkyNDJ9
+Qf9kJ3tXzzb0k0mMhc2m6HNsTQbhvjTl9B9W6wfvqk8
+xoxb-DEMO-NOT-A-REAL-TOKEN-0000
+MIIBOgIBAAJBAK3b6kQx2hJ7n5Rk1yYQ4d8nFvZbH9UxG1gL2gE3wTm0Ck6sVbJz
+9oVHsx3P4kqF2wXEf1nJ0bU6yC7dRtA8PmQ2kLsCAwEAAQJAX5rN3hLq9pGz2bWk
+a3f5c9e2b1d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2

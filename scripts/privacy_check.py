@@ -14,9 +14,21 @@ Built-in rules (always on):
 
 Optional --terms FILE: one term per line (case-insensitive substring; lines starting with # ignored).
 Keep that file OUTSIDE the repo — it is the list of names you never want published, so it must never be published.
+
+Allowlist: scripts/privacy_allow.txt (or --allow FILE) lists exact strings that are known to be fictional
+(demo data inside an app, e.g. the 4242 test card or AWS's documentation key). A built-in rule's match is
+skipped only when the matched text is exactly one of those strings; the --terms list is never allowlisted.
 """
 import argparse, re, sys
 from pathlib import Path
+
+DEFAULT_ALLOW = Path(__file__).with_name("privacy_allow.txt")
+
+def load_allow(path):
+    p = Path(path) if path else DEFAULT_ALLOW
+    if not p.exists(): return set()
+    return {l.strip() for l in p.read_text(encoding="utf-8", errors="ignore").splitlines()
+            if l.strip() and not l.lstrip().startswith("#")}
 
 EXTS = {".html", ".htm", ".json", ".md", ".txt", ".js", ".py", ".svg", ".css", ".yml", ".yaml"}
 ALLOW_EMAIL_DOMAINS = ("example.com", "example.org", "w3.org", "anthropic.com", "github.com", "giscus.app")
@@ -40,7 +52,7 @@ RULES = [
 # patterns that are obviously code, not secrets, for the long-secret rule
 CODE_NOISE = re.compile(r"^(?:[A-Za-z0-9]{40,})$")  # pure alnum blob of 40+ (base64 images, hashes) -> still flag; tuned below
 
-def scan_text(text, terms):
+def scan_text(text, terms, allow=frozenset()):
     out = []
     for ln, line in enumerate(text.splitlines(), 1):
         for t, trx in terms:
@@ -49,6 +61,7 @@ def scan_text(text, terms):
         for name, rx in RULES:
             for m in rx.finditer(line):
                 s = m.group(0)
+                if s in allow: continue
                 if name == "email" and s.lower().endswith(ALLOW_EMAIL_DOMAINS): continue
                 if name == "card":
                     digits = re.sub(r"\D", "", s)
@@ -71,8 +84,10 @@ def luhn(d):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--terms")
+    ap.add_argument("--allow", help="exact-string allowlist (default: scripts/privacy_allow.txt)")
     ap.add_argument("paths", nargs="+")
     a = ap.parse_args()
+    allow = load_allow(a.allow)
     terms = []
     if a.terms and Path(a.terms).exists():
         terms = [(t, re.compile(r"(?<![A-Za-z0-9])" + re.escape(t) + r"(?![A-Za-z0-9])", re.I))
@@ -88,7 +103,7 @@ def main():
     for f in files:
         try: text = f.read_text(encoding="utf-8", errors="ignore")
         except Exception: continue
-        for ln, rule, snip in scan_text(text, terms):
+        for ln, rule, snip in scan_text(text, terms, allow):
             print(f"{f}:{ln}  {rule}  {snip}")
             findings += 1
     print(f"\n{'CLEAN' if not findings else f'{findings} finding(s)'} — {len(files)} file(s) scanned")

@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PHISH SPOTTER — Spot the Scam</title>
+<style>
+  /* ---------- Base + palette: evidence-board paper, ink, red/green verdicts ---------- */
+  :root{
+    --paper:#faf6ee; --card:#ffffff; --ink:#1e2422; --muted:#6b7280;
+    --red:#b91c1c; --red-bg:#fdecea; --green:#157347; --green-bg:#e6f4ea;
+    --amber:#b45309; --line:#e5ddd0; --shadow:0 6px 24px rgba(30,36,34,.12);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-tap-highlight-color:transparent}
+  main{max-width:560px;margin:0 auto;padding:16px 16px 32px}
+  h1{font-size:26px;line-height:1.15;margin:4px 0 2px;letter-spacing:-.02em}
+  .sub{color:var(--muted);font-size:15px;line-height:1.45;margin:0 0 14px}
+  .sub strong{color:var(--ink)}
+
+  /* ---------- Scoreboard ---------- */
+  .board{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 0 12px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:10px 6px;text-align:center;box-shadow:var(--shadow)}
+  .stat b{display:block;font-size:22px;line-height:1}
+  .stat span{font-size:12px;color:var(--muted)}
+  .progress{height:10px;background:#e9e2d3;border-radius:99px;overflow:hidden;margin:0 0 4px}
+  .progress i{display:block;height:100%;background:var(--ink);border-radius:99px;transition:width .3s}
+  .count{font-size:13px;color:var(--muted);text-align:right;margin:0 0 14px}
+
+  /* ---------- Card deck ---------- */
+  .deck{position:relative;min-height:340px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;
+    box-shadow:var(--shadow);padding:18px;cursor:grab;touch-action:pan-y;
+    user-select:none;position:relative;overflow:hidden;transition:transform .18s ease}
+  .card.dragging{transition:none;cursor:grabbing}
+  .tag{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.08em;
+    text-transform:uppercase;background:#f3ead8;color:var(--amber);
+    padding:4px 9px;border-radius:99px;margin-bottom:10px}
+  .from{font-size:15px;line-height:1.4;margin:0 0 2px;word-break:break-word}
+  .from span{color:var(--muted)}
+  .subject{font-size:20px;line-height:1.25;margin:8px 0;font-weight:700}
+  .body{font-size:16px;line-height:1.55;margin:0;white-space:pre-line}
+  .linkbox{margin-top:14px;background:#f7f3ea;border:1px dashed var(--line);
+    border-radius:10px;padding:10px 12px;font-size:13px;color:var(--muted);word-break:break-all}
+  .stamp{position:absolute;top:16px;right:-8px;font-size:20px;font-weight:800;
+    letter-spacing:.1em;padding:6px 14px;border:3px solid;border-radius:8px;
+    transform:rotate(8deg);opacity:0;pointer-events:none}
+  .stamp.phish{color:var(--red);border-color:var(--red)}
+  .stamp.legit{color:var(--green);border-color:var(--green)}
+
+  /* ---------- Verdict feedback ---------- */
+  .verdict{border-radius:14px;padding:14px 16px;margin-top:14px;display:none}
+  .verdict.show{display:block}
+  .verdict.right{background:var(--green-bg);border:1px solid #bfe3cb}
+  .verdict.wrong{background:var(--red-bg);border:1px solid #f3c2c2}
+  .verdict h2{font-size:18px;margin:0 0 6px}
+  .verdict p{font-size:15px;line-height:1.5;margin:0 0 8px}
+  .verdict ul{margin:0;padding-left:20px;font-size:15px;line-height:1.5}
+
+  /* ---------- Controls: big finger targets, no hover-only actions ---------- */
+  .row{display:flex;gap:10px;margin-top:14px}
+  button{font:inherit;cursor:pointer;border-radius:12px;border:1px solid var(--line);
+    background:var(--card);color:var(--ink);min-height:52px;padding:10px 14px;
+    font-size:16px;font-weight:600;flex:1}
+  button:active{transform:scale(.98)}
+  .btn-phish{background:var(--red);border-color:var(--red);color:#fff}
+  .btn-legit{background:var(--green);border-color:var(--green);color:#fff}
+  .btn-dark{background:var(--ink);border-color:var(--ink);color:#fff}
+  .row.small button{min-height:46px;font-size:14px;flex:1}
+  .hint{font-size:13px;color:var(--muted);line-height:1.5;margin:14px 0 0;text-align:center}
+  .status{font-size:14px;text-align:center;min-height:20px;margin-top:10px}
+  .status.err{color:var(--red);font-weight:600}
+  .status.ok{color:var(--green);font-weight:600}
+
+  /* ---------- Results screen ---------- */
+  .results{background:var(--card);border:1px solid var(--line);border-radius:16px;
+    box-shadow:var(--shadow);padding:20px;text-align:center;display:none}
+  .results.show{display:block}
+  .results .big{font-size:44px;font-weight:800;margin:4px 0}
+  .results p{font-size:15px;line-height:1.55;color:var(--muted)}
+  .results p strong{color:var(--ink)}
+  .hide{display:none !important}
+
+  @media (prefers-reduced-motion:reduce){
+    .card,.progress i{transition:none}
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>🎣 PHISH SPOTTER</h1>
+  <p class="sub">Swipe a message <strong>left for PHISH</strong>, <strong>right for LEGIT</strong> — or use the big buttons. Every verdict teaches you the tell, so a wrong guess still makes you sharper.</p>
+
+  <!-- Section: scoreboard -->
+  <div class="board" aria-label="Score">
+    <div class="stat"><b id="score">0</b><span>correct</span></div>
+    <div class="stat"><b id="answered">0</b><span>judged</span></div>
+    <div class="stat"><b id="streak">0</b><span>streak</span></div>
+    <div class="stat"><b id="accuracy">—</b><span>accuracy</span></div>
+  </div>
+  <div class="progress" aria-hidden="true"><i id="bar" style="width:0%"></i></div>
+  <p class="count" id="count">Card 1 of 14</p>
+
+  <!-- Section: playable deck -->
+  <div id="play">
+    <div class="deck">
+      <article class="card" id="card" aria-label="Message to judge">
+        <div class="stamp phish" id="stampPhish">PHISH</div>
+        <div class="stamp legit" id="stampLegit">LEGIT</div>
+        <span class="tag" id="tag">Email</span>
+        <p class="from" id="from"></p>
+        <h2 class="subject" id="subject"></h2>
+        <p class="body" id="body"></p>
+        <div class="linkbox" id="linkbox"></div>
+      </article>
+    </div>
+
+    <div class="verdict" id="verdict" role="status">
+      <h2 id="verdictTitle"></h2>
+      <p id="verdictText"></p>
+      <ul id="verdictFlags"></ul>
+    </div>
+
+    <div class="row" id="judgeRow">
+      <button class="btn-phish" id="btnPhish">⬅ PHISH</button>
+      <button class="btn-legit" id="btnLegit">LEGIT ➡</button>
+    </div>
+    <div class="row hide" id="nextRow">
+      <button class="btn-dark" id="btnNext">Next card ➡</button>
+    </div>
+  </div>
+
+  <!-- Section: results -->
+  <section class="results" id="results" aria-label="Results">
+    <h2>Deck complete!</h2>
+    <div class="big" id="finalScore"></div>
+    <p id="finalText"></p>
+    <div class="row"><button class="btn-dark" id="btnRestart">Play again (shuffled)</button></div>
+  </section>
+
+  <!-- Section: save / load + help -->
+  <div class="row small">
+    <button id="btnSave">💾 Save</button>
+    <button id="btnOpen">📂 Open</button>
+    <button id="btnRestart2">↻ Restart</button>
+  </div>
+  <input type="file" id="fileInput" accept=".json,application/json" class="hide">
+  <p class="status" id="status"></p>
+  <p class="hint">Keyboard: ← = Phish &nbsp;·&nbsp; → = Legit &nbsp;·&nbsp; Space = Next &nbsp;·&nbsp; S = Save &nbsp;·&nbsp; O = Open &nbsp;·&nbsp; R = Restart<br>
+  Each key does exactly one thing. No links here are real or clickable — every address is plain text, so nothing can take you anywhere.</p>
+</main>
+
+<script>
+"use strict";
+/* ================= Section: message deck =================
+   verdict: "phish" or "legit". flags: the tells revealed after judging.
+   Nothing here is a real message; all senders and links are invented,
+   shown as plain text, and never linked, so the trainer is safe to play. */
+var DECK = [
+  {kind:"Email · Invoice", from:"Acme Billing <billing@acme-payments-support.net>", subject:"Overdue invoice #88412 — pay within 24 hours or service stops",
+   body:"Dear Customer,\n\nYour invoice of $4,812.00 is overdue. Pay now using the secure link below to avoid suspension of your account.",
+   link:"Link shown: acme-payments-support.net/pay?id=88412", verdict:"phish",
+   why:"A lookalike domain doing the impersonating, not the real vendor.",
+   flags:["Sender domain is acme-payments-support.net, not the vendor's real domain","Generic greeting ('Dear Customer') instead of your name","Urgency threat: 'within 24 hours or service stops'","Unexpected invoice amount you were never quoted"]},
+  {kind:"Email · Password reset", from:"IT Help Desk <helpdesk@yourcompany.com>", subject:"Password reset requested",
+   body:"Hi Sam,\n\nWe received a password reset request for your account. If this was you, use the reset link in our staff portal. If it was not you, reply to this message and we will lock the account.",
+   link:"No link in this message — it directs you to the staff portal you already use", verdict:"legit",
+   why:"It names you, gives no clickable link, and points to a channel you already trust.",
+   flags:["Addressed to you by name","No link to click — it sends you to the known staff portal","Safe fallback: reply to IT instead of clicking","No threat or countdown"]},
+  {kind:"SMS · Delivery", from:"Unknown number", subject:"Parcel held — delivery failed",
+   body:"Your parcel could not be delivered. Confirm your address and pay the $1.95 redelivery fee here to release it.",
+   link:"Link shown: track-parcel-fast.xyz/redeliver", verdict:"phish",
+   why:"A tiny fee is the classic hook for harvesting card details.",
+   flags:["Came from an unknown number, not your carrier","Tiny 'fee' to unlock a parcel you may not even expect","Shortened-looking odd domain, not the carrier's site","No order number, carrier name, or tracking detail"]},
+  {kind:"Email · Team", from:"Priya Nair <priya@yourcompany.com>", subject:"Team lunch Thursday — vote for the restaurant",
+   body:"Hi all,\n\nBooking Thursday lunch. Reply with your pick (Thai, Mexican, or the deli) and any dietary needs by Wednesday. No link, just reply.",
+   link:"No link in this message", verdict:"legit",
+   why:"An ordinary internal note with no link, no attachment, and no ask for credentials.",
+   flags:["Known colleague on the company domain","No link, attachment, or credential request","Normal, low-stakes ask with a sensible deadline","Consistent tone and context for this team"]},
+  {kind:"Email · Executive request", from:"CEO Office <d.morgan@company-exec-mail.com>", subject:"Quick favour — gift cards needed urgently",
+   body:"I'm in back-to-back meetings and can't take calls. Please buy 6 x $200 gift cards, scratch off the codes, and email me photos of them. I'll reimburse you today. Keep this between us for now.",
+   link:"No link — it asks you to email gift card codes", verdict:"phish",
+   why:"The textbook CEO-fraud script: secrecy, urgency, and gift cards.",
+   flags:["Sender domain is company-exec-mail.com, not the company domain","Unusual request: gift cards, secrecy, 'can't take calls'","Pressure to act now and keep it private","Reimbursement promise used to override normal process"]},
+  {kind:"Email · Shared document", from:"Google Drive <drive-shares-noreply@googledrive-docs.com>", subject:"Q3 budget — shared with you",
+   body:"A colleague shared 'Q3 budget FINAL.xlsx' with you. Click below to view it. You may need to sign in to confirm access.",
+   link:"Link shown: googledrive-docs.com/view?file=Q3-budget", verdict:"phish",
+   why:"A trusted brand name wrapped around a lookalike domain.",
+   flags:["Domain is googledrive-docs.com, not google.com","'Sign in to confirm access' is a credential-harvesting setup","Vague 'a colleague' with no name","Attachment-style lure disguised as a share notice"]},
+  {kind:"Slack · IT alert", from:"#it-announcements (verified workspace channel)", subject:"VPN maintenance tonight 10pm–11pm",
+   body:"Heads up: the VPN will be briefly unavailable tonight 10–11pm for maintenance. No action needed. If you have trouble after 11pm, message #it-help. Do not share passwords with anyone claiming to fix it faster.",
+   link:"No link in this message", verdict:"legit",
+   why:"A routine notice in a verified channel that asks for nothing.",
+   flags:["Posted in the verified internal channel","Asks for no action, no link, no password","Gives a real support channel for problems","Warns against sharing passwords — the opposite of a phish"]},
+  {kind:"Email · Security alert", from:"Microsoft Security <security@microsoft-support-alerts.com>", subject:"Unusual sign-in — verify your account now",
+   body:"We detected an unusual sign-in from another country. Your account will be locked in 2 hours unless you verify your identity using the link below.",
+   link:"Link shown: microsoft-support-alerts.com/verify", verdict:"phish",
+   why:"Fear plus a countdown, on a domain Microsoft does not use.",
+   flags:["Domain is microsoft-support-alerts.com, not microsoft.com","Two-hour lockout threat to rush you","Vague 'another country' with no device, time, or location","Pushes you to a login page instead of the official app"]},
+  {kind:"Email · HR bonus", from:"People Team <people@yourcompany.com>", subject:"Your annual bonus statement is ready",
+   body:"Hi Sam,\n\nYour bonus statement is ready in the HR portal. Log in through the portal as usual to view it — we never send statements by email attachment. Questions? Drop by HR on the 3rd floor.",
+   link:"No link or attachment in this message", verdict:"legit",
+   why:"It deliberately avoids the two things phishers rely on: links and attachments.",
+   flags:["Known internal sender and domain","No link and no attachment, by stated policy","Directs you to the portal you already use","Offers an in-person alternative for questions"]},
+  {kind:"SMS · Bank", from:"Your Bank (spoofed short code)", subject:"Suspicious transaction — account frozen",
+   body:"ALERT: A $1,240 charge was flagged on your card. Your account is frozen. Reply YES with your full card number to unfreeze, or call the number in this text.",
+   link:"No link — it asks you to reply with your card number", verdict:"phish",
+   why:"No real bank ever asks for a full card number by text reply.",
+   flags:["Asks for your full card number by reply — banks never do this","Fear + frozen-account threat","No partial card digits, branch, or case number to verify","Tells you to call a number in the text, not the number on your card"]},
+  {kind:"Email · Vendor invoice", from:"Office Supplies Co. <invoices@officesupplies.example>", subject:"Invoice #5521 — monthly stationery order",
+   body:"Hi Sam,\n\nAttached is invoice #5521 for the stationery order you approved on 12 October ($312.40). Payment terms are net 30, as usual. Let me know if anything looks off.",
+   link:"No link — invoice attached as usual, terms unchanged", verdict:"legit",
+   why:"It matches a real order you approved, with normal terms and no rush.",
+   flags:["Matches an order you actually approved, with date and amount","Normal net-30 terms, no urgency","Known vendor with a consistent address","Invites you to query it instead of pressuring payment"]},
+  {kind:"Email · QR code", from:"Facilities <facilities@yourcompany.com>", subject:"New parking registration — scan to confirm",
+   body:"Scan the QR code in the attached poster to confirm your parking space for November. Codes expire tonight, so please scan before you leave today.",
+   link:"QR code in an attachment (shown as text here, not scannable)", verdict:"phish",
+   why:"QR codes hide their destination — and urgency is doing the pushing.",
+   flags:["QR code hides where it actually goes — you cannot inspect it first","Same-day expiry pressure","Parking is an odd trigger for an urgent security-style action","If unsure, walk to Facilities instead of scanning"]},
+  {kind:"Email · MFA prompt", from:"Authenticator App (push notification)", subject:"Approve this sign-in? — Austin, TX, just now",
+   body:"Someone is signing in to your account from Austin, TX. Approve or deny in your authenticator app. If this was not you, tap DENY and report it — never approve a prompt you did not trigger.",
+   link:"No link — the prompt lives inside your authenticator app", verdict:"legit",
+   why:"A real MFA prompt, arriving in the app itself, with the right advice attached.",
+   flags:["Arrives inside the authenticator app, not by email link","Names a location and time you can check","Correct advice: deny prompts you did not trigger","No link, no code to type anywhere"]},
+  {kind:"Email · Job offer", from:"Talent Team <careers@global-talent-hiring.com>", subject:"Remote role — $95/hr, start Monday, no interview needed",
+   body:"Congratulations! You have been selected for a remote data-entry role at $95/hr. No interview required. Just reply with your bank details and a photo of your ID so we can set up payroll before Monday.",
+   link:"No link — it asks you to reply with bank details and ID", verdict:"phish",
+   why:"Too-good pay, no interview, and an ID-and-bank-details request up front.",
+   flags:["Unrealistic pay for the role, no interview at all","Asks for bank details and photo ID by email","Artificial Monday deadline","You never applied for this role"]}
+];
+
+/* ================= Section: state ================= */
+var order = [], index = 0, correct = 0, answered = 0, streak = 0, best = 0;
+var judged = false, finished = false;
+var SAVE_KEY = "phish-spotter-progress-v1";
+
+/* ================= Section: DOM helpers ================= */
+function el(id){ return document.getElementById(id); }
+function setStatus(msg, kind){
+  var s = el("status"); s.textContent = msg || "";
+  s.className = "status" + (kind === "err" ? " err" : kind === "ok" ? " ok" : "");
+}
+function shuffle(arr){
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--){
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+
+/* ================= Section: rendering ================= */
+function renderCard(){
+  var c = DECK[order[index]];
+  el("tag").textContent = c.kind;
+  el("from").innerHTML = "<strong>From:</strong> " + escapeHtml(c.from) + " <span>· " + (c.verdict === "phish" ? "unverified" : "known sender") + "</span>";
+  el("subject").textContent = c.subject;
+  el("body").textContent = c.body;
+  el("linkbox").textContent = c.link;
+  el("count").textContent = "Card " + (index + 1) + " of " + DECK.length;
+  el("bar").style.width = Math.round((index / DECK.length) * 100) + "%";
+  resetCardTransform();
+  el("verdict").className = "verdict";
+  el("judgeRow").classList.remove("hide");
+  el("nextRow").classList.add("hide");
+  judged = false;
+}
+function escapeHtml(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+function renderScore(){
+  el("score").textContent = correct;
+  el("answered").textContent = answered;
+  el("streak").textContent = streak;
+  el("accuracy").textContent = answered ? Math.round((correct / answered) * 100) + "%" : "—";
+}
+function resetCardTransform(){
+  var card = el("card");
+  card.style.transform = ""; card.classList.remove("dragging");
+  el("stampPhish").style.opacity = 0; el("stampLegit").style.opacity = 0;
+}
+
+/* ================= Section: judging ================= */
+function judge(choice){
+  if (judged || finished) return;
+  judged = true;
+  var c = DECK[order[index]];
+  var right = (choice === c.verdict);
+  answered++;
+  if (right){ correct++; streak++; if (streak > best) best = streak; }
+  else { streak = 0; }
+  var v = el("verdict");
+  v.className = "verdict show " + (right ? "right" : "wrong");
+  el("verdictTitle").textContent = right ? "✓ Correct — it was " + c.verdict.toUpperCase() + "."
+                                        : "✗ Not quite — it was " + c.verdict.toUpperCase() + ".";
+  el("verdictText").textContent = c.why;
+  el("verdictFlags").innerHTML = c.flags.map(function(f){
+    return "<li>" + escapeHtml(f) + "</li>";
+  }).join("");
+  el("stampPhish").style.opacity = (choice === "phish") ? 1 : 0;
+  el("stampLegit").style.opacity = (choice === "legit") ? 1 : 0;
+  el("judgeRow").classList.add("hide");
+  el("nextRow").classList.remove("hide");
+  renderScore();
+  autosave();
+}
+function nextCard(){
+  if (!judged || finished) return;
+  if (index + 1 >= DECK.length){ showResults(); return; }
+  index++;
+  renderCard();
+  autosave();
+}
+function showResults(){
+  finished = true;
+  el("bar").style.width = "100%";
+  el("play").classList.add("hide");
+  var r = el("results"); r.classList.add("show");
+  el("finalScore").textContent = correct + " / " + DECK.length;
+  var pct = Math.round((correct / DECK.length) * 100);
+  var note = pct >= 85 ? "Sharp eyes. You would be a hard target."
+    : pct >= 60 ? "Solid instincts — replay and watch the lookalike domains and urgency tricks."
+    : "Tricky deck! Replay and read the tells after each card — domains and urgency are the big two.";
+  el("finalText").innerHTML = "<strong>" + pct + "% correct · best streak " + best + "</strong><br>" + note;
+  autosave();
+}
+function restart(){
+  order = shuffle(DECK.map(function(_, i){ return i; }));
+  index = 0; correct = 0; answered = 0; streak = 0; best = 0;
+  judged = false; finished = false;
+  el("results").classList.remove("show");
+  el("play").classList.remove("hide");
+  renderScore(); renderCard(); autosave();
+  setStatus("Fresh shuffled deck. Good luck.", "ok");
+}
+
+/* ================= Section: swipe (pointer drag) =================
+   A flick past the threshold judges the card; a short drag snaps back.
+   Buttons do the same job, so swiping is never the only route. */
+var dragX = 0, dragging = false, startX = 0;
+function onDown(e){
+  if (judged || finished) return;
+  dragging = true; startX = e.clientX; dragX = 0;
+  el("card").classList.add("dragging");
+}
+function onMove(e){
+  if (!dragging) return;
+  dragX = e.clientX - startX;
+  var card = el("card");
+  card.style.transform = "translateX(" + dragX + "px) rotate(" + (dragX / 18) + "deg)";
+  el("stampPhish").style.opacity = Math.min(1, Math.max(0, -dragX / 110));
+  el("stampLegit").style.opacity = Math.min(1, Math.max(0, dragX / 110));
+}
+function onUp(){
+  if (!dragging) return;
+  dragging = false;
+  if (dragX < -90) judge("phish");
+  else if (dragX > 90) judge("legit");
+  else resetCardTransform();
+}
+
+/* ================= Section: save / load (validated) ================= */
+function snapshot(){
+  return { app:"phish-spotter", version:1, order:order, index:index,
+    correct:correct, answered:answered, streak:streak, best:best,
+    judged:judged, finished:finished };
+}
+function validateSave(d){
+  if (!d || typeof d !== "object" || d.app !== "phish-spotter" || d.version !== 1) return "Not a PHISH SPOTTER save file.";
+  if (!Array.isArray(d.order) || d.order.length !== DECK.length) return "Save file has the wrong deck size.";
+  var seen = {};
+  for (var i = 0; i < d.order.length; i++){
+    if (typeof d.order[i] !== "number" || d.order[i] < 0 || d.order[i] >= DECK.length || seen[d.order[i]]) return "Save file deck order is invalid.";
+    seen[d.order[i]] = true;
+  }
+  var nums = ["index","correct","answered","streak","best"];
+  for (var k = 0; k < nums.length; k++){
+    if (typeof d[nums[k]] !== "number" || d[nums[k]] < 0 || !isFinite(d[nums[k]])) return "Save file numbers are invalid.";
+  }
+  if (d.index >= DECK.length || d.correct > d.answered || d.answered > DECK.length) return "Save file scores are out of range.";
+  if (typeof d.judged !== "boolean" || typeof d.finished !== "boolean") return "Save file flags are invalid.";
+  return null; /* null = valid */
+}
+function applySave(d){
+  order = d.order.slice(); index = d.index; correct = d.correct;
+  answered = d.answered; streak = d.streak; best = d.best;
+  judged = false; finished = false; /* resume on a fresh, unjudged card */
+  el("results").classList.remove("show");
+  el("play").classList.remove("hide");
+  renderScore(); renderCard(); autosave();
+}
+function saveFile(){
+  var blob = new Blob([JSON.stringify(snapshot(), null, 2)], {type:"application/json"});
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "phish-spotter-progress.json";
+  document.body.appendChild(a); a.click(); a.remove();
+  setStatus("Saved phish-spotter-progress.json.", "ok");
+}
+function autosave(){
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(snapshot())); } catch (e) { /* private mode: ignore */ }
+}
+function restoreAutosave(){
+  try {
+    var raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    var d = JSON.parse(raw);
+    if (validateSave(d)) return false;
+    applySave(d); return true;
+  } catch (e) { return false; }
+}
+function openFile(file){
+  var reader = new FileReader();
+  reader.onload = function(){
+    try {
+      var d = JSON.parse(reader.result);
+      var err = validateSave(d);
+      if (err){ setStatus("Could not open that file: " + err + " Your current game is untouched.", "err"); return; }
+      applySave(d);
+      setStatus("Progress restored.", "ok");
+    } catch (e) {
+      setStatus("Could not open that file: it is not valid JSON. Your current game is untouched.", "err");
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* ================= Section: wiring + keyboard =================
+   One key, one function — no key is ever mapped to two actions:
+   ArrowLeft = Phish, ArrowRight = Legit, Space = Next,
+   S = Save, O = Open, R = Restart. */
+function wire(){
+  var card = el("card");
+  card.addEventListener("pointerdown", onDown);
+  window.addEventListener("pointermove", onMove);
+  window.addEventListener("pointerup", onUp);
+  el("btnPhish").addEventListener("click", function(){ judge("phish"); });
+  el("btnLegit").addEventListener("click", function(){ judge("legit"); });
+  el("btnNext").addEventListener("click", nextCard);
+  el("btnRestart").addEventListener("click", restart);
+  el("btnRestart2").addEventListener("click", restart);
+  el("btnSave").addEventListener("click", saveFile);
+  el("btnOpen").addEventListener("click", function(){ el("fileInput").click(); });
+  el("fileInput").addEventListener("change", function(){
+    if (this.files && this.files[0]) openFile(this.files[0]);
+    this.value = "";
+  });
+  document.addEventListener("keydown", function(e){
+    if (e.key === "ArrowLeft") judge("phish");
+    else if (e.key === "ArrowRight") judge("legit");
+    else if (e.key === " ") { if (judged) { e.preventDefault(); nextCard(); } }
+    else if (e.key === "s" || e.key === "S") saveFile();
+    else if (e.key === "o" || e.key === "O") el("fileInput").click();
+    else if (e.key === "r" || e.key === "R") restart();
+  });
+}
+
+/* ================= Section: init ================= */
+(function init(){
+  order = shuffle(DECK.map(function(_, i){ return i; }));
+  wire();
+  renderScore();
+  if (!restoreAutosave()){ renderCard(); }
+  else { setStatus("Restored your last session.", "ok"); }
+})();
+</script>
+</body>
+</html>

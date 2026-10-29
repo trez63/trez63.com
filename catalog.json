@@ -1053,6 +1053,176 @@
         }
       ],
       "category": "dev"
+    },
+    "canvasforge": {
+      "title": "CanvasForge",
+      "engine": "Grok",
+      "description": "A Business Model Canvas you fill in block by block. Add, edit and remove items across the nine blocks, watch the completeness score climb, and it writes a one-paragraph pitch from your segments, value propositions and revenue streams. Save and reopen as JSON.",
+      "source_file": "CanvasForge-Grok.html",
+      "first_published": "2026-10-29",
+      "last_updated": "2026-10-29",
+      "version": 1,
+      "sha": "fcaff5b63a6c",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-29",
+          "sha": "fcaff5b63a6c"
+        }
+      ],
+      "category": "tool",
+      "thumb": {
+        "actions": [
+          {
+            "wait": 1500
+          },
+          {
+            "key": "Escape"
+          },
+          {
+            "wait": 800
+          }
+        ]
+      }
+    },
+    "rail": {
+      "title": "Rail",
+      "engine": "Claude",
+      "description": "Type a regular expression and it draws it as a railroad diagram you can read left to right. Paste test text to see every match highlighted, tap any box in the diagram to see which characters that part captured, read a plain-English breakdown, and preview a replacement live.",
+      "source_file": "Rail-Claude.html",
+      "first_published": "2026-10-29",
+      "last_updated": "2026-10-29",
+      "version": 1,
+      "sha": "6cf64b83c6be",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-29",
+          "sha": "6cf64b83c6be"
+        }
+      ],
+      "category": "dev"
+    },
+    "ciphervault": {
+      "title": "CipherVault",
+      "engine": "Gemini",
+      "description": "A small vault for secrets that never leaves the browser. Type a master passphrase, add named API keys, database credentials or tokens, and each is encrypted with AES-GCM; clear or change the passphrase and they turn back into ciphertext. Includes a high-entropy key generator and saves the encrypted vault as JSON.",
+      "source_file": "ciphervault-gemini.html",
+      "first_published": "2026-10-29",
+      "last_updated": "2026-10-29",
+      "version": 1,
+      "sha": "d149ff175cd9",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-29",
+          "sha": "d149ff175cd9"
+        }
+      ],
+      "category": "tool"
+    },
+    "docuforge": {
+      "title": "DocuForge",
+      "engine": "Gemini",
+      "description": "Lay out a one-page document on a canvas: drag text blocks into place, edit their text and size, fill in template variables like client, invoice number and total that substitute into any block that references them, then print it to PDF. Save the layout as JSON.",
+      "source_file": "docuforge-gemini.html",
+      "first_published": "2026-10-29",
+      "last_updated": "2026-10-29",
+      "version": 1,
+      "sha": "b456a4b0eac2",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-29",
+          "sha": "b456a4b0eac2"
+        }
+      ],
+      "category": "tool"
+    },
+    "launchstamp": {
+      "title": "Launchstamp",
+      "engine": "ChatGPT",
+      "description": "Enter one destination URL and a campaign name, add a placement for each place the link will appear (newsletter, social post, partner email), and it builds the UTM-tagged URL for every placement, shows the anatomy of each, flags two placements that would produce the same link, and copies or exports the set as a launch sheet.",
+      "source_file": "launchstamp-codex.html",
+      "first_published": "2026-10-29",
+      "last_updated": "2026-10-29",
+      "version": 1,
+      "sha": "5796ce1ae572",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-29",
+          "sha": "5796ce1ae572"
+        }
+      ],
+      "category": "tool"
+    },
+    "next-touch": {
+      "title": "Next Touch",
+      "engine": "ChatGPT",
+      "description": "A small follow-up desk: add the people you want to stay in touch with, give each a next action and a date, and it sorts them into due, later and undated. After you talk to someone, log the touch with a note and pick the next step; the history stays with that person. Save and reopen as JSON.",
+      "source_file": "next-touch-codex.html",
+      "first_published": "2026-10-29",
+      "last_updated": "2026-10-29",
+      "version": 1,
+      "sha": "a20b2c90735f",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-29",
+          "sha": "a20b2c90735f"
+        }
+      ],
+      "category": "focus",
+      "thumb": {
+        "actions": [
+          {
+            "wait": 1500
+          },
+          {
+            "key": "Escape"
+          },
+          {
+            "wait": 800
+          }
+        ]
+      }
+    },
+    "outline-builder": {
+      "title": "Outline Builder",
+      "engine": "Muse",
+      "description": "Pick a template (consulting proposal, statement of work or project brief), tick sections on or off, rename and reorder them or add your own, and it writes a numbered outline in a live preview you can copy or download as Markdown, text or JSON.",
+      "source_file": "outline-builder-muse.html",
+      "first_published": "2026-10-29",
+      "last_updated": "2026-10-29",
+      "version": 1,
+      "sha": "02ce7909f9fc",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-29",
+          "sha": "02ce7909f9fc"
+        }
+      ],
+      "category": "text"
+    },
+    "phish-spotter": {
+      "title": "Phish Spotter",
+      "engine": "Muse",
+      "description": "A deck of fourteen made-up emails, texts and chat messages. Swipe or press a button to call each one phish or legit, and after every verdict it tells you the tells you should have spotted (lookalike domains, urgency, odd requests) and keeps your score and streak.",
+      "source_file": "phish-spotter-muse.html",
+      "first_published": "2026-10-29",
+      "last_updated": "2026-10-29",
+      "version": 1,
+      "sha": "df857df4c992",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-29",
+          "sha": "df857df4c992"
+        }
+      ],
+      "category": "edu"
     }
   },
   "generated": "2026-10-29",

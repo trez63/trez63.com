@@ -18,3 +18,26 @@ xoxb-DEMO-NOT-A-REAL-TOKEN-0000
 MIIBOgIBAAJBAK3b6kQx2hJ7n5Rk1yYQ4d8nFvZbH9UxG1gL2gE3wTm0Ck6sVbJz
 9oVHsx3P4kqF2wXEf1nJ0bU6yC7dRtA8PmQ2kLsCAwEAAQJAX5rN3hLq9pGz2bWk
 a3f5c9e2b1d4f6a8c0e2b4d6f8a0c2e4b6d8f0a2
+
+# rail — regex-tester sample text (example.co.uk address, textbook private gateway/host IPs)
+Jane.Doe+billing@mail.example.co.uk
+192.168.1.1
+10.0.0.254
+
+# ciphervault — the vault demo's placeholder IVs, charset string and a made-up connection string
+123456789012
+987654321098
+abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
+xK92_p10sA@db.us-east.internal
+
+# phish-spotter — senders in the training quiz's fictional inbox (yourcompany.com, look-alike scam domains)
+billing@acme-payments-support.net
+helpdesk@yourcompany.com
+priya@yourcompany.com
+d.morgan@company-exec-mail.com
+drive-shares-noreply@googledrive-docs.com
+security@microsoft-support-alerts.com
+people@yourcompany.com
+invoices@officesupplies.example
+facilities@yourcompany.com
+careers@global-talent-hiring.com

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OUTLINE — Proposal &amp; SOW Outline Builder</title>
+<style>
+  /* ---------- 1. Palette & base (warm paper, ink, burnt amber) ---------- */
+  :root{
+    --paper:#fdf8ee; --card:#fffdf6; --ink:#22241f; --muted:#6b6a5e;
+    --line:#e3dcc8; --amber:#b45309; --amber-soft:#fbeed3;
+    --sage:#4d7c6f; --sage-soft:#e2efe9; --red:#b42318; --red-soft:#fdecea;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.5}
+  header{padding:20px 16px 8px;max-width:1100px;margin:0 auto}
+  h1{margin:0;font-size:1.9rem;letter-spacing:-.02em}
+  h1 span{color:var(--amber)}
+  .sub{color:var(--muted);margin:6px 0 0;font-size:1rem}
+  main{max-width:1100px;margin:0 auto;padding:12px 16px 32px;
+    display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+  @media (max-width:760px){ main{grid-template-columns:1fr} h1{font-size:1.55rem} }
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:16px;box-shadow:0 1px 0 rgba(0,0,0,.03)}
+  h2{margin:0 0 10px;font-size:1.1rem}
+  .hint{color:var(--muted);font-size:.92rem;margin:0 0 12px}
+  /* ---------- 2. Buttons, inputs (finger-sized, no hover-only) ---------- */
+  button{min-height:44px;padding:0 14px;border-radius:10px;border:1px solid var(--line);
+    background:#fff;color:var(--ink);font-size:1rem;cursor:pointer}
+  button.primary{background:var(--amber);border-color:var(--amber);color:#fff;font-weight:650}
+  button.sage{background:var(--sage);border-color:var(--sage);color:#fff}
+  button.danger{color:var(--red);border-color:#f0c6c0;background:var(--red-soft)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  button:focus-visible,input:focus-visible,textarea:focus-visible{
+    outline:3px solid var(--amber);outline-offset:2px}
+  input[type="text"],textarea{width:100%;font-size:1rem;padding:10px 11px;
+    border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink)}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .row>*{flex:1 1 auto}
+  .row button{flex:0 1 auto}
+  .templates{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .templates button{flex:1 1 30%;min-width:130px}
+  .stats{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
+  .stat{flex:1 1 90px;background:var(--amber-soft);border-radius:10px;
+    padding:9px 11px;text-align:center}
+  .stat b{display:block;font-size:1.25rem;line-height:1.2}
+  .stat span{font-size:.82rem;color:var(--muted)}
+  /* ---------- 3. Outline list ---------- */
+  .item{border:1px solid var(--line);border-radius:12px;padding:11px;margin-bottom:10px;
+    background:#fff}
+  .item.off{opacity:.55}
+  .item.off .title-input{text-decoration:line-through;color:var(--muted)}
+  .item-top{display:flex;gap:8px;align-items:center}
+  .item-top .title-input{flex:1 1 140px;min-width:120px}
+  .item-top button{width:44px;padding:0;font-size:1.15rem}
+  .include{width:28px;height:28px;flex:0 0 28px;accent-color:var(--sage);cursor:pointer}
+  .detail-input{margin-top:8px}
+  .item-foot{margin-top:8px;display:flex;gap:8px;align-items:center}
+  .item-foot button{flex:1 1 auto}
+  .sr{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+  /* ---------- 4. Preview ---------- */
+  #preview{white-space:pre-wrap;word-break:break-word;background:#fff;
+    border:1px solid var(--line);border-radius:12px;padding:16px;min-height:220px;
+    font-size:1rem}
+  #preview .empty{color:var(--muted)}
+  #msg{min-height:1.5em;font-weight:600;margin:0 0 10px}
+  #msg.ok{color:var(--sage)} #msg.err{color:var(--red)}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .actions button{flex:1 1 40%;min-width:150px}
+  .foot{color:var(--muted);font-size:.88rem;margin-top:14px}
+  @media (prefers-reduced-motion:reduce){ *{transition:none !important} }
+</style>
+</head>
+<body>
+<header>
+  <h1>OUTLINE <span>—</span> Proposal &amp; SOW Outline Builder</h1>
+  <p class="sub">Toggle sections on or off, reorder them, and watch a clean,
+  numbered outline write itself. Nothing here is graded or rejected — any
+  title you type becomes part of your outline.</p>
+</header>
+
+<main>
+  <!-- ================= BUILDER ================= -->
+  <section class="card" aria-label="Outline builder">
+    <h2>1 · Build your outline</h2>
+    <p class="hint">Start from a template, then toggle, rename, reorder or
+    delete sections. Your work autosaves in this browser.</p>
+
+    <div class="templates" role="group" aria-label="Templates">
+      <button type="button" data-template="proposal">Consulting proposal</button>
+      <button type="button" data-template="sow">Statement of work</button>
+      <button type="button" data-template="brief">Project brief</button>
+    </div>
+
+    <div class="stats" aria-live="polite">
+      <div class="stat"><b id="stat-included">0</b><span>sections included</span></div>
+      <div class="stat"><b id="stat-total">0</b><span>sections total</span></div>
+      <div class="stat"><b id="stat-words">0</b><span>words in outline</span></div>
+    </div>
+
+    <label class="sr" for="doc-title">Document title</label>
+    <input id="doc-title" type="text" value="Consulting Proposal — Outline"
+      aria-label="Document title" maxlength="200">
+
+    <div id="list" style="margin-top:14px" aria-label="Outline sections"></div>
+
+    <h2 style="margin-top:18px">Add your own section</h2>
+    <label class="sr" for="new-title">New section title</label>
+    <input id="new-title" type="text" placeholder="Section title, e.g. Success measures" maxlength="200">
+    <label class="sr" for="new-detail">New section detail</label>
+    <input id="new-detail" type="text" placeholder="Detail or talking point (optional)" maxlength="500"
+      style="margin-top:8px">
+    <div class="row" style="margin-top:10px">
+      <button type="button" class="sage" id="add-btn">Add section</button>
+      <button type="button" id="reset-btn">Reset to sample</button>
+    </div>
+  </section>
+
+  <!-- ================= PREVIEW & EXPORT ================= -->
+  <section class="card" aria-label="Outline preview and export">
+    <h2>2 · Live preview</h2>
+    <p id="msg" aria-live="polite"></p>
+    <div id="preview"></div>
+    <div class="actions">
+      <button type="button" class="primary" id="copy-btn">Copy outline</button>
+      <button type="button" id="md-btn">Download .md</button>
+      <button type="button" id="txt-btn">Download .txt</button>
+      <button type="button" id="save-btn">Save JSON</button>
+      <button type="button" id="open-btn">Open JSON</button>
+      <input type="file" id="file-input" accept=".json,application/json" hidden>
+    </div>
+    <p class="foot">Keyboard (outside text fields): <b>S</b> saves JSON,
+    <b>O</b> opens a JSON file. Each key does exactly one thing.
+    Opened files are fully checked first — a bad file is rejected and
+    your current outline stays exactly as it was.</p>
+  </section>
+</main>
+
+<script>
+"use strict";
+/* ================= 5. Data & templates ================= */
+var STORAGE_KEY = "outline-builder-v1";
+var nextId = 1;
+function makeSection(title, detail, included){
+  return { id: nextId++, title: title, detail: detail || "", included: included !== false };
+}
+var TEMPLATES = {
+  proposal: [
+    ["Background & problem", "What is broken, and what it costs to leave it alone."],
+    ["Proposed approach", "How we will solve it, in plain language."],
+    ["Scope of work", "What is included — and what is explicitly out of scope."],
+    ["Deliverables", "The concrete things you will receive."],
+    ["Timeline", "Phases, milestones and key dates."],
+    ["Investment", "Fees, payment schedule and what affects the price."],
+    ["About us", "Why we are a safe pair of hands for this work."],
+    ["Next steps", "The one decision needed to start, and by when."]
+  ],
+  sow: [
+    ["Purpose", "Why this work exists and what success looks like."],
+    ["Scope of services", "The services covered, in specific terms."],
+    ["Deliverables & milestones", "Each deliverable and when it is due."],
+    ["Client responsibilities", "What we need from you, and by when."],
+    ["Timeline", "Start date, phases and completion target."],
+    ["Fees & payment", "Amounts, schedule and invoicing terms."],
+    ["Acceptance", "How deliverables are reviewed and accepted."],
+    ["Terms", "Confidentiality, liability and governing terms (see MSA)."]
+  ],
+  brief: [
+    ["Goal", "The single outcome this project must deliver."],
+    ["Audience", "Who this is for, and what they need."],
+    ["Key messages", "The three things they must take away."],
+    ["Scope", "What we are making, and what we are not."],
+    ["Timeline & budget", "Dates that matter and the budget envelope."],
+    ["Success measures", "How we will know it worked."]
+  ]
+};
+var sections = TEMPLATES.proposal.map(function (s){
+  return makeSection(s[0], s[1], true);
+});
+var docTitle = "Consulting Proposal — Outline";
+
+/* ================= 6. Validation (pure — safe to test alone) ================= */
+function validateOutlineData(data){
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    return { ok: false, error: "That file is not an outline (expected an object)." };
+  }
+  if (!Array.isArray(data.sections)) {
+    return { ok: false, error: "That file has no sections list to load." };
+  }
+  if (data.sections.length > 100) {
+    return { ok: false, error: "That file has too many sections (max 100)." };
+  }
+  var clean = [];
+  for (var i = 0; i < data.sections.length; i++) {
+    var s = data.sections[i];
+    if (!s || typeof s !== "object" || Array.isArray(s)) {
+      return { ok: false, error: "Section " + (i + 1) + " is not valid." };
+    }
+    if (typeof s.title !== "string" || !s.title.trim() || s.title.length > 200) {
+      return { ok: false, error: "Section " + (i + 1) + " needs a title (max 200 characters)." };
+    }
+    if (s.detail !== undefined && (typeof s.detail !== "string" || s.detail.length > 500)) {
+      return { ok: false, error: "Section " + (i + 1) + " has an invalid detail." };
+    }
+    if (typeof s.included !== "boolean") {
+      return { ok: false, error: "Section " + (i + 1) + " needs a true/false included flag." };
+    }
+    clean.push({ id: nextId++, title: s.title.trim(),
+      detail: (s.detail || "").trim(), included: s.included });
+  }
+  var title = "Untitled Outline";
+  if (data.docTitle !== undefined) {
+    if (typeof data.docTitle !== "string" || !data.docTitle.trim() || data.docTitle.length > 200) {
+      return { ok: false, error: "The document title in that file is not valid." };
+    }
+    title = data.docTitle.trim();
+  }
+  return { ok: true, sections: clean, docTitle: title };
+}
+
+/* ================= 7. Render ================= */
+var listEl = document.getElementById("list");
+var previewEl = document.getElementById("preview");
+var msgEl = document.getElementById("msg");
+function showMsg(text, kind){
+  msgEl.textContent = text;
+  msgEl.className = kind || "";
+}
+function esc(s){
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+function buildText(){
+  var lines = [docTitle, "", ""];
+  var included = sections.filter(function (s){ return s.included; });
+  if (!included.length) return { text: "", included: included };
+  included.forEach(function (s, i){
+    lines.push((i + 1) + ". " + s.title);
+    if (s.detail) lines.push("   " + s.detail);
+  });
+  return { text: lines.join("\n").replace(/\n+$/, "\n"), included: included };
+}
+function render(){
+  listEl.innerHTML = "";
+  sections.forEach(function (s, idx){
+    var wrap = document.createElement("div");
+    wrap.className = "item" + (s.included ? "" : " off");
+    wrap.innerHTML =
+      '<div class="item-top">' +
+        '<input class="include" type="checkbox" aria-label="Include ' + esc(s.title) + '"' +
+          (s.included ? " checked" : "") + ">" +
+        '<input class="title-input" type="text" value="' + esc(s.title) + '" maxlength="200" aria-label="Section title">' +
+        '<button type="button" class="up-btn" title="Move up" aria-label="Move section up">↑</button>' +
+        '<button type="button" class="down-btn" title="Move down" aria-label="Move section down">↓</button>' +
+      "</div>" +
+      '<input class="detail-input" type="text" value="' + esc(s.detail) + '" maxlength="500" ' +
+        'placeholder="Detail or talking point (optional)" aria-label="Section detail">' +
+      '<div class="item-foot"><button type="button" class="del-btn danger">Remove section</button></div>';
+    wrap.querySelector(".include").addEventListener("change", function (e){
+      s.included = e.target.checked; saveLocal(); render();
+    });
+    wrap.querySelector(".title-input").addEventListener("input", function (e){
+      s.title = e.target.value; saveLocal(); renderPreviewOnly();
+    });
+    wrap.querySelector(".detail-input").addEventListener("input", function (e){
+      s.detail = e.target.value; saveLocal(); renderPreviewOnly();
+    });
+    wrap.querySelector(".up-btn").addEventListener("click", function (){
+      if (idx > 0) { sections.splice(idx, 1); sections.splice(idx - 1, 0, s); saveLocal(); render(); }
+    });
+    wrap.querySelector(".down-btn").addEventListener("click", function (){
+      if (idx < sections.length - 1) { sections.splice(idx, 1); sections.splice(idx + 1, 0, s); saveLocal(); render(); }
+    });
+    wrap.querySelector(".del-btn").addEventListener("click", function (){
+      sections.splice(idx, 1); saveLocal(); render(); showMsg("Section removed.", "ok");
+    });
+    listEl.appendChild(wrap);
+  });
+  renderPreviewOnly();
+  document.getElementById("stat-total").textContent = sections.length;
+}
+function renderPreviewOnly(){
+  var built = buildText();
+  var included = built.included;
+  document.getElementById("stat-included").textContent = included.length;
+  document.getElementById("stat-words").textContent =
+    built.text ? built.text.trim().split(/\s+/).length : 0;
+  if (!included.length) {
+    previewEl.innerHTML = '<p class="empty">No sections are included yet.<br>' +
+      "Tick a section on the left to add it to your outline, or add a new one below.</p>";
+  } else {
+    previewEl.textContent = built.text;
+  }
+  var hasAny = included.length > 0;
+  ["copy-btn", "md-btn", "txt-btn"].forEach(function (id){
+    document.getElementById(id).disabled = !hasAny;
+  });
+}
+
+/* ================= 8. Persistence (local + JSON files) ================= */
+function saveLocal(){
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ docTitle: docTitle, sections: sections }));
+  } catch (e) { /* private mode: export still works */ }
+}
+function loadLocal(){
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    var checked = validateOutlineData(JSON.parse(raw));
+    if (checked.ok) { sections = checked.sections; docTitle = checked.docTitle;
+      document.getElementById("doc-title").value = docTitle; }
+  } catch (e) { /* corrupt autosave: keep the sample */ }
+}
+function download(filename, text, type){
+  var blob = new Blob([text], { type: type || "text/plain;charset=utf-8" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function (){ URL.revokeObjectURL(a.href); }, 500);
+}
+function toMarkdown(){
+  var built = buildText();
+  var out = ["# " + docTitle, ""];
+  built.included.forEach(function (s, i){
+    out.push((i + 1) + ". **" + s.title + "**");
+    if (s.detail) out.push("   " + s.detail);
+  });
+  return out.join("\n") + "\n";
+}
+
+/* ================= 9. Wire-up ================= */
+document.querySelectorAll("[data-template]").forEach(function (btn){
+  btn.addEventListener("click", function (){
+    sections = TEMPLATES[btn.dataset.template].map(function (s){
+      return makeSection(s[0], s[1], true);
+    });
+    saveLocal(); render();
+    showMsg("Template loaded — toggle or reorder it to make it yours.", "ok");
+  });
+});
+document.getElementById("doc-title").addEventListener("input", function (e){
+  docTitle = e.target.value; saveLocal(); renderPreviewOnly();
+});
+document.getElementById("add-btn").addEventListener("click", function (){
+  var t = document.getElementById("new-title").value.trim();
+  var d = document.getElementById("new-detail").value.trim();
+  if (!t) { showMsg("Give the new section a title first.", "err"); return; }
+  sections.push(makeSection(t, d, true));
+  document.getElementById("new-title").value = "";
+  document.getElementById("new-detail").value = "";
+  saveLocal(); render(); showMsg("Section added.", "ok");
+});
+document.getElementById("reset-btn").addEventListener("click", function (){
+  sections = TEMPLATES.proposal.map(function (s){ return makeSection(s[0], s[1], true); });
+  docTitle = "Consulting Proposal — Outline";
+  document.getElementById("doc-title").value = docTitle;
+  saveLocal(); render(); showMsg("Sample outline restored.", "ok");
+});
+document.getElementById("copy-btn").addEventListener("click", function (){
+  var text = buildText().text;
+  if (!text) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function (){
+      showMsg("Outline copied to clipboard.", "ok");
+    }, function (){ showMsg("Copy was blocked — use Download instead.", "err"); });
+  } else { showMsg("Clipboard is unavailable — use Download instead.", "err"); }
+});
+document.getElementById("md-btn").addEventListener("click", function (){
+  if (!buildText().included.length) return;
+  download("outline.md", toMarkdown(), "text/markdown;charset=utf-8");
+  showMsg("Markdown outline downloaded.", "ok");
+});
+document.getElementById("txt-btn").addEventListener("click", function (){
+  if (!buildText().included.length) return;
+  download("outline.txt", buildText().text, "text/plain;charset=utf-8");
+  showMsg("Text outline downloaded.", "ok");
+});
+function doSave(){
+  download("outline.json", JSON.stringify(
+    { docTitle: docTitle, sections: sections }, null, 2), "application/json;charset=utf-8");
+  showMsg("Outline saved as JSON.", "ok");
+}
+document.getElementById("save-btn").addEventListener("click", doSave);
+document.getElementById("open-btn").addEventListener("click", function (){
+  document.getElementById("file-input").click();
+});
+document.getElementById("file-input").addEventListener("change", function (e){
+  var file = e.target.files && e.target.files[0];
+  e.target.value = "";
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function (){
+    var checked;
+    try { checked = validateOutlineData(JSON.parse(reader.result)); }
+    catch (err) { showMsg("That file is not valid JSON — your outline is unchanged.", "err"); return; }
+    if (!checked.ok) { showMsg(checked.error + " Your outline is unchanged.", "err"); return; }
+    sections = checked.sections; docTitle = checked.docTitle;
+    document.getElementById("doc-title").value = docTitle;
+    saveLocal(); render(); showMsg("Outline loaded.", "ok");
+  };
+  reader.onerror = function (){ showMsg("Could not read that file — your outline is unchanged.", "err"); };
+  reader.readAsText(file);
+});
+/* Single-function keys, only outside text fields: S saves, O opens. */
+document.addEventListener("keydown", function (e){
+  var tag = (e.target && e.target.tagName) || "";
+  if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === "s" || e.key === "S") { e.preventDefault(); doSave(); }
+  else if (e.key === "o" || e.key === "O") { document.getElementById("file-input").click(); }
+});
+
+/* ================= 10. Start ================= */
+loadLocal();
+render();
+</script>
+</body>
+</html>

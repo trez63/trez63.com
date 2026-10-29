@@ -12,6 +12,62 @@
     <description>Paste raw log lines in any format and it clusters them into message templates with the variable parts marked as slots, so thousands of lines collapse to a short list you can filter by level and sort by frequency. Drag across the timeline to see which templates spike or first appear in that window; tap one for its slot values, sample lines and a ready-made regex; export templates as CSV.</description>
   </item>
   <item>
+    <title>CanvasForge (Grok)</title>
+    <link>https://trez63.com/p/canvasforge.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/canvasforge.html</guid>
+    <pubDate>Thu, 29 Oct 2026 12:00:00 +0000</pubDate>
+    <description>A Business Model Canvas you fill in block by block. Add, edit and remove items across the nine blocks, watch the completeness score climb, and it writes a one-paragraph pitch from your segments, value propositions and revenue streams. Save and reopen as JSON.</description>
+  </item>
+  <item>
+    <title>Rail (Claude)</title>
+    <link>https://trez63.com/p/rail.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/rail.html</guid>
+    <pubDate>Thu, 29 Oct 2026 12:00:00 +0000</pubDate>
+    <description>Type a regular expression and it draws it as a railroad diagram you can read left to right. Paste test text to see every match highlighted, tap any box in the diagram to see which characters that part captured, read a plain-English breakdown, and preview a replacement live.</description>
+  </item>
+  <item>
+    <title>CipherVault (Gemini)</title>
+    <link>https://trez63.com/p/ciphervault.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/ciphervault.html</guid>
+    <pubDate>Thu, 29 Oct 2026 12:00:00 +0000</pubDate>
+    <description>A small vault for secrets that never leaves the browser. Type a master passphrase, add named API keys, database credentials or tokens, and each is encrypted with AES-GCM; clear or change the passphrase and they turn back into ciphertext. Includes a high-entropy key generator and saves the encrypted vault as JSON.</description>
+  </item>
+  <item>
+    <title>DocuForge (Gemini)</title>
+    <link>https://trez63.com/p/docuforge.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/docuforge.html</guid>
+    <pubDate>Thu, 29 Oct 2026 12:00:00 +0000</pubDate>
+    <description>Lay out a one-page document on a canvas: drag text blocks into place, edit their text and size, fill in template variables like client, invoice number and total that substitute into any block that references them, then print it to PDF. Save the layout as JSON.</description>
+  </item>
+  <item>
+    <title>Launchstamp (ChatGPT)</title>
+    <link>https://trez63.com/p/launchstamp.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/launchstamp.html</guid>
+    <pubDate>Thu, 29 Oct 2026 12:00:00 +0000</pubDate>
+    <description>Enter one destination URL and a campaign name, add a placement for each place the link will appear (newsletter, social post, partner email), and it builds the UTM-tagged URL for every placement, shows the anatomy of each, flags two placements that would produce the same link, and copies or exports the set as a launch sheet.</description>
+  </item>
+  <item>
+    <title>Next Touch (ChatGPT)</title>
+    <link>https://trez63.com/p/next-touch.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/next-touch.html</guid>
+    <pubDate>Thu, 29 Oct 2026 12:00:00 +0000</pubDate>
+    <description>A small follow-up desk: add the people you want to stay in touch with, give each a next action and a date, and it sorts them into due, later and undated. After you talk to someone, log the touch with a note and pick the next step; the history stays with that person. Save and reopen as JSON.</description>
+  </item>
+  <item>
+    <title>Outline Builder (Muse)</title>
+    <link>https://trez63.com/p/outline-builder.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/outline-builder.html</guid>
+    <pubDate>Thu, 29 Oct 2026 12:00:00 +0000</pubDate>
+    <description>Pick a template (consulting proposal, statement of work or project brief), tick sections on or off, rename and reorder them or add your own, and it writes a numbered outline in a live preview you can copy or download as Markdown, text or JSON.</description>
+  </item>
+  <item>
+    <title>Phish Spotter (Muse)</title>
+    <link>https://trez63.com/p/phish-spotter.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/phish-spotter.html</guid>
+    <pubDate>Thu, 29 Oct 2026 12:00:00 +0000</pubDate>
+    <description>A deck of fourteen made-up emails, texts and chat messages. Swipe or press a button to call each one phish or legit, and after every verdict it tells you the tells you should have spotted (lookalike domains, urgency, odd requests) and keeps your score and streak.</description>
+  </item>
+  <item>
     <title>Veil (Claude)</title>
     <link>https://trez63.com/p/veil.html</link>
     <guid isPermaLink="true">https://trez63.com/p/veil.html</guid>

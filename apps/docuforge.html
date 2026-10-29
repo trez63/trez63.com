@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DocuForge Studio — Visual Document Engine</title>
+    <style>
+        :root {
+            --bg: #0f172a; --panel: #1e293b; --card: #334155; --border: #475569;
+            --text: #f8fafc; --sub: #94a3b8; --accent: #8b5cf6; --accent-hover: #7c3aed;
+            --shadow: rgba(0,0,0,0.4);
+        }
+        [data-theme="light"] {
+            --bg: #f1f5f9; --panel: #ffffff; --card: #e2e8f0; --border: #cbd5e1;
+            --text: #0f172a; --sub: #64748b; --accent: #7c3aed; --accent-hover: #6d28d9;
+            --shadow: rgba(0,0,0,0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+
+        header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .brand { font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em; }
+        .brand-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+        .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        button, label.btn-label { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; user-select: none; transition: 0.15s; }
+        button:hover, label.btn-label:hover { border-color: var(--accent); color: var(--accent); }
+        button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+        button.primary:hover { background: var(--accent-hover); color: #fff; }
+        input[type="file"] { display: none; }
+
+        main { flex: 1; display: grid; grid-template-columns: 320px 1fr; gap: 16px; padding: 16px; max-width: 1400px; width: 100%; margin: 0 auto; }
+        .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; box-shadow: 0 4px 6px var(--shadow); display: flex; flex-direction: column; gap: 14px; }
+        .section-title { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sub); display: flex; justify-content: space-between; align-items: center; }
+
+        /* Canvas Workspace */
+        .stage-container { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: auto; position: relative; min-height: 500px; }
+        canvas { background: #ffffff; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border-radius: 4px; max-width: 100%; height: auto; cursor: crosshair; }
+
+        /* Elements & Tokens */
+        .element-list { display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto; }
+        .element-card { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; cursor: pointer; }
+        .element-card.active { border-color: var(--accent); background: rgba(139, 92, 246, 0.15); }
+
+        .form-group { margin-bottom: 10px; }
+        .form-group label { display: block; font-size: 0.78rem; color: var(--sub); margin-bottom: 4px; font-weight: 500; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 7px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.85rem; outline: none; }
+        .form-group input:focus { border-color: var(--accent); }
+
+        /* Modals */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 200; padding: 16px; }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 440px; padding: 20px; box-shadow: 0 20px 25px -5px var(--shadow); }
+        .modal h3 { font-size: 1.1rem; margin-bottom: 12px; }
+
+        .shortcut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem; margin: 12px 0 16px; }
+        .shortcut-row { display: flex; justify-content: space-between; background: var(--card); padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border); }
+        kbd { background: var(--panel); border: 1px solid var(--border); padding: 1px 5px; border-radius: 3px; font-weight: 600; font-size: 0.75rem; }
+
+        @media (max-width: 850px) {
+            header { flex-direction: column; align-items: stretch; }
+            .actions { justify-content: space-between; }
+            main { grid-template-columns: 1fr; padding: 8px; }
+            .stage-container { min-height: 380px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand"><div class="brand-dot"></div> DocuForge Studio</div>
+        <div class="actions">
+            <button id="addTextBtn" class="primary">＋ Add Text Block</button>
+            <button id="exportPdfBtn">🖨 Export / Print PDF</button>
+            <button id="saveBtn">💾 Save JSON</button>
+            <label class="btn-label" for="openFile">📂 Open JSON</label>
+            <input type="file" id="openFile" accept=".json">
+            <button id="themeBtn">🌓 Theme</button>
+            <button id="helpBtn">❓ Help</button>
+        </div>
+    </header>
+
+    <main>
+        <!-- Document Property Controls -->
+        <div class="panel">
+            <div class="section-title"><span>Template Variables</span></div>
+            <div class="form-group"><label>Client Name ({{CLIENT}})</label><input type="text" id="tokenClient" value="Acme Cybernetics Corp"></div>
+            <div class="form-group"><label>Invoice ID ({{INV_ID}})</label><input type="text" id="tokenInv" value="INV-2026-0891"></div>
+            <div class="form-group"><label>Total Amount ({{TOTAL}})</label><input type="text" id="tokenTotal" value="$14,850.00"></div>
+
+            <div class="section-title" style="margin-top: 10px;"><span>Layout Elements</span></div>
+            <div class="element-list" id="elementList"></div>
+
+            <div class="form-group" style="margin-top: 10px;"><label>Selected Text Content</label><textarea id="selectedText" rows="3"></textarea></div>
+            <div class="form-group"><label>Font Size (px)</label><input type="number" id="selectedSize" min="10" max="72"></div>
+        </div>
+
+        <!-- Canvas Rendering Workspace -->
+        <div class="stage-container">
+            <canvas id="docCanvas" width="600" height="800"></canvas>
+        </div>
+    </main>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal">
+            <h3>DocuForge Guide & Shortcuts</h3>
+            <p style="font-size:0.85rem; color:var(--sub); line-height:1.4; margin-bottom:10px;">Zero-dependency visual document compiler with canvas rendering, dynamic token binding, and local PDF export.</p>
+            <div class="shortcut-grid">
+                <div class="shortcut-row"><span>Add Block</span> <kbd>N</kbd></div>
+                <div class="shortcut-row"><span>Print / PDF</span> <kbd>P</kbd></div>
+                <div class="shortcut-row"><span>Save JSON</span> <kbd>S</kbd></div>
+                <div class="shortcut-row"><span>Open JSON</span> <kbd>O</kbd></div>
+                <div class="shortcut-row"><span>Toggle Theme</span> <kbd>T</kbd></div>
+                <div class="shortcut-row"><span>Close Modal</span> <kbd>Esc</kbd></div>
+            </div>
+            <button id="closeHelpBtn" class="primary" style="width:100%; justify-content:center; margin-top:10px;">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        // --- State Management ---
+        let docState = {
+            tokens: { CLIENT: 'Acme Cybernetics Corp', INV_ID: 'INV-2026-0891', TOTAL: '$14,850.00' },
+            elements: [
+                { id: 'el1', type: 'header', text: 'STATEMENT OF WORK & INVOICE', x: 40, y: 60, size: 22, color: '#7c3aed', isBold: true },
+                { id: 'el2', type: 'text', text: 'Prepared for: {{CLIENT}}', x: 40, y: 110, size: 14, color: '#1e293b', isBold: false },
+                { id: 'el3', type: 'text', text: 'Invoice Number: {{INV_ID}}', x: 40, y: 135, size: 13, color: '#64748b', isBold: false },
+                { id: 'el4', type: 'line', x: 40, y: 160, x2: 560, y2: 160, color: '#cbd5e1' },
+                { id: 'el5', type: 'text', text: 'Description of Services Rendered:', x: 40, y: 195, size: 14, color: '#0f172a', isBold: true },
+                { id: 'el6', type: 'text', text: '• Custom Enterprise API Integration\n• Cloud Infrastructure Load Balancing\n• Web Security Penetration Audit', x: 50, y: 225, size: 13, color: '#334155', isBold: false },
+                { id: 'el7', type: 'text', text: 'Total Balance Due: {{TOTAL}}', x: 40, y: 320, size: 18, color: '#059669', isBold: true }
+            ]
+        };
+
+        let selectedId = 'el1';
+        let isDragging = false;
+        let dragOffset = { x: 0, y: 0 };
+
+        const canvas = document.getElementById('docCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // --- Render Engine ---
+        function renderDocument() {
+            // Background canvas reset
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Border frame decoration
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(15, 15, canvas.width - 30, canvas.height - 30);
+
+            docState.elements.forEach(el => {
+                ctx.fillStyle = el.color || '#000000';
+                ctx.strokeStyle = el.color || '#000000';
+
+                if (el.type === 'line') {
+                    ctx.beginPath();
+                    ctx.moveTo(el.x, el.y);
+                    ctx.lineTo(el.x2, el.y2);
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                } else {
+                    let parsedText = el.text
+                        .replace('{{CLIENT}}', docState.tokens.CLIENT)
+                        .replace('{{INV_ID}}', docState.tokens.INV_ID)
+                        .replace('{{TOTAL}}', docState.tokens.TOTAL);
+
+                    ctx.font = `${el.isBold ? 'bold ' : ''}${el.size || 14}px system-ui, -apple-system, sans-serif`;
+                    
+                    const lines = parsedText.split('\n');
+                    lines.forEach((line, idx) => {
+                        ctx.fillText(line, el.x, el.y + (idx * ((el.size || 14) + 6)));
+                    });
+
+                    if (el.id === selectedId) {
+                        ctx.strokeStyle = '#8b5cf6';
+                        ctx.lineWidth = 1;
+                        ctx.setLineDash([4, 4]);
+                        ctx.strokeRect(el.x - 4, el.y - el.size, 300, (el.size + 6) * lines.length);
+                        ctx.setLineDash([]);
+                    }
+                }
+            });
+
+            renderElementList();
+        }
+
+        function renderElementList() {
+            const listEl = document.getElementById('elementList');
+            listEl.innerHTML = docState.elements.map(el => `
+                <div class="element-card ${el.id === selectedId ? 'active' : ''}" onclick="selectElement('${el.id}')">
+                    <span>${el.type.toUpperCase()}: ${escapeHtml(el.text ? el.text.slice(0, 18) : 'Line')}</span>
+                    <button onclick="deleteElement(event, '${el.id}')" style="padding:2px 6px; font-size:0.7rem; color:#ef4444; border-color:#ef4444;">✕</button>
+                </div>
+            `).join('');
+
+            const selected = docState.elements.find(e => e.id === selectedId);
+            if (selected && selected.text) {
+                document.getElementById('selectedText').value = selected.text;
+                document.getElementById('selectedSize').value = selected.size || 14;
+            }
+        }
+
+        function selectElement(id) {
+            selectedId = id;
+            renderDocument();
+        }
+
+        function deleteElement(e, id) {
+            e.stopPropagation();
+            docState.elements = docState.elements.filter(el => el.id !== id);
+            if (selectedId === id) selectedId = docState.elements[0]?.id || null;
+            renderDocument();
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag]));
+        }
+
+        // --- Drag & Touch Mechanics ---
+        function getCanvasCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+        }
+
+        canvas.addEventListener('mousedown', startDrag);
+        canvas.addEventListener('touchstart', startDrag, { passive: false });
+
+        function startDrag(e) {
+            const pos = getCanvasCoords(e);
+            const clicked = docState.elements.slice().reverse().find(el => {
+                if (el.type === 'line') return false;
+                return pos.x >= el.x - 10 && pos.x <= el.x + 300 && pos.y >= el.y - el.size - 5 && pos.y <= el.y + 20;
+            });
+
+            if (clicked) {
+                selectedId = clicked.id;
+                isDragging = true;
+                dragOffset = { x: pos.x - clicked.x, y: pos.y - clicked.y };
+                renderDocument();
+            }
+        }
+
+        window.addEventListener('mousemove', drag);
+        window.addEventListener('touchmove', drag, { passive: false });
+
+        function drag(e) {
+            if (!isDragging) return;
+            if (e.touches) e.preventDefault();
+            const pos = getCanvasCoords(e);
+            const selected = docState.elements.find(el => el.id === selectedId);
+            if (selected) {
+                selected.x = Math.max(10, Math.round(pos.x - dragOffset.x));
+                selected.y = Math.max(20, Math.round(pos.y - dragOffset.y));
+                renderDocument();
+            }
+        }
+
+        window.addEventListener('mouseup', () => isDragging = false);
+        window.addEventListener('touchend', () => isDragging = false);
+
+        // --- Live Property Editing ---
+        document.getElementById('tokenClient').addEventListener('input', e => { docState.tokens.CLIENT = e.target.value; renderDocument(); });
+        document.getElementById('tokenInv').addEventListener('input', e => { docState.tokens.INV_ID = e.target.value; renderDocument(); });
+        document.getElementById('tokenTotal').addEventListener('input', e => { docState.tokens.TOTAL = e.target.value; renderDocument(); });
+
+        document.getElementById('selectedText').addEventListener('input', e => {
+            const selected = docState.elements.find(el => el.id === selectedId);
+            if (selected) { selected.text = e.target.value; renderDocument(); }
+        });
+
+        document.getElementById('selectedSize').addEventListener('input', e => {
+            const selected = docState.elements.find(el => el.id === selectedId);
+            if (selected) { selected.size = parseInt(e.target.value) || 14; renderDocument(); }
+        });
+
+        document.getElementById('addTextBtn').addEventListener('click', () => {
+            const newId = 'el_' + Date.now();
+            docState.elements.push({ id: newId, type: 'text', text: 'New Document Field', x: 40, y: 400, size: 14, color: '#1e293b', isBold: false });
+            selectedId = newId;
+            renderDocument();
+        });
+
+        // --- Export & Print PDF ---
+        document.getElementById('exportPdfBtn').addEventListener('click', () => {
+            const win = window.open('', '_blank');
+            win.document.write(`<html><head><title>DocuForge Print</title></head><body style="margin:0;display:flex;justify-content:center;align-items:center;"><img src="${canvas.toDataURL()}" style="max-width:100%;"/></body></html>`);
+            setTimeout(() => { win.print(); }, 250);
+        });
+
+        // --- Save and Open JSON State ---
+        document.getElementById('saveBtn').addEventListener('click', exportJSON);
+        document.getElementById('openFile').addEventListener('change', importJSON);
+
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(docState, null, 2));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            a.setAttribute("download", `docuforge_template_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        function importJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const imported = JSON.parse(evt.target.result);
+                    if (imported.tokens && imported.elements) {
+                        docState = imported;
+                        selectedId = docState.elements[0]?.id || null;
+                        renderDocument();
+                    } else alert('Invalid JSON document structure.');
+                } catch(err) { alert('Error parsing file.'); }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Theme & Strict Keyboard Mapping ---
+        const helpModal = document.getElementById('helpModal');
+        document.getElementById('helpBtn').addEventListener('click', () => helpModal.classList.add('open'));
+        document.getElementById('closeHelpBtn').addEventListener('click', () => helpModal.classList.remove('open'));
+        document.getElementById('themeBtn').addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-theme');
+            document.documentElement.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+        });
+
+        // Strict single-key bindings with zero overlaps:
+        // N = Add Block, P = Print PDF, S = Save JSON, O = Open JSON, T = Toggle Theme, Esc = Close Modal
+        window.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+            const key = e.key.toLowerCase();
+            if (key === 'n') { e.preventDefault(); document.getElementById('addTextBtn').click(); }
+            if (key === 'p') { e.preventDefault(); document.getElementById('exportPdfBtn').click(); }
+            if (key === 's') { e.preventDefault(); exportJSON(); }
+            if (key === 'o') { e.preventDefault(); document.getElementById('openFile').click(); }
+            if (key === 't') { e.preventDefault(); document.getElementById('themeBtn').click(); }
+            if (e.key === 'Escape') helpModal.classList.remove('open');
+        });
+
+        // Initial Render
+        renderDocument();
+    </script>
+</body>
+</html>

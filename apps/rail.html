@@ -1,0 +1,429 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Daily Build 2026-10-29 — Rail</title>
+<style>
+:root{--bg:#f4f6f9;--panel:#fff;--ink:#1b2130;--mute:#66708a;--line:#d8dee8;--acc:#2458e6;--acc2:#dbe6ff;--lit:#e9fbf0;--litb:#17a65c;--cls:#fff5e3;--clsb:#e58f0b;--mark:#fde68a;--sub:#7fb3ff;--err:#d92d20;--grp:#7c5cf0}
+html[data-theme=dark]{--bg:#0e1117;--panel:#161b24;--ink:#e7eaf0;--mute:#8c95a8;--line:#2a3243;--acc:#6ea0ff;--acc2:#1f3470;--lit:#0f2d1e;--litb:#36d28a;--cls:#2d2310;--clsb:#f5b42a;--mark:#7a5a0a;--sub:#2a5bd7;--err:#ff7a6e;--grp:#a98cff}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);min-height:100dvh}
+header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:5}
+h1{font-size:19px;margin:0 4px 0 0;display:flex;align-items:baseline;gap:8px}
+h1 small{color:var(--mute);font-weight:400;font-size:12px}
+.sp{flex:1}
+button,select{min-height:44px;min-width:44px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);font:inherit;font-size:14px;cursor:pointer;touch-action:manipulation}
+button:active{background:var(--acc2)}
+button.pri{background:var(--acc);color:#fff;border-color:var(--acc)}
+main{display:grid;gap:12px;padding:12px;max-width:1200px;margin:0 auto}
+@media(min-width:900px){main{grid-template-columns:1fr 1fr}.full{grid-column:1/-1}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;min-width:0}
+.card h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);margin:0 0 8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:24px}
+.card h2 .sp{flex:1}
+.patrow{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.slash{font:600 22px ui-monospace,Menlo,monospace;color:var(--mute)}
+.pat{flex:1;min-width:180px;min-height:44px;font:16px ui-monospace,Menlo,Consolas,monospace;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);width:100%}
+.flags{display:flex;gap:4px}
+.flag{min-width:44px;padding:0;font:600 15px ui-monospace,Menlo,monospace}
+.flag.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.err{color:var(--err);font-size:13px;margin-top:6px;min-height:1.2em}
+.diagram{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
+.diagram svg{display:block;max-width:100%;height:auto}
+.diagram.scroll svg{max-width:none}
+.diagram.stale{opacity:.35}
+svg text{font:12px ui-monospace,Menlo,Consolas,monospace;fill:var(--ink);pointer-events:none}
+svg path{fill:none;stroke:var(--mute);stroke-width:1.5}
+svg .arr{fill:var(--mute);stroke:none}
+svg .node>rect{stroke-width:1.2;cursor:pointer}
+svg .lit>rect{fill:var(--lit);stroke:var(--litb)}
+svg .cls>rect{fill:var(--cls);stroke:var(--clsb)}
+svg .anc>rect{fill:var(--panel);stroke:var(--mute);stroke-dasharray:3 2}
+svg .grp>rect{fill:none;stroke:var(--grp);stroke-dasharray:4 3;pointer-events:all}
+svg .grp>text{fill:var(--grp);font-size:11px;text-anchor:start}
+svg .la>rect{stroke-dasharray:none}
+svg .sel rect{stroke:var(--acc)!important;stroke-width:2.5!important}
+svg .sel>rect{fill:var(--acc2)!important}
+svg .sel path{stroke:var(--acc)}
+svg .lbl{fill:var(--mute);font-size:11px}
+svg .end{fill:var(--ink)}
+.wrap{position:relative}
+.tx{font:16px/1.5 ui-monospace,Menlo,Consolas,monospace;padding:10px;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;margin:0;border:1px solid var(--line);border-radius:10px;width:100%;min-height:150px;max-height:50vh;overflow:auto;display:block;-webkit-appearance:none}
+.wrap pre.tx{position:absolute;inset:0;pointer-events:none;color:transparent;background:var(--bg);border-color:transparent}
+.wrap textarea.tx{position:relative;background:transparent;color:var(--ink);resize:vertical}
+mark{background:var(--mark);color:transparent;border-radius:3px}
+mark.sub{background:var(--sub)}
+mark.z{background:none;border-left:2px solid var(--err);margin-left:-2px}
+pre#rout{min-height:80px;max-height:40vh;margin-top:8px;background:var(--bg)}
+.tabs{display:flex;gap:4px;margin-bottom:8px}
+.tabs button{border-radius:8px;flex:1}
+.tabs button.on{background:var(--acc2);border-color:var(--acc)}
+.tab{overflow:auto;max-height:60vh}
+table{border-collapse:collapse;width:100%;font-size:13px}
+td,th{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top;font-family:ui-monospace,Menlo,monospace;word-break:break-word}
+th{color:var(--mute);font-weight:600;font-family:system-ui,sans-serif;position:sticky;top:0;background:var(--panel);white-space:nowrap}
+td.i{color:var(--mute)}
+@media(max-width:600px){ /* one card per match instead of a cramped grid */
+  table,tbody,tr,td{display:block}th{display:none}tr{border-bottom:2px solid var(--line);padding:6px 0}td{border:none;padding:3px 4px}
+  td::before{content:attr(data-l);color:var(--mute);font-family:system-ui,sans-serif;display:inline-block;min-width:64px;margin-right:6px}}
+.ex ul{list-style:none;padding-left:14px;margin:0;border-left:1px dashed var(--line)}
+.ex>ul{padding-left:0;border:none}
+.ex li{padding:1px 0}
+.ex .lbl{display:inline-flex;align-items:center;min-height:40px;padding:4px 10px;border-radius:8px;cursor:pointer}
+.ex .lbl:hover{background:var(--bg)}
+.ex .lbl.sel{background:var(--acc2);outline:1px solid var(--acc)}
+.ex code,.selinfo code{background:var(--bg);padding:1px 6px;border-radius:4px;font:13px ui-monospace,Menlo,monospace;border:1px solid var(--line)}
+.selinfo{display:flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;color:var(--ink)}
+.selinfo button{min-height:36px;min-width:44px;padding:0 10px}
+.muted{color:var(--mute)}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:20}
+.ov.on{display:flex}
+.ov .card{max-width:540px;width:100%;max-height:90dvh;overflow:auto}
+.ov h3{margin:0 0 8px}
+.ov p{margin:6px 0}
+kbd{font:12px ui-monospace,Menlo,monospace;background:var(--bg);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 6px;white-space:nowrap}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:10px 0}
+#toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw;z-index:30}
+#toast.on{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <h1>Rail <small>a regex you can read</small></h1>
+  <select id="recipes" aria-label="Recipes"><option value="">Recipes…</option></select>
+  <span class="sp"></span>
+  <button id="bFit" title="Fit diagram to width / actual size (F)">Fit</button>
+  <button id="bTheme" title="Toggle theme (T)">Dark</button>
+  <button id="bOpen" title="Open a saved .json (Ctrl/Cmd+O)">Open</button>
+  <button id="bSave" class="pri" title="Save as .json (Ctrl/Cmd+S)">Save</button>
+  <button id="bHelp" title="Help (Ctrl/Cmd+/)">?</button>
+  <input type="file" id="file" accept=".json,application/json" hidden>
+</header>
+<main>
+  <section class="card full">
+    <div class="patrow"><span class="slash">/</span><input id="pat" class="pat" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off" aria-label="Regular expression"><span class="slash">/</span><div class="flags" id="flags"></div></div>
+    <div class="err" id="err"></div>
+  </section>
+  <section class="card full">
+    <h2>Diagram <span class="muted">— tap any box to see what it matched</span><span class="sp"></span><span class="selinfo" id="selinfo"></span></h2>
+    <div class="diagram" id="dia"></div>
+  </section>
+  <section class="card">
+    <h2>Test text <span id="count" class="muted"></span></h2>
+    <div class="wrap"><pre class="tx" id="hl" aria-hidden="true"></pre><textarea class="tx" id="tx" rows="7" spellcheck="false" autocapitalize="off" autocorrect="off" aria-label="Test text"></textarea></div>
+  </section>
+  <section class="card">
+    <div class="tabs"><button data-tab="matches" class="on">Matches</button><button data-tab="explain">Explain</button><button data-tab="replace">Replace</button></div>
+    <div id="tab-matches" class="tab"></div>
+    <div id="tab-explain" class="tab ex" hidden></div>
+    <div id="tab-replace" class="tab" hidden><input id="repl" class="pat" placeholder="Replacement — $1, $&lt;name&gt;, $&amp;" spellcheck="false" autocapitalize="off" aria-label="Replacement"><pre id="rout" class="tx"></pre></div>
+  </section>
+</main>
+<div class="ov" id="help"><div class="card">
+  <h3>Rail</h3>
+  <p>Type a regular expression and Rail draws it as a railroad diagram: follow any path from the left dot to the right dot and you have a string it matches. Tap a box in the diagram or a line in <b>Explain</b> and the test text shows, in blue, exactly which characters that part captured in every match.</p>
+  <p><b>Flags</b> g i m s u y are the usual JavaScript flags. <b>Replace</b> previews <code>text.replace()</code> live. <b>Recipes</b> load ready-made patterns.</p>
+  <div class="keys">
+    <kbd>Ctrl/⌘ /</kbd><span>this help</span>
+    <kbd>Ctrl/⌘ S</kbd><span>save pattern, flags, text and replacement as .json</span>
+    <kbd>Ctrl/⌘ O</kbd><span>open a saved .json</span>
+    <kbd>Esc</kbd><span>close help, or clear the selection</span>
+    <kbd>T</kbd><span>toggle dark / light</span>
+    <kbd>F</kbd><span>fit diagram to width / actual size</span>
+    <kbd>1 · 2 · 3</kbd><span>Matches · Explain · Replace tab</span>
+  </div>
+  <p class="muted">Single-letter keys only work while you are not typing in a field. Save downloads a file when Rail is opened directly (double-click the .html); some embedded viewers block downloads. Nothing leaves your browser.</p>
+  <p><button id="bClose" class="pri">Close</button></p>
+</div></div>
+<div id="toast"></div>
+<script>
+'use strict';
+/* ===================== pure logic (no DOM) ===================== */
+const ESC={d:'digit',D:'non-digit',w:'word char',W:'non-word',s:'space',S:'non-space',n:'newline',t:'tab',r:'return',f:'form feed',v:'vtab',0:'NUL'};
+const ESCLONG={d:'a digit (0–9)',D:'anything but a digit',w:'a word character (letter, digit or _)',W:'anything but a word character',s:'a whitespace character',S:'anything but whitespace',n:'a newline',t:'a tab',r:'a carriage return',f:'a form feed',v:'a vertical tab',0:'a NUL character'};
+const escHtml=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const show=ch=>ch===' '?'␣':ch==='\n'?'\\n':ch==='\t'?'\\t':ch;
+const kids=n=>n.t==='alt'?n.alts:n.t==='seq'?n.items:n.body?[n.body]:[];
+
+/* Recursive-descent parser for JavaScript regex syntax. Every node keeps its
+   source span [a,b) so the pattern can be re-emitted with one node wrapped. */
+function parse(src){
+  let i=0,groups=0,nid=0;
+  const N=o=>Object.assign({id:nid++},o);
+  const fail=(m,at)=>{const e=new Error(m);e.at=at;throw e};
+  function alt(){const a=i,alts=[seq()];while(src[i]==='|'){i++;alts.push(seq())}return alts.length>1?N({t:'alt',alts,a,b:i}):alts[0]}
+  function seq(){const a=i,items=[];
+    while(i<src.length&&src[i]!=='|'&&src[i]!==')'){const it=quant(atom()),p=items[items.length-1];
+      if(it.t==='lit'&&p&&p.t==='lit'){p.str+=it.str;p.b=it.b}else items.push(it)}
+    return N({t:'seq',items,a,b:i})}
+  function hexEsc(d){
+    if(d==='u'){if(src[i]==='{'){const j=src.indexOf('}',i);if(j<0)return 'u';const ch=String.fromCodePoint(parseInt(src.slice(i+1,j),16)||0);i=j+1;return ch}
+      const h=src.substr(i,4);if(/^[0-9a-f]{4}$/i.test(h)){i+=4;return String.fromCharCode(parseInt(h,16))}return 'u'}
+    if(d==='x'){const h=src.substr(i,2);if(/^[0-9a-f]{2}$/i.test(h)){i+=2;return String.fromCharCode(parseInt(h,16))}return 'x'}
+    return null}
+  function catom(){if(src[i]==='\\'){const d=src[i+1];i+=2;if(d in ESC)return{esc:d};const h=hexEsc(d);return h!==null?h:d}return src[i++]}
+  function atom(){const c=src[i],a=i;
+    if(c==='('){i++;let kind='cap',name=null;
+      if(src[i]==='?'){i++;
+        if(src[i]===':'){kind='nc';i++}else if(src[i]==='='){kind='la';i++}else if(src[i]==='!'){kind='nla';i++}
+        else if(src[i]==='<'){if(src[i+1]==='='){kind='lb';i+=2}else if(src[i+1]==='!'){kind='nlb';i+=2}
+          else{const j=src.indexOf('>',i);if(j<0)fail('Bad group name',i);name=src.slice(i+1,j);i=j+1}}
+        else fail('Unknown group syntax',i)}
+      const idx=kind==='cap'?++groups:null,body=alt();
+      if(src[i]!==')')fail('Missing )',a);i++;
+      return N({t:'group',kind,name,idx,body,a,b:i})}
+    if(c==='['){i++;const neg=src[i]==='^';if(neg)i++;const items=[];
+      while(i<src.length&&src[i]!==']'){const lo=catom();
+        if(src[i]==='-'&&src[i+1]&&src[i+1]!==']'){i++;items.push({lo,hi:catom()})}else items.push(lo)}
+      if(src[i]!==']')fail('Missing ]',a);i++;
+      return N({t:'cls',neg,items,raw:src.slice(a,i),a,b:i})}
+    if(c==='\\'){const d=src[i+1];if(d===undefined)fail('Dangling \\',a);i+=2;
+      if(d==='b'||d==='B')return N({t:'anchor',k:d,a,b:i});
+      if(d in ESC)return N({t:'esc',k:d,a,b:i});
+      if(d==='k'&&src[i]==='<'){const j=src.indexOf('>',i);if(j<0)fail('Bad \\k',a);const name=src.slice(i+1,j);i=j+1;return N({t:'bref',name,a,b:i})}
+      if(/[1-9]/.test(d)){let n=d;while(/[0-9]/.test(src[i]||''))n+=src[i++];return N({t:'bref',num:+n,a,b:i})}
+      if((d==='p'||d==='P')&&src[i]==='{'){const j=src.indexOf('}',i);if(j<0)fail('Bad \\p',a);const prop=src.slice(i+1,j);i=j+1;return N({t:'esc',prop,neg:d==='P',a,b:i})}
+      const h=hexEsc(d);return N({t:'lit',str:h!==null?h:d,a,b:i})}
+    if(c==='.'){i++;return N({t:'any',a,b:i})}
+    if(c==='^'||c==='$'){i++;return N({t:'anchor',k:c,a,b:i})}
+    if(c===')')fail('Unmatched )',a);
+    if(c==='*'||c==='+'||c==='?')fail('Nothing to repeat',a);
+    i++;return N({t:'lit',str:c,a,b:i})}
+  function quant(at){const c=src[i],a=i;let min,max;
+    if(c==='*'){min=0;max=Infinity;i++}else if(c==='+'){min=1;max=Infinity;i++}else if(c==='?'){min=0;max=1;i++}
+    else if(c==='{'){const m=/^\{(\d+)(,(\d*))?\}/.exec(src.slice(i));if(!m)return at;min=+m[1];max=m[2]?(m[3]===''?Infinity:+m[3]):min;i+=m[0].length}
+    else return at;
+    let lazy=false;if(src[i]==='?'){lazy=true;i++}
+    return N({t:'rep',body:at,min,max,lazy,q:src.slice(a,i),a:at.a,b:i})}
+  const ast=alt();
+  if(i<src.length)fail(src[i]===')'?'Unmatched )':'Unexpected '+src[i],i);
+  const byId={};(function walk(n,p){n.parent=p;byId[n.id]=n;kids(n).forEach(k=>walk(k,n))})(ast,null);
+  return{ast,groups,byId};
+}
+/* Re-emit the pattern with `sel` wrapped in a named capture (?<__s>…).
+   Numbered backreferences at or after the insertion point shift by one. */
+function emit(src,n,sel,k){let s;
+  switch(n.t){
+    case'alt':s=n.alts.map(x=>emit(src,x,sel,k)).join('|');break;
+    case'seq':s=n.items.map(x=>emit(src,x,sel,k)).join('');break;
+    case'group':s=src.slice(n.a,n.body.a)+emit(src,n.body,sel,k)+')';break;
+    case'rep':s=emit(src,n.body,sel,k)+n.q;break;
+    case'bref':s=n.num&&n.num>=k?'(?:\\'+(n.num+1)+')':src.slice(n.a,n.b);break;
+    default:s=src.slice(n.a,n.b)}
+  return n===sel?'(?<__s>'+s+')':s}
+function instrument(src,ast,sel){let k=1;(function w(n){if(n.t==='group'&&n.kind==='cap'&&n.a<sel.a)k++;kids(n).forEach(w)})(ast);return emit(src,ast,sel,k)}
+
+function qphrase(n){const{min,max,lazy}=n;let s;
+  if(min===0&&max===1)s='optionally';else if(min===0&&max===Infinity)s='zero or more of';else if(min===1&&max===Infinity)s='one or more of';
+  else if(max===Infinity)s=`at least ${min} of`;else if(min===max)s=`exactly ${min} of`;else s=`${min} to ${max} of`;
+  return lazy?s+' (as few as possible)':s}
+function qlabel(n){const{min,max}=n;if(max===Infinity)return min+'+';if(min===max)return'×'+min;return min+'–'+max}
+function clsText(n,long){const parts=n.items.map(it=>typeof it==='string'?show(it):it.esc?(long?ESCLONG[it.esc]:ESC[it.esc]):show(it.lo)+'–'+show(it.hi));
+  return(n.neg?(long?'anything except ':'not '):(long?'one of ':''))+parts.join(long?', ':' ')}
+function describe(n,flags){switch(n.t){
+  case'alt':return{l:'any one of:',k:n.alts};
+  case'seq':return n.items.length?{l:'in sequence:',k:n.items}:{l:'nothing (empty)'};
+  case'lit':return{l:(n.str.length>1?'the text ':'the character ')+'<code>'+escHtml(n.str)+'</code>'};
+  case'any':return{l:flags.includes('s')?'any character':'any character except newline'};
+  case'esc':return{l:n.prop?(n.neg?'anything but a ':'a ')+escHtml(n.prop)+' character':ESCLONG[n.k]};
+  case'cls':return{l:escHtml(clsText(n,true))};
+  case'anchor':return{l:n.k==='^'?(flags.includes('m')?'the start of a line':'the start of the text'):n.k==='$'?(flags.includes('m')?'the end of a line':'the end of the text'):n.k==='b'?'a word boundary':'not a word boundary'};
+  case'bref':return{l:'the same text as group '+(n.name?'«'+escHtml(n.name)+'»':'#'+n.num)};
+  case'group':return{l:{cap:'group #'+n.idx+(n.name?' «'+escHtml(n.name)+'»':'')+':',nc:'',la:'only if followed by:',nla:'only if NOT followed by:',lb:'only if preceded by:',nlb:'only if NOT preceded by:'}[n.kind],k:[n.body]};
+  case'rep':return{l:qphrase(n)+':',k:[n.body]}}}
+/* ===================== end pure logic ===================== */
+
+const $=id=>document.getElementById(id);
+const $pat=$('pat'),$tx=$('tx'),$hl=$('hl'),$dia=$('dia'),$err=$('err'),$repl=$('repl'),$rout=$('rout');
+const RECIPES=[
+ {n:'Log lines',p:String.raw`^(?<date>\d{4}-\d{2}-\d{2})[T ](?<time>\d{2}:\d{2}:\d{2})\s+(?<level>INFO|WARN|ERROR)\s+\[(?<svc>[\w-]+)\]\s+(?<msg>.*?)(?:\s+\((?<ms>\d+)ms\))?$`,f:'gm',
+  t:'2026-10-29 08:14:02 INFO  [auth] user 4821 signed in (12ms)\n2026-10-29 08:14:05 WARN  [billing] retrying invoice sync (340ms)\n2026-10-29 08:14:06 ERROR [billing] invoice sync failed: timeout\n2026-10-29T08:15:11 INFO  [api-gateway] GET /v2/orders 200 (8ms)\n2026-10-29 08:15:12 DEBUG [cache] miss for key orders:4821\n2026-10-29 08:16:40 ERROR [auth] token expired for user 4821',r:'$<level>\t$<svc>\t$<msg>'},
+ {n:'Email address',p:String.raw`[\w.+-]+@[\w-]+(?:\.[\w-]+)+`,f:'gi',t:'Contact ops@example.com or Jane.Doe+billing@mail.example.co.uk — but not bob@localhost or @nobody.'},
+ {n:'URL',p:String.raw`\bhttps?://[\w.-]+(?::\d+)?(?:/[^\s?#]*)?(?:\?[^\s#]*)?(?:#\S*)?`,f:'g',t:'Docs: https://example.com/guide?page=2#intro and http://localhost:8080/health. Mail me at me@example.com.'},
+ {n:'IPv4 address',p:String.raw`\b(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)\b`,f:'g',t:'gateway 192.168.1.1, dns 8.8.8.8, bogus 256.1.1.1, host 10.0.0.254'},
+ {n:'ISO date',p:String.raw`(?<y>\d{4})-(?<m>0[1-9]|1[0-2])-(?<d>0[1-9]|[12]\d|3[01])`,f:'g',t:'Due 2026-11-03, shipped 2026-10-29, invalid 2026-13-40.',r:'$<d>/$<m>/$<y>'},
+ {n:'Semantic version',p:String.raw`\bv?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+([0-9A-Za-z.-]+))?\b`,f:'g',t:'Upgrading from v2.14.0 to 3.0.0-rc.1+build.42; 1.2 is not a full version.'},
+ {n:'Hex color',p:String.raw`#(?:[0-9a-f]{3}){1,2}\b`,f:'gi',t:'Palette: #2458e6, #FFF, #e58f0b and #12345 (bad).'},
+ {n:'Repeated word',p:String.raw`\b(\w+)\s+\1\b`,f:'gi',t:'This is is a test of the the parser, and and it works.',r:'$1'},
+ {n:'Key = value',p:String.raw`^\s*(?<key>[A-Za-z_][\w.]*)\s*=\s*"?(?<val>[^"\n]*)"?\s*$`,f:'gm',t:'name = "rail"\nport=8080\n# comment\nlog.level = debug'},
+ {n:'Markdown link',p:String.raw`\[(?<text>[^\]]+)\]\((?<url>[^)\s]+)(?:\s+"(?<title>[^"]*)")?\)`,f:'g',t:'See [the docs](https://example.com/docs "Docs") and [issues](/issues).',r:'<a href="$<url>">$<text></a>'},
+ {n:'Price after $ (lookbehind)',p:String.raw`(?<=\$)\d+(?:\.\d{2})?(?!\d)`,f:'g',t:'Total $42.50, tax $3.4, ref 1234 and $100.'},
+];
+const FLAGS='gimsuy';
+let ast=null,byId={},sel=null,groupsN=0,fit=null,tab='matches';
+
+/* ---------- railroad layout: each node → {w, up, down, draw(x,y)} ---------- */
+const R=10,GAP=12,BH=26,PX=10;
+const ctx=document.createElement('canvas').getContext('2d');ctx.font='12px ui-monospace,Menlo,Consolas,monospace';
+const mw=s=>Math.ceil(ctx.measureText(s).width);
+const ln=(x1,y,x2)=>x2>x1?`<path d="M${x1} ${y}H${x2}"/>`:'';
+function box(n,label,cls){const w=Math.max(mw(label)+PX*2,BH);
+  return{w,up:BH/2,down:BH/2,draw:(x,y)=>`<g class="node ${cls}" data-id="${n.id}"><rect x="${x}" y="${y-BH/2}" width="${w}" height="${BH}" rx="${cls==='lit'?BH/2:5}"/><text x="${x+w/2}" y="${y+4}" text-anchor="middle">${escHtml(label)}</text></g>`}}
+function seq(parts){
+  if(!parts.length)return{w:GAP*2,up:4,down:4,draw:(x,y)=>ln(x,y,x+GAP*2)};
+  const w=parts.reduce((a,p)=>a+p.w,0)+GAP*(parts.length-1);
+  return{w,up:Math.max(...parts.map(p=>p.up)),down:Math.max(...parts.map(p=>p.down)),draw:(x,y)=>{let s='',cx=x;parts.forEach((p,i)=>{if(i){s+=ln(cx,y,cx+GAP);cx+=GAP}s+=p.draw(cx,y);cx+=p.w});return s}}}
+/* long top-level sequences wrap into rows like text, joined by a return rail */
+function wrapSeq(parts,maxW){
+  const rows=[];let cur=[],w=0;
+  for(const p of parts){if(cur.length&&w+GAP+p.w>maxW){rows.push(cur);cur=[];w=0}cur.push(p);w+=(cur.length>1?GAP:0)+p.w}
+  rows.push(cur);if(rows.length===1)return seq(parts);
+  const L=rows.map(seq),W=Math.max(...L.map(r=>r.w))+4*R,ys=[0];
+  for(let i=1;i<L.length;i++)ys.push(ys[i-1]+L[i-1].down+R+6+R+6+L[i].up);
+  return{w:W,up:L[0].up,down:ys[ys.length-1]+L[L.length-1].down,draw:(x,y)=>{let s='';
+    L.forEach((r,i)=>{const ry=y+ys[i],rx=x+2*R;s+=(i?'':ln(x,y,rx))+r.draw(rx,ry);
+      if(i<L.length-1){const mid=ry+r.down+R+6,ny=y+ys[i+1];
+        s+=`<path d="M${rx+r.w} ${ry}H${x+W-2*R}a${R} ${R} 0 0 1 ${R} ${R}V${mid-R}a${R} ${R} 0 0 1 -${R} ${R}H${x+2*R}a${R} ${R} 0 0 0 -${R} ${R}V${ny-R}a${R} ${R} 0 0 0 ${R} ${R}"/>`}
+      else s+=ln(rx+r.w,ry,x+W)});return s}}}
+function alt(n,parts){
+  const bw=Math.max(...parts.map(p=>p.w)),w=bw+4*R,dy=[0];
+  for(let i=1;i<parts.length;i++)dy.push(dy[i-1]+parts[i-1].down+8+parts[i].up);
+  return{w,up:parts[0].up,down:dy[dy.length-1]+parts[parts.length-1].down,draw:(x,y)=>{let s='';
+    parts.forEach((p,i)=>{const by=y+dy[i],bx=x+2*R+(bw-p.w)/2;
+      if(i===0)s+=ln(x,y,bx)+p.draw(bx,y)+ln(bx+p.w,y,x+w);
+      else s+=`<path d="M${x} ${y}a${R} ${R} 0 0 1 ${R} ${R}V${by-R}a${R} ${R} 0 0 0 ${R} ${R}H${bx}"/>`+p.draw(bx,by)+`<path d="M${bx+p.w} ${by}H${x+w-2*R}a${R} ${R} 0 0 0 ${R} -${R}V${y+R}a${R} ${R} 0 0 1 ${R} -${R}"/>`});
+    return`<g class="node" data-id="${n.id}">${s}</g>`}}}
+function loop(body,lab){const W=Math.max(body.w+4*R,mw(lab)+4*R+8),bx=(W-body.w)/2;
+  return{w:W,up:body.up,down:body.down+2*R+6+(lab?14:0),draw:(x,y)=>{const ly=y+body.down+R+6,ex=x+bx+body.w,mx=x+W/2;
+    return ln(x,y,x+bx)+body.draw(x+bx,y)+ln(ex,y,x+W)+`<path d="M${ex} ${y}H${x+W-2*R}a${R} ${R} 0 0 1 ${R} ${R}V${ly-R}a${R} ${R} 0 0 1 -${R} ${R}H${x+2*R}a${R} ${R} 0 0 1 -${R} -${R}V${y+R}a${R} ${R} 0 0 1 ${R} -${R}"/><path class="arr" d="M${mx+4} ${ly-4}L${mx-4} ${ly}L${mx+4} ${ly+4}Z"/>`+(lab?`<text class="lbl" x="${mx}" y="${ly+14}" text-anchor="middle">${escHtml(lab)}</text>`:'')}}}
+function skip(body){const W=body.w+4*R;
+  return{w:W,up:body.up+2*R+6,down:body.down,draw:(x,y)=>{const sy=y-body.up-R-6;
+    return ln(x,y,x+2*R)+body.draw(x+2*R,y)+ln(x+2*R+body.w,y,x+W)+`<path d="M${x} ${y}a${R} ${R} 0 0 0 ${R} -${R}V${sy+R}a${R} ${R} 0 0 1 ${R} -${R}H${x+W-2*R}a${R} ${R} 0 0 1 ${R} ${R}V${y-R}a${R} ${R} 0 0 0 ${R} ${R}"/>`}}}
+function rep(n,body){const lab=qlabel(n)+(n.lazy?' lazy':'');let L;
+  if(n.min===1&&n.max===1)L=body;else if(n.max<=1)L=skip(body);else if(n.min===0)L=skip(loop(body,lab));else L=loop(body,lab);
+  return{w:L.w,up:L.up,down:L.down,draw:(x,y)=>`<g class="node rep" data-id="${n.id}">${L.draw(x,y)}</g>`}}
+function group(n,body){if(n.kind==='nc')return body;
+  const lab=n.kind==='cap'?'#'+n.idx+(n.name?' '+n.name:''):{la:'followed by',nla:'not followed by',lb:'preceded by',nlb:'not preceded by'}[n.kind];
+  const P=8,W=Math.max(body.w+2*P,mw(lab)+16),bx=(W-body.w)/2,up=body.up+18,down=body.down+P;
+  return{w:W,up,down,draw:(x,y)=>`<g class="node grp${n.kind==='cap'?'':' la'}" data-id="${n.id}"><rect x="${x}" y="${y-up}" width="${W}" height="${up+down}" rx="8"/><text x="${x+6}" y="${y-up+12}">${escHtml(lab)}</text>${ln(x,y,x+bx)}${body.draw(x+bx,y)}${ln(x+bx+body.w,y,x+W)}</g>`}}
+function lay(n,flags,maxW){switch(n.t){
+  case'alt':return alt(n,n.alts.map(k=>lay(k,flags)));
+  case'seq':{const parts=n.items.map(k=>lay(k,flags));return maxW?wrapSeq(parts,maxW):seq(parts)}
+  case'lit':return box(n,[...n.str].map(show).join(''),'lit');
+  case'any':return box(n,flags.includes('s')?'any char':'any char but \\n','cls');
+  case'esc':return box(n,n.prop?(n.neg?'not ':'')+'\\p{'+n.prop+'}':ESC[n.k],'cls');
+  case'cls':{const t=clsText(n,false);return box(n,t.length>26?n.raw:t,'cls')}
+  case'anchor':return box(n,n.k==='^'?(flags.includes('m')?'line start':'start'):n.k==='$'?(flags.includes('m')?'line end':'end'):n.k==='b'?'word boundary':'not boundary','anc');
+  case'bref':return box(n,'same as '+(n.name?n.name:'#'+n.num),'cls');
+  case'group':return group(n,lay(n.body,flags));
+  case'rep':return rep(n,lay(n.body,flags))}}
+function render(){
+  const M=16,P=8,maxW=Math.max(260,$dia.clientWidth-2*M-2*P-4*R);
+  const L=lay(ast,activeFlags(),maxW),W=L.w+2*M+2*P,H=L.up+L.down+2*P,y=P+L.up;
+  $dia.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}"><circle class="end" cx="${P+4}" cy="${y}" r="4"/>${ln(P+4,y,P+M)}${L.draw(P+M,y)}${ln(P+M+L.w,y,W-P-4)}<circle class="end" cx="${W-P-4}" cy="${y}" r="4"/></svg>`;
+  if(fit===null)fit=W<=$dia.clientWidth*1.6;applyFit();
+  markSel();
+}
+function applyFit(){$dia.classList.toggle('scroll',!fit);$('bFit').textContent=fit?'Fit':'1:1'}
+
+/* ---------- state & rendering ---------- */
+const activeFlags=()=>[...document.querySelectorAll('.flag.on')].map(b=>b.dataset.f).join('');
+function setFlags(f){document.querySelectorAll('.flag').forEach(b=>b.classList.toggle('on',f.includes(b.dataset.f)))}
+function update(){
+  const src=$pat.value,flags=activeFlags();$err.textContent='';
+  try{new RegExp(src,flags)}catch(e){$err.textContent=e.message.replace('Invalid regular expression: ','');$dia.classList.add('stale');$('count').textContent='';return}
+  let P;try{P=parse(src)}catch(e){$err.textContent='Could not draw: '+e.message;$dia.classList.add('stale');return}
+  $dia.classList.remove('stale');ast=P.ast;byId=P.byId;groupsN=P.groups;sel=null;
+  render();renderExplain();run();
+}
+function select(n){
+  for(;;){const p=n&&n.parent;   // a loop owns its body; (?:…) has no box of its own
+    if(p&&p.t==='rep')n=p;else if(p&&p.t==='group'&&p.kind==='nc'&&p.parent&&p.parent.t==='rep')n=p.parent;else break}
+  sel=sel===n?null:n;markSel();renderExplain();run();
+}
+function markSel(){
+  $dia.querySelectorAll('.sel').forEach(g=>g.classList.remove('sel'));
+  if(sel){const g=$dia.querySelector(`[data-id="${sel.id}"]`);if(g)g.classList.add('sel')}
+  $('selinfo').innerHTML=sel?`<code>${escHtml($pat.value.slice(sel.a,sel.b))}</code><button id="bClr" title="Clear selection (Esc)">✕</button>`:'';
+}
+function renderExplain(){const f=activeFlags();
+  const rec=n=>{if(n.t==='group'&&n.kind==='nc')return rec(n.body);if(n.t==='seq'&&n.items.length===1)return rec(n.items[0]);
+    const d=describe(n,f);return`<li><span class="lbl${sel===n?' sel':''}" data-id="${n.id}">${d.l}</span>${d.k?'<ul>'+d.k.map(rec).join('')+'</ul>':''}</li>`};
+  $('tab-explain').innerHTML=ast?'<ul>'+rec(ast)+'</ul>':'';
+}
+function run(){ if(!ast)return;
+  const text=$tx.value,uf=activeFlags(),global=uf.includes('g'),F=[...new Set(uf.replace('g','')+'gd')].join('');
+  const LIM=5000,re=new RegExp($pat.value,F),list=[];let m;
+  while((m=re.exec(text))){list.push(m);if(m[0]==='')re.lastIndex++;if(!global||list.length>=LIM||re.lastIndex>text.length)break}
+  const spans=list.map(m=>({s:m.index,e:m.index+m[0].length}));
+  if(sel){try{const sub=new RegExp(instrument($pat.value,ast,sel),F);let j=0,sm;
+    while(j<spans.length&&(sm=sub.exec(text))){const sp=spans[j++];if(sm.index!==sp.s)break;const g=sm.indices.groups.__s;if(g){sp.ss=g[0];sp.se=g[1]}
+      if(sm[0]==='')sub.lastIndex++;if(sub.lastIndex>text.length)break}}catch(e){}}
+  const extra=[];   // a lookaround can capture outside its match: draw it on its own
+  for(const sp of spans)if(sp.ss!=null&&!(sp.ss>=sp.s&&sp.se<=sp.e)){extra.push({s:sp.ss,e:sp.se,only:true});sp.ss=null}
+  const segs=extra.length?spans.concat(extra).sort((a,b)=>a.s-b.s):spans;
+  let out='',pos=0;
+  for(const sp of segs){if(sp.s<pos)continue;out+=escHtml(text.slice(pos,sp.s));
+    if(sp.only)out+='<mark class="sub">'+escHtml(text.slice(sp.s,sp.e))+'</mark>';
+    else if(sp.e===sp.s)out+='<mark class="z"></mark>';
+    else if(sp.ss!=null&&sp.se>sp.ss)out+='<mark>'+escHtml(text.slice(sp.s,sp.ss))+'<mark class="sub">'+escHtml(text.slice(sp.ss,sp.se))+'</mark>'+escHtml(text.slice(sp.se,sp.e))+'</mark>';
+    else out+='<mark>'+escHtml(text.slice(sp.s,sp.e))+'</mark>';pos=sp.e}
+  $hl.innerHTML=out+escHtml(text.slice(pos))+'\n';$hl.scrollTop=$tx.scrollTop;
+  $('count').textContent=list.length?`— ${list.length}${list.length>=LIM?'+':''} match${list.length===1?'':'es'}`:'— no match';
+  // matches table
+  const names=list.length&&list[0].groups?Object.keys(list[0].groups):null;
+  const cols=names||Array.from({length:groupsN},(_,i)=>'$'+(i+1));
+  const cell=(v,l)=>`<td data-l="${escHtml(l)}"${v==null?' class="i"':''}>${v==null?'—':escHtml(v.length>80?v.slice(0,80)+'…':v)}</td>`;
+  $('tab-matches').innerHTML=list.length?`<table><tr><th>#</th><th>match</th>${cols.map(c=>'<th>'+escHtml(c)+'</th>').join('')}<th>at</th></tr>`+
+    list.slice(0,300).map((m,i)=>`<tr><td class="i" data-l="#">${i+1}</td>${cell(m[0],'match')}${cols.map((c,k)=>cell(names?m.groups[c]:m[k+1],c)).join('')}<td class="i" data-l="at">${m.index}</td></tr>`).join('')+'</table>'+(list.length>300?`<p class="muted">…and ${list.length-300} more</p>`:'')
+    :'<p class="muted">No matches in the test text.</p>';
+  try{$rout.textContent=text.replace(new RegExp($pat.value,uf),$repl.value)}catch(e){$rout.textContent=''}
+}
+function setTab(t){tab=t;document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));['matches','explain','replace'].forEach(x=>$('tab-'+x).hidden=x!==t)}
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2600)}
+function load(st){$pat.value=st.pattern||'';setFlags(st.flags||'');$tx.value=st.text||'';$repl.value=st.replace||'';fit=null;update()}
+
+/* ---------- theme, save, open ---------- */
+function setTheme(t){document.documentElement.dataset.theme=t;$('bTheme').textContent=t==='dark'?'Light':'Dark';try{localStorage.setItem('rail-theme',t)}catch(e){}}
+function toggleTheme(){setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark')}
+(function(){let t=null;try{t=localStorage.getItem('rail-theme')}catch(e){}setTheme(t||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'))})();
+function save(){
+  const d=new Date(),stamp=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  const data={app:'Rail',version:1,saved:d.toISOString(),pattern:$pat.value,flags:activeFlags(),text:$tx.value,replace:$repl.value,theme:document.documentElement.dataset.theme};
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='rail-'+stamp+'.json';
+  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);toast('Saved rail-'+stamp+'.json')}
+$('file').addEventListener('change',e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+  const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);
+      if(!d||d.app!=='Rail'||d.version!==1)throw new Error('not a Rail file');
+      load(d);if(d.theme)setTheme(d.theme);toast('Opened '+f.name)}
+    catch(err){toast('Could not open '+f.name+': '+(err.message==='not a Rail file'?'this is not a Rail save file (expects "app":"Rail", "version":1)':'invalid JSON'))}};
+  r.readAsText(f)});
+
+/* ---------- wiring ---------- */
+$('flags').innerHTML=[...FLAGS].map(f=>`<button class="flag" data-f="${f}" title="flag ${f}">${f}</button>`).join('');
+$('recipes').innerHTML+=RECIPES.map((r,i)=>`<option value="${i}">${r.n}</option>`).join('');
+$('recipes').addEventListener('change',e=>{const r=RECIPES[e.target.value];if(r){load({pattern:r.p,flags:r.f,text:r.t,replace:r.r||''});e.target.value=''}});
+$('flags').addEventListener('click',e=>{const b=e.target.closest('.flag');if(b){b.classList.toggle('on');update()}});
+let timer;$pat.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(update,90)});
+$tx.addEventListener('input',run);$repl.addEventListener('input',run);
+$tx.addEventListener('scroll',()=>{$hl.scrollTop=$tx.scrollTop;$hl.scrollLeft=$tx.scrollLeft});
+$dia.addEventListener('click',e=>{const g=e.target.closest('[data-id]');if(g)select(byId[g.dataset.id])});
+$('tab-explain').addEventListener('click',e=>{const g=e.target.closest('[data-id]');if(g)select(byId[g.dataset.id])});
+$('selinfo').addEventListener('click',e=>{if(e.target.closest('#bClr'))select(sel)});
+document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
+$('bFit').addEventListener('click',()=>{fit=!fit;applyFit()});
+$('bTheme').addEventListener('click',toggleTheme);
+$('bSave').addEventListener('click',save);
+$('bOpen').addEventListener('click',()=>$('file').click());
+const toggleHelp=on=>$('help').classList.toggle('on',on);
+$('bHelp').addEventListener('click',()=>toggleHelp(true));$('bClose').addEventListener('click',()=>toggleHelp(false));
+$('help').addEventListener('click',e=>{if(e.target===$('help'))toggleHelp(false)});
+let lastW=0;new ResizeObserver(()=>{const w=$dia.clientWidth;if(ast&&w!==lastW){lastW=w;render()}}).observe($dia);
+addEventListener('keydown',e=>{
+  const mod=e.ctrlKey||e.metaKey,typing=/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)||e.target.isContentEditable,k=e.key.toLowerCase();
+  if(mod&&e.key==='/'){e.preventDefault();toggleHelp(!$('help').classList.contains('on'));return}
+  if(mod&&k==='s'){e.preventDefault();save();return}
+  if(mod&&k==='o'){e.preventDefault();$('file').click();return}
+  if(e.key==='Escape'){if($('help').classList.contains('on'))toggleHelp(false);else if(sel)select(sel);return}
+  if(typing||mod||e.altKey)return;
+  if(k==='t')toggleTheme();else if(k==='f'){fit=!fit;applyFit()}else if(k==='1')setTab('matches');else if(k==='2')setTab('explain');else if(k==='3')setTab('replace');
+});
+load({pattern:RECIPES[0].p,flags:RECIPES[0].f,text:RECIPES[0].t,replace:RECIPES[0].r});
+</script>
+</body>
+</html>
+
+</body></html>

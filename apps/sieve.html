@@ -1,0 +1,413 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Daily Build 2026-10-28 — Sieve</title>
+<style>
+:root{--bg:#f4f5f7;--panel:#fff;--text:#1b1f27;--muted:#6b7280;--line:#dfe2e8;--accent:#2563eb;--accent-soft:#dbeafe;
+  --error:#dc2626;--warn:#d97706;--info:#2563eb;--debug:#9ca3af;--slot:#7c3aed;--slot-bg:#ede9fe;--shadow:0 10px 30px rgba(0,0,0,.18)}
+:root[data-theme=dark]{--bg:#0f1218;--panel:#181c25;--text:#e6e8ee;--muted:#8b93a5;--line:#2a3040;--accent:#60a5fa;--accent-soft:#1e3a8a;
+  --error:#f87171;--warn:#fbbf24;--info:#60a5fa;--debug:#6b7280;--slot:#c4b5fd;--slot-bg:#312e81;--shadow:0 10px 30px rgba(0,0,0,.6)}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);overflow-x:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{min-height:44px;min-width:44px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel);cursor:pointer;touch-action:manipulation}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+@media(hover:hover){button:hover{border-color:var(--accent)}}
+header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:5}
+header h1{font-size:20px;margin:0 auto 0 0;letter-spacing:.3px}
+header h1 small{font-weight:400;color:var(--muted);font-size:13px;margin-left:8px}
+main{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;padding:16px;max-width:1500px;margin:0 auto}
+@media(min-width:900px){main{grid-template-columns:minmax(280px,34%) minmax(0,1fr)}#logsPanel{position:sticky;top:76px;height:calc(100vh - 92px)}}
+section{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;min-width:0}
+.panel-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.panel-head h2{font-size:14px;margin:0;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;flex:1}
+textarea#logs{width:100%;height:130px;resize:vertical;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg);font:16px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre;overflow:auto}
+@media(min-width:900px){textarea#logs{height:calc(100% - 50px);resize:none;font-size:13px}}
+#logsPanel.collapsed textarea{display:none}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:12px}
+@media(max-width:899px){.tiles{grid-template-columns:repeat(3,1fr);gap:6px}.tile{padding:8px}.tile b{font-size:18px}.tile span{font-size:11px}}
+.tile{background:var(--bg);border-radius:10px;padding:10px 12px}
+.tile b{display:block;font-size:22px;font-weight:600;line-height:1.1}
+.tile span{font-size:12px;color:var(--muted)}
+#tl{width:100%;height:120px;display:block;touch-action:none;cursor:crosshair;border-radius:8px}
+.tl-info{font-size:13px;color:var(--muted);margin:6px 0 10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.controls input[type=search]{flex:1 1 160px;min-height:44px;padding:0 12px;font-size:16px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.controls select{min-height:44px;padding:0 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.chip{min-height:44px;padding:0 12px;border-radius:999px;font-size:13px;font-weight:600;opacity:.45}
+.chip.on{opacity:1}
+.chip[data-l=error]{color:var(--error)}.chip[data-l=warn]{color:var(--warn)}.chip[data-l=info]{color:var(--info)}.chip[data-l=debug]{color:var(--debug)}
+.thr{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);min-height:44px}
+.thr input{width:110px;min-height:44px}
+ol#list{list-style:none;margin:0;padding:0}
+#list li{display:grid;grid-template-columns:4px minmax(0,1fr) auto;gap:12px;padding:12px 8px;border-top:1px solid var(--line);cursor:pointer;align-items:center;min-height:56px}
+#list li:first-child{border-top:0}
+.lvl{align-self:stretch;border-radius:2px;background:var(--debug)}
+.lvl.error{background:var(--error)}.lvl.warn{background:var(--warn)}.lvl.info{background:var(--info)}
+.tpl{font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow-wrap:anywhere}
+.tpl i{font-style:normal;color:var(--slot);background:var(--slot-bg);border-radius:4px;padding:0 4px}
+.meta{font-size:12px;color:var(--muted);margin-top:4px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.badge{font-size:11px;font-weight:700;padding:1px 6px;border-radius:6px;background:var(--accent-soft);color:var(--accent)}
+.badge.hot{background:var(--warn);color:#fff}.badge.new{background:var(--error);color:#fff}.badge.rare{background:var(--slot-bg);color:var(--slot)}
+.right{text-align:right;min-width:72px}
+.right b{display:block;font-size:17px}
+.spark{display:block;width:72px;height:22px}
+.bar{height:3px;background:var(--line);border-radius:2px;overflow:hidden;margin-top:4px}.bar i{display:block;height:100%;background:var(--accent)}
+#sheet,#help{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:20;display:none;align-items:flex-end;justify-content:center}
+#sheet.open,#help.open{display:flex}
+.card{background:var(--panel);width:100%;max-width:760px;max-height:85vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));box-shadow:var(--shadow)}
+@media(min-width:900px){#sheet,#help{align-items:center}.card{border-radius:18px;max-height:80vh}}
+.card h3{margin:0 0 6px;font-size:17px}
+.card .close{float:right;margin-left:8px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13px;margin:8px 0}
+.kv dt{color:var(--muted)}.kv dd{margin:0}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:10px 0}
+.slot{background:var(--bg);border-radius:10px;padding:8px 10px;font-size:13px}
+.slot h4{margin:0 0 4px;font-size:12px;color:var(--slot)}
+.slot div{display:flex;justify-content:space-between;gap:8px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+.slot div span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+pre.samples{background:var(--bg);border-radius:10px;padding:10px;font-size:12px;overflow:auto;white-space:pre;max-height:200px;margin:8px 0}
+code{background:var(--bg);padding:2px 6px;border-radius:6px;font-size:13px}
+kbd{display:inline-block;border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:0 6px;font-size:12px;font-family:inherit;margin:1px 0}
+.help-grid{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px;margin:10px 0}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.empty{color:var(--muted);text-align:center;padding:30px 10px}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;z-index:30;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <h1>Sieve <small>log template miner</small></h1>
+  <button id="btnExample" title="Load example logs (Ctrl+E)">Example</button>
+  <button id="btnOpen" title="Open a saved .json (Ctrl+O)">Open</button>
+  <button id="btnSave" class="primary" title="Save state as .json (Ctrl+S)">Save</button>
+  <button id="btnTheme" title="Toggle dark / light (T)">Theme</button>
+  <button id="btnHelp" title="Help (Ctrl+/)" aria-label="Help">?</button>
+</header>
+<main>
+  <section id="logsPanel">
+    <div class="panel-head"><h2>Logs <span id="lineCount"></span></h2><button id="btnCollapse" title="Show or hide the log text (L)">Hide</button></div>
+    <textarea id="logs" spellcheck="false" placeholder="Paste raw log lines here — any format. Timestamps and levels are detected automatically."></textarea>
+  </section>
+  <section id="analysis">
+    <div class="tiles" id="tiles"></div>
+    <svg id="tl" aria-label="Timeline of log volume by level"></svg>
+    <div class="tl-info" id="tlInfo"></div>
+    <div class="controls">
+      <input type="search" id="filter" placeholder="Filter templates…" aria-label="Filter templates">
+      <button class="chip on" data-l="error">ERROR</button><button class="chip on" data-l="warn">WARN</button>
+      <button class="chip on" data-l="info">INFO</button><button class="chip on" data-l="debug">DEBUG</button>
+      <select id="sort" aria-label="Sort"><option value="count">Most frequent</option><option value="lift">Hottest in window</option><option value="new">Newest first</option><option value="rare">Rarest first</option></select>
+      <label class="thr">Similarity <input type="range" id="thr" min="0.4" max="0.95" step="0.05" value="0.6"><span id="thrVal">0.60</span></label>
+      <button id="btnCsv" title="Download templates as CSV">CSV</button>
+    </div>
+    <ol id="list"></ol>
+  </section>
+</main>
+
+<div id="sheet" role="dialog" aria-modal="true"><div class="card" id="sheetCard"></div></div>
+<div id="help" role="dialog" aria-modal="true"><div class="card">
+  <button class="close" id="helpClose" aria-label="Close">✕</button>
+  <h3>Sieve — turn 10,000 log lines into 20 templates</h3>
+  <p>Paste raw logs. Sieve learns the message <b>templates</b> (the fixed words) and the <b>slots</b> (<span class="tpl"><i>&lt;*&gt;</i></span> — ids, hosts, durations) with a streaming parse-tree clusterer (Drain), so you see what the system is actually saying instead of scrolling. Timestamps and levels are detected in any common format.</p>
+  <p><b>Drag across the timeline</b> to pick a window: every template gets a <span class="badge hot">×lift</span> (how much more often it happens in the window than normal) and <span class="badge new">NEW</span> if it first appeared there. That is the fastest way to answer “what changed at 08:12?”. Tap a bucket to clear the window. Tap any template for its slot value distribution, sample lines and a ready-made regex.</p>
+  <p><b>Similarity</b> controls how aggressively lines are merged: lower it to collapse noisy templates, raise it to keep near-duplicates apart.</p>
+  <div class="help-grid">
+    <kbd>Ctrl/⌘ /</kbd><span>This help</span>
+    <kbd>Ctrl/⌘ S</kbd><span>Save state as JSON (works when the file is opened directly; artifact viewers block downloads)</span>
+    <kbd>Ctrl/⌘ O</kbd><span>Open a saved JSON</span>
+    <kbd>Ctrl/⌘ K</kbd><span>Focus the filter box</span>
+    <kbd>Ctrl/⌘ E</kbd><span>Load the example logs</span>
+    <kbd>T</kbd><span>Toggle dark / light theme</span>
+    <kbd>L</kbd><span>Show / hide the log text</span>
+    <kbd>W</kbd><span>Clear the time window</span>
+    <kbd>[</kbd> <kbd>]</kbd><span>Lower / raise similarity</span>
+    <kbd>Esc</kbd><span>Close this or the detail sheet</span>
+  </div>
+  <p style="color:var(--muted);font-size:13px">Single file, no network, nothing leaves your machine. Everything is also reachable by tap.</p>
+</div></div>
+<input type="file" id="file" accept=".json,application/json" hidden>
+<div id="toast"></div>
+
+<script>
+'use strict';
+const APP='sieve', VERSION=1;
+const $=s=>document.querySelector(s);
+const LEVELS=['error','warn','info','debug'];
+const LVL_COLOR={error:'var(--error)',warn:'var(--warn)',info:'var(--info)',debug:'var(--debug)'};
+
+/* ---------- parsing: timestamp, level, tokens ---------- */
+const TS_RE=/^\s*\[?(\d{4}[-\/]\d{2}[-\/]\d{2}[T ]\d{2}:\d{2}:\d{2}(?:[.,]\d+)?(?:\s?Z|[+-]\d{2}:?\d{2})?|[A-Z][a-z]{2}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2}|\d{10}(?:\.\d+)?(?=\s))\]?[\s,;:-]*/;
+const LEVEL_RE=/(?:^|[\s\[(:|=])(TRACE|DEBUG|INFO|NOTICE|WARN(?:ING)?|ERR(?:OR)?|CRIT(?:ICAL)?|FATAL|SEVERE|PANIC|EMERG)(?=[\s\]):|,]|$)/i;
+function normLevel(w){w=w.toUpperCase();if(/^(ERR|CRIT|FATAL|SEVERE|PANIC|EMERG)/.test(w))return'error';if(w.startsWith('WARN'))return'warn';if(w==='DEBUG'||w==='TRACE')return'debug';return'info';}
+const MONTHS={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+function parseTs(s){
+  if(/^\d{10}/.test(s))return Math.round(parseFloat(s)*1000);
+  if(/^[A-Z]/.test(s)){const m=s.match(/^(\w{3})\s+(\d+)\s+(\d+):(\d+):(\d+)/);if(!m||!(m[1]in MONTHS))return null;
+    return Date.UTC(new Date().getUTCFullYear(),MONTHS[m[1]],+m[2],+m[3],+m[4],+m[5]);}
+  s=s.replace(/\//g,'-').replace(' ','T').replace(',','.').replace(/\s?Z$/,'Z');
+  if(!/(Z|[+-]\d{2}:?\d{2})$/.test(s))s+='Z';            // no zone given: read it as UTC so display matches the text
+  const t=Date.parse(s);return isNaN(t)?null:t;
+}
+/* A token is a slot if it is a number, a size/duration, hex, a uuid, an ip, or a tag like [web-3]. */
+const NUMLIKE=/^[\[(]?(?:[-+]?\d[\d.,:_\/-]*|0x[0-9a-f]+|[0-9a-f]{7,}|[0-9a-f]{8}-[0-9a-f-]{27}|\d+(?:\.\d+)?(?:ms|us|ns|s|m|h|d|kb|mb|gb|%|k|b))[\])]?[,;:.]?$/i;
+function maskToken(t){
+  if(NUMLIKE.test(t)||/^\[.*\d.*\]$/.test(t))return'<*>';
+  if(/\d/.test(t)&&/[\/=:#@]/.test(t))return t.replace(/\d+/g,'<*>');
+  return t;
+}
+function tokenize(msg){
+  const out=[];for(const t of msg.trim().split(/\s+/)){if(!t)continue;const i=t.indexOf('=');if(i>0&&i<t.length-1){out.push(t.slice(0,i+1),t.slice(i+1));}else out.push(t);}return out;
+}
+function parseLine(raw){
+  let s=raw,ts=null,level='info';
+  const m=s.match(TS_RE);if(m){ts=parseTs(m[1]);s=s.slice(m[0].length);}
+  const lm=s.slice(0,80).match(LEVEL_RE);if(lm){level=normLevel(lm[1]);s=s.slice(0,lm.index)+s.slice(lm.index+lm[0].length);}
+  const tokens=tokenize(s.replace(/^[\s\-|:]+/,''));
+  return{raw,ts,level,tokens,masked:tokens.map(maskToken)};
+}
+
+/* ---------- Drain: fixed-depth parse tree, then nearest template ---------- */
+class Drain{
+  constructor(st,depth=4){this.st=st;this.depth=depth;this.root=new Map();this.clusters=[];}
+  add(masked,idx){
+    const n=masked.length;let node=this.root;
+    if(!node.has(n))node.set(n,new Map());node=node.get(n);
+    // route by token count, then by the first (depth-2) tokens that are not variable-looking
+    for(let i=0,used=0;i<n&&used<this.depth-2;i++){
+      let k=masked[i];if(k==='<*>'||/\d/.test(k))continue;used++;
+      if(!node.has(k)){if(node.size>=100)k='<*>';if(!node.has(k))node.set(k,new Map());}
+      node=node.get(k);
+    }
+    const leaf=node.leaf||(node.leaf=[]);
+    let best=null,bestSim=-1,bestP=0;
+    for(const c of leaf){
+      let sim=0,p=0;
+      for(let i=0;i<n;i++){if(c.tpl[i]==='<*>')p++;else if(c.tpl[i]===masked[i])sim++;}
+      sim=n===p?1:sim/(n-p);
+      if(sim>bestSim||(sim===bestSim&&p>bestP)){best=c;bestSim=sim;bestP=p;}
+    }
+    if(best&&bestSim>=this.st){for(let i=0;i<n;i++)if(best.tpl[i]!==masked[i])best.tpl[i]='<*>';best.lines.push(idx);return best;}
+    const c={id:this.clusters.length,tpl:masked.slice(),lines:[idx]};leaf.push(c);this.clusters.push(c);return c;
+  }
+}
+function mine(text,st){
+  const lines=[],t0=performance.now();
+  for(const raw of text.split(/\r?\n/)){if(raw.trim())lines.push(parseLine(raw));}
+  const drain=new Drain(st);
+  lines.forEach((l,i)=>{l.cluster=drain.add(l.masked,i);});
+  // carry timestamps forward for continuation lines (stack traces etc.)
+  const withTs=lines.filter(l=>l.ts!=null).length,first=lines.find(l=>l.ts!=null);
+  let last=first?first.ts:null;for(const l of lines){if(l.ts!=null)last=l.ts;else l.ts=last;}
+  return{lines,clusters:drain.clusters,timed:lines.length>0&&withTs>=lines.length/2,ms:performance.now()-t0};
+}
+
+/* ---------- example data (seeded, so it is the same every time) ---------- */
+function example(){
+  let seed=7;const rnd=()=>(seed=(seed*1103515245+12345)&0x7fffffff)/0x7fffffff;
+  const pick=a=>a[Math.floor(rnd()*a.length)],ri=(a,b)=>a+Math.floor(rnd()*(b-a+1));
+  const hosts=['web-1','web-2','web-3','web-4'],base=Date.parse('2026-10-28T07:00:00Z'),out=[];
+  const hex=n=>Array.from({length:n},()=>'0123456789abcdef'[ri(0,15)]).join('');
+  const uuid=()=>`${hex(8)}-${hex(4)}-${hex(4)}-${hex(4)}-${hex(12)}`;
+  const emit=(t,lvl,host,msg)=>out.push([t,`${new Date(t).toISOString()} ${lvl.padEnd(5)} [${host}] ${msg}`]);
+  for(let m=0;m<120;m++){
+    const incident=m>=72&&m<92,t=base+m*60000;
+    const n=incident?ri(10,16):ri(5,9);
+    for(let k=0;k<n;k++){
+      const tt=t+ri(0,59999),h=pick(hosts),r=rnd();
+      if(r<.22)emit(tt,'INFO',h,`GET /api/users/${ri(1000,9999)} 200 ${ri(4,80)}ms`);
+      else if(r<.38)emit(tt,'INFO',h,`GET /api/orders/${ri(10000,99999)} 200 ${ri(8,140)}ms`);
+      else if(r<.48)emit(tt,'INFO',h,`POST /api/checkout 201 ${ri(90,400)}ms`);
+      else if(r<.6)emit(tt,'DEBUG',h,`Cache miss for key user:${ri(1000,9999)}`);
+      else if(r<.74)emit(tt,'INFO',h,`Worker ${ri(1,8)} processed job ${uuid()} in ${ri(20,900)}ms`);
+      else if(r<.82)emit(tt,'INFO',h,`Accepted connection from 10.0.${ri(0,3)}.${ri(2,250)}:${ri(30000,60000)}`);
+      else if(r<.88)emit(tt,'WARN',h,`Slow query (${ri(300,2400)}ms): SELECT * FROM orders WHERE user_id=${ri(1000,9999)}`);
+      else emit(tt,'INFO',h,`Session ${hex(12)} refreshed for user ${ri(1000,9999)}`);
+      if(incident&&rnd()<.55){
+        const id=`pay_${hex(10)}`,t2=tt+ri(100,3000);
+        emit(t2,'WARN',h,`Connection pool exhausted (max=${pick([32,32,64])}), waiting`);
+        emit(t2+ri(50,900),'ERROR',h,`Upstream payments-svc timeout after ${pick([5000,5000,5002,5004])}ms`);
+        emit(t2+ri(1000,2500),'WARN',h,`Retrying payment ${id} attempt ${ri(1,3)}/3`);
+        if(rnd()<.5)emit(t2+ri(3000,6000),'ERROR',h,`Payment ${id} failed: gateway unreachable`);
+      }
+    }
+    if(m%5===0)emit(t+ri(0,2000),'INFO',pick(hosts),'Health check ok');
+    if(m===60)emit(t+ri(0,2000),'INFO','web-2','Rotated log file app.log.3');
+  }
+  emit(base+1500,'INFO','web-1','Config reloaded from /etc/app/config.yaml');
+  emit(base+3*60000+200,'WARN','web-4','TLS certificate for api.example.com expires in 9 days');
+  emit(base+74*60000+31000,'ERROR','web-3','OOM killer invoked for pid 48213 (payments-proxy)');
+  emit(base+91*60000+12000,'INFO','web-3','Restarted payments-proxy, pool size 64');
+  return out.sort((a,b)=>a[0]-b[0]).map(x=>x[1]).join('\n');
+}
+
+/* ---------- state + rendering ---------- */
+const state={threshold:0.6,sort:'count',filter:'',levels:{error:true,warn:true,info:true,debug:true},window:null,theme:null,collapsed:false};
+let model=null,buckets=[];
+const fmtT=t=>new Date(t).toISOString().slice(11,19);
+const fmtDur=ms=>ms<60000?`${Math.round(ms/1000)}s`:ms<3600000?`${Math.round(ms/60000)}m`:`${(ms/3600000).toFixed(1)}h`;
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const tplText=tpl=>tpl.reduce((s,t,i)=>s+(i&&!tpl[i-1].endsWith('=')?' ':'')+t,'');   // "key=" re-joins its value
+const tplHtml=tpl=>esc(tplText(tpl)).replace(/&lt;\*&gt;/g,'<i>&lt;*&gt;</i>');
+const xOf=l=>model.timed?l.ts:l.idx;
+function analyze(){
+  model=mine($('#logs').value,state.threshold);
+  model.lines.forEach((l,i)=>l.idx=i);
+  const L=model.lines;
+  model.min=model.timed?Infinity:0;model.max=model.timed?-Infinity:Math.max(0,L.length-1);
+  if(model.timed)for(const l of L){if(l.ts<model.min)model.min=l.ts;if(l.ts>model.max)model.max=l.ts;}
+  const nb=Math.max(1,Math.min(60,Math.ceil(L.length/8)));
+  buckets=Array.from({length:nb},()=>({error:0,warn:0,info:0,debug:0,total:0}));
+  model.nb=nb;model.span=Math.max(1,model.max-model.min);
+  for(const l of L){l.b=Math.min(nb-1,Math.floor((xOf(l)-model.min)/model.span*nb));buckets[l.b][l.level]++;buckets[l.b].total++;}
+  if(state.window&&(state.window[0]>model.max||state.window[1]<model.min))state.window=null;
+  render();
+}
+function inWin(l){return !state.window||(xOf(l)>=state.window[0]&&xOf(l)<=state.window[1]);}
+function clusterStats(){
+  const L=model.lines,total=L.length,winTotal=state.window?L.filter(inWin).length:total;
+  return model.clusters.map(c=>{
+    const ls=c.lines.map(i=>L[i]),lv={error:0,warn:0,info:0,debug:0},spark=new Array(model.nb).fill(0);
+    let win=0;for(const l of ls){lv[l.level]++;spark[l.b]++;if(state.window&&inWin(l))win++;}
+    const level=LEVELS.find(k=>lv[k]>ls.length/2)||LEVELS.find(k=>lv[k])||'info';
+    const first=xOf(ls[0]),last=xOf(ls[ls.length-1]);
+    // lift = rate inside the window / rate outside it; Infinity when the template never happens outside
+    const outTotal=total-winTotal,outCount=ls.length-win;
+    const lift=!state.window?1:outCount===0?(win?Infinity:0):(win/Math.max(1,winTotal))/(outCount/Math.max(1,outTotal));
+    const isNew=state.window&&first>=state.window[0]&&first<=state.window[1];
+    return{c,count:ls.length,win,lv,level,first,last,spark,lift,isNew,rare:ls.length<=Math.max(2,total*0.002)};
+  });
+}
+function render(){
+  const L=model.lines;
+  $('#lineCount').textContent=L.length?`· ${L.length.toLocaleString()} lines`:'';
+  const errs=L.filter(l=>l.level==='error').length,warns=L.filter(l=>l.level==='warn').length;
+  $('#tiles').innerHTML=[[L.length.toLocaleString(),'lines'],[model.clusters.length,'templates'],[`${errs} / ${warns}`,'errors / warnings'],
+    [model.timed?fmtDur(model.span):'—',model.timed?`span · ${fmtT(model.min)}–${fmtT(model.max)} UTC`:'no timestamps found'],[`${model.ms.toFixed(0)} ms`,'to mine']]
+    .map(([b,s])=>`<div class="tile"><b>${b}</b><span>${s}</span></div>`).join('');
+  drawTimeline();
+  const stats=clusterStats().filter(s=>state.levels[s.level]&&(!state.filter||tplText(s.c.tpl).toLowerCase().includes(state.filter.toLowerCase())));
+  const sorters={count:(a,b)=>b.count-a.count,lift:(a,b)=>(b.lift-a.lift)||(b.win-a.win),new:(a,b)=>b.first-a.first,rare:(a,b)=>a.count-b.count};
+  stats.sort(sorters[state.sort]);
+  const maxCount=stats.reduce((m,s)=>Math.max(m,s.count),1);
+  const list=$('#list');
+  if(!L.length){list.innerHTML='<li class="empty">Paste some logs or press Example.</li>';return;}
+  list.innerHTML=stats.map(s=>{
+    const sp=Math.max(1,...s.spark),pts=s.spark.map((v,i)=>`${(i/(model.nb-1||1)*72).toFixed(1)},${(22-v/sp*20).toFixed(1)}`).join(' ');
+    const badges=[s.isNew?'<span class="badge new">NEW</span>':'',state.window&&s.lift>=2&&s.win>=2?`<span class="badge hot">×${isFinite(s.lift)?s.lift.toFixed(1):'∞'}</span>`:'',s.rare?'<span class="badge rare">rare</span>':''].join('');
+    const when=model.timed?`${fmtT(s.first)} → ${fmtT(s.last)}`:`lines ${s.first+1}–${s.last+1}`;
+    return`<li data-id="${s.c.id}"><span class="lvl ${s.level}"></span><div><div class="tpl">${tplHtml(s.c.tpl)}</div>
+      <div class="meta">${badges}<span>${s.level.toUpperCase()}</span><span>${when}</span>${state.window?`<span>${s.win} in window</span>`:''}</div>
+      <div class="bar"><i style="width:${s.count/maxCount*100}%"></i></div></div>
+      <div class="right"><b>${s.count.toLocaleString()}</b><svg class="spark" viewBox="0 0 72 22"><polyline points="${pts}" fill="none" stroke="${LVL_COLOR[s.level]}" stroke-width="1.5"/></svg></div></li>`;
+  }).join('')||'<li class="empty">No templates match.</li>';
+}
+function drawTimeline(){
+  const svg=$('#tl'),W=svg.clientWidth||600,H=120,nb=model.nb,bw=W/nb;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const max=Math.max(1,...buckets.map(b=>b.total));
+  let s='';
+  buckets.forEach((b,i)=>{let y=H-4;for(const k of['debug','info','warn','error']){const h=b[k]/max*(H-14);if(!h)continue;y-=h;s+=`<rect x="${(i*bw+0.5).toFixed(1)}" y="${y.toFixed(1)}" width="${Math.max(1,bw-1).toFixed(1)}" height="${h.toFixed(1)}" fill="${LVL_COLOR[k]}" rx="1"/>`;}});
+  if(state.window){const x0=(state.window[0]-model.min)/model.span*W,x1=(state.window[1]-model.min)/model.span*W;
+    s+=`<rect x="${x0}" y="0" width="${Math.max(2,x1-x0)}" height="${H}" fill="var(--accent)" opacity=".18"/><rect x="${x0}" y="0" width="2" height="${H}" fill="var(--accent)"/><rect x="${x1-2}" y="0" width="2" height="${H}" fill="var(--accent)"/>`;}
+  svg.innerHTML=s+`<line x1="0" y1="${H-4}" x2="${W}" y2="${H-4}" stroke="var(--line)"/>`;
+  const info=$('#tlInfo');
+  if(state.window){const n=model.lines.filter(inWin).length;const [a,b]=state.window;
+    info.innerHTML=`<b>Window</b> ${model.timed?`${fmtT(a)}–${fmtT(b)}`:`lines ${a+1}–${b+1}`} · ${n} lines · templates show ×lift vs. the whole file <button id="btnClearWin" style="padding:0 10px">Clear</button>`;
+    $('#btnClearWin').onclick=()=>{state.window=null;render();};
+  }else info.textContent=model.lines.length?'Drag across the timeline to compare a window against the whole file.':'';
+}
+/* timeline brush with Pointer Events */
+(function(){const svg=$('#tl');let x0=null,moved=false;
+  const px=e=>{const r=svg.getBoundingClientRect();return Math.min(1,Math.max(0,(e.clientX-r.left)/r.width));};
+  const toX=f=>model.timed?model.min+f*model.span:Math.round(model.min+f*model.span);
+  svg.addEventListener('pointerdown',e=>{if(!model||!model.lines.length)return;svg.setPointerCapture(e.pointerId);x0=px(e);moved=false;});
+  svg.addEventListener('pointermove',e=>{if(x0==null)return;const x=px(e);if(Math.abs(x-x0)*svg.clientWidth>4)moved=true;if(moved){state.window=[toX(Math.min(x0,x)),toX(Math.max(x0,x))];drawTimeline();}});
+  const up=e=>{if(x0==null)return;if(!moved)state.window=null;x0=null;render();};
+  svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+})();
+
+/* ---------- detail sheet ---------- */
+/* Regex for the message part: each slot becomes a capture group; "key=" tokens re-join their value without whitespace. */
+function regexFor(tpl){let out='';tpl.forEach((t,i)=>{out+=(i===0?'':tpl[i-1].endsWith('=')?'':'\\s+')+t.split('<*>').map(p=>p.replace(/[.*+?^${}()|[\]\\\/]/g,'\\$&')).join('(\\S+)');});return out;}
+function openSheet(id){
+  const c=model.clusters[id];if(!c)return;const ls=c.lines.map(i=>model.lines[i]);
+  const slots=[];c.tpl.forEach((t,i)=>{if(!t.includes('<*>'))return;const m=new Map();for(const l of ls){const v=l.tokens[i];m.set(v,(m.get(v)||0)+1);}
+    const top=[...m].sort((a,b)=>b[1]-a[1]).slice(0,5);slots.push({i,distinct:m.size,top});});
+  const lv={error:0,warn:0,info:0,debug:0};ls.forEach(l=>lv[l.level]++);
+  const samples=[...new Set([...ls.slice(0,3),...ls.slice(-2)])].map(l=>esc(l.raw)).join('\n');
+  const rx=regexFor(c.tpl);
+  $('#sheetCard').innerHTML=`<button class="close" id="sheetClose" aria-label="Close">✕</button><h3 class="tpl">${tplHtml(c.tpl)}</h3>
+    <dl class="kv"><dt>Occurrences</dt><dd>${ls.length.toLocaleString()} of ${model.lines.length.toLocaleString()} (${(ls.length/model.lines.length*100).toFixed(1)}%)</dd>
+    <dt>Levels</dt><dd>${LEVELS.filter(k=>lv[k]).map(k=>`${k.toUpperCase()} ${lv[k]}`).join(' · ')}</dd>
+    <dt>Seen</dt><dd>${model.timed?`${fmtT(xOf(ls[0]))} → ${fmtT(xOf(ls[ls.length-1]))} UTC`:`lines ${ls[0].idx+1} → ${ls[ls.length-1].idx+1}`}</dd></dl>
+    ${slots.length?`<div class="slots">${slots.map(s=>`<div class="slot"><h4>slot ${s.i+1} · ${s.distinct} distinct value${s.distinct===1?'':'s'}</h4>${s.top.map(([v,n])=>`<div><span title="${esc(v)}">${esc(v)}</span><span>${n}</span></div>`).join('')}</div>`).join('')}</div>`:'<p style="color:var(--muted)">No variable slots — this line is always identical.</p>'}
+    <h4 style="margin:10px 0 4px">Sample lines</h4><pre class="samples">${samples}</pre>
+    <h4 style="margin:10px 0 4px">Regex for the message part (one capture group per slot)</h4><pre class="samples" id="rx">${esc(rx)}</pre>
+    <div class="row"><button id="copyRx">Copy regex</button><button id="copyTpl">Copy template</button></div>`;
+  $('#sheet').classList.add('open');
+  $('#sheetClose').onclick=closeAll;
+  $('#copyRx').onclick=()=>copy(rx);$('#copyTpl').onclick=()=>copy(tplText(c.tpl));
+}
+function closeAll(){$('#sheet').classList.remove('open');$('#help').classList.remove('open');}
+function copy(text){(navigator.clipboard?navigator.clipboard.writeText(text):Promise.reject()).then(()=>toast('Copied'),()=>{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('Copied');}catch(e){toast('Copy failed');}ta.remove();});}
+let toastT;function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),1800);}
+
+/* ---------- save / open ---------- */
+function download(name,text,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);}
+const today=()=>new Date().toISOString().slice(0,10);
+function save(){download(`sieve-${today()}.json`,JSON.stringify({app:APP,version:VERSION,saved:new Date().toISOString(),logs:$('#logs').value,settings:{...state}}),'application/json');toast('Saved sieve-'+today()+'.json');}
+function saveCsv(){if(!model)return;const q=s=>`"${String(s).replace(/"/g,'""')}"`;
+  const rows=[['template','count','level','first','last','lift_in_window'],...clusterStats().sort((a,b)=>b.count-a.count).map(s=>[tplText(s.c.tpl),s.count,s.level,model.timed?new Date(s.first).toISOString():s.first+1,model.timed?new Date(s.last).toISOString():s.last+1,isFinite(s.lift)?s.lift.toFixed(2):'inf'])];
+  download(`sieve-templates-${today()}.csv`,rows.map(r=>r.map(q).join(',')).join('\n'),'text/csv');}
+function openFile(file){const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);
+    if(!d||d.app!==APP||typeof d.version!=='number')throw new Error('not a Sieve file');
+    if(d.version>VERSION)throw new Error(`saved by a newer Sieve (v${d.version})`);
+    $('#logs').value=d.logs||'';Object.assign(state,d.settings||{});applySettings();analyze();toast(`Opened ${file.name}`);}
+  catch(e){toast(`Could not open ${file.name}: ${e.message}`);}};r.readAsText(file);}
+function applySettings(){
+  $('#thr').value=state.threshold;$('#thrVal').textContent=state.threshold.toFixed(2);$('#sort').value=state.sort;$('#filter').value=state.filter;
+  document.querySelectorAll('.chip').forEach(ch=>ch.classList.toggle('on',!!state.levels[ch.dataset.l]));
+  setTheme(state.theme||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'));
+  $('#logsPanel').classList.toggle('collapsed',!!state.collapsed);$('#btnCollapse').textContent=state.collapsed?'Show':'Hide';
+}
+function setTheme(t){state.theme=t;document.documentElement.dataset.theme=t;}
+
+/* ---------- wiring ---------- */
+let typing;
+$('#logs').addEventListener('input',()=>{clearTimeout(typing);typing=setTimeout(analyze,150);});
+$('#filter').addEventListener('input',e=>{state.filter=e.target.value;render();});
+$('#sort').addEventListener('change',e=>{state.sort=e.target.value;render();});
+$('#thr').addEventListener('input',e=>{state.threshold=+e.target.value;$('#thrVal').textContent=state.threshold.toFixed(2);clearTimeout(typing);typing=setTimeout(analyze,120);});
+document.querySelectorAll('.chip').forEach(ch=>ch.addEventListener('click',()=>{state.levels[ch.dataset.l]=!state.levels[ch.dataset.l];ch.classList.toggle('on');render();}));
+$('#list').addEventListener('click',e=>{const li=e.target.closest('li[data-id]');if(li)openSheet(+li.dataset.id);});
+$('#btnExample').onclick=()=>{$('#logs').value=example();state.window=null;analyze();toast('Example loaded');};
+$('#btnSave').onclick=save;$('#btnCsv').onclick=saveCsv;
+$('#btnOpen').onclick=()=>$('#file').click();
+$('#file').addEventListener('change',e=>{if(e.target.files[0])openFile(e.target.files[0]);e.target.value='';});
+$('#btnTheme').onclick=()=>setTheme(state.theme==='dark'?'light':'dark');
+$('#btnHelp').onclick=()=>$('#help').classList.add('open');$('#helpClose').onclick=closeAll;
+$('#btnCollapse').onclick=()=>{state.collapsed=!state.collapsed;applySettings();};
+for(const id of['sheet','help'])$('#'+id).addEventListener('click',e=>{if(e.target.id===id)closeAll();});
+function stepThr(d){state.threshold=Math.min(0.95,Math.max(0.4,+(state.threshold+d).toFixed(2)));$('#thr').value=state.threshold;$('#thrVal').textContent=state.threshold.toFixed(2);analyze();}
+document.addEventListener('keydown',e=>{
+  const mod=e.ctrlKey||e.metaKey,inField=/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)||e.target.isContentEditable;
+  if(e.key==='Escape'){closeAll();return;}
+  if(mod&&!e.altKey){const k=e.key.toLowerCase();const map={'/':()=>$('#help').classList.toggle('open'),s:save,o:()=>$('#file').click(),k:()=>$('#filter').focus(),e:()=>$('#btnExample').click()};
+    if(map[k]){e.preventDefault();map[k]();}return;}
+  if(inField||e.altKey)return;
+  const map={t:()=>$('#btnTheme').click(),l:()=>$('#btnCollapse').click(),w:()=>{state.window=null;render();},'[':()=>stepThr(-0.05),']':()=>stepThr(0.05)};
+  const f=map[e.key.toLowerCase()]||map[e.key];if(f){e.preventDefault();f();}
+});
+addEventListener('resize',()=>{if(model)drawTimeline();});
+applySettings();$('#logs').value=example();analyze();
+</script>
+</body>
+</html>
+
+</body></html>

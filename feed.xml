@@ -26,13 +26,6 @@
     <description>Type a regular expression and it draws it as a railroad diagram you can read left to right. Paste test text to see every match highlighted, tap any box in the diagram to see which characters that part captured, read a plain-English breakdown, and preview a replacement live.</description>
   </item>
   <item>
-    <title>CipherVault (Gemini)</title>
-    <link>https://trez63.com/p/ciphervault.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/ciphervault.html</guid>
-    <pubDate>Thu, 29 Oct 2026 12:00:00 +0000</pubDate>
-    <description>A small vault for secrets that never leaves the browser. Type a master passphrase, add named API keys, database credentials or tokens, and each is encrypted with AES-GCM; clear or change the passphrase and they turn back into ciphertext. Includes a high-entropy key generator and saves the encrypted vault as JSON.</description>
-  </item>
-  <item>
     <title>DocuForge (Gemini)</title>
     <link>https://trez63.com/p/docuforge.html</link>
     <guid isPermaLink="true">https://trez63.com/p/docuforge.html</guid>

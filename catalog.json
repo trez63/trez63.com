@@ -1103,24 +1103,6 @@
       ],
       "category": "dev"
     },
-    "ciphervault": {
-      "title": "CipherVault",
-      "engine": "Gemini",
-      "description": "A small vault for secrets that never leaves the browser. Type a master passphrase, add named API keys, database credentials or tokens, and each is encrypted with AES-GCM; clear or change the passphrase and they turn back into ciphertext. Includes a high-entropy key generator and saves the encrypted vault as JSON.",
-      "source_file": "ciphervault-gemini.html",
-      "first_published": "2026-10-29",
-      "last_updated": "2026-10-29",
-      "version": 1,
-      "sha": "d149ff175cd9",
-      "versions": [
-        {
-          "v": 1,
-          "date": "2026-10-29",
-          "sha": "d149ff175cd9"
-        }
-      ],
-      "category": "tool"
-    },
     "docuforge": {
       "title": "DocuForge",
       "engine": "Gemini",

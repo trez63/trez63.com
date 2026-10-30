@@ -7,47 +7,73 @@
 <style>
 :root {
   --bg:#0f1115; --fg:#e8eaed; --card:#1a1d24; --border:#2d323c; --accent:#4f8cff;
-  --muted:#8b92a0; --good:#3dd68c; --warn:#f5a623; --radius:12px;
+  --muted:#8b92a0; --good:#3dd68c; --radius:10px;
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
 }
 [data-theme="light"] {
-  --bg:#f6f7f9; --fg:#1a1d24; --card:#fff; --border:#e2e5ea; --accent:#2563eb;
-  --muted:#6b7280; --good:#059669; --warn:#d97706;
+  --bg:#f4f5f7; --fg:#1a1d24; --card:#ffffff; --border:#dde1e6; --accent:#2563eb;
+  --muted:#6b7280; --good:#059669;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,sans-serif;line-height:1.4}
-body{padding:calc(12px + var(--safe-top)) 12px calc(12px + var(--safe-bottom));overflow-x:hidden}
-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
-h1{font-size:1.4rem;font-weight:700}
-.toolbar{display:flex;gap:8px;flex-wrap:wrap}
-button, .btn{background:var(--card);color:var(--fg);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:0.9rem;cursor:pointer;touch-action:manipulation}
-button:active{transform:scale(0.97)}
+body{padding:calc(10px + var(--safe-top)) 10px calc(16px + var(--safe-bottom));overflow-x:hidden}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+h1{font-size:1.35rem;font-weight:700}
+.toolbar{display:flex;flex-wrap:wrap;gap:6px}
+button{background:var(--card);color:var(--fg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.85rem;cursor:pointer;touch-action:manipulation}
 button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
-.score{font-size:0.9rem;color:var(--muted);align-self:center}
-.canvas{display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:auto auto auto;gap:10px;margin-bottom:20px}
-.block{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px;min-height:140px;display:flex;flex-direction:column}
-.block h2{font-size:0.85rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
-.block ul{list-style:none;flex:1;overflow-y:auto;max-height:160px}
-.block li{background:rgba(79,140,255,0.08);margin-bottom:4px;padding:6px 8px;border-radius:6px;font-size:0.85rem;display:flex;justify-content:space-between;gap:6px;word-break:break-word}
-.block li button{padding:2px 6px;font-size:0.75rem;background:transparent;border:none;color:var(--muted)}
-.add{margin-top:6px;font-size:0.8rem;padding:4px 8px;align-self:flex-start}
-.kp{grid-column:1;grid-row:1/3}.ka{grid-column:2;grid-row:1}.kr{grid-column:2;grid-row:2}.vp{grid-column:3;grid-row:1/3}
-.cr{grid-column:4;grid-row:1}.ch{grid-column:4;grid-row:2}.cs{grid-column:5;grid-row:1/3}.co{grid-column:1/3;grid-row:3}.rs{grid-column:3/6;grid-row:3}
+button:active{transform:scale(0.97)}
+.score{font-size:0.85rem;color:var(--muted);white-space:nowrap}
+/* Classic BMC grid */
+.canvas{
+  display:grid;
+  grid-template-columns:1.1fr 1fr 1.2fr 1fr 1.1fr;
+  grid-template-rows:minmax(120px,auto) minmax(120px,auto) minmax(100px,auto);
+  gap:8px;
+  margin-bottom:14px;
+}
+.block{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:10px;display:flex;flex-direction:column;min-height:0;
+}
+.block h2{font-size:0.72rem;text-transform:uppercase;letter-spacing:0.4px;color:var(--accent);margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;gap:4px}
+.block .hint{font-size:0.7rem;color:var(--muted);margin-bottom:6px;line-height:1.3}
+.block ul{list-style:none;flex:1;overflow-y:auto;max-height:140px}
+.block li{background:rgba(79,140,255,0.09);margin-bottom:4px;padding:5px 7px;border-radius:6px;font-size:0.82rem;display:flex;justify-content:space-between;gap:4px;align-items:flex-start}
+.block li span{flex:1;word-break:break-word;outline:none}
+min-height:1.2em}
+.block li span:focus{background:rgba(79,140,255,0.15);border-radius:4px}
+.block li button{background:transparent;border:none;color:var(--muted);font-size:0.9rem;padding:0 2px;line-height:1}
+.add{font-size:0.75rem;padding:3px 8px;margin-top:4px;align-self:flex-start}
+/* Classic positions */
+.kp{grid-column:1;grid-row:1/3}
+.ka{grid-column:2;grid-row:1}
+.kr{grid-column:2;grid-row:2}
+.vp{grid-column:3;grid-row:1/3}
+.cr{grid-column:4;grid-row:1}
+.ch{grid-column:4;grid-row:2}
+.cs{grid-column:5;grid-row:1/3}
+.co{grid-column:1/3;grid-row:3}
+.rs{grid-column:3/6;grid-row:3}
 @media (max-width:900px){
   .canvas{grid-template-columns:1fr 1fr;grid-template-rows:auto}
   .kp,.ka,.kr,.vp,.cr,.ch,.cs,.co,.rs{grid-column:auto;grid-row:auto}
 }
-@media (max-width:520px){
+@media (max-width:540px){
   .canvas{grid-template-columns:1fr}
   header{flex-direction:column;align-items:stretch}
   .toolbar{justify-content:center}
+  .block ul{max-height:110px}
 }
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
+.pitch-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.pitch-box h3{font-size:0.9rem;margin-bottom:8px;color:var(--accent)}
+.pitch-box p{font-size:0.9rem;white-space:pre-wrap;line-height:1.5}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}
 .overlay.show{display:flex}
-.modal{background:var(--card);border-radius:var(--radius);padding:24px;max-width:480px;width:100%;max-height:80vh;overflow-y:auto}
-.modal h3{margin-bottom:12px}
-.modal kbd{background:var(--border);padding:2px 6px;border-radius:4px;font-size:0.8rem}
-.pitch{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-top:12px;font-size:0.95rem;white-space:pre-wrap}
+.modal{background:var(--card);border-radius:var(--radius);padding:20px;max-width:460px;width:100%;max-height:80vh;overflow-y:auto}
+.modal h3{margin-bottom:10px}
+.modal kbd{background:var(--border);padding:2px 6px;border-radius:4px;font-size:0.78rem}
+.modal ul{margin:10px 0;padding-left:18px;font-size:0.88rem}
 input[type=file]{display:none}
 </style>
 </head>
@@ -56,71 +82,87 @@ input[type=file]{display:none}
   <h1>CanvasForge</h1>
   <div class="score" id="score">Completeness: 0%</div>
   <div class="toolbar">
-    <button id="themeBtn">Toggle Theme</button>
+    <button id="themeBtn">Theme</button>
     <button id="saveBtn" class="primary">Save</button>
     <button id="openBtn">Open</button>
-    <button id="resetBtn">Reset Demo</button>
-    <button id="helpBtn">Help (?)</button>
+    <button id="newBtn">New Canvas</button>
+    <button id="pitchBtn">Refresh Pitch</button>
+    <button id="helpBtn">Help</button>
   </div>
 </header>
+
 <div class="canvas" id="canvas"></div>
-<div class="pitch" id="pitch">Generate a pitch summary from your canvas…</div>
+
+<div class="pitch-box">
+  <h3>Generated Pitch</h3>
+  <p id="pitch">Fill the blocks to generate a pitch that uses your actual content.</p>
+</div>
+
 <div class="overlay" id="helpOverlay">
   <div class="modal">
     <h3>CanvasForge Help</h3>
-    <p>Build and iterate on a Business Model Canvas. Each block holds editable items.</p>
-    <ul style="margin:12px 0;padding-left:18px;font-size:0.9rem">
-      <li><kbd>?</kbd> or <kbd>H</kbd> — toggle this help</li>
-      <li><kbd>T</kbd> — toggle light/dark theme</li>
-      <li><kbd>S</kbd> — save canvas to JSON</li>
-      <li><kbd>O</kbd> — open a previously saved JSON</li>
-      <li><kbd>R</kbd> — reset to demo data</li>
-      <li><kbd>P</kbd> — generate / refresh pitch summary</li>
+    <p>Build a real Business Model Canvas. Layout follows the classic Osterwalder structure.</p>
+    <ul>
+      <li><kbd>?</kbd> or <kbd>H</kbd> — toggle help</li>
+      <li><kbd>T</kbd> — theme</li>
+      <li><kbd>S</kbd> — save JSON</li>
+      <li><kbd>O</kbd> — open JSON</li>
+      <li><kbd>N</kbd> — new / clear canvas (with confirm)</li>
+      <li><kbd>P</kbd> — refresh pitch</li>
       <li><kbd>Esc</kbd> — close help</li>
     </ul>
-    <p>On mobile, tap any item to edit, use the + buttons to add, and the × to remove. Completeness updates live. All data stays in your browser until you save.</p>
-    <button id="closeHelp" style="margin-top:12px">Close</button>
+    <p>Tap any item to edit. Use + to add, × to remove. Pitch updates from every block that has content. New Canvas wipes everything so you can start fresh instantly.</p>
+    <button id="closeHelp" style="margin-top:10px">Close</button>
   </div>
 </div>
 <input type="file" id="fileInput" accept=".json">
+
 <script>
 const BLOCKS = [
-  {id:'kp', title:'Key Partners', cls:'kp'},
-  {id:'ka', title:'Key Activities', cls:'ka'},
-  {id:'kr', title:'Key Resources', cls:'kr'},
-  {id:'vp', title:'Value Propositions', cls:'vp'},
-  {id:'cr', title:'Customer Relationships', cls:'cr'},
-  {id:'ch', title:'Channels', cls:'ch'},
-  {id:'cs', title:'Customer Segments', cls:'cs'},
-  {id:'co', title:'Cost Structure', cls:'co'},
-  {id:'rs', title:'Revenue Streams', cls:'rs'}
+  {id:'kp', title:'Key Partners', cls:'kp', hint:'Who helps you? Suppliers, alliances, joint ventures.'},
+  {id:'ka', title:'Key Activities', cls:'ka', hint:'What must you do well every day?'},
+  {id:'kr', title:'Key Resources', cls:'kr', hint:'Assets, people, IP, data, brand.'},
+  {id:'vp', title:'Value Propositions', cls:'vp', hint:'Why customers choose you. Jobs, pains, gains.'},
+  {id:'cr', title:'Customer Relationships', cls:'cr', hint:'How you acquire, keep, and grow customers.'},
+  {id:'ch', title:'Channels', cls:'ch', hint:'How the offer reaches customers.'},
+  {id:'cs', title:'Customer Segments', cls:'cs', hint:'Who you serve. Most important customers first.'},
+  {id:'co', title:'Cost Structure', cls:'co', hint:'Biggest costs. Fixed vs variable.'},
+  {id:'rs', title:'Revenue Streams', cls:'rs', hint:'How you make money from each segment.'}
 ];
+
 const DEMO = {
-  kp:['Sustainable material suppliers','University research labs','Logistics partners'],
-  ka:['R&D on biodegradable polymers','Manufacturing scale-up','Customer education'],
-  kr:['Patented bio-material','Engineering team','Brand IP'],
-  vp:['Zero-waste packaging that performs like plastic','Lower lifecycle cost','Brand differentiation for eco-conscious buyers'],
-  cr:['Dedicated account managers','Self-serve knowledge base','Community webinars'],
-  ch:['Direct B2B sales','E-commerce platform','Retail partnerships'],
-  cs:['Consumer goods brands','Food & beverage companies','Hospitality chains'],
-  co:['Material R&D','Pilot production','Sales team'],
-  rs:['Per-unit packaging sales','Licensing of material','Consulting services']
+  kp:['Specialty material suppliers','University materials lab','Regional logistics partners'],
+  ka:['Bio-polymer R&D','Pilot manufacturing','Customer education & onboarding'],
+  kr:['Patented compostable formula','Core engineering team','Brand & certifications'],
+  vp:['Packaging that performs like plastic but fully composts','Lower total cost of ownership','Helps brands hit sustainability targets without greenwashing'],
+  cr:['Dedicated success managers for large accounts','Self-serve knowledge base','Quarterly impact reports'],
+  ch:['Direct enterprise sales','E-commerce for smaller brands','Retail & distributor partnerships'],
+  cs:['Mid-to-large CPG brands','Food & beverage companies','Hospitality and quick-service restaurants'],
+  co:['Material R&D and testing','Pilot production runs','Sales & customer success team'],
+  rs:['Per-unit packaging sales','Material licensing','Paid implementation consulting']
 };
-let model = JSON.parse(JSON.stringify(DEMO));
+
+let model = structuredClone(DEMO);
 let theme = localStorage.getItem('cf-theme') || 'dark';
 document.documentElement.setAttribute('data-theme', theme);
 
-function render() {
+function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function render(){
   const canvas = document.getElementById('canvas');
   canvas.innerHTML = '';
   BLOCKS.forEach(b => {
     const div = document.createElement('div');
     div.className = 'block ' + b.cls;
-    div.innerHTML = `<h2>${b.title}<button class="add" data-block="${b.id}">+</button></h2><ul></ul>`;
+    div.innerHTML = `
+      <h2>${b.title}<button class="add" data-block="${b.id}" title="Add item">+</button></h2>
+      <div class="hint">${b.hint}</div>
+      <ul></ul>`;
     const ul = div.querySelector('ul');
     (model[b.id] || []).forEach((item, i) => {
       const li = document.createElement('li');
-      li.innerHTML = `<span contenteditable="true" data-block="${b.id}" data-idx="${i}">${escapeHtml(item)}</span><button data-del="${b.id}" data-idx="${i}">×</button>`;
+      li.innerHTML = `<span contenteditable="true" data-block="${b.id}" data-idx="${i}" spellcheck="false">${escapeHtml(item)}</span>
+                      <button data-del="${b.id}" data-idx="${i}" title="Remove">×</button>`;
       ul.appendChild(li);
     });
     canvas.appendChild(div);
@@ -128,27 +170,39 @@ function render() {
   updateScore();
   document.getElementById('pitch').textContent = generatePitch();
 }
-function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
 function updateScore(){
-  const total = BLOCKS.reduce((a,b)=>a+(model[b.id]?.length||0),0);
-  const pct = Math.min(100, Math.round((total / 18) * 100));
-  document.getElementById('score').textContent = `Completeness: ${pct}%`;
+  const filled = BLOCKS.filter(b => (model[b.id]||[]).length > 0).length;
+  const pct = Math.round((filled / BLOCKS.length) * 100);
+  document.getElementById('score').textContent = `Completeness: ${pct}% (${filled}/9 blocks)`;
 }
+
 function generatePitch(){
-  const vp = (model.vp||[]).join(', ');
-  const cs = (model.cs||[]).join(', ');
-  const rs = (model.rs||[]).join(', ');
-  return `We help ${cs || 'target customers'} by delivering ${vp || 'unique value'}. Revenue comes from ${rs || 'multiple streams'}. Built on strong partnerships and efficient operations.`;
+  const join = (arr, fallback) => (arr && arr.length) ? arr.join('; ') : fallback;
+  const vp = join(model.vp, 'a compelling value proposition');
+  const cs = join(model.cs, 'target customers');
+  const ch = join(model.ch, 'our channels');
+  const cr = join(model.cr, 'strong relationships');
+  const ka = join(model.ka, 'key activities');
+  const kr = join(model.kr, 'critical resources');
+  const kp = join(model.kp, 'key partners');
+  const rs = join(model.rs, 'multiple revenue streams');
+  const co = join(model.co, 'a focused cost structure');
+
+  return `We serve ${cs} by delivering ${vp}.\n\nCustomers reach us through ${ch} and we maintain ${cr}.\n\nTo deliver this we focus on ${ka}, powered by ${kr}, and work with ${kp}.\n\nWe generate revenue through ${rs} while managing ${co}.`;
 }
+
 function save(){
-  const blob = new Blob([JSON.stringify({model, theme}, null, 2)], {type:'application/json'});
+  const blob = new Blob([JSON.stringify({model, theme, version:2}, null, 2)], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'canvasforge-model.json';
   a.click();
   URL.revokeObjectURL(a.href);
 }
+
 function openFile(){ document.getElementById('fileInput').click(); }
+
 document.getElementById('fileInput').addEventListener('change', e => {
   const f = e.target.files[0]; if(!f) return;
   const r = new FileReader();
@@ -156,57 +210,83 @@ document.getElementById('fileInput').addEventListener('change', e => {
     try {
       const data = JSON.parse(r.result);
       if(data.model) model = data.model;
-      if(data.theme) { theme = data.theme; document.documentElement.setAttribute('data-theme', theme); localStorage.setItem('cf-theme', theme); }
+      if(data.theme){
+        theme = data.theme;
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('cf-theme', theme);
+      }
       render();
     } catch(err){ alert('Invalid JSON file'); }
   };
   r.readAsText(f);
   e.target.value = '';
 });
-function reset(){ model = JSON.parse(JSON.stringify(DEMO)); render(); }
+
+function newCanvas(){
+  if(confirm('Clear the entire canvas and start fresh? This cannot be undone unless you saved first.')){
+    model = {kp:[],ka:[],kr:[],vp:[],cr:[],ch:[],cs:[],co:[],rs:[]};
+    render();
+  }
+}
+
 function toggleTheme(){
   theme = theme === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', theme);
   localStorage.setItem('cf-theme', theme);
 }
+
 function toggleHelp(){ document.getElementById('helpOverlay').classList.toggle('show'); }
+
 document.getElementById('canvas').addEventListener('click', e => {
   if(e.target.classList.contains('add')){
     const id = e.target.dataset.block;
-    const text = prompt('New item:');
-    if(text && text.trim()){ model[id] = model[id] || []; model[id].push(text.trim()); render(); }
+    const text = prompt('New item for ' + id.toUpperCase() + ':');
+    if(text && text.trim()){
+      model[id] = model[id] || [];
+      model[id].push(text.trim());
+      render();
+    }
   }
-  if(e.target.dataset.del){
-    const {del:id, idx} = e.target.dataset;
-    model[id].splice(+idx, 1);
+  if(e.target.dataset.del !== undefined){
+    const id = e.target.dataset.del;
+    const idx = +e.target.dataset.idx;
+    model[id].splice(idx, 1);
     render();
   }
 });
+
 document.getElementById('canvas').addEventListener('blur', e => {
   if(e.target.contentEditable === 'true'){
-    const id = e.target.dataset.block, idx = +e.target.dataset.idx;
-    model[id][idx] = e.target.textContent.trim() || model[id][idx];
+    const id = e.target.dataset.block;
+    const idx = +e.target.dataset.idx;
+    const val = e.target.textContent.trim();
+    if(val) model[id][idx] = val;
+    else model[id].splice(idx, 1);
     updateScore();
     document.getElementById('pitch').textContent = generatePitch();
   }
 }, true);
+
 document.getElementById('themeBtn').onclick = toggleTheme;
 document.getElementById('saveBtn').onclick = save;
 document.getElementById('openBtn').onclick = openFile;
-document.getElementById('resetBtn').onclick = reset;
+document.getElementById('newBtn').onclick = newCanvas;
+document.getElementById('pitchBtn').onclick = () => { document.getElementById('pitch').textContent = generatePitch(); };
 document.getElementById('helpBtn').onclick = toggleHelp;
 document.getElementById('closeHelp').onclick = toggleHelp;
+
 document.addEventListener('keydown', e => {
-  if(e.target.contentEditable === 'true' || e.target.tagName === 'INPUT') return;
+  if(e.target.contentEditable === 'true' || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
   const k = e.key.toLowerCase();
   if(k === '?' || k === 'h'){ e.preventDefault(); toggleHelp(); }
   else if(k === 't') toggleTheme();
   else if(k === 's'){ e.preventDefault(); save(); }
   else if(k === 'o') openFile();
-  else if(k === 'r') reset();
+  else if(k === 'n'){ e.preventDefault(); newCanvas(); }
   else if(k === 'p') document.getElementById('pitch').textContent = generatePitch();
   else if(k === 'escape') document.getElementById('helpOverlay').classList.remove('show');
 });
+
 render();
 </script>
 </body>

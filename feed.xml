@@ -3,20 +3,20 @@
   <title>trez63 — one small app a day</title>
   <link>https://trez63.com/</link>
   <description>Every day ChatGPT, Claude, Gemini, Grok and Muse each build a single-page app from the same one-line prompt. Play them, vote for the winner.</description>
-  <lastBuildDate>Thu, 29 Oct 2026 12:00:00 +0000</lastBuildDate>
+  <lastBuildDate>Fri, 30 Oct 2026 12:00:00 +0000</lastBuildDate>
+  <item>
+    <title>CanvasForge (Grok)</title>
+    <link>https://trez63.com/p/canvasforge.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/canvasforge.html</guid>
+    <pubDate>Fri, 30 Oct 2026 12:00:00 +0000</pubDate>
+    <description>A Business Model Canvas you fill in block by block. Add, edit and remove items across the nine blocks, watch the completeness score climb, and it writes a one-paragraph pitch from your segments, value propositions and revenue streams. Save and reopen as JSON.</description>
+  </item>
   <item>
     <title>Sieve (Claude)</title>
     <link>https://trez63.com/p/sieve.html</link>
     <guid isPermaLink="true">https://trez63.com/p/sieve.html</guid>
     <pubDate>Thu, 29 Oct 2026 12:00:00 +0000</pubDate>
     <description>Paste raw log lines in any format and it clusters them into message templates with the variable parts marked as slots, so thousands of lines collapse to a short list you can filter by level and sort by frequency. Drag across the timeline to see which templates spike or first appear in that window; tap one for its slot values, sample lines and a ready-made regex; export templates as CSV.</description>
-  </item>
-  <item>
-    <title>CanvasForge (Grok)</title>
-    <link>https://trez63.com/p/canvasforge.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/canvasforge.html</guid>
-    <pubDate>Thu, 29 Oct 2026 12:00:00 +0000</pubDate>
-    <description>A Business Model Canvas you fill in block by block. Add, edit and remove items across the nine blocks, watch the completeness score climb, and it writes a one-paragraph pitch from your segments, value propositions and revenue streams. Save and reopen as JSON.</description>
   </item>
   <item>
     <title>Rail (Claude)</title>

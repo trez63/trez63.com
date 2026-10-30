@@ -35,7 +35,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/9",
-        "fetched": "2026-10-29"
+        "fetched": "2026-10-30"
       }
     },
     "foldwork": {
@@ -311,7 +311,7 @@
         "reactions": 1,
         "comments": 1,
         "url": "https://github.com/trez63/trez63.com/discussions/6",
-        "fetched": "2026-10-29"
+        "fetched": "2026-10-30"
       }
     },
     "sonogram": {
@@ -373,7 +373,7 @@
         "reactions": 1,
         "comments": 1,
         "url": "https://github.com/trez63/trez63.com/discussions/7",
-        "fetched": "2026-10-29"
+        "fetched": "2026-10-30"
       }
     },
     "sprout-garden": {
@@ -474,7 +474,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/11",
-        "fetched": "2026-10-29"
+        "fetched": "2026-10-30"
       }
     },
     "budget": {
@@ -579,7 +579,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/10",
-        "fetched": "2026-10-29"
+        "fetched": "2026-10-30"
       }
     },
     "tessera": {
@@ -638,7 +638,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/8",
-        "fetched": "2026-10-29"
+        "fetched": "2026-10-30"
       }
     },
     "dayblock": {
@@ -743,7 +743,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/12",
-        "fetched": "2026-10-29"
+        "fetched": "2026-10-30"
       }
     },
     "cosmic-breath": {
@@ -835,7 +835,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/13",
-        "fetched": "2026-10-29"
+        "fetched": "2026-10-30"
       }
     },
     "tidytext": {
@@ -1058,16 +1058,21 @@
       "title": "CanvasForge",
       "engine": "Grok",
       "description": "A Business Model Canvas you fill in block by block. Add, edit and remove items across the nine blocks, watch the completeness score climb, and it writes a one-paragraph pitch from your segments, value propositions and revenue streams. Save and reopen as JSON.",
-      "source_file": "CanvasForge-Grok.html",
+      "source_file": "CanvasForge.html",
       "first_published": "2026-10-29",
-      "last_updated": "2026-10-29",
-      "version": 1,
-      "sha": "fcaff5b63a6c",
+      "last_updated": "2026-10-30",
+      "version": 2,
+      "sha": "2980fa629b55",
       "versions": [
         {
           "v": 1,
           "date": "2026-10-29",
           "sha": "fcaff5b63a6c"
+        },
+        {
+          "v": 2,
+          "date": "2026-10-30",
+          "sha": "2980fa629b55"
         }
       ],
       "category": "tool",
@@ -1207,6 +1212,6 @@
       "category": "edu"
     }
   },
-  "generated": "2026-10-29",
-  "votes_fetched": "2026-10-29"
+  "generated": "2026-10-30",
+  "votes_fetched": "2026-10-30"
 }

@@ -167,6 +167,12 @@ def main():
         if entry and entry.get("sha") == h:
             print(f"= {slug}: unchanged")
             continue
+        if entry and any(v.get("sha") == h for v in entry.get("versions", [])):
+            # An older copy of the same app still sits in the source folder next to a
+            # newer one (e.g. Foo-Grok.html beside Foo.html). Don't let it flip the
+            # published version back and forth every day.
+            print(f"= {slug}: stale copy ({f.name} matches an earlier version); skipped")
+            continue
         # PRIVACY GATE: a file with findings is never copied into the public repo.
         chk = subprocess.run([sys.executable, str(ROOT / "scripts" / "privacy_check.py")]
                              + (["--terms", args.terms] if args.terms else []) + [str(f)],

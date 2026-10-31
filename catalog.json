@@ -35,7 +35,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/9",
-        "fetched": "2026-10-30"
+        "fetched": "2026-10-31"
       }
     },
     "foldwork": {
@@ -311,7 +311,7 @@
         "reactions": 1,
         "comments": 1,
         "url": "https://github.com/trez63/trez63.com/discussions/6",
-        "fetched": "2026-10-30"
+        "fetched": "2026-10-31"
       }
     },
     "sonogram": {
@@ -373,7 +373,7 @@
         "reactions": 1,
         "comments": 1,
         "url": "https://github.com/trez63/trez63.com/discussions/7",
-        "fetched": "2026-10-30"
+        "fetched": "2026-10-31"
       }
     },
     "sprout-garden": {
@@ -474,7 +474,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/11",
-        "fetched": "2026-10-30"
+        "fetched": "2026-10-31"
       }
     },
     "budget": {
@@ -579,7 +579,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/10",
-        "fetched": "2026-10-30"
+        "fetched": "2026-10-31"
       }
     },
     "tessera": {
@@ -638,7 +638,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/8",
-        "fetched": "2026-10-30"
+        "fetched": "2026-10-31"
       }
     },
     "dayblock": {
@@ -743,7 +743,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/12",
-        "fetched": "2026-10-30"
+        "fetched": "2026-10-31"
       }
     },
     "cosmic-breath": {
@@ -835,7 +835,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/13",
-        "fetched": "2026-10-30"
+        "fetched": "2026-10-31"
       }
     },
     "tidytext": {
@@ -1210,8 +1210,80 @@
         }
       ],
       "category": "edu"
+    },
+    "flowforge": {
+      "title": "FlowForge",
+      "engine": "Grok",
+      "description": "A process mapper. Drop in start, task, decision and end nodes, drag them around, connect them with arrows and save the flowchart as a file you can reopen.",
+      "source_file": "FlowForge-Grok.html",
+      "first_published": "2026-10-31",
+      "last_updated": "2026-10-31",
+      "version": 1,
+      "sha": "1069fa691160",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-31",
+          "sha": "1069fa691160"
+        }
+      ],
+      "category": "tool"
+    },
+    "folio": {
+      "title": "Folio",
+      "engine": "Claude",
+      "description": "Write Markdown on the left and it is laid out as real pages on the right, with a cover, a table of contents, running headers and page numbers. Print to PDF exactly as shown.",
+      "source_file": "Folio-Claude.html",
+      "first_published": "2026-10-31",
+      "last_updated": "2026-10-31",
+      "version": 1,
+      "sha": "a226de3999a6",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-31",
+          "sha": "a226de3999a6"
+        }
+      ],
+      "category": "text"
+    },
+    "campaign-link-builder": {
+      "title": "Campaign Link Builder",
+      "engine": "Muse",
+      "description": "Type a page URL, pick the source, medium and campaign, and a tracked UTM link builds itself as you type. Copy it, or save the ones you actually send.",
+      "source_file": "campaign-link-builder-muse.html",
+      "first_published": "2026-10-31",
+      "last_updated": "2026-10-31",
+      "version": 1,
+      "sha": "1b74bec75c80",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-31",
+          "sha": "1b74bec75c80"
+        }
+      ],
+      "category": "tool"
+    },
+    "draftloom": {
+      "title": "Draftloom",
+      "engine": "ChatGPT",
+      "description": "Write a template with named slots like {{client_name}}, fill each detail once and every matching slot updates together. Export the finished text or save the template.",
+      "source_file": "draftloom-codex.html",
+      "first_published": "2026-10-31",
+      "last_updated": "2026-10-31",
+      "version": 1,
+      "sha": "b8deb7f0b6fe",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-10-31",
+          "sha": "b8deb7f0b6fe"
+        }
+      ],
+      "category": "text"
     }
   },
-  "generated": "2026-10-30",
-  "votes_fetched": "2026-10-30"
+  "generated": "2026-10-31",
+  "votes_fetched": "2026-10-31"
 }

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>FlowForge — Process Mapper</title>
+<style>
+:root {
+  --bg: #0f1419; --surface: #1a2332; --text: #e8eef5; --muted: #8b9bb4;
+  --accent: #3d8bfd; --accent2: #22c55e; --danger: #ef4444; --border: #2d3a4f;
+  --node: #243044; --shadow: 0 4px 16px rgba(0,0,0,.4);
+}
+body.light {
+  --bg: #f4f6f9; --surface: #ffffff; --text: #1e293b; --muted: #64748b;
+  --accent: #2563eb; --accent2: #16a34a; --danger: #dc2626; --border: #e2e8f0;
+  --node: #f8fafc; --shadow: 0 4px 16px rgba(0,0,0,.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; }
+body { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); overflow: hidden; }
+#app { display: flex; flex-direction: column; height: 100%; }
+header { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: var(--surface); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+header h1 { font-size: 1.15rem; font-weight: 650; flex: 1; min-width: 120px; }
+button, .btn { background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; cursor: pointer; touch-action: manipulation; }
+button:hover, button:active { border-color: var(--accent); }
+button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+button.danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+.toolbar { display: flex; gap: 6px; padding: 8px 12px; background: var(--surface); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.toolbar button { flex: 1; min-width: 70px; }
+#board-wrap { flex: 1; position: relative; overflow: auto; background: var(--bg); }
+#board { position: relative; width: 2000px; height: 1400px; background-image: radial-gradient(circle, var(--border) 1px, transparent 1px); background-size: 24px 24px; }
+.node { position: absolute; min-width: 140px; max-width: 220px; padding: 10px 14px; background: var(--node); border: 2px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); cursor: move; user-select: none; touch-action: none; font-size: 0.9rem; line-height: 1.3; }
+.node.selected { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(61,139,253,.25); }
+.node.start { border-color: var(--accent2); }
+.node.end { border-color: var(--danger); }
+.node.decision { border-radius: 4px; transform: rotate(0deg); }
+.node .type { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 2px; }
+#svg { position: absolute; inset: 0; pointer-events: none; }
+#svg path { stroke: var(--accent); stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+#props { position: fixed; right: 12px; bottom: 12px; width: min(280px, calc(100vw - 24px)); background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px; box-shadow: var(--shadow); display: none; }
+#props.show { display: block; }
+#props input, #props select { width: 100%; padding: 8px; margin: 6px 0; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; }
+#help { position: fixed; inset: 0; background: rgba(0,0,0,.65); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+#help.show { display: flex; }
+.help-box { background: var(--surface); border-radius: 16px; padding: 20px; max-width: 420px; max-height: 80vh; overflow: auto; border: 1px solid var(--border); }
+.help-box h2 { margin-bottom: 10px; }
+.help-box ul { padding-left: 18px; line-height: 1.6; color: var(--muted); }
+.help-box kbd { background: var(--bg); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; }
+#file-input { display: none; }
+@media (max-width: 600px) {
+  header h1 { font-size: 1rem; }
+  .node { min-width: 120px; font-size: 0.85rem; padding: 8px 10px; }
+  #props { right: 8px; bottom: 8px; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>FlowForge</h1>
+    <button id="theme-btn">Theme</button>
+    <button id="help-btn">Help</button>
+    <button id="save-btn" class="primary">Save</button>
+    <button id="open-btn">Open</button>
+  </header>
+  <div class="toolbar">
+    <button id="add-start">+ Start</button>
+    <button id="add-task">+ Task</button>
+    <button id="add-decision">+ Decision</button>
+    <button id="add-end">+ End</button>
+    <button id="del-btn" class="danger">Delete</button>
+    <button id="connect-btn">Connect</button>
+  </div>
+  <div id="board-wrap">
+    <div id="board">
+      <svg id="svg"></svg>
+    </div>
+  </div>
+  <div id="props">
+    <div style="font-size:0.75rem;color:var(--muted);margin-bottom:6px;">Edit Node</div>
+    <input id="label-input" placeholder="Label">
+    <select id="type-select">
+      <option value="start">Start</option>
+      <option value="task">Task</option>
+      <option value="decision">Decision</option>
+      <option value="end">End</option>
+    </select>
+    <button id="close-props" style="width:100%;margin-top:6px;">Close</button>
+  </div>
+</div>
+<div id="help">
+  <div class="help-box">
+    <h2>FlowForge Help</h2>
+    <ul>
+      <li>Drag nodes to rearrange. Tap to select.</li>
+      <li>Use toolbar to add Start / Task / Decision / End nodes.</li>
+      <li>Select two nodes then press Connect (or C) to link them.</li>
+      <li>Edit label and type in the properties panel.</li>
+      <li><kbd>H</kbd> Help &nbsp; <kbd>T</kbd> Theme &nbsp; <kbd>S</kbd> Save &nbsp; <kbd>O</kbd> Open</li>
+      <li><kbd>N</kbd> New Task &nbsp; <kbd>D</kbd> Delete &nbsp; <kbd>C</kbd> Connect &nbsp; <kbd>Esc</kbd> Deselect</li>
+      <li>Save downloads a .json you can reopen later. Demo is pre-loaded.</li>
+    </ul>
+    <button id="close-help" style="width:100%;margin-top:12px;">Close</button>
+  </div>
+</div>
+<input type="file" id="file-input" accept=".json">
+<script>
+const board = document.getElementById('board');
+const svg = document.getElementById('svg');
+const props = document.getElementById('props');
+const labelInput = document.getElementById('label-input');
+const typeSelect = document.getElementById('type-select');
+let nodes = [], edges = [], selected = null, connecting = false, nextId = 1;
+let drag = null, offsetX = 0, offsetY = 0;
+
+function demo() {
+  nodes = [
+    {id:1, type:'start', x:80, y:80, label:'New Request'},
+    {id:2, type:'task', x:280, y:60, label:'Validate Input'},
+    {id:3, type:'decision', x:280, y:200, label:'Complete?'},
+    {id:4, type:'task', x:480, y:80, label:'Process & Approve'},
+    {id:5, type:'task', x:480, y:240, label:'Request More Info'},
+    {id:6, type:'end', x:700, y:160, label:'Closed'}
+  ];
+  edges = [{from:1,to:2},{from:2,to:3},{from:3,to:4},{from:3,to:5},{from:4,to:6},{from:5,to:2}];
+  nextId = 7;
+  render();
+}
+
+function render() {
+  board.querySelectorAll('.node').forEach(n => n.remove());
+  svg.innerHTML = '<defs><marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="currentColor"/></marker></defs>';
+  edges.forEach(e => {
+    const a = nodes.find(n => n.id === e.from), b = nodes.find(n => n.id === e.to);
+    if (!a || !b) return;
+    const x1 = a.x + 70, y1 = a.y + 30, x2 = b.x + 70, y2 = b.y + 30;
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d', `M${x1},${y1} C${x1+40},${y1} ${x2-40},${y2} ${x2},${y2}`);
+    path.setAttribute('stroke', 'var(--accent)');
+    svg.appendChild(path);
+  });
+  nodes.forEach(n => {
+    const el = document.createElement('div');
+    el.className = `node ${n.type}${selected === n.id ? ' selected' : ''}`;
+    el.style.left = n.x + 'px'; el.style.top = n.y + 'px';
+    el.innerHTML = `<div class="type">${n.type}</div>${n.label}`;
+    el.dataset.id = n.id;
+    el.addEventListener('pointerdown', startDrag);
+    el.addEventListener('click', e => { e.stopPropagation(); select(n.id); });
+    board.appendChild(el);
+  });
+}
+
+function select(id) {
+  selected = id;
+  const n = nodes.find(x => x.id === id);
+  if (n) {
+    labelInput.value = n.label;
+    typeSelect.value = n.type;
+    props.classList.add('show');
+  }
+  render();
+}
+
+function startDrag(e) {
+  const id = +e.currentTarget.dataset.id;
+  const n = nodes.find(x => x.id === id);
+  drag = n;
+  const rect = board.getBoundingClientRect();
+  offsetX = e.clientX - rect.left - n.x + board.parentElement.scrollLeft;
+  offsetY = e.clientY - rect.top - n.y + board.parentElement.scrollTop;
+  e.currentTarget.setPointerCapture(e.pointerId);
+  e.preventDefault();
+}
+
+function onMove(e) {
+  if (!drag) return;
+  const rect = board.getBoundingClientRect();
+  drag.x = Math.max(10, e.clientX - rect.left - offsetX + board.parentElement.scrollLeft);
+  drag.y = Math.max(10, e.clientY - rect.top - offsetY + board.parentElement.scrollTop);
+  render();
+}
+
+function onUp() { drag = null; }
+
+function addNode(type) {
+  const n = {id: nextId++, type, x: 100 + Math.random()*200, y: 100 + Math.random()*150, label: type.charAt(0).toUpperCase() + type.slice(1)};
+  nodes.push(n);
+  select(n.id);
+}
+
+function deleteSelected() {
+  if (!selected) return;
+  nodes = nodes.filter(n => n.id !== selected);
+  edges = edges.filter(e => e.from !== selected && e.to !== selected);
+  selected = null;
+  props.classList.remove('show');
+  render();
+}
+
+function tryConnect() {
+  if (!selected) return;
+  connecting = true;
+  document.body.style.cursor = 'crosshair';
+}
+
+function finishConnect(id) {
+  if (connecting && selected && selected !== id) {
+    if (!edges.some(e => e.from === selected && e.to === id)) edges.push({from: selected, to: id});
+    connecting = false;
+    document.body.style.cursor = '';
+    render();
+  }
+}
+
+labelInput.addEventListener('input', () => {
+  const n = nodes.find(x => x.id === selected);
+  if (n) { n.label = labelInput.value; render(); }
+});
+typeSelect.addEventListener('change', () => {
+  const n = nodes.find(x => x.id === selected);
+  if (n) { n.type = typeSelect.value; render(); }
+});
+
+document.getElementById('add-start').onclick = () => addNode('start');
+document.getElementById('add-task').onclick = () => addNode('task');
+document.getElementById('add-decision').onclick = () => addNode('decision');
+document.getElementById('add-end').onclick = () => addNode('end');
+document.getElementById('del-btn').onclick = deleteSelected;
+document.getElementById('connect-btn').onclick = tryConnect;
+document.getElementById('close-props').onclick = () => { props.classList.remove('show'); selected = null; render(); };
+
+board.addEventListener('click', e => {
+  if (e.target === board || e.target === svg) {
+    if (connecting) { connecting = false; document.body.style.cursor = ''; }
+    else { selected = null; props.classList.remove('show'); render(); }
+  }
+});
+board.addEventListener('pointermove', onMove);
+board.addEventListener('pointerup', onUp);
+board.addEventListener('pointercancel', onUp);
+
+document.getElementById('theme-btn').onclick = () => {
+  document.body.classList.toggle('light');
+  localStorage.setItem('ff-theme', document.body.classList.contains('light') ? 'light' : 'dark');
+};
+if (localStorage.getItem('ff-theme') === 'light') document.body.classList.add('light');
+
+document.getElementById('help-btn').onclick = () => document.getElementById('help').classList.add('show');
+document.getElementById('close-help').onclick = () => document.getElementById('help').classList.remove('show');
+
+document.getElementById('save-btn').onclick = () => {
+  const data = {nodes, edges, nextId};
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'flowforge-process.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+document.getElementById('open-btn').onclick = () => document.getElementById('file-input').click();
+document.getElementById('file-input').onchange = e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const data = JSON.parse(r.result);
+      nodes = data.nodes || []; edges = data.edges || []; nextId = data.nextId || 1;
+      selected = null; props.classList.remove('show'); render();
+    } catch (err) { alert('Invalid file'); }
+  };
+  r.readAsText(f);
+  e.target.value = '';
+};
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  const k = e.key.toLowerCase();
+  if (k === 'h') { e.preventDefault(); document.getElementById('help').classList.toggle('show'); }
+  else if (k === 't') { document.getElementById('theme-btn').click(); }
+  else if (k === 's') { e.preventDefault(); document.getElementById('save-btn').click(); }
+  else if (k === 'o') { e.preventDefault(); document.getElementById('open-btn').click(); }
+  else if (k === 'n') addNode('task');
+  else if (k === 'd') deleteSelected();
+  else if (k === 'c') tryConnect();
+  else if (k === 'escape') { selected = null; connecting = false; props.classList.remove('show'); document.body.style.cursor = ''; render(); }
+});
+
+board.addEventListener('click', e => {
+  const node = e.target.closest('.node');
+  if (node && connecting) finishConnect(+node.dataset.id);
+});
+
+demo();
+</script>
+</body>
+</html>

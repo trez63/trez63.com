@@ -1,0 +1,419 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Daily Build 2026-10-30 — Folio</title>
+<style>
+:root{--bg:#eceef2;--panel:#fff;--ink:#1c1e24;--mute:#687080;--line:#d9dde4;--accent:#2457d6;--on-accent:#fff;--shadow:0 3px 16px rgba(20,30,60,.16);
+  --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);--sal:env(safe-area-inset-left,0px);--sar:env(safe-area-inset-right,0px)}
+[data-theme=dark]{--bg:#14161b;--panel:#1d2026;--ink:#e7e9ee;--mute:#99a1ae;--line:#30343d;--accent:#7aa7ff;--on-accent:#0b1226;--shadow:0 3px 20px rgba(0,0,0,.6)}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;flex-direction:column;overflow:hidden;padding-top:var(--sat)}
+button,select,input,textarea{font:inherit;color:inherit}
+.bar{display:flex;align-items:center;gap:8px;padding:8px max(12px,var(--sar)) 8px max(12px,var(--sal));background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap;position:relative;z-index:5}
+.brand{font-weight:700;font-size:18px;letter-spacing:.2px}
+.brand small{color:var(--mute);font-weight:400;font-size:13px;margin-left:6px}
+.btn{min-height:44px;min-width:44px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--accent);color:var(--on-accent);border-color:transparent}
+.sp{flex:1}
+.tabs{display:none;gap:2px;background:var(--bg);border-radius:12px;padding:3px}
+.tabs .btn{border:0;background:transparent;min-width:72px}
+.tabs .btn.on{background:var(--panel);box-shadow:var(--shadow)}
+.app{flex:1;display:grid;grid-template-columns:minmax(300px,1fr) 1.5fr;min-height:0}
+.editor{display:flex;flex-direction:column;border-right:1px solid var(--line);background:var(--panel);min-height:0}
+textarea{flex:1;width:100%;border:0;outline:0;resize:none;padding:16px max(16px,var(--sal));background:transparent;font:16px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;tab-size:2;padding-bottom:calc(16px + var(--sab))}
+.pages{overflow:auto;-webkit-overflow-scrolling:touch;padding:20px 12px calc(24px + var(--sab));touch-action:pan-x pan-y pinch-zoom}
+.wrap{margin:0 auto;position:relative}
+.stack{transform-origin:top left;position:absolute;left:0;top:0}
+.stat{position:absolute;right:12px;bottom:calc(10px + var(--sab));background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:12px;color:var(--mute);box-shadow:var(--shadow);pointer-events:none}
+.main{position:relative;min-height:0;min-width:0;overflow:hidden;display:flex;flex-direction:column}
+.editor,.pages,.app{min-width:0}
+.main .pages{flex:1}
+
+/* ——— paper ——— */
+.sheet{position:relative;width:var(--pw);height:var(--ph);background:#fff;color:#111;box-shadow:var(--shadow);margin:0 0 24px;overflow:hidden}
+.body{position:absolute;top:var(--m);left:var(--m);width:var(--bw);height:var(--bh);overflow:hidden}
+.hdr{position:absolute;left:var(--m);right:var(--m);top:calc(var(--m)/2 - 7px);display:flex;justify-content:space-between;gap:1em;font:10.5px/1.2 system-ui,sans-serif;color:#7a7a7a;text-transform:uppercase;letter-spacing:.07em;white-space:nowrap;overflow:hidden}
+.hdr span{overflow:hidden;text-overflow:ellipsis}
+.ftr{position:absolute;left:0;right:0;bottom:calc(var(--m)/2 - 7px);text-align:center;font:10.5px/1.2 system-ui,sans-serif;color:#7a7a7a;font-variant-numeric:tabular-nums}
+.cover .ct{position:absolute;left:var(--m);right:var(--m);top:30%}
+.cover h1{font:700 34pt/1.15 var(--df);margin:0 0 .5em;border-bottom:2px solid #222;padding-bottom:.35em}
+.cover p{font:14pt/1.4 var(--df);color:#333;margin:0 0 .4em}
+.cover .meta{font:11pt system-ui,sans-serif;color:#777;margin-top:2.5em;text-transform:uppercase;letter-spacing:.08em}
+/* The same .doc rules style the hidden measurer and the visible pages, so measured heights are exact. */
+.doc{font:var(--pt)/1.45 var(--df);color:#1a1a1a;overflow-wrap:anywhere}
+.doc h1,.doc h2,.doc h3,.doc h4{margin:0 0 .45em;line-height:1.2;font-weight:700}
+.doc h1{font-size:2em;padding-top:.45em}.doc h2{font-size:1.4em;padding-top:.85em}.doc h3{font-size:1.15em;padding-top:.7em}.doc h4{font-size:1em;padding-top:.6em}
+.doc p,.doc pre,.doc table,.doc blockquote{margin:0 0 .75em}
+.doc ul,.doc ol{margin:0 0 .3em;padding-left:1.4em}
+.doc pre{background:#f1f1ee;border-radius:4px;padding:.55em .7em;font-size:.84em;line-height:1.4;white-space:pre-wrap}
+.doc code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92em}
+.doc pre code{font-size:1em}
+.doc blockquote{border-left:3px solid #999;padding:.1em .9em;color:#444;font-style:italic}
+.doc table{width:100%;border-collapse:collapse;font-size:.92em}
+.doc th,.doc td{border-bottom:1px solid #ccc;padding:.35em .5em;text-align:left;vertical-align:top}
+.doc th{border-bottom:2px solid #444}
+.doc hr{border:0;border-top:1px solid #bbb;margin:0 0 .9em}
+.doc a{color:#1d4ed8;text-decoration:none}
+.doc .toc{display:flex;align-items:baseline;gap:.5em;margin:0 0 .4em}
+.doc .toc.l2{padding-left:1.6em;font-size:.95em}
+.doc .toc i{flex:1;border-bottom:1px dotted #999;min-width:1em;transform:translateY(-.3em)}
+.doc .toc .pg{font-variant-numeric:tabular-nums}
+#meas{position:absolute;left:-10000px;top:0;width:var(--bw);visibility:hidden;pointer-events:none}
+
+/* ——— panels ——— */
+.pop{position:absolute;right:12px;top:calc(100% + 6px);background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:14px;display:none;grid-template-columns:auto 1fr;gap:10px 14px;align-items:center;min-width:300px;z-index:9}
+.pop.open{display:grid}
+.pop label{color:var(--mute);font-size:14px}
+.pop select,.pop input{min-height:44px;font-size:16px;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:0 10px;width:100%}
+.pop .chk{display:flex;gap:16px;grid-column:1/-1;flex-wrap:wrap}
+.pop .chk label{display:flex;align-items:center;gap:8px;min-height:44px;color:var(--ink);cursor:pointer}
+.pop .chk input{width:22px;height:22px;min-height:0;accent-color:var(--accent)}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:16px;z-index:20}
+.overlay.open{display:flex}
+.card{background:var(--panel);border-radius:16px;max-width:560px;width:100%;max-height:90vh;overflow:auto;padding:20px 22px calc(20px + var(--sab));box-shadow:var(--shadow)}
+.card h2{margin:0 0 10px;font-size:20px}
+.card h3{margin:16px 0 6px;font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute)}
+.card p{margin:0 0 8px}
+kbd{font:12px ui-monospace,Menlo,monospace;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 6px;background:var(--bg)}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:center}
+.card code{background:var(--bg);padding:1px 5px;border-radius:4px;font-size:13px}
+.toast{position:fixed;left:50%;bottom:calc(24px + var(--sab));transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:12px;opacity:0;transition:.25s;pointer-events:none;z-index:30;max-width:90vw}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:760px){
+  .app{grid-template-columns:1fr}
+  .editor,.main{display:none}
+  .app[data-tab=write] .editor{display:flex}
+  .app[data-tab=pages] .main{display:flex}
+  .tabs{display:flex}
+  .bar .txt{display:none}
+  .pop{left:12px;right:12px;min-width:0}
+}
+@media print{
+  body{overflow:visible;display:block;background:#fff;padding:0}
+  .bar,.editor,.overlay,.toast,.stat,#meas{display:none!important}
+  .app{display:block}.main{display:block!important}
+  .pages{overflow:visible;padding:0}
+  .wrap{width:auto!important;height:auto!important}
+  .stack{transform:none!important;position:static}
+  .sheet{box-shadow:none;margin:0;page-break-after:always;break-after:page}
+  .sheet:last-child{page-break-after:auto;break-after:auto}
+}
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="brand">Folio<small class="txt">markdown → paged document</small></div>
+  <div class="tabs"><button class="btn on" id="tabWrite">Write</button><button class="btn" id="tabPages">Pages</button></div>
+  <span class="sp"></span>
+  <button class="btn" id="bSettings" title="Layout settings (,)">⚙<span class="txt">Layout</span></button>
+  <button class="btn" id="bSave" title="Save (Ctrl+S)">↓<span class="txt">Save</span></button>
+  <button class="btn" id="bOpen" title="Open (Ctrl+O)">↑<span class="txt">Open</span></button>
+  <button class="btn" id="bZoom" title="Zoom (Z)">⤢<span class="txt" id="zoomTxt">Fit</span></button>
+  <button class="btn" id="bTheme" title="Theme (T)">◐</button>
+  <button class="btn" id="bHelp" title="Help (Ctrl+/)">?</button>
+  <button class="btn primary" id="bPrint" title="Print / PDF (Ctrl+P)">PDF</button>
+  <input type="file" id="file" accept=".json,application/json" hidden>
+  <div class="pop" id="pop">
+    <label for="sPaper">Paper</label><select id="sPaper"><option>Letter</option><option>A4</option></select>
+    <label for="sMargin">Margins</label><select id="sMargin"><option>Narrow</option><option selected>Normal</option><option>Wide</option></select>
+    <label for="sFont">Typeface</label><select id="sFont"><option value="serif">Serif</option><option value="sans">Sans</option></select>
+    <label for="sPt">Size</label><select id="sPt"><option>10</option><option selected>11</option><option>12</option></select>
+    <label for="sAuthor">Author</label><input id="sAuthor" placeholder="Shown on the cover">
+    <div class="chk">
+      <label><input type="checkbox" id="sCover" checked>Cover page</label>
+      <label><input type="checkbox" id="sToc" checked>Contents</label>
+      <label><input type="checkbox" id="sNumbers" checked>Page numbers</label>
+    </div>
+  </div>
+</header>
+<div class="app" id="app" data-tab="write">
+  <section class="editor"><textarea id="md" spellcheck="false" aria-label="Markdown source"></textarea></section>
+  <section class="main"><div class="pages" id="pages"><div class="wrap" id="wrap"><div class="stack" id="stack"></div></div></div><div class="stat" id="stat"></div></section>
+</div>
+<div class="doc" id="meas"></div>
+<div class="overlay" id="help"><div class="card">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><h2>Folio</h2><button class="btn" id="bClose" aria-label="Close help">✕</button></div>
+  <p>Write Markdown on the left; Folio lays it out into real pages on the right — a table of contents with page numbers, running headers, headings kept with their text, paragraphs and tables split cleanly across pages. <b>PDF</b> prints exactly what you see.</p>
+  <h3>Keyboard</h3>
+  <div class="keys">
+    <span><kbd>Ctrl</kbd> <kbd>/</kbd></span><span>Toggle this help</span>
+    <span><kbd>Ctrl</kbd> <kbd>S</kbd></span><span>Save document + layout as JSON</span>
+    <span><kbd>Ctrl</kbd> <kbd>O</kbd></span><span>Open a saved Folio file</span>
+    <span><kbd>Ctrl</kbd> <kbd>P</kbd></span><span>Print / save as PDF</span>
+    <span><kbd>,</kbd></span><span>Layout settings</span>
+    <span><kbd>Z</kbd></span><span>Zoom: fit → 100% → 150%</span>
+    <span><kbd>T</kbd></span><span>Dark / light interface</span>
+    <span><kbd>1</kbd> / <kbd>2</kbd></span><span>Write / Pages (phone)</span>
+    <span><kbd>Esc</kbd></span><span>Close panels</span>
+  </div>
+  <h3>Markdown</h3>
+  <p><code># Title</code> <code>## Section</code> <code>**bold**</code> <code>*italic*</code> <code>`code`</code> <code>[link](url)</code> <code>- list</code> <code>1. list</code> <code>&gt; quote</code> <code>| table |</code> <code>---</code> rule, fenced <code>```</code> code, and <code>\newpage</code> to force a page break. With a cover page on, the first <code>#</code> heading and the paragraph after it become the cover.</p>
+  <h3>Save / Open</h3>
+  <p>Save downloads <code>folio-YYYY-MM-DD.json</code> (text + settings); Open restores it exactly. Downloads work when this file is opened directly (the artifact viewer blocks them).</p>
+</div></div>
+<div class="toast" id="toast"></div>
+<style id="pg"></style>
+<script type="text/plain" id="demo"># Northwind Platform Review
+
+Quarterly engineering report for the leadership offsite · Q3 2026
+
+## Summary
+
+The platform team closed the quarter with the **lowest incident count since 2023** and a 31% reduction in p95 API latency, while shipping the new billing pipeline two weeks ahead of plan. Three themes shaped the quarter: paying down the queue backlog, moving the last stateful services onto managed Postgres, and replacing the hand-rolled deploy scripts with a single declarative pipeline.
+
+Headcount held flat at eleven engineers. One senior backend role remains open; the interview loop was shortened from five stages to three and time-to-offer fell from 34 to 19 days.
+
+> We used to spend Monday mornings finding out what broke over the weekend. Now we spend them deciding what to build. — *Priya N., on-call lead*
+
+## Highlights
+
+- Billing pipeline v2 launched on 14 September with zero customer-visible defects in the first 30 days.
+- API gateway migrated to the new edge tier; p95 latency fell from 412 ms to 284 ms.
+- Deploy frequency doubled (from 2.1 to 4.4 per day) with change-failure rate down to 3%.
+- Retired 14 cron jobs and two legacy services; infrastructure spend down $18,400 per month.
+- On-call pages per week: 11 → 4.
+
+## Reliability
+
+Availability stayed above target in every region. The single Sev-1 of the quarter (a certificate rotation that failed silently in the EU cluster) was detected by synthetic probes within four minutes and fully remediated in 38 minutes.
+
+| Service | Availability | p95 latency | Incidents |
+|---|---|---|---|
+| API gateway | 99.98% | 284 ms | 1 |
+| Billing pipeline | 99.99% | 910 ms | 0 |
+| Search | 99.95% | 142 ms | 2 |
+| Notifications | 99.97% | 66 ms | 1 |
+| Auth | 100.00% | 38 ms | 0 |
+
+The post-incident review produced three actions, all complete: certificate expiry is now a paged alert at 14 days, rotations are rehearsed in staging weekly, and the EU cluster has the same probe coverage as US-East.
+
+### Error budget
+
+Each service burns budget against a 99.95% monthly objective. Search consumed 61% of its budget in August during the index rebuild, which is why the September rebuild was moved to a shadow cluster. No other service exceeded 25%.
+
+### Deploy pipeline
+
+The new pipeline is a single declarative file per service. A typical definition:
+
+```
+service: billing-pipeline
+build: docker
+test: make test
+canary:
+  percent: 5
+  bake: 15m
+  rollback_on: error_rate > 1%
+promote: regions [us-east, us-west, eu-central]
+```
+
+Canary analysis halted two deploys automatically in September, both of which would previously have reached customers.
+
+## Cost
+
+Monthly infrastructure spend fell from $212k to $194k. Half of the saving came from retiring the legacy queue cluster; the rest from right-sizing search nodes after the rebuild and moving cold object storage to the archive tier. Reserved-instance coverage is now 78% of steady-state compute.
+
+1. Retire the legacy queue cluster — complete, $9,100 per month.
+2. Right-size search — complete, $5,600 per month.
+3. Archive tier for cold objects — complete, $3,700 per month.
+4. Consolidate the three observability vendors — in progress, estimated $7,000 per month.
+
+## Roadmap
+
+Next quarter concentrates on the self-serve tier. The team will ship usage-based metering on the new billing pipeline, open the public API to the first ten design partners, and finish the observability consolidation. The remaining stateful service (the report builder) moves to managed Postgres in November, after which every service is rebuildable from the pipeline definition alone.
+
+Risks are concentrated in the public API launch. Rate limiting and per-key quotas are built; what is missing is the abuse-detection layer, which depends on the senior backend hire. If the role is not filled by mid-November, launch slips to January.
+
+\newpage
+
+## Appendix: Definitions
+
+- **Availability** — successful responses divided by total requests, measured at the edge, excluding client errors.
+- **Change-failure rate** — deploys that required a rollback or hotfix within 24 hours, as a share of all deploys.
+- **p95 latency** — the response time under which 95% of requests complete, measured per region and reported as the worst region.
+- **Error budget** — the allowed unavailability for the month (0.05%), tracked as a share consumed.
+
+---
+
+Prepared by the platform team. Figures are from the internal metrics warehouse as of 30 September 2026 and are subject to the usual end-of-quarter reconciliation.
+</script>
+<script>
+'use strict';
+const $=s=>document.querySelector(s), esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const PAPER={Letter:[816,1056],A4:[794,1123]}, MARG={Narrow:58,Normal:96,Wide:120}, ZOOMS=['fit','100','150'];
+const S={paper:'Letter',margin:'Normal',font:'serif',pt:11,author:'',cover:true,toc:true,numbers:true,zoom:'fit'};
+const ta=$('#md'), meas=$('#meas'), stack=$('#stack'), wrap=$('#wrap'), pagesEl=$('#pages');
+let PW,PH,M,BW,BH,LINE; const cache=new Map();
+
+/* ——— markdown → blocks ——— */
+function inline(t){
+  t=esc(t);
+  t=t.replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/(^|[^*])\*([^*]+)\*/g,'$1<i>$2</i>');
+  return t.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,'<a href="$2">$1</a>');
+}
+const LI=/^\s*([-*+]|\d+[.)])\s+(.*)/;
+function parse(md){
+  const L=md.replace(/\r/g,'').split('\n'), out=[], para=[]; let i=0,m;
+  const flush=()=>{if(para.length){out.push({kind:'p',words:inline(para.join(' ')).split(' ')});para.length=0}};
+  while(i<L.length){
+    const l=L[i];
+    if(/^```/.test(l)){flush();const b=[];i++;while(i<L.length&&!/^```/.test(L[i]))b.push(esc(L[i++]));i++;out.push({kind:'code',lines:b});continue}
+    if(m=l.match(/^(#{1,6})\s+(.*)/)){flush();const n=m[1].length,t=m[2].trim();out.push({kind:'h',level:n,text:t.replace(/[*`_]/g,''),html:`<h${Math.min(n,4)}>${inline(t)}</h${Math.min(n,4)}>`});i++;continue}
+    if(/^\\newpage\s*$/.test(l)){flush();out.push({kind:'break'});i++;continue}
+    if(/^(-{3,}|\*{3,}|_{3,})\s*$/.test(l)){flush();out.push({kind:'hr',html:'<hr>'});i++;continue}
+    if(/^\s*$/.test(l)){flush();i++;continue}
+    if(m=l.match(LI)){flush();const ord=/\d/.test(m[1]);let n=ord?parseInt(m[1]):1;
+      while(i<L.length&&(m=L[i].match(LI))&&/\d/.test(m[1])===ord){let t=m[2];i++;
+        while(i<L.length&&/^\s{2,}\S/.test(L[i])&&!LI.test(L[i]))t+=' '+L[i++].trim();
+        out.push({kind:'li',html:ord?`<ol start="${n++}"><li>${inline(t)}</li></ol>`:`<ul><li>${inline(t)}</li></ul>`})}
+      continue}
+    if(/^>/.test(l)){flush();const b=[];while(i<L.length&&/^>/.test(L[i]))b.push(L[i++].replace(/^>\s?/,''));out.push({kind:'quote',html:`<blockquote>${inline(b.join(' '))}</blockquote>`});continue}
+    if(/^\|/.test(l)&&/^\|?\s*:?-{2,}/.test(L[i+1]||'')){flush();const row=s=>s.trim().replace(/^\||\|$/g,'').split('|').map(c=>inline(c.trim()));
+      const head=row(l),rows=[];i+=2;while(i<L.length&&/^\|/.test(L[i]))rows.push(row(L[i++]));out.push({kind:'table',head,rows});continue}
+    para.push(l.trim());i++;
+  }
+  flush();return out;
+}
+/* Every block renders through one function, so splitting a block is just slicing its units. */
+const tr=(cells,tag)=>`<tr>${cells.map(c=>`<${tag}>${c}</${tag}>`).join('')}</tr>`;
+function htmlOf(b){
+  if(b.kind==='p')return `<p>${b.words.join(' ')}</p>`;
+  if(b.kind==='code')return `<pre><code>${b.lines.join('\n')}</code></pre>`;
+  if(b.kind==='table')return `<table><thead>${tr(b.head,'th')}</thead><tbody>${b.rows.map(r=>tr(r,'td')).join('')}</tbody></table>`;
+  return b.html;
+}
+const unitsOf=b=>b.kind==='p'?b.words:b.kind==='code'?b.lines:b.kind==='table'?b.rows:null;
+function slice(b,a,z){const u=unitsOf(b),k=b.kind==='p'?'words':b.kind==='code'?'lines':'rows';return {...b,[k]:u.slice(a,z)}}
+
+/* ——— measure & paginate ——— */
+function measure(b){
+  const h=htmlOf(b);let v=cache.get(h);
+  if(v==null){meas.innerHTML=h;const el=meas.firstElementChild;v=el.offsetHeight+parseFloat(getComputedStyle(el).marginBottom);cache.set(h,v)}
+  return v;
+}
+// Largest k such that the first k units fit in `room`, honouring 2-line orphan/widow minimums for paragraphs.
+function fit(b,room){
+  const u=unitsOf(b);if(!u||u.length<2)return 0;
+  let lo=1,hi=u.length-1,k=0;
+  while(lo<=hi){const mid=(lo+hi)>>1;if(measure(slice(b,0,mid))<=room){k=mid;lo=mid+1}else hi=mid-1}
+  if(!k)return 0;
+  if(b.kind==='p'){
+    if(measure(slice(b,0,k))<1.9*LINE)return 0;
+    const perLine=Math.max(1,Math.round(u.length*LINE/measure(b)));
+    while(k>perLine&&measure(slice(b,k))<1.9*LINE)k-=perLine;
+    if(measure(slice(b,0,k))<1.9*LINE)return 0;
+  }
+  return k;
+}
+function paginate(blocks,section){
+  const pages=[];let page,room,h1=section;
+  const open=()=>{page={html:[],heads:[],section:h1};pages.push(page);room=BH};
+  const place=(b,h)=>{page.html.push(htmlOf(b));room-=h;if(b.kind==='h'){page.heads.push(b);if(b.level<=2){h1=b.text;if(page.html.length===1)page.section=h1}}};
+  open();const q=[...blocks];
+  while(q.length){
+    const b=q.shift();
+    if(b.kind==='break'){if(page.html.length)open();continue}
+    const h=measure(b);
+    if(b.kind==='h'&&page.html.length&&q[0]&&q[0].kind!=='break'&&h+Math.min(measure(q[0]),3*LINE)>room)open();
+    if(h<=room){place(b,h);continue}
+    let k=room>=2*LINE?fit(b,room):0;
+    if(!k&&page.html.length){open();if(h<=room){place(b,h);continue}k=fit(b,room)||(unitsOf(b)&&unitsOf(b).length>1?1:0)}
+    if(k){const a=slice(b,0,k);place(a,measure(a));q.unshift(slice(b,k));open()}else place(b,h);
+  }
+  return pages;
+}
+const tocBlocks=e=>[{kind:'h',level:1,text:'Contents',html:'<h1>Contents</h1>'},...e.map(x=>({kind:'toc',html:`<div class="toc l${x.level}"><span>${esc(x.text)}</span><i></i><span class="pg">${x.page||0}</span></div>`}))];
+
+function build(){
+  const t0=performance.now();
+  const body=parse(ta.value);let title='Untitled',sub='';const pages=[];
+  const i1=body.findIndex(b=>b.kind==='h'&&b.level===1);if(i1>=0)title=body[i1].text;
+  if(S.cover&&i1>=0){body.splice(i1,1);if(body[i1]&&body[i1].kind==='p')sub=body.splice(i1,1)[0].words.join(' ');pages.push({cover:true})}
+  const entries=body.filter(b=>b.kind==='h'&&b.level<=2);
+  const tocN=S.toc&&entries.length?paginate(tocBlocks(entries),'Contents').length:0;
+  const bodyPages=paginate(body,title);
+  entries.forEach(e=>e.page=pages.length+tocN+bodyPages.findIndex(p=>p.heads.includes(e))+1);
+  if(tocN)pages.push(...paginate(tocBlocks(entries),'Contents'));   // second pass: real page numbers, same height
+  pages.push(...bodyPages);
+  const N=pages.length,date=new Date().toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'});
+  stack.innerHTML=pages.map((p,i)=>p.cover
+    ?`<div class="sheet cover"><div class="ct"><h1>${esc(title)}</h1>${sub?`<p>${sub}</p>`:''}<p class="meta">${S.author?esc(S.author)+' · ':''}${date}</p></div></div>`
+    :`<div class="sheet"><div class="hdr"><span>${esc(p.section||'')}</span><span>${esc(title)}</span></div><div class="body doc">${p.html.join('')}</div>${S.numbers?`<div class="ftr">Page ${i+1} of ${N}</div>`:''}</div>`).join('');
+  const words=ta.value.split(/\s+/).filter(Boolean).length;
+  $('#stat').textContent=`${N} page${N>1?'s':''} · ${words} words · ${(performance.now()-t0).toFixed(0)} ms`;
+  meas.innerHTML='';fitStack();
+}
+function fitStack(){
+  const n=stack.children.length,w=pagesEl.clientWidth||innerWidth,z=S.zoom==='fit'?Math.min(1,(w-24)/PW):+S.zoom/100;
+  stack.style.transform=`scale(${z})`;wrap.style.width=PW*z+'px';wrap.style.height=(n*(PH+24)-24)*z+'px';
+  $('#zoomTxt').textContent=S.zoom==='fit'?'Fit':S.zoom+'%';
+}
+function applySettings(){
+  [PW,PH]=PAPER[S.paper];M=MARG[S.margin];BW=PW-2*M;BH=PH-2*M;LINE=S.pt*96/72*1.45;
+  const r=document.documentElement.style;
+  r.setProperty('--pw',PW+'px');r.setProperty('--ph',PH+'px');r.setProperty('--m',M+'px');r.setProperty('--bw',BW+'px');r.setProperty('--bh',BH+'px');
+  r.setProperty('--pt',S.pt+'pt');r.setProperty('--df',S.font==='serif'?'Georgia,"Times New Roman",serif':'"Helvetica Neue",Arial,sans-serif');
+  $('#pg').textContent=`@page{size:${S.paper};margin:0}`;
+  cache.clear();build();
+}
+
+/* ——— UI ——— */
+let timer;ta.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(build,120)});
+addEventListener('resize',fitStack);
+const toast=(m)=>{const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2600)};
+const tab=t=>{$('#app').dataset.tab=t;$('#tabWrite').classList.toggle('on',t==='write');$('#tabPages').classList.toggle('on',t==='pages');if(t==='pages')fitStack()};
+$('#tabWrite').onclick=()=>tab('write');$('#tabPages').onclick=()=>tab('pages');
+const pop=$('#pop');const closeAll=()=>{pop.classList.remove('open');$('#help').classList.remove('open')};
+$('#bSettings').onclick=()=>pop.classList.toggle('open');
+$('#bHelp').onclick=()=>{pop.classList.remove('open');$('#help').classList.toggle('open')};
+$('#bClose').onclick=closeAll;$('#help').addEventListener('click',e=>{if(e.target.id==='help')closeAll()});
+$('#bPrint').onclick=()=>{closeAll();tab('pages');setTimeout(()=>print(),50)};
+$('#bZoom').onclick=()=>{S.zoom=ZOOMS[(ZOOMS.indexOf(S.zoom)+1)%ZOOMS.length];fitStack()};
+const setTheme=t=>{document.documentElement.dataset.theme=t;S.theme=t};
+$('#bTheme').onclick=()=>setTheme(S.theme==='dark'?'light':'dark');
+setTheme(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
+const ctl={paper:'#sPaper',margin:'#sMargin',font:'#sFont',pt:'#sPt',author:'#sAuthor',cover:'#sCover',toc:'#sToc',numbers:'#sNumbers'};
+for(const k in ctl){const el=$(ctl[k]);el.addEventListener('input',()=>{S[k]=el.type==='checkbox'?el.checked:k==='pt'?+el.value:el.value;k==='author'||k==='cover'||k==='toc'||k==='numbers'?build():applySettings()})}
+function syncControls(){for(const k in ctl){const el=$(ctl[k]);if(el.type==='checkbox')el.checked=S[k];else el.value=S[k]}}
+
+/* ——— save / open ——— */
+function save(){
+  const data={app:'Folio',version:1,saved:new Date().toISOString(),md:ta.value,settings:{...S}};
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+  a.download=`folio-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('Saved '+a.download);
+}
+function load(file){
+  const rd=new FileReader();
+  rd.onload=()=>{try{const d=JSON.parse(rd.result);if(d.app!=='Folio'||d.version!==1||typeof d.md!=='string')throw 0;
+    Object.assign(S,d.settings||{});ta.value=d.md;syncControls();setTheme(S.theme||'light');applySettings();toast('Opened '+file.name)}
+    catch{toast('Not a Folio file — expected JSON with app "Folio", version 1')}};
+  rd.readAsText(file);
+}
+$('#bSave').onclick=save;$('#bOpen').onclick=()=>$('#file').click();
+$('#file').addEventListener('change',e=>{if(e.target.files[0])load(e.target.files[0]);e.target.value=''});
+
+/* ——— keys: Ctrl+/ help · Ctrl+S save · Ctrl+O open · Ctrl+P print · , layout · Z zoom · T theme · 1/2 tabs · Esc ——— */
+addEventListener('keydown',e=>{
+  const mod=e.ctrlKey||e.metaKey,k=e.key.toLowerCase();
+  if(mod&&k==='/'){e.preventDefault();$('#bHelp').click();return}
+  if(mod&&k==='s'){e.preventDefault();save();return}
+  if(mod&&k==='o'){e.preventDefault();$('#file').click();return}
+  if(mod&&k==='p'){e.preventDefault();$('#bPrint').click();return}
+  if(k==='escape'){closeAll();return}
+  if(mod||e.altKey||/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)||e.target.isContentEditable)return;
+  ({t:()=>$('#bTheme').click(),z:()=>$('#bZoom').click(),',':()=>$('#bSettings').click(),'1':()=>tab('write'),'2':()=>tab('pages')})[k]?.();
+});
+
+ta.value=$('#demo').textContent.trim()+'\n';
+syncControls();applySettings();
+</script>
+</body>
+</html>
+
+</body></html>

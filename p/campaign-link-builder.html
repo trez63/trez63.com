@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Campaign Link Builder — trez63</title>
+<meta name="description" content="Type a page URL, pick the source, medium and campaign, and a tracked UTM link builds itself as you type. Copy it, or save the ones you actually send.">
+<link rel="canonical" href="https://trez63.com/p/campaign-link-builder.html">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="trez63">
+<meta property="og:title" content="Campaign Link Builder — built by Muse">
+<meta property="og:description" content="Type a page URL, pick the source, medium and campaign, and a tracked UTM link builds itself as you type. Copy it, or save the ones you actually send.">
+<meta property="og:image" content="https://trez63.com/thumbs/campaign-link-builder.webp">
+<meta property="og:url" content="https://trez63.com/p/campaign-link-builder.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Campaign Link Builder — built by Muse">
+<meta name="twitter:description" content="Type a page URL, pick the source, medium and campaign, and a tracked UTM link builds itself as you type. Copy it, or save the ones you actually send.">
+<meta name="twitter:image" content="https://trez63.com/thumbs/campaign-link-builder.webp">
+<style>
+:root{--bg:#eff1f5;--panel:#fff;--line:#dce1e9;--fg:#17212d;--mute:#677180;--acc:#244fe5;--acc-fg:#fff;--yellow:#e5ff80;--claude:#c25a2c;--chatgpt:#2c816b;--muse:#6b4fe0;--gemini:#244fe5;--grok:#17212d;--llama:#0866ff;--mistral:#d9781a;--deepseek:#4d6bfe;--copilot:#6b4fe0;--other:#677180;color-scheme:light}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{display:flex;flex-direction:column;background:var(--bg);color:var(--fg);font:13px Arial,Helvetica,sans-serif}
+.bar{display:flex;align-items:center;gap:12px;padding:0 16px;height:52px;background:var(--panel);border-bottom:1px solid #d5dbe5;flex:none}
+.bar a{color:inherit;text-decoration:none}
+.back{color:var(--mute)} .back:hover{color:var(--fg)}
+.title{font-weight:800;font-size:16px;letter-spacing:-.4px}
+.badge{font:10px "Courier New",monospace;letter-spacing:.8px;text-transform:uppercase;padding:4px 7px;border-radius:4px;color:#fff}
+.badge.claude{background:var(--claude)}.badge.chatgpt{background:var(--chatgpt)}.badge.muse{background:var(--muse)}.badge.gemini{background:var(--gemini)}.badge.grok{background:var(--grok)}.badge.llama{background:var(--llama)}.badge.mistral{background:var(--mistral)}.badge.deepseek{background:var(--deepseek)}.badge.copilot{background:var(--copilot)}.badge.other{background:var(--other)}
+.desc{color:var(--mute);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:1;min-width:0}
+.vote{background:var(--fg);color:#fff!important;font-weight:700;font-size:12px;padding:9px 13px;border-radius:7px;white-space:nowrap}
+.vote:hover{filter:brightness(1.15)}
+.raw{color:var(--mute);white-space:nowrap;font:11px "Courier New",monospace;letter-spacing:.5px} .raw:hover{color:var(--fg)}
+.back img{height:36px;width:auto;display:block}
+iframe{flex:1;border:0;width:100%;background:#fff}
+@media (max-width:640px){.desc,.raw{display:none}}
+
+.share{position:relative}
+.share>button{font:inherit;font-weight:700;font-size:12px;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--fg);border-radius:7px;padding:9px 12px;white-space:nowrap}
+.share>button:hover{background:#e2e6ee}
+.share menu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;margin:0;padding:6px;list-style:none;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 14px 40px rgba(23,33,45,.18);min-width:180px;display:none}
+.share[open] menu{display:block}
+.share menu a,.share menu button{display:block;width:100%;text-align:left;font:inherit;font-size:13px;background:none;border:0;color:var(--fg);padding:8px 10px;border-radius:7px;cursor:pointer;text-decoration:none}
+.share menu a:hover,.share menu button:hover{background:#eef2ff}
+
+</style>
+</head>
+<body>
+<div class="bar">
+  <a class="back" href="../" title="All apps"><img src="../assets/mark-192.png" alt="trez63" width="192" height="192"></a>
+  <span class="title">Campaign Link Builder</span>
+  <span class="badge muse">Muse</span>
+  <span class="desc">Type a page URL, pick the source, medium and campaign, and a tracked UTM link builds itself as you type. Copy it, or save the ones you actually send.</span>
+  <a class="raw" href="../apps/campaign-link-builder.html" title="Open the app on its own, full window">open raw ↗</a>
+  <span class="share" data-url="https://trez63.com/p/campaign-link-builder.html" data-title="Campaign Link Builder — trez63" data-text="Campaign Link Builder — a one-page app built by Muse from a single prompt. Play it, vote for it:"><button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>
+  <a class="vote" href="../rate.html?app=campaign-link-builder">👍 Vote</a>
+</div>
+<iframe src="../apps/campaign-link-builder.html" title="Campaign Link Builder" allow="clipboard-write; fullscreen; autoplay" allowfullscreen></iframe>
+<script>
+(function(){
+  function wire(el){
+    const url=el.dataset.url, title=el.dataset.title, text=el.dataset.text||title;
+    const btn=el.querySelector('button.sb'), menu=el.querySelector('menu'), enc=encodeURIComponent;
+    menu.innerHTML=`<li><button class="copy">Copy link</button></li>
+      <li><a target="_blank" rel="noopener" href="https://x.com/intent/post?text=${enc(text)}&url=${enc(url)}">Post on X</a></li>
+      <li><a target="_blank" rel="noopener" href="https://www.linkedin.com/sharing/share-offsite/?url=${enc(url)}">Share on LinkedIn</a></li>
+      <li><a target="_blank" rel="noopener" href="https://www.reddit.com/submit?url=${enc(url)}&title=${enc(title)}">Post on Reddit</a></li>
+      <li><a target="_blank" rel="noopener" href="https://bsky.app/intent/compose?text=${enc(text+' '+url)}">Post on Bluesky</a></li>
+      <li><a href="mailto:?subject=${enc(title)}&body=${enc(text)}%0A${enc(url)}">Email</a></li>`;
+    btn.addEventListener('click',async e=>{
+      e.preventDefault(); e.stopPropagation();
+      if(navigator.share){ try{ await navigator.share({title,text,url}); return; }catch(_){ if(_.name==='AbortError') return; } }
+      document.querySelectorAll('.share[open]').forEach(o=>{ if(o!==el) o.removeAttribute('open'); });
+      el.toggleAttribute('open');
+    });
+    menu.querySelector('.copy').addEventListener('click',async()=>{
+      try{ await navigator.clipboard.writeText(url); btn.textContent='Copied ✓'; setTimeout(()=>btn.textContent='Share',1500); }catch(_){ prompt('Copy this link:',url); }
+      el.removeAttribute('open');
+    });
+  }
+  document.querySelectorAll('.share').forEach(wire);
+  document.addEventListener('click',e=>{ if(!e.target.closest('.share')) document.querySelectorAll('.share[open]').forEach(o=>o.removeAttribute('open')); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.querySelectorAll('.share[open]').forEach(o=>o.removeAttribute('open')); });
+})();
+</script>
+</body>
+</html>

@@ -40,6 +40,8 @@ RULES = [
     ("github-token", re.compile(r"\b(?:ghp|gho|ghu|ghs|ghr|github_pat)_[A-Za-z0-9_]{20,}\b")),
     ("openai-key",   re.compile(r"\bsk-(?:proj-)?[A-Za-z0-9]{20,}\b")),
     ("slack-token",  re.compile(r"\bxox[abprs]-[A-Za-z0-9-]{10,}\b")),
+    # live-mode Stripe keys: GitHub push protection rejects these even when they are made up
+    ("stripe-live",  re.compile(r"\b[sr]k_live_[A-Za-z0-9]{10,}\b")),
     ("aws-account",  re.compile(r"(?<![\d.])\d{12}(?![\d.])")),
     ("private-ip",   re.compile(r"\b(?:10|192\.168|172\.(?:1[6-9]|2\d|3[01]))\.\d{1,3}\.\d{1,3}(?:\.\d{1,3})?\b")),
     ("home-path",    re.compile(r"(?:[A-Za-z]:\\(?:Users|Clients)\\[^\\\s\"']+|/(?:Users|home)/[a-z0-9_-]+/)", re.I)),

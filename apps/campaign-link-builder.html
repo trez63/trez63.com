@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Campaign Link Builder — UTM links in seconds</title>
+<style>
+  /* ---------- Palette & base ---------- */
+  :root{
+    --bg:#eef1fb; --card:#ffffff; --ink:#1e2140; --muted:#5b5e7d;
+    --line:#d8dcf0; --indigo:#4f46e5; --indigo-dark:#3730a3;
+    --teal:#0e9f8a; --teal-soft:#e0f5f1; --indigo-soft:#e9eaff;
+    --warn:#92400e; --warn-soft:#fef3c7; --danger:#b42318; --danger-soft:#fdecea;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.45}
+  header{background:var(--ink);color:#fff;padding:22px 18px 18px}
+  header h1{margin:0;font-size:1.65rem;line-height:1.2}
+  header h1 span{color:#7dd3fc}
+  header p{margin:8px 0 0;color:#c7c9e8;max-width:720px;font-size:1rem}
+  main{max-width:860px;margin:0 auto;padding:16px}
+  /* ---------- Cards & layout ---------- */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:18px;margin-bottom:16px;box-shadow:0 1px 3px rgba(30,33,64,.08)}
+  .card h2{margin:0 0 6px;font-size:1.15rem}
+  .hint{color:var(--muted);font-size:.93rem;margin:0 0 14px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field.full{grid-column:1 / -1}
+  label{font-weight:650;font-size:.95rem}
+  input[type="text"],input[type="search"]{
+    width:100%;padding:12px 13px;font-size:1rem;border:1.5px solid var(--line);
+    border-radius:10px;color:var(--ink);background:#fff}
+  input:focus{outline:3px solid #c7d2fe;outline-offset:1px;border-color:var(--indigo)}
+  /* ---------- Chips ---------- */
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{border:1.5px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;
+    padding:9px 14px;font-size:.95rem;cursor:pointer;min-height:44px}
+  .chip[aria-pressed="true"]{background:var(--indigo);border-color:var(--indigo);color:#fff;font-weight:650}
+  /* ---------- Buttons ---------- */
+  .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+  button{border:1.5px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;
+    padding:12px 16px;font-size:1rem;cursor:pointer;min-height:48px;font-weight:600}
+  button.primary{background:var(--indigo);border-color:var(--indigo);color:#fff}
+  button.teal{background:var(--teal);border-color:var(--teal);color:#fff}
+  button.danger{color:var(--danger);border-color:#f0c6c0;background:var(--danger-soft)}
+  button:active{transform:translateY(1px)}
+  /* ---------- Built link output ---------- */
+  #built{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.98rem;
+    background:var(--indigo-soft);border:1px solid #c7c9f5;border-radius:10px;
+    padding:14px;word-break:break-all;white-space:pre-wrap;min-height:70px}
+  #built.empty{color:var(--muted);font-family:inherit}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0}
+  .pill{background:var(--teal-soft);color:#0b6b5e;border-radius:999px;padding:5px 11px;font-size:.88rem;font-weight:650}
+  .pill.warn{background:var(--warn-soft);color:var(--warn)}
+  /* ---------- Custom params & saved links ---------- */
+  .param-row{display:grid;grid-template-columns:1fr 1fr 48px;gap:8px;margin-bottom:8px}
+  .param-row button{padding:0;min-height:48px}
+  .saved{border:1px solid var(--line);border-radius:12px;padding:13px;margin-bottom:10px}
+  .saved .url{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.9rem;
+    word-break:break-all;color:var(--indigo-dark)}
+  .saved .tags{color:var(--muted);font-size:.9rem;margin:5px 0 10px}
+  .saved .row{display:flex;flex-wrap:wrap;gap:8px}
+  .saved .row button{min-height:44px;padding:10px 14px}
+  .stats{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+  .stat{flex:1 1 110px;background:var(--indigo-soft);border-radius:10px;padding:11px 13px}
+  .stat b{display:block;font-size:1.35rem}
+  .stat span{font-size:.85rem;color:var(--muted)}
+  #status{font-weight:650;min-height:1.4em}
+  #status.ok{color:#0b6b5e}
+  #status.bad{color:var(--danger)}
+  footer{color:var(--muted);font-size:.9rem;text-align:center;padding:4px 16px 24px}
+  @media (max-width:560px){
+    .grid{grid-template-columns:1fr}
+    header h1{font-size:1.45rem}
+    .param-row{grid-template-columns:1fr 1fr 44px}
+    main{padding:12px}
+  }
+  @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Campaign Link Builder <span>— UTM links in seconds</span></h1>
+  <p>Type a page URL, pick where the traffic comes from, and a clean, trackable campaign link builds itself live. Save the links you actually send — no spreadsheet, no guessing.</p>
+</header>
+
+<main>
+  <!-- ============ BUILDER ============ -->
+  <section class="card" aria-labelledby="build-h">
+    <h2 id="build-h">1 · Build your link</h2>
+    <p class="hint">Any ordinary input works — nothing here can be “wrong.” Leave a field blank and it is simply left out of the link.</p>
+
+    <div class="grid">
+      <div class="field full">
+        <label for="base">Page URL</label>
+        <input id="base" type="text" value="https://example.com/new-service" placeholder="https://your-site.com/offer" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label for="source">Source <span style="font-weight:400;color:var(--muted)">(utm_source)</span></label>
+        <input id="source" type="text" value="google" placeholder="google" autocomplete="off">
+        <div class="chips" data-target="source">
+          <button type="button" class="chip" aria-pressed="true">google</button>
+          <button type="button" class="chip" aria-pressed="false">facebook</button>
+          <button type="button" class="chip" aria-pressed="false">linkedin</button>
+          <button type="button" class="chip" aria-pressed="false">newsletter</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="medium">Medium <span style="font-weight:400;color:var(--muted)">(utm_medium)</span></label>
+        <input id="medium" type="text" value="cpc" placeholder="cpc" autocomplete="off">
+        <div class="chips" data-target="medium">
+          <button type="button" class="chip" aria-pressed="true">cpc</button>
+          <button type="button" class="chip" aria-pressed="false">social</button>
+          <button type="button" class="chip" aria-pressed="false">email</button>
+          <button type="button" class="chip" aria-pressed="false">referral</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="campaign">Campaign <span style="font-weight:400;color:var(--muted)">(utm_campaign)</span></label>
+        <input id="campaign" type="text" value="fall-2026-launch" placeholder="fall-2026-launch" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label for="term">Term — optional <span style="font-weight:400;color:var(--muted)">(utm_term)</span></label>
+        <input id="term" type="text" value="legacy-erp" placeholder="paid search keyword" autocomplete="off">
+      </div>
+
+      <div class="field full">
+        <label for="content">Content — optional <span style="font-weight:400;color:var(--muted)">(utm_content)</span></label>
+        <input id="content" type="text" value="hero-cta" placeholder="hero-cta, sidebar-banner…" autocomplete="off">
+      </div>
+    </div>
+
+    <h3 style="margin:18px 0 8px;font-size:1rem">Extra parameters (optional)</h3>
+    <p class="hint">Add any other query parameter, e.g. <code>discount</code> = <code>EARLY10</code>. Empty rows are ignored.</p>
+    <div id="params"></div>
+    <div class="actions">
+      <button type="button" id="addParam">+ Add parameter</button>
+    </div>
+  </section>
+
+  <!-- ============ OUTPUT ============ -->
+  <section class="card" aria-labelledby="out-h">
+    <h2 id="out-h">2 · Your trackable link</h2>
+    <p class="hint">Updates as you type. Press <b>C</b> (when you are not typing in a field) to copy it.</p>
+    <div id="built" class="empty">Enter a page URL above to build a link.</div>
+    <div class="meta" id="meta"></div>
+    <div class="actions">
+      <button type="button" class="primary" id="copyBtn">Copy link</button>
+      <button type="button" class="teal" id="saveLinkBtn">Save this link</button>
+      <button type="button" id="clearBtn">Clear form</button>
+    </div>
+  </section>
+
+  <!-- ============ SAVED LINKS ============ -->
+  <section class="card" aria-labelledby="saved-h">
+    <h2 id="saved-h">3 · Saved links</h2>
+    <p class="hint">Reuse a saved link to refill the builder, copy it again, or delete it. Everything autosaves in this browser.</p>
+    <div class="stats" id="stats"></div>
+    <div class="field full" style="margin-bottom:14px">
+      <label for="search">Search saved links</label>
+      <input id="search" type="search" placeholder="Search by URL, campaign, or source…" autocomplete="off">
+    </div>
+    <div id="savedList"></div>
+    <p id="emptySaved" style="color:var(--muted);display:none">No saved links match. Save the link above to start your list.</p>
+    <div class="actions">
+      <button type="button" id="saveBtn">Save (JSON)</button>
+      <button type="button" id="openBtn">Open (JSON)</button>
+      <button type="button" class="danger" id="resetBtn">Reset to sample</button>
+      <input type="file" id="fileInput" accept=".json,application/json" hidden>
+    </div>
+    <p id="status" role="status" aria-live="polite"></p>
+  </section>
+</main>
+
+<footer>Offline single file · No tracking · Your links never leave this device.</footer>
+
+<script>
+"use strict";
+/* ================= State & sample data ================= */
+var LS_KEY = "campaign-link-builder-v1";
+var state = {
+  form: { base:"https://example.com/new-service", source:"google", medium:"cpc",
+          campaign:"fall-2026-launch", term:"legacy-erp", content:"hero-cta" },
+  params: [{ key:"discount", value:"EARLY10" }],
+  saved: [
+    { url:"https://example.com/new-service?utm_source=google&utm_medium=cpc&utm_campaign=fall-2026-launch&utm_term=legacy-erp&utm_content=hero-cta",
+      source:"google", medium:"cpc", campaign:"fall-2026-launch", when:"Sample" },
+    { url:"https://example.com/new-service?utm_source=newsletter&utm_medium=email&utm_campaign=fall-2026-launch&utm_content=october-update",
+      source:"newsletter", medium:"email", campaign:"fall-2026-launch", when:"Sample" },
+    { url:"https://example.com/webinar?utm_source=linkedin&utm_medium=social&utm_campaign=fall-2026-launch",
+      source:"linkedin", medium:"social", campaign:"fall-2026-launch", when:"Sample" }
+  ]
+};
+function sampleState(){ return JSON.parse(JSON.stringify({
+  form:{ base:"https://example.com/new-service", source:"google", medium:"cpc",
+         campaign:"fall-2026-launch", term:"legacy-erp", content:"hero-cta" },
+  params:[{ key:"discount", value:"EARLY10" }], saved: state.saved.slice(0,3)
+})); }
+
+/* ================= Helpers ================= */
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s).replace(/[&<>"']/g, function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function setStatus(msg, ok){
+  var el = $("status"); el.textContent = msg;
+  el.className = ok === true ? "ok" : (ok === false ? "bad" : "");
+}
+function persist(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+
+/* ================= Build the URL ================= */
+/* Any input works: a missing scheme is assumed to be https, and
+   existing query parameters on the base URL are kept. */
+function buildUrl(){
+  var raw = (state.form.base || "").trim();
+  if(!raw) return { url:"", warnings:["Add a page URL to build a link."] };
+  var warnings = [];
+  var candidate = raw;
+  if(!/^[a-z][a-z0-9+.-]*:\/\//i.test(candidate)){
+    candidate = "https://" + candidate;
+    warnings.push("No scheme typed — assumed https://");
+  }
+  var u;
+  try{ u = new URL(candidate); }
+  catch(e){ return { url:"", warnings:["That URL could not be parsed — check for spaces or stray characters."] }; }
+  var map = { utm_source:state.form.source, utm_medium:state.form.medium,
+              utm_campaign:state.form.campaign, utm_term:state.form.term,
+              utm_content:state.form.content };
+  Object.keys(map).forEach(function(k){
+    var v = (map[k] || "").trim();
+    if(v) u.searchParams.set(k, v); else u.searchParams.delete(k);
+  });
+  state.params.forEach(function(p){
+    var k = (p.key || "").trim(), v = (p.value || "").trim();
+    if(k) u.searchParams.set(k, v);
+  });
+  var count = 0;
+  u.searchParams.forEach(function(){ count++; });
+  return { url:u.toString(), warnings:warnings, count:count };
+}
+
+/* ================= Render: builder ================= */
+function syncFormInputs(){
+  ["base","source","medium","campaign","term","content"].forEach(function(f){
+    var el = $(f); if(document.activeElement !== el) el.value = state.form[f] || "";
+  });
+  document.querySelectorAll(".chips").forEach(function(group){
+    var target = group.getAttribute("data-target");
+    group.querySelectorAll(".chip").forEach(function(chip){
+      chip.setAttribute("aria-pressed",
+        chip.textContent.trim() === (state.form[target] || "").trim() ? "true" : "false");
+    });
+  });
+}
+function renderParams(){
+  var wrap = $("params"); wrap.innerHTML = "";
+  state.params.forEach(function(p, i){
+    var row = document.createElement("div");
+    row.className = "param-row";
+    row.innerHTML =
+      '<input type="text" aria-label="Parameter name" placeholder="name" value="' + esc(p.key) + '">' +
+      '<input type="text" aria-label="Parameter value" placeholder="value" value="' + esc(p.value) + '">' +
+      '<button type="button" class="danger" aria-label="Remove parameter">×</button>';
+    var inputs = row.querySelectorAll("input");
+    inputs[0].addEventListener("input", function(){ state.params[i].key = inputs[0].value; renderOutput(); persist(); });
+    inputs[1].addEventListener("input", function(){ state.params[i].value = inputs[1].value; renderOutput(); persist(); });
+    row.querySelector("button").addEventListener("click", function(){
+      state.params.splice(i, 1); renderParams(); renderOutput(); persist();
+    });
+    wrap.appendChild(row);
+  });
+  if(state.params.length === 0){
+    wrap.innerHTML = '<p style="color:var(--muted);margin:0 0 8px">No extra parameters. Add one above if you need it.</p>';
+  }
+}
+
+/* ================= Render: output & saved ================= */
+function renderOutput(){
+  var r = buildUrl();
+  var box = $("built");
+  if(r.url){ box.classList.remove("empty"); box.textContent = r.url; }
+  else { box.classList.add("empty"); box.textContent = "Enter a page URL above to build a link."; }
+  var meta = $("meta"); meta.innerHTML = "";
+  if(r.url){
+    var len = document.createElement("span"); len.className = "pill";
+    len.textContent = r.url.length + " characters";
+    var cnt = document.createElement("span"); cnt.className = "pill";
+    cnt.textContent = r.count + (r.count === 1 ? " parameter" : " parameters");
+    meta.appendChild(len); meta.appendChild(cnt);
+  }
+  (r.warnings || []).forEach(function(w){
+    var s = document.createElement("span"); s.className = "pill warn"; s.textContent = w;
+    meta.appendChild(s);
+  });
+}
+function renderSaved(){
+  var q = ($("search").value || "").trim().toLowerCase();
+  var list = state.saved.filter(function(s){
+    return !q || (s.url + " " + s.campaign + " " + s.source + " " + s.medium).toLowerCase().indexOf(q) > -1;
+  });
+  $("emptySaved").style.display = list.length ? "none" : "block";
+  var wrap = $("savedList"); wrap.innerHTML = "";
+  list.forEach(function(s){
+    var idx = state.saved.indexOf(s);
+    var div = document.createElement("div"); div.className = "saved";
+    div.innerHTML =
+      '<div class="url">' + esc(s.url) + "</div>" +
+      '<div class="tags">' + esc(s.source || "?") + " · " + esc(s.medium || "?") +
+      " · " + esc(s.campaign || "no campaign") + " · " + esc(s.when || "") + "</div>" +
+      '<div class="row">' +
+      '<button type="button" class="primary" data-a="copy">Copy</button>' +
+      '<button type="button" data-a="reuse">Reuse in builder</button>' +
+      '<button type="button" class="danger" data-a="del">Delete</button></div>';
+    div.querySelector('[data-a="copy"]').addEventListener("click", function(){ copyText(s.url, "Link copied."); });
+    div.querySelector('[data-a="reuse"]').addEventListener("click", function(){ reuseSaved(s); });
+    div.querySelector('[data-a="del"]').addEventListener("click", function(){
+      state.saved.splice(idx, 1); renderSaved(); renderStats(); persist(); setStatus("Saved link deleted.", true);
+    });
+    wrap.appendChild(div);
+  });
+  renderStats();
+}
+function renderStats(){
+  var bySource = {};
+  state.saved.forEach(function(s){ bySource[s.source || "?"] = (bySource[s.source || "?"] || 0) + 1; });
+  var top = Object.keys(bySource).sort(function(a,b){ return bySource[b] - bySource[a]; })[0] || "—";
+  $("stats").innerHTML =
+    '<div class="stat"><b>' + state.saved.length + '</b><span>Saved links</span></div>' +
+    '<div class="stat"><b>' + Object.keys(bySource).length + '</b><span>Sources used</span></div>' +
+    '<div class="stat"><b>' + esc(top) + '</b><span>Top source</span></div>';
+}
+function reuseSaved(s){
+  try{
+    var u = new URL(s.url);
+    state.form.base = u.origin + u.pathname;
+    state.form.source = u.searchParams.get("utm_source") || "";
+    state.form.medium = u.searchParams.get("utm_medium") || "";
+    state.form.campaign = u.searchParams.get("utm_campaign") || "";
+    state.form.term = u.searchParams.get("utm_term") || "";
+    state.form.content = u.searchParams.get("utm_content") || "";
+    state.params = [];
+    u.searchParams.forEach(function(v, k){
+      if(k.indexOf("utm_") !== 0) state.params.push({ key:k, value:v });
+    });
+  }catch(e){ /* keep current form if a saved URL cannot be parsed */ }
+  syncFormInputs(); renderParams(); renderOutput(); persist();
+  setStatus("Loaded into the builder — edit and save it as a new link.", true);
+  window.scrollTo({ top:0, behavior:"smooth" });
+}
+
+/* ================= Copy, save/open, reset ================= */
+function copyText(text, msg){
+  function done(){ setStatus(msg || "Copied.", true); }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done, function(){ fallbackCopy(text); done(); });
+  } else { fallbackCopy(text); done(); }
+}
+function fallbackCopy(text){
+  var ta = document.createElement("textarea");
+  ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand("copy"); }catch(e){}
+  document.body.removeChild(ta);
+}
+function downloadJSON(filename, data){
+  var blob = new Blob([JSON.stringify(data, null, 2)], { type:"application/json" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+}
+/* Full validation BEFORE replacing anything: a bad file must
+   leave the current links and form exactly as they were. */
+function isValidImport(d){
+  if(!d || typeof d !== "object" || Array.isArray(d)) return false;
+  if(typeof d.form !== "object" || d.form === null) return false;
+  var fields = ["base","source","medium","campaign","term","content"];
+  for(var i = 0; i < fields.length; i++){
+    if(typeof d.form[fields[i]] !== "string") return false;
+  }
+  if(!Array.isArray(d.params) || !Array.isArray(d.saved)) return false;
+  for(var j = 0; j < d.params.length; j++){
+    if(!d.params[j] || typeof d.params[j].key !== "string" || typeof d.params[j].value !== "string") return false;
+  }
+  for(var k = 0; k < d.saved.length; k++){
+    var s = d.saved[k];
+    if(!s || typeof s.url !== "string" || !s.url) return false;
+    if(typeof s.source !== "string" || typeof s.medium !== "string" || typeof s.campaign !== "string") return false;
+  }
+  return true;
+}
+
+/* ================= Events ================= */
+["base","source","medium","campaign","term","content"].forEach(function(f){
+  $(f).addEventListener("input", function(){
+    state.form[f] = $(f).value; syncFormInputs(); renderOutput(); persist();
+  });
+});
+document.querySelectorAll(".chips").forEach(function(group){
+  group.addEventListener("click", function(e){
+    var chip = e.target.closest(".chip"); if(!chip) return;
+    var target = group.getAttribute("data-target");
+    state.form[target] = chip.textContent.trim();
+    syncFormInputs(); renderOutput(); persist();
+    $(target).focus();
+  });
+});
+$("addParam").addEventListener("click", function(){
+  state.params.push({ key:"", value:"" }); renderParams(); persist();
+  var inputs = $("params").querySelectorAll("input");
+  if(inputs.length) inputs[inputs.length - 2].focus();
+});
+$("copyBtn").addEventListener("click", function(){
+  var r = buildUrl();
+  if(r.url) copyText(r.url, "Built link copied.");
+  else setStatus("Nothing to copy yet — add a page URL first.", false);
+});
+$("saveLinkBtn").addEventListener("click", function(){
+  var r = buildUrl();
+  if(!r.url){ setStatus("Nothing to save yet — add a page URL first.", false); return; }
+  state.saved.unshift({ url:r.url, source:state.form.source.trim(),
+    medium:state.form.medium.trim(), campaign:state.form.campaign.trim(),
+    when:new Date().toLocaleDateString() });
+  renderSaved(); persist(); setStatus("Link saved below.", true);
+});
+$("clearBtn").addEventListener("click", function(){
+  state.form = { base:"", source:"", medium:"", campaign:"", term:"", content:"" };
+  state.params = [];
+  syncFormInputs(); renderParams(); renderOutput(); persist();
+  setStatus("Form cleared — type a new URL to start again.", true);
+  $("base").focus();
+});
+$("search").addEventListener("input", renderSaved);
+$("saveBtn").addEventListener("click", function(){
+  downloadJSON("campaign-links.json", { app:"campaign-link-builder", version:1,
+    form:state.form, params:state.params, saved:state.saved });
+});
+$("openBtn").addEventListener("click", function(){ $("fileInput").click(); });
+$("fileInput").addEventListener("change", function(){
+  var file = $("fileInput").files[0]; $("fileInput").value = "";
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(){
+    try{
+      var data = JSON.parse(reader.result);
+      if(!isValidImport(data)) throw new Error("bad");
+      state.form = data.form; state.params = data.params; state.saved = data.saved;
+      syncFormInputs(); renderParams(); renderOutput(); renderSaved(); persist();
+      setStatus("File loaded — your links and form were restored.", true);
+    }catch(e){
+      setStatus("That file was not a valid campaign-links file — nothing was changed.", false);
+    }
+  };
+  reader.onerror = function(){ setStatus("Could not read that file — nothing was changed.", false); };
+  reader.readAsText(file);
+});
+$("resetBtn").addEventListener("click", function(){
+  var keepSaved = state.saved.slice(0, 3);
+  state = sampleState(); state.saved = keepSaved.length ? keepSaved : state.saved;
+  /* Rebuild the sample from scratch so Reset is predictable: */
+  var fresh = sampleState(); state.form = fresh.form; state.params = fresh.params;
+  syncFormInputs(); renderParams(); renderOutput(); renderSaved(); persist();
+  setStatus("Reset to the sample campaign.", true);
+});
+/* One keyboard shortcut, one function: C copies the built link
+   whenever the user is not typing in a field. No key does two jobs. */
+document.addEventListener("keydown", function(e){
+  var t = e.target;
+  var typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT");
+  if(typing || e.metaKey || e.ctrlKey || e.altKey) return;
+  if(e.key === "c" || e.key === "C"){
+    var r = buildUrl();
+    if(r.url) copyText(r.url, "Built link copied (C).");
+  }
+});
+
+/* ================= Restore & first render ================= */
+try{
+  var raw = localStorage.getItem(LS_KEY);
+  if(raw){
+    var saved = JSON.parse(raw);
+    if(isValidImport(saved)){ state = saved; }
+  }
+}catch(e){ /* corrupted local storage: keep the sample, never crash */ }
+syncFormInputs(); renderParams(); renderOutput(); renderSaved();
+</script>
+</body>
+</html>

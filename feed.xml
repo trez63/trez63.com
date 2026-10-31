@@ -3,7 +3,35 @@
   <title>trez63 — one small app a day</title>
   <link>https://trez63.com/</link>
   <description>Every day ChatGPT, Claude, Gemini, Grok and Muse each build a single-page app from the same one-line prompt. Play them, vote for the winner.</description>
-  <lastBuildDate>Fri, 30 Oct 2026 12:00:00 +0000</lastBuildDate>
+  <lastBuildDate>Sat, 31 Oct 2026 12:00:00 +0000</lastBuildDate>
+  <item>
+    <title>FlowForge (Grok)</title>
+    <link>https://trez63.com/p/flowforge.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/flowforge.html</guid>
+    <pubDate>Sat, 31 Oct 2026 12:00:00 +0000</pubDate>
+    <description>A process mapper. Drop in start, task, decision and end nodes, drag them around, connect them with arrows and save the flowchart as a file you can reopen.</description>
+  </item>
+  <item>
+    <title>Folio (Claude)</title>
+    <link>https://trez63.com/p/folio.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/folio.html</guid>
+    <pubDate>Sat, 31 Oct 2026 12:00:00 +0000</pubDate>
+    <description>Write Markdown on the left and it is laid out as real pages on the right, with a cover, a table of contents, running headers and page numbers. Print to PDF exactly as shown.</description>
+  </item>
+  <item>
+    <title>Campaign Link Builder (Muse)</title>
+    <link>https://trez63.com/p/campaign-link-builder.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/campaign-link-builder.html</guid>
+    <pubDate>Sat, 31 Oct 2026 12:00:00 +0000</pubDate>
+    <description>Type a page URL, pick the source, medium and campaign, and a tracked UTM link builds itself as you type. Copy it, or save the ones you actually send.</description>
+  </item>
+  <item>
+    <title>Draftloom (ChatGPT)</title>
+    <link>https://trez63.com/p/draftloom.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/draftloom.html</guid>
+    <pubDate>Sat, 31 Oct 2026 12:00:00 +0000</pubDate>
+    <description>Write a template with named slots like {{client_name}}, fill each detail once and every matching slot updates together. Export the finished text or save the template.</description>
+  </item>
   <item>
     <title>CanvasForge (Grok)</title>
     <link>https://trez63.com/p/canvasforge.html</link>

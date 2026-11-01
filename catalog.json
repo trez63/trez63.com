@@ -35,7 +35,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/9",
-        "fetched": "2026-10-31"
+        "fetched": "2026-11-01"
       }
     },
     "foldwork": {
@@ -311,7 +311,7 @@
         "reactions": 1,
         "comments": 1,
         "url": "https://github.com/trez63/trez63.com/discussions/6",
-        "fetched": "2026-10-31"
+        "fetched": "2026-11-01"
       }
     },
     "sonogram": {
@@ -373,7 +373,7 @@
         "reactions": 1,
         "comments": 1,
         "url": "https://github.com/trez63/trez63.com/discussions/7",
-        "fetched": "2026-10-31"
+        "fetched": "2026-11-01"
       }
     },
     "sprout-garden": {
@@ -474,7 +474,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/11",
-        "fetched": "2026-10-31"
+        "fetched": "2026-11-01"
       }
     },
     "budget": {
@@ -579,7 +579,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/10",
-        "fetched": "2026-10-31"
+        "fetched": "2026-11-01"
       }
     },
     "tessera": {
@@ -638,7 +638,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/8",
-        "fetched": "2026-10-31"
+        "fetched": "2026-11-01"
       }
     },
     "dayblock": {
@@ -743,7 +743,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/12",
-        "fetched": "2026-10-31"
+        "fetched": "2026-11-01"
       }
     },
     "cosmic-breath": {
@@ -835,7 +835,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/13",
-        "fetched": "2026-10-31"
+        "fetched": "2026-11-01"
       }
     },
     "tidytext": {
@@ -1282,8 +1282,102 @@
         }
       ],
       "category": "text"
+    },
+    "tranche": {
+      "title": "Tranche",
+      "engine": "Claude",
+      "description": "A cap table exit waterfall. Enter the share classes with their preferences, caps and participation, then drag the exit value and see who gets paid what, where the kinks are and when a series converts to common.",
+      "source_file": "Tranche-Claude.html",
+      "first_published": "2026-11-01",
+      "last_updated": "2026-11-01",
+      "version": 1,
+      "sha": "2e927511f19e",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-01",
+          "sha": "2e927511f19e"
+        }
+      ],
+      "category": "finance"
+    },
+    "deploy-board": {
+      "title": "Deploy Board",
+      "engine": "Muse",
+      "description": "A release tracker board. Add a service, version, owner and risk level, then drag each card from backlog through staging and deploying to live; the board stays in the browser and can be saved to a file.",
+      "source_file": "deploy-board=muse.html",
+      "first_published": "2026-11-01",
+      "last_updated": "2026-11-01",
+      "version": 1,
+      "sha": "2e3fe7e5e09b",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-01",
+          "sha": "2e3fe7e5e09b"
+        }
+      ],
+      "category": "dev"
+    },
+    "keyline": {
+      "title": "Keyline",
+      "engine": "ChatGPT",
+      "description": "A role-based permission workbench. Pick a role and an ability and it traces whether access is granted directly or inherited and from where, previews who loses access if you revoke a grant, and exports the whole model as a plain-text report.",
+      "source_file": "keyline-Codex.html",
+      "first_published": "2026-11-01",
+      "last_updated": "2026-11-01",
+      "version": 1,
+      "sha": "bce1de2cb2ea",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-01",
+          "sha": "bce1de2cb2ea"
+        }
+      ],
+      "category": "dev",
+      "thumb": {
+        "actions": [
+          {
+            "wait": 1200
+          },
+          {
+            "click": [
+              0.68,
+              0.74
+            ]
+          },
+          {
+            "wait": 600
+          },
+          {
+            "eval": "window.scrollTo(0,220)"
+          },
+          {
+            "wait": 1200
+          }
+        ]
+      }
+    },
+    "loadmaster": {
+      "title": "LoadMaster",
+      "engine": "Gemini",
+      "description": "A load-test simulator. Set concurrent workers, base latency, jitter and an injected failure rate, hit start and watch throughput, p95 latency and the status-code mix move in real time. Nothing leaves the browser.",
+      "source_file": "loadmaster-gemini.html",
+      "first_published": "2026-11-01",
+      "last_updated": "2026-11-01",
+      "version": 1,
+      "sha": "e024e214d959",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-01",
+          "sha": "e024e214d959"
+        }
+      ],
+      "category": "sim"
     }
   },
-  "generated": "2026-10-31",
-  "votes_fetched": "2026-10-31"
+  "generated": "2026-11-01",
+  "votes_fetched": "2026-11-01"
 }

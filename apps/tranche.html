@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="description" content="Cap table exit waterfall: senior preferences, participation caps and conversion decisions computed live across every exit value, in one file.">
+<title>Daily Build 2026-10-31 — Tranche</title>
+<style>
+  :root{
+    --bg:#0e1117; --panel:#161b25; --panel2:#1c2230; --text:#e7eaf2; --muted:#8d95a9;
+    --line:#283042; --accent:#7ea2ff; --danger:#ff7b7b; --shadow:0 10px 30px rgba(0,0,0,.35);
+    color-scheme:dark;
+  }
+  [data-theme=light]{
+    --bg:#f3f4f8; --panel:#ffffff; --panel2:#f6f7fb; --text:#171a23; --muted:#687087;
+    --line:#e1e4ee; --accent:#3a5fd9; --danger:#d9453a; --shadow:0 10px 30px rgba(20,30,60,.10);
+    color-scheme:light;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);
+    font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-text-size-adjust:100%}
+  body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+  .num{font-variant-numeric:tabular-nums}
+  header{display:flex;align-items:center;gap:10px;padding:12px 16px;position:sticky;top:0;z-index:5;
+    background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  header h1{font-size:20px;margin:0;letter-spacing:.3px}
+  header h1 span{color:var(--accent)}
+  header .tag{color:var(--muted);font-size:13px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .btn{min-height:44px;min-width:44px;padding:0 14px;border-radius:10px;border:1px solid var(--line);
+    background:var(--panel);color:var(--text);font:inherit;font-weight:600;cursor:pointer;display:inline-flex;
+    align-items:center;justify-content:center;gap:6px;touch-action:manipulation}
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.icon{padding:0}
+  main{max-width:1120px;margin:0 auto;padding:16px;display:grid;gap:16px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow)}
+  .panel h2{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:600}
+  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .grow{flex:1;min-width:0}
+  .exit-big{font-size:clamp(34px,7vw,56px);font-weight:700;letter-spacing:-.02em;line-height:1}
+  .exit-sub{color:var(--muted);font-size:13px;margin-top:4px}
+  input,select{font:inherit;font-size:16px;color:var(--text);background:var(--panel2);border:1px solid var(--line);
+    border-radius:10px;padding:10px 12px;min-height:44px;width:100%}
+  input:focus,select:focus{outline:2px solid var(--accent);outline-offset:-1px}
+  input[type=range]{-webkit-appearance:none;appearance:none;height:44px;padding:0;background:transparent;border:0}
+  input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:var(--line)}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;
+    background:var(--accent);border:3px solid var(--panel);margin-top:-11px;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+  input[type=range]::-moz-range-track{height:6px;border-radius:3px;background:var(--line)}
+  input[type=range]::-moz-range-thumb{width:28px;height:28px;border-radius:50%;background:var(--accent);border:3px solid var(--panel)}
+  label.f{display:grid;gap:4px;font-size:12px;color:var(--muted)}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:820px){.two{grid-template-columns:1fr}}
+  @media (max-width:600px){header .tag{display:none}header{justify-content:flex-end}header h1{flex:1}}
+  canvas#chart{width:100%;height:320px;display:block;touch-action:none;cursor:crosshair;border-radius:10px}
+  @media (max-width:560px){canvas#chart{height:250px}}
+  table{width:100%;border-collapse:collapse}
+  td,th{padding:9px 6px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}
+  th{color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em}
+  td:first-child,th:first-child{text-align:left}
+  tr:last-child td{border-bottom:0}
+  .sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;vertical-align:-1px}
+  .sub{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+  .badge{display:inline-block;padding:1px 7px;border-radius:999px;font-size:11px;font-weight:600;
+    background:var(--panel2);border:1px solid var(--line);color:var(--muted)}
+  .cards{display:grid;gap:10px}
+  .card{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px;
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:10px;position:relative;
+    border-left:4px solid var(--c,var(--accent));padding-right:46px}
+  .card .name{grid-column:span 2}
+  .card .del{position:absolute;right:0;top:0;min-width:44px;min-height:44px;padding:0;border:0;background:transparent;
+    color:var(--muted);font-size:22px;cursor:pointer}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .chip{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px}
+  .chip b{color:var(--text)} .chip{color:var(--muted)}
+  ol.breaks{margin:0;padding-left:0;list-style:none;display:grid;gap:8px}
+  ol.breaks li{display:flex;gap:12px;align-items:baseline;padding:8px 10px;border-radius:10px;background:var(--panel2);
+    border:1px solid var(--line);cursor:pointer;min-height:44px}
+  ol.breaks li b{min-width:72px;color:var(--accent)}
+  .empty{color:var(--muted);font-size:14px}
+  #help{position:fixed;inset:0;background:rgba(5,8,14,.6);backdrop-filter:blur(6px);display:none;z-index:20;
+    padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));overflow:auto}
+  #help.open{display:block}
+  #help .box{max-width:680px;margin:0 auto;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px}
+  #help h3{margin:14px 0 6px;font-size:15px}
+  #help p,#help li{color:var(--muted);font-size:14px}
+  #help ul{padding-left:18px;margin:0}
+  kbd{font:12px ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--panel2);border:1px solid var(--line);
+    border-bottom-width:2px;border-radius:6px;padding:2px 6px;color:var(--text)}
+  .keys{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:center;font-size:14px;color:var(--muted)}
+  #toast{position:fixed;left:50%;bottom:max(20px,env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);
+    background:var(--text);color:var(--bg);padding:12px 18px;border-radius:12px;font-weight:600;opacity:0;
+    transition:.25s;pointer-events:none;z-index:30;max-width:90vw;text-align:center}
+  #toast.show{opacity:1;transform:translateX(-50%)}
+  .hint{color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Tran<span>che</span></h1>
+  <div class="tag">Cap table → exit waterfall. Drag the exit, see who gets paid.</div>
+  <button class="btn" id="saveBtn" title="Save (Ctrl+S)">Save</button>
+  <button class="btn" id="openBtn" title="Open (Ctrl+O)">Open</button>
+  <button class="btn icon" id="themeBtn" title="Theme (D)" aria-label="Toggle theme"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 2a8 8 0 0 1 0 16z" fill="currentColor"/></svg></button>
+  <button class="btn icon" id="helpBtn" title="Help (Ctrl+/)" aria-label="Help">?</button>
+</header>
+
+<main>
+  <section class="panel">
+    <h2>Exit value</h2>
+    <div class="row">
+      <div class="grow">
+        <div class="exit-big num" id="exitBig">$60M</div>
+        <div class="exit-sub num" id="exitSub"></div>
+      </div>
+      <button class="btn icon" id="minus" aria-label="Decrease exit 5%">−</button>
+      <button class="btn icon" id="plus" aria-label="Increase exit 5%">+</button>
+    </div>
+    <input type="range" id="slider" min="0" max="1000" step="1" aria-label="Exit value">
+    <div class="row" style="margin-top:6px">
+      <label class="f grow">Exact ($ millions)
+        <input type="number" id="exitInput" inputmode="decimal" min="0" step="0.5"></label>
+      <label class="f grow">Chart range
+        <select id="xmax">
+          <option value="50000000">to $50M</option>
+          <option value="200000000">to $200M</option>
+          <option value="1000000000">to $1B</option>
+          <option value="5000000000">to $5B</option>
+        </select></label>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Waterfall across exits <span class="hint">· drag on the chart to set the exit</span></h2>
+    <canvas id="chart" aria-label="Stacked payout chart across exit values"></canvas>
+  </section>
+
+  <div class="two">
+    <section class="panel">
+      <h2>Payout at this exit</h2>
+      <table id="payout"></table>
+    </section>
+    <section class="panel">
+      <h2>Breakpoints <span class="hint">· tap one to jump there</span></h2>
+      <ol class="breaks" id="breaks"></ol>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>Cap table</h2>
+    <div class="chips" id="chips"></div>
+    <div class="cards" id="cards"></div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn primary" id="addBtn">+ Add series (N)</button>
+      <button class="btn" id="addCommonBtn">+ Add common</button>
+      <button class="btn" id="demoBtn">Reset demo</button>
+    </div>
+  </section>
+</main>
+
+<div id="help" role="dialog" aria-modal="true">
+  <div class="box">
+    <div class="row"><h2 class="grow" style="margin:0">Tranche</h2><button class="btn" id="closeHelp">Close</button></div>
+    <p>A liquidation-preference waterfall in one file. Enter each share class, then drag the exit value: Tranche pays
+    senior preferences first, lets participating series share in the rest (up to their cap), and lets every series
+    decide whether converting to common would pay more. The chart shows every class's take across all exit values,
+    so the kinks — where a preference is covered, a cap bites, or a series converts — are visible at a glance.</p>
+    <h3>Terms</h3>
+    <ul>
+      <li><b>Multiple</b> — preference = invested × multiple, paid before junior classes.</li>
+      <li><b>Seniority</b> — rank 1 is paid first; equal ranks share pro-rata (pari passu).</li>
+      <li><b>Participating</b> — after its preference, the series also shares in the remainder as-converted;
+        <b>capped</b> participation stops once total payout reaches cap × invested.</li>
+      <li><b>Conversion</b> — a non-participating or capped series converts to common when that pays more.</li>
+    </ul>
+    <h3>Keyboard</h3>
+    <div class="keys">
+      <span><kbd>←</kbd> <kbd>→</kbd></span><span>exit −/+ 2% · with <kbd>Shift</kbd> 10%</span>
+      <span><kbd>N</kbd></span><span>add a preferred series</span>
+      <span><kbd>R</kbd></span><span>cycle chart range</span>
+      <span><kbd>D</kbd></span><span>dark / light theme</span>
+      <span><kbd>Ctrl</kbd>+<kbd>S</kbd></span><span>save JSON</span>
+      <span><kbd>Ctrl</kbd>+<kbd>O</kbd></span><span>open JSON</span>
+      <span><kbd>Ctrl</kbd>+<kbd>/</kbd> or <kbd>?</kbd></span><span>this help</span>
+      <span><kbd>Esc</kbd></span><span>close</span>
+    </div>
+    <h3>Save / Open</h3>
+    <p>Save downloads <code>tranche-YYYY-MM-DD.json</code> with the whole cap table and exit; Open restores it exactly.
+    Save works when this file is opened directly in a browser (hosted artifact viewers block downloads).
+    Everything runs locally — no network, no libraries.</p>
+  </div>
+</div>
+<input type="file" id="file" accept=".json,application/json" hidden>
+<div id="toast" role="status"></div>
+
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const PALETTE = ['#6f8dff','#f2935e','#43c3a0','#e86f9e','#d4ad3a','#9b84f3','#55b9e6','#9ab07a'];
+let colorIx = 0, uid = 1;
+
+// ---------- model ----------
+const mk = o => Object.assign({ id: uid++, name: 'Series', kind: 'pref', shares: 1e6, price: 1, mult: 1,
+  part: 'none', cap: 3, rank: 1, color: PALETTE[colorIx++ % PALETTE.length] }, o);
+const demo = () => {
+  colorIx = 0; uid = 1;
+  return { exit: 60e6, xmax: 200e6, classes: [
+    mk({ name: 'Founders',    kind: 'common', shares: 6_000_000 }),
+    mk({ name: 'Option pool', kind: 'common', shares: 1_500_000 }),
+    mk({ name: 'Seed',     shares: 1_000_000, price: 1, mult: 1,   part: 'none',   rank: 3 }),
+    mk({ name: 'Series A', shares: 2_000_000, price: 3, mult: 1,   part: 'capped', cap: 3, rank: 2 }),
+    mk({ name: 'Series B', shares: 1_500_000, price: 8, mult: 1.5, part: 'none',   rank: 1 }),
+  ]};
+};
+let S = demo();
+const invested = c => c.kind === 'pref' ? c.shares * c.price : 0;
+const prefOf   = c => invested(c) * c.mult;
+const capOf    = c => invested(c) * c.cap;
+const fdShares = () => S.classes.reduce((s, c) => s + c.shares, 0);
+
+// Distribute `exit` given which preferred series have converted to common.
+function distribute(exit, classes, converted) {
+  const pay = Object.fromEntries(classes.map(c => [c.id, 0]));
+  let rem = exit;
+  const prefs = classes.filter(c => c.kind === 'pref' && !converted.has(c.id));
+  for (const r of [...new Set(prefs.map(c => c.rank))].sort((a, b) => a - b)) {   // senior first
+    const grp = prefs.filter(c => c.rank === r);
+    const need = grp.reduce((s, c) => s + prefOf(c), 0);
+    const paid = Math.min(rem, need);
+    if (need > 0) grp.forEach(c => { pay[c.id] += paid * prefOf(c) / need; });
+    rem -= paid;
+  }
+  // Residual goes pro-rata to common, converted series, and participating series (until capped).
+  let pool = classes.filter(c => c.kind === 'common' || converted.has(c.id) || c.part !== 'none');
+  while (rem > 1e-9 && pool.length) {
+    const sh = pool.reduce((s, c) => s + c.shares, 0);
+    if (sh <= 0) break;
+    const hit = pool.filter(c => c.kind === 'pref' && !converted.has(c.id) && c.part === 'capped'
+                              && pay[c.id] + rem * c.shares / sh > capOf(c));
+    if (!hit.length) { pool.forEach(c => { pay[c.id] += rem * c.shares / sh; }); rem = 0; break; }
+    hit.forEach(c => { const add = Math.max(0, capOf(c) - pay[c.id]); pay[c.id] += add; rem -= add; });
+    pool = pool.filter(c => !hit.includes(c));
+  }
+  return pay;
+}
+
+// Each series converts when that beats holding its preference; iterate to a stable set.
+function waterfall(exit, classes = S.classes) {
+  const converted = new Set();
+  for (let guard = 0; guard <= classes.length; guard++) {
+    const base = distribute(exit, classes, converted);
+    let best = null, gain = 1e-6;
+    for (const c of classes) {
+      if (c.kind !== 'pref' || converted.has(c.id) || c.part === 'full') continue;
+      const g = distribute(exit, classes, new Set([...converted, c.id]))[c.id] - base[c.id];
+      if (g > gain) { gain = g; best = c; }
+    }
+    if (!best) return { pay: base, converted };
+    converted.add(best.id);
+  }
+}
+
+// One character per class describing its state at an exit; changes mark breakpoints.
+function signature(exit) {
+  const w = waterfall(exit);
+  return S.classes.map(c => {
+    if (c.kind === 'common') return w.pay[c.id] > 1e-6 ? 'c' : '-';
+    if (w.converted.has(c.id)) return 'v';
+    if (c.part === 'capped' && Math.abs(w.pay[c.id] - capOf(c)) < 1e-6) return 'x';
+    return w.pay[c.id] >= prefOf(c) - 1e-6 ? 'p' : '-';
+  }).join('');
+}
+const VERB = { c: 'start receiving proceeds', p: 'preference fully covered', x: 'hits participation cap', v: 'converts to common' };
+function breakpoints() {
+  const N = 200, out = [];
+  let prev = signature(0);
+  for (let i = 1; i <= N; i++) {
+    let lo = S.xmax * (i - 1) / N; const x = S.xmax * i / N;
+    for (let guard = 0; guard < 8 && signature(x) !== prev; guard++) {
+      let hi = x;
+      for (let k = 0; k < 28; k++) { const m = (lo + hi) / 2; if (signature(m) === prev) lo = m; else hi = m; }
+      const next = signature(hi), byVerb = {};
+      S.classes.forEach((c, j) => {
+        if (prev[j] === next[j] || !VERB[next[j]]) return;
+        const key = next[j] === 'x' ? `hits its ${c.cap}× cap` : VERB[next[j]];
+        (byVerb[key] ||= []).push(c.name);
+      });
+      for (const [verb, names] of Object.entries(byVerb)) out.push({ x: hi, text: `${names.join(', ')} ${verb}` });
+      prev = next; lo = hi;
+    }
+  }
+  return out;
+}
+
+// ---------- formatting ----------
+const fmt = n => { const a = Math.abs(n), s = a >= 1e9 ? (n / 1e9).toFixed(2) + 'B' : a >= 1e6 ? (n / 1e6).toFixed(a >= 1e8 ? 0 : 1) + 'M'
+  : a >= 1e3 ? (n / 1e3).toFixed(0) + 'K' : n.toFixed(0); return '$' + s; };
+const pct = x => (x * 100).toFixed(1) + '%';
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+const terms = c => c.kind === 'common' ? 'Common' :
+  `${c.mult}× ${c.part === 'none' ? 'non-participating' : c.part === 'full' ? 'participating' : `participating, ${c.cap}× cap`} · rank ${c.rank}`;
+
+// ---------- rendering ----------
+function setExit(v, fromSlider) {
+  S.exit = Math.max(0, v);
+  if (S.exit > S.xmax) { S.xmax = [5e7, 2e8, 1e9, 5e9].find(m => m >= S.exit) || S.exit; $('#xmax').value = S.xmax; }
+  if (!fromSlider) $('#slider').value = Math.round(1000 * S.exit / S.xmax);
+  render();
+}
+function render() {
+  const w = waterfall(S.exit), fd = fdShares(), inv = S.classes.reduce((s, c) => s + invested(c), 0);
+  $('#exitBig').textContent = fmt(S.exit);
+  const common = S.classes.filter(c => c.kind === 'common').reduce((s, c) => s + w.pay[c.id], 0);
+  $('#exitSub').textContent = `Common holders receive ${fmt(common)} (${pct(S.exit ? common / S.exit : 0)}) · ${fmt(inv)} invested in total`;
+  if (document.activeElement !== $('#exitInput')) $('#exitInput').value = +(S.exit / 1e6).toFixed(2);
+
+  const order = [...S.classes].sort((a, b) => (a.kind === 'common') - (b.kind === 'common') || a.rank - b.rank);
+  $('#payout').innerHTML = `<tr><th>Class</th><th>Payout</th><th>Return</th><th>Share</th></tr>` + order.map(c => {
+    const p = w.pay[c.id], st = c.kind === 'common' ? '' : w.converted.has(c.id) ? 'converted' :
+      c.part === 'capped' && Math.abs(p - capOf(c)) < 1e-6 ? 'capped' : p < prefOf(c) - 1e-6 ? 'partial pref' : c.part === 'none' ? 'preference' : 'pref + participation';
+    return `<tr><td><span class="sw" style="background:${c.color}"></span>${esc(c.name)}<span class="sub">${esc(terms(c))} · ${pct(fd ? c.shares / fd : 0)} FD</span></td>
+      <td class="num"><b>${fmt(p)}</b>${st ? `<span class="sub"><span class="badge">${st}</span></span>` : ''}</td>
+      <td class="num">${c.kind === 'pref' && invested(c) ? (p / invested(c)).toFixed(2) + '×' : '—'}</td>
+      <td class="num">${pct(S.exit ? p / S.exit : 0)}</td></tr>`;
+  }).join('');
+
+  const bps = breakpoints();
+  $('#breaks').innerHTML = bps.length ? bps.map(b => `<li data-x="${b.x}"><b class="num">${fmt(b.x)}</b><span>${esc(b.text)}</span></li>`).join('')
+    : '<li class="empty">No breakpoints in this range.</li>';
+  $('#breaks').querySelectorAll('li[data-x]').forEach(li => li.onclick = () => setExit(+li.dataset.x + 1));
+
+  const prefs = S.classes.reduce((s, c) => s + (c.kind === 'pref' ? prefOf(c) : 0), 0);
+  $('#chips').innerHTML = `<span class="chip">Fully diluted <b class="num">${fd.toLocaleString()}</b></span>
+    <span class="chip">Invested <b class="num">${fmt(inv)}</b></span><span class="chip">Total preference <b class="num">${fmt(prefs)}</b></span>`;
+  drawChart(w);
+}
+
+function drawChart(w) {
+  const cv = $('#chart'), dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+  if (!W) return;
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  const g = cv.getContext('2d'); g.scale(dpr, dpr);
+  const css = getComputedStyle(document.documentElement), muted = css.getPropertyValue('--muted'), line = css.getPropertyValue('--line');
+  const pad = { l: 6, r: 6, t: 10, b: 22 }, N = 180;
+  const order = [...S.classes].sort((a, b) => (a.kind === 'common') - (b.kind === 'common') || a.rank - b.rank);
+  const series = order.map(() => new Float64Array(N + 1));
+  for (let i = 0; i <= N; i++) { const p = waterfall(S.xmax * i / N).pay; order.forEach((c, j) => series[j][i] = p[c.id]); }
+  const X = i => pad.l + (W - pad.l - pad.r) * i / N, Y = v => pad.t + (H - pad.t - pad.b) * (1 - v / (S.xmax || 1));
+  const cum = new Float64Array(N + 1);
+  order.forEach((c, j) => {
+    g.beginPath();
+    for (let i = 0; i <= N; i++) g.lineTo(X(i), Y(cum[i] + series[j][i]));
+    for (let i = N; i >= 0; i--) g.lineTo(X(i), Y(cum[i]));
+    g.closePath(); g.fillStyle = c.color; g.globalAlpha = .82; g.fill(); g.globalAlpha = 1;
+    g.strokeStyle = css.getPropertyValue('--panel'); g.lineWidth = 1; g.stroke();
+    for (let i = 0; i <= N; i++) cum[i] += series[j][i];
+  });
+  g.fillStyle = muted; g.font = '11px system-ui, sans-serif'; g.textAlign = 'center'; g.strokeStyle = line;
+  for (let k = 0; k <= 4; k++) { const v = S.xmax * k / 4, x = X(N * k / 4);
+    g.textAlign = k === 0 ? 'left' : k === 4 ? 'right' : 'center'; g.fillText(fmt(v), x, H - 6); }
+  const cx = X(N * S.exit / (S.xmax || 1));                       // current exit marker + stacked dots
+  g.strokeStyle = css.getPropertyValue('--text'); g.setLineDash([4, 4]); g.beginPath(); g.moveTo(cx, pad.t); g.lineTo(cx, H - pad.b); g.stroke(); g.setLineDash([]);
+  let acc = 0;
+  order.forEach(c => { acc += w.pay[c.id]; if (w.pay[c.id] > 0) { g.beginPath(); g.arc(cx, Y(acc), 4, 0, 7); g.fillStyle = c.color; g.fill();
+    g.strokeStyle = css.getPropertyValue('--panel'); g.lineWidth = 2; g.stroke(); } });
+}
+
+function renderCards() {
+  $('#cards').innerHTML = S.classes.map(c => `<div class="card" style="--c:${c.color}" data-id="${c.id}">
+    <button class="del" data-act="del" aria-label="Remove ${esc(c.name)}">×</button>
+    <label class="f name">Name<input data-k="name" value="${esc(c.name)}"></label>
+    <label class="f">Type<select data-k="kind"><option value="common"${c.kind === 'common' ? ' selected' : ''}>Common</option><option value="pref"${c.kind === 'pref' ? ' selected' : ''}>Preferred</option></select></label>
+    <label class="f">Shares<input data-k="shares" type="number" inputmode="numeric" min="0" step="1000" value="${c.shares}"></label>
+    ${c.kind === 'pref' ? `
+    <label class="f">Price / share $<input data-k="price" type="number" inputmode="decimal" min="0" step="0.01" value="${c.price}"></label>
+    <label class="f">Pref multiple ×<input data-k="mult" type="number" inputmode="decimal" min="0" step="0.25" value="${c.mult}"></label>
+    <label class="f">Participation<select data-k="part"><option value="none"${c.part === 'none' ? ' selected' : ''}>None</option><option value="full"${c.part === 'full' ? ' selected' : ''}>Full</option><option value="capped"${c.part === 'capped' ? ' selected' : ''}>Capped</option></select></label>
+    ${c.part === 'capped' ? `<label class="f">Cap ×<input data-k="cap" type="number" inputmode="decimal" min="1" step="0.5" value="${c.cap}"></label>` : ''}
+    <label class="f">Seniority (1 = first)<input data-k="rank" type="number" inputmode="numeric" min="1" step="1" value="${c.rank}"></label>` : ''}
+  </div>`).join('');
+}
+$('#cards').addEventListener('input', e => {
+  const c = S.classes.find(k => k.id == e.target.closest('.card').dataset.id), k = e.target.dataset.k;
+  if (!c || !k) return;
+  c[k] = e.target.type === 'number' ? Math.max(0, +e.target.value || 0) : e.target.value;
+  if (k === 'rank') c.rank = Math.max(1, Math.round(c.rank));
+  if (k === 'kind' || k === 'part') renderCards();
+  render();
+});
+$('#cards').addEventListener('click', e => {
+  if (e.target.dataset.act !== 'del') return;
+  S.classes = S.classes.filter(k => k.id != e.target.closest('.card').dataset.id);
+  renderCards(); render();
+});
+function addClass(kind) {
+  if (kind === 'pref') {
+    const n = S.classes.filter(c => c.kind === 'pref').length;
+    S.classes.forEach(c => { if (c.kind === 'pref') c.rank += 1; });     // new money is senior by default
+    const last = S.classes.filter(c => c.kind === 'pref').sort((a, b) => a.rank - b.rank)[0];
+    S.classes.push(mk({ name: 'Series ' + String.fromCharCode(65 + Math.min(n, 25)), price: last ? +(last.price * 2).toFixed(2) : 1, rank: 1 }));
+  } else S.classes.push(mk({ name: 'Common', kind: 'common', shares: 500_000 }));
+  renderCards(); render(); toast('Class added — edit it below');
+}
+
+// ---------- save / open ----------
+function save() {
+  const blob = new Blob([JSON.stringify({ app: 'tranche', version: 1, state: S }, null, 1)], { type: 'application/json' });
+  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `tranche-${new Date().toISOString().slice(0, 10)}.json` });
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  toast('Saved — if nothing downloaded, open this file directly rather than in a viewer');
+}
+function openFile(file) {
+  file.text().then(t => {
+    const d = JSON.parse(t);
+    if (d.app !== 'tranche' || d.version !== 1 || !d.state || !Array.isArray(d.state.classes)) throw 0;
+    const st = d.state;
+    S = { exit: +st.exit || 0, xmax: +st.xmax || 2e8, classes: st.classes.map(c => mk({
+      name: String(c.name ?? 'Class'), kind: c.kind === 'common' ? 'common' : 'pref', shares: +c.shares || 0, price: +c.price || 0,
+      mult: +c.mult || 0, part: ['none', 'full', 'capped'].includes(c.part) ? c.part : 'none', cap: +c.cap || 1,
+      rank: Math.max(1, Math.round(+c.rank || 1)), color: /^#[0-9a-f]{6}$/i.test(c.color) ? c.color : undefined })) };
+    S.classes.forEach(c => { if (!c.color) c.color = PALETTE[colorIx++ % PALETTE.length]; });
+    S.xmax = [5e7, 2e8, 1e9, 5e9].find(m => m >= S.xmax) || 5e9; $('#xmax').value = S.xmax;
+    renderCards(); setExit(S.exit); toast(`Opened ${file.name}`);
+  }).catch(() => toast('That file is not a Tranche save (expects app "tranche", version 1)'));
+}
+let toastT; function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2600); }
+
+// ---------- wiring ----------
+$('#slider').addEventListener('input', e => setExit(S.xmax * e.target.value / 1000, true));
+$('#exitInput').addEventListener('input', e => setExit((+e.target.value || 0) * 1e6));
+$('#xmax').addEventListener('change', e => { S.xmax = +e.target.value; setExit(Math.min(S.exit, S.xmax)); });
+$('#minus').onclick = () => setExit(S.exit * .95);
+$('#plus').onclick = () => setExit(S.exit ? S.exit * 1.05 : S.xmax * .01);
+$('#addBtn').onclick = () => addClass('pref');
+$('#addCommonBtn').onclick = () => addClass('common');
+$('#demoBtn').onclick = () => { S = demo(); $('#xmax').value = S.xmax; renderCards(); setExit(S.exit); toast('Demo cap table restored'); };
+$('#saveBtn').onclick = save;
+$('#openBtn').onclick = () => $('#file').click();
+$('#file').addEventListener('change', e => { if (e.target.files[0]) openFile(e.target.files[0]); e.target.value = ''; });
+const setTheme = t => { document.documentElement.dataset.theme = t; drawChart(waterfall(S.exit)); };
+$('#themeBtn').onclick = () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+const help = on => $('#help').classList.toggle('open', on);
+$('#helpBtn').onclick = () => help(true); $('#closeHelp').onclick = () => help(false);
+$('#help').addEventListener('click', e => { if (e.target.id === 'help') help(false); });
+
+const cv = $('#chart'); let dragging = false;                 // finger or mouse on the chart sets the exit
+const fromPointer = e => { const r = cv.getBoundingClientRect(); setExit(S.xmax * Math.min(1, Math.max(0, (e.clientX - r.left - 6) / (r.width - 12)))); };
+cv.addEventListener('pointerdown', e => { dragging = true; cv.setPointerCapture(e.pointerId); fromPointer(e); });
+cv.addEventListener('pointermove', e => { if (dragging) fromPointer(e); });
+cv.addEventListener('pointerup', () => dragging = false); cv.addEventListener('pointercancel', () => dragging = false);
+new ResizeObserver(() => drawChart(waterfall(S.exit))).observe(cv);
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { help(false); document.activeElement?.blur(); return; }
+  const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable;
+  const mod = e.ctrlKey || e.metaKey;
+  if (mod && e.key === '/') { e.preventDefault(); help(!$('#help').classList.contains('open')); return; }
+  if (typing) return;
+  if (mod && e.key.toLowerCase() === 's') { e.preventDefault(); save(); return; }
+  if (mod && e.key.toLowerCase() === 'o') { e.preventDefault(); $('#file').click(); return; }
+  if (mod || e.altKey) return;
+  const step = e.shiftKey ? .10 : .02;
+  if (e.key === 'ArrowLeft')  { e.preventDefault(); setExit(S.exit * (1 - step)); }
+  else if (e.key === 'ArrowRight') { e.preventDefault(); setExit(S.exit ? S.exit * (1 + step) : S.xmax * .01); }
+  else if (e.key === '?') help(true);
+  else if (e.key.toLowerCase() === 'd') setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+  else if (e.key.toLowerCase() === 'n') addClass('pref');
+  else if (e.key.toLowerCase() === 'r') { const o = [5e7, 2e8, 1e9, 5e9]; S.xmax = o[(o.indexOf(S.xmax) + 1) % o.length]; $('#xmax').value = S.xmax; setExit(Math.min(S.exit, S.xmax)); }
+});
+
+if (matchMedia('(prefers-color-scheme: light)').matches) document.documentElement.dataset.theme = 'light';
+$('#xmax').value = S.xmax; renderCards(); setExit(S.exit);
+window.Tranche = { distribute, waterfall, breakpoints, get state() { return S; } };   // exposed for tests
+</script>
+</body>
+</html>

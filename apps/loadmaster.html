@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LoadMaster — Concurrency & Latency Simulation Studio</title>
+    <style>
+        :root {
+            --bg: #090d16; --panel: #111827; --card: #1f2937; --border: #374151;
+            --text: #f9fafb; --sub: #9ca3af; --accent: #f59e0b; --accent-hover: #d97706;
+            --success: #10b981; --danger: #ef4444; --shadow: rgba(0,0,0,0.5);
+        }
+        [data-theme="light"] {
+            --bg: #f3f4f6; --panel: #ffffff; --card: #f9fafb; --border: #e5e7eb;
+            --text: #111827; --sub: #6b7280; --accent: #d97706; --accent-hover: #b45309;
+            --success: #059669; --danger: #dc2626; --shadow: rgba(0,0,0,0.06);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+
+        header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .brand { font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em; }
+        .pulse-icon { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+        .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        button, label.btn-label, select { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; user-select: none; transition: 0.15s; outline: none; }
+        button:hover, label.btn-label:hover { border-color: var(--accent); color: var(--accent); }
+        button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+        button.primary:hover { background: var(--accent-hover); color: #fff; }
+        input[type="file"] { display: none; }
+
+        .metrics-bar { background: var(--panel); border-bottom: 1px solid var(--border); padding: 10px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; font-size: 0.8rem; }
+        .metric-card { background: var(--bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); }
+        .metric-title { color: var(--sub); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+        .metric-val { font-size: 1rem; font-weight: 700; color: var(--text); }
+
+        main { flex: 1; padding: 16px; max-width: 1300px; width: 100%; margin: 0 auto; display: grid; grid-template-columns: 320px 1fr; gap: 16px; }
+        .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; box-shadow: 0 4px 6px var(--shadow); display: flex; flex-direction: column; gap: 12px; }
+        .section-title { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sub); display: flex; justify-content: space-between; align-items: center; }
+
+        .form-group { margin-bottom: 8px; }
+        .form-group label { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--sub); margin-bottom: 4px; font-weight: 500; }
+        .form-group input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+        .form-group input[type="text"] { width: 100%; padding: 6px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.85rem; outline: none; }
+
+        .chart-container { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; height: 260px; position: relative; }
+        canvas { width: 100%; height: 100%; display: block; }
+
+        /* Modal & Overlay */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 200; padding: 16px; }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 440px; padding: 20px; box-shadow: 0 20px 25px -5px var(--shadow); }
+        .modal h3 { font-size: 1.1rem; margin-bottom: 12px; }
+
+        .shortcut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem; margin: 12px 0 16px; }
+        .shortcut-row { display: flex; justify-content: space-between; background: var(--card); padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border); }
+        kbd { background: var(--panel); border: 1px solid var(--border); padding: 1px 5px; border-radius: 3px; font-weight: 600; font-size: 0.75rem; }
+
+        @media (max-width: 768px) {
+            header { flex-direction: column; align-items: stretch; }
+            .actions { justify-content: space-between; }
+            main { grid-template-columns: 1fr; padding: 8px; }
+            .metrics-bar { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand"><div class="pulse-icon"></div> LoadMaster Performance Studio</div>
+        <div class="actions">
+            <button id="toggleRunBtn" class="primary">▶ Start Simulation</button>
+            <button id="saveBtn">💾 Save JSON</button>
+            <label class="btn-label" for="openFile">📂 Open JSON</label>
+            <input type="file" id="openFile" accept=".json">
+            <button id="themeBtn">🌓 Theme</button>
+            <button id="helpBtn">❓ Help</button>
+        </div>
+    </header>
+
+    <div class="metrics-bar">
+        <div class="metric-card"><div class="metric-title">Target Endpoint</div><div class="metric-val" id="mEndpoint">/api/v1/checkout</div></div>
+        <div class="metric-card"><div class="metric-title">Current RPS</div><div class="metric-val" id="mRps">0 req/s</div></div>
+        <div class="metric-card"><div class="metric-title">p95 Latency</div><div class="metric-val" id="mP95">0 ms</div></div>
+        <div class="metric-card"><div class="metric-title">Error Rate</div><div class="metric-val" id="mErr" style="color:var(--success);">0.0%</div></div>
+    </div>
+
+    <main>
+        <!-- Load Test Parameters -->
+        <div class="panel">
+            <div class="section-title"><span>Load Scenario Config</span></div>
+            
+            <div class="form-group">
+                <label>Target Endpoint Path</label>
+                <input type="text" id="cfgEndpoint" value="/api/v1/checkout">
+            </div>
+            <div class="form-group">
+                <label>Concurrent Workers: <span id="valWorkers">50</span></label>
+                <input type="range" id="cfgWorkers" min="5" max="200" value="50">
+            </div>
+            <div class="form-group">
+                <label>Base Latency: <span id="valLatency">45</span>ms</label>
+                <input type="range" id="cfgLatency" min="10" max="500" value="45">
+            </div>
+            <div class="form-group">
+                <label>Jitter / Variance: <span id="valJitter">20</span>ms</label>
+                <input type="range" id="cfgJitter" min="0" max="150" value="20">
+            </div>
+            <div class="form-group">
+                <label>Failure Injected: <span id="valFail">1.5</span>%</label>
+                <input type="range" id="cfgFail" min="0" max="25" step="0.5" value="1.5">
+            </div>
+        </div>
+
+        <!-- Dynamic Visualization Charts -->
+        <div class="panel">
+            <div class="section-title"><span>Real-Time Request Throughput (RPS) & p95 Latency</span></div>
+            <div class="chart-container">
+                <canvas id="loadChart"></canvas>
+            </div>
+
+            <div class="section-title" style="margin-top: 6px;"><span>HTTP Response Status Distribution</span></div>
+            <div class="chart-container" style="height: 140px;">
+                <canvas id="barChart"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal">
+            <h3>LoadMaster Guide & Shortcuts</h3>
+            <p style="font-size:0.85rem; color:var(--sub); line-height:1.4; margin-bottom:10px;">Zero-dependency client-side high-concurrency traffic generator & latency distribution analyzer.</p>
+            <div class="shortcut-grid">
+                <div class="shortcut-row"><span>Start/Stop</span> <kbd>Space</kbd></div>
+                <div class="shortcut-row"><span>Save Config</span> <kbd>S</kbd></div>
+                <div class="shortcut-row"><span>Open Config</span> <kbd>O</kbd></div>
+                <div class="shortcut-row"><span>Toggle Theme</span> <kbd>T</kbd></div>
+                <div class="shortcut-row"><span>Close Modal</span> <kbd>Esc</kbd></div>
+            </div>
+            <button id="closeHelpBtn" class="primary" style="width:100%; justify-content:center; margin-top:10px;">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        // --- State Management ---
+        let isRunning = false;
+        let simInterval = null;
+
+        let config = {
+            endpoint: '/api/v1/checkout',
+            workers: 50,
+            baseLatency: 45,
+            jitter: 20,
+            failRate: 1.5
+        };
+
+        let metricsHistory = []; // { rps, p95, time }
+        let statusCounts = { '200 OK': 0, '429 Rate Limit': 0, '500 Error': 0 };
+
+        // --- Range Slider Sync ---
+        function syncInputs() {
+            document.getElementById('valWorkers').innerText = config.workers;
+            document.getElementById('valLatency').innerText = config.baseLatency;
+            document.getElementById('valJitter').innerText = config.jitter;
+            document.getElementById('valFail').innerText = config.failRate;
+            document.getElementById('mEndpoint').innerText = config.endpoint;
+        }
+
+        document.getElementById('cfgWorkers').addEventListener('input', e => { config.workers = parseInt(e.target.value); syncInputs(); });
+        document.getElementById('cfgLatency').addEventListener('input', e => { config.baseLatency = parseInt(e.target.value); syncInputs(); });
+        document.getElementById('cfgJitter').addEventListener('input', e => { config.jitter = parseInt(e.target.value); syncInputs(); });
+        document.getElementById('cfgFail').addEventListener('input', e => { config.failRate = parseFloat(e.target.value); syncInputs(); });
+        document.getElementById('cfgEndpoint').addEventListener('input', e => { config.endpoint = e.target.value; syncInputs(); });
+
+        // --- Simulation Core Engine ---
+        function runSimulationTick() {
+            if (!isRunning) return;
+
+            // Generate synthetic worker metrics
+            const currentRps = Math.round(config.workers * (1000 / config.baseLatency) * (0.8 + Math.random() * 0.4));
+            const p95 = Math.round(config.baseLatency + (Math.random() * config.jitter * 2));
+            const isError = Math.random() * 100 < config.failRate;
+
+            if (isError) {
+                if (Math.random() > 0.5) statusCounts['500 Error'] += Math.round(currentRps * 0.05);
+                else statusCounts['429 Rate Limit'] += Math.round(currentRps * 0.05);
+            } else {
+                statusCounts['200 OK'] += currentRps;
+            }
+
+            document.getElementById('mRps').innerText = `${currentRps.toLocaleString()} req/s`;
+            document.getElementById('mP95').innerText = `${p95} ms`;
+            
+            const errElem = document.getElementById('mErr');
+            errElem.innerText = `${config.failRate}%`;
+            errElem.style.color = config.failRate > 5 ? 'var(--danger)' : 'var(--success)';
+
+            metricsHistory.push({ rps: currentRps, p95: p95 });
+            if (metricsHistory.length > 40) metricsHistory.shift();
+
+            renderCharts();
+        }
+
+        function toggleSimulation() {
+            isRunning = !isRunning;
+            const btn = document.getElementById('toggleRunBtn');
+            if (isRunning) {
+                btn.innerText = '⏹ Stop Simulation';
+                simInterval = setInterval(runSimulationTick, 300);
+            } else {
+                btn.innerText = '▶ Start Simulation';
+                clearInterval(simInterval);
+            }
+        }
+
+        // --- Canvas Graph Visualizer ---
+        const loadCanvas = document.getElementById('loadChart');
+        const loadCtx = loadCanvas.getContext('2d');
+        const barCanvas = document.getElementById('barChart');
+        const barCtx = barCanvas.getContext('2d');
+
+        function resizeCanvas() {
+            loadCanvas.width = loadCanvas.parentElement.clientWidth;
+            loadCanvas.height = loadCanvas.parentElement.clientHeight;
+            barCanvas.width = barCanvas.parentElement.clientWidth;
+            barCanvas.height = barCanvas.parentElement.clientHeight;
+            renderCharts();
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        function renderCharts() {
+            // Line Chart (RPS & Latency)
+            loadCtx.clearRect(0, 0, loadCanvas.width, loadCanvas.height);
+            if (metricsHistory.length > 1) {
+                const step = loadCanvas.width / (metricsHistory.length - 1);
+                
+                // Draw RPS line
+                loadCtx.beginPath();
+                loadCtx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent');
+                loadCtx.lineWidth = 2;
+                metricsHistory.forEach((m, idx) => {
+                    const y = loadCanvas.height - (m.rps / 5000 * loadCanvas.height);
+                    if (idx === 0) loadCtx.moveTo(0, y);
+                    else loadCtx.lineTo(idx * step, y);
+                });
+                loadCtx.stroke();
+            }
+
+            // Bar Chart (Status Codes)
+            barCtx.clearRect(0, 0, barCanvas.width, barCanvas.height);
+            const keys = Object.keys(statusCounts);
+            const total = Object.values(statusCounts).reduce((a, b) => a + b, 0) || 1;
+            const barWidth = barCanvas.width / keys.length - 20;
+
+            keys.forEach((key, idx) => {
+                const val = statusCounts[key];
+                const h = (val / total) * barCanvas.height;
+                const x = idx * (barWidth + 20) + 10;
+                const y = barCanvas.height - h;
+
+                barCtx.fillStyle = key.includes('200') ? 'var(--success)' : 'var(--danger)';
+                barCtx.fillRect(x, y, barWidth, h);
+                barCtx.fillStyle = 'var(--text)';
+                barCtx.font = '10px monospace';
+                barCtx.fillText(key, x, barCanvas.height - 5);
+            });
+        }
+
+        // --- JSON Save & Open Persistence ---
+        document.getElementById('saveBtn').addEventListener('click', exportConfig);
+        document.getElementById('openFile').addEventListener('change', importConfig);
+
+        function exportConfig() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(config, null, 2));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            a.setAttribute("download", `loadmaster_config_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        function importConfig(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const imported = JSON.parse(evt.target.result);
+                    if (imported.workers && imported.endpoint) {
+                        config = imported;
+                        document.getElementById('cfgWorkers').value = config.workers;
+                        document.getElementById('cfgLatency').value = config.baseLatency;
+                        document.getElementById('cfgJitter').value = config.jitter;
+                        document.getElementById('cfgFail').value = config.failRate;
+                        document.getElementById('cfgEndpoint').value = config.endpoint;
+                        syncInputs();
+                    } else alert('Invalid load test configuration file.');
+                } catch(err) { alert('Error parsing file.'); }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Event Listeners & Non-Overlapping Shortcuts ---
+        document.getElementById('toggleRunBtn').addEventListener('click', toggleSimulation);
+        const helpModal = document.getElementById('helpModal');
+        document.getElementById('helpBtn').addEventListener('click', () => helpModal.classList.add('open'));
+        document.getElementById('closeHelpBtn').addEventListener('click', () => helpModal.classList.remove('open'));
+        document.getElementById('themeBtn').addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-theme');
+            document.documentElement.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+        });
+
+        // Strict Keyboard Shortcut Mapping:
+        // Space = Start/Stop, S = Save Config, O = Open Config, T = Toggle Theme, Esc = Close Modal
+        window.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT') return;
+            const key = e.key.toLowerCase();
+            if (e.code === 'Space') { e.preventDefault(); toggleSimulation(); }
+            if (key === 's') { e.preventDefault(); exportConfig(); }
+            if (key === 'o') { e.preventDefault(); document.getElementById('openFile').click(); }
+            if (key === 't') { e.preventDefault(); document.getElementById('themeBtn').click(); }
+            if (e.key === 'Escape') helpModal.classList.remove('open');
+        });
+
+        // Pre-loaded Demo State Initialization
+        syncInputs();
+        resizeCanvas();
+        setTimeout(() => toggleSimulation(), 300);
+    </script>
+</body>
+</html>

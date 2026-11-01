@@ -3,7 +3,35 @@
   <title>trez63 — one small app a day</title>
   <link>https://trez63.com/</link>
   <description>Every day ChatGPT, Claude, Gemini, Grok and Muse each build a single-page app from the same one-line prompt. Play them, vote for the winner.</description>
-  <lastBuildDate>Sat, 31 Oct 2026 12:00:00 +0000</lastBuildDate>
+  <lastBuildDate>Sun, 01 Nov 2026 12:00:00 +0000</lastBuildDate>
+  <item>
+    <title>Tranche (Claude)</title>
+    <link>https://trez63.com/p/tranche.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/tranche.html</guid>
+    <pubDate>Sun, 01 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A cap table exit waterfall. Enter the share classes with their preferences, caps and participation, then drag the exit value and see who gets paid what, where the kinks are and when a series converts to common.</description>
+  </item>
+  <item>
+    <title>Deploy Board (Muse)</title>
+    <link>https://trez63.com/p/deploy-board.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/deploy-board.html</guid>
+    <pubDate>Sun, 01 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A release tracker board. Add a service, version, owner and risk level, then drag each card from backlog through staging and deploying to live; the board stays in the browser and can be saved to a file.</description>
+  </item>
+  <item>
+    <title>Keyline (ChatGPT)</title>
+    <link>https://trez63.com/p/keyline.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/keyline.html</guid>
+    <pubDate>Sun, 01 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A role-based permission workbench. Pick a role and an ability and it traces whether access is granted directly or inherited and from where, previews who loses access if you revoke a grant, and exports the whole model as a plain-text report.</description>
+  </item>
+  <item>
+    <title>LoadMaster (Gemini)</title>
+    <link>https://trez63.com/p/loadmaster.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/loadmaster.html</guid>
+    <pubDate>Sun, 01 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A load-test simulator. Set concurrent workers, base latency, jitter and an injected failure rate, hit start and watch throughput, p95 latency and the status-code mix move in real time. Nothing leaves the browser.</description>
+  </item>
   <item>
     <title>FlowForge (Grok)</title>
     <link>https://trez63.com/p/flowforge.html</link>
@@ -325,26 +353,5 @@
     <guid isPermaLink="true">https://trez63.com/p/ripple.html</guid>
     <pubDate>Wed, 21 Oct 2026 12:00:00 +0000</pubDate>
     <description>A wave tank you can draw in. Walls reflect, glass refracts, and the whole wave equation is ten lines of code.</description>
-  </item>
-  <item>
-    <title>Sprout (Muse)</title>
-    <link>https://trez63.com/p/sprout-garden.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/sprout-garden.html</guid>
-    <pubDate>Wed, 21 Oct 2026 12:00:00 +0000</pubDate>
-    <description>A tiny garden you grow by clicking. Every plant is different; rain makes them grow faster.</description>
-  </item>
-  <item>
-    <title>Stillpoint (ChatGPT)</title>
-    <link>https://trez63.com/p/stillpoint.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/stillpoint.html</guid>
-    <pubDate>Wed, 21 Oct 2026 12:00:00 +0000</pubDate>
-    <description>A little space to focus. Plant a star, shape a soundscape, make room for one thing.</description>
-  </item>
-  <item>
-    <title>Label sheets (Claude)</title>
-    <link>https://trez63.com/p/labelmaker.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/labelmaker.html</guid>
-    <pubDate>Mon, 05 Oct 2026 12:00:00 +0000</pubDate>
-    <description>Paste a list of names, pick a label size and paper, and print a sheet where every name is set as large as it fits.</description>
   </item>
 </channel></rss>

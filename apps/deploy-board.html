@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deploy Board — Release Tracker</title>
+<style>
+  /* ---------- Palette & base ---------- */
+  :root{
+    --paper:#fdf8ee; --card:#fffdf6; --ink:#22271f; --muted:#6b6a5e;
+    --line:#e3dcc8; --forest:#1d4d2e; --forest-dark:#143722;
+    --orange:#d95d1e; --orange-soft:#fdeee3; --amber:#b7791f;
+    --amber-soft:#fdf3d7; --green-soft:#e4f0e6; --red:#a83226; --red-soft:#fbe9e6;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.45}
+  button,input,select{font:inherit}
+  button{cursor:pointer}
+  /* ---------- Header ---------- */
+  header{background:var(--forest);color:#fff;padding:22px 18px 18px}
+  header h1{margin:0;font-size:1.7rem;letter-spacing:.01em}
+  header h1 span{color:#f2a65a}
+  header p{margin:8px 0 0;color:#d8e6da;max-width:720px;font-size:1rem}
+  main{max-width:1100px;margin:0 auto;padding:16px}
+  /* ---------- Stats ---------- */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 16px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:12px 14px}
+  .stat b{display:block;font-size:1.55rem;line-height:1.1}
+  .stat span{color:var(--muted);font-size:.88rem}
+  .stat.live b{color:var(--forest)}
+  /* ---------- Toolbar & add form ---------- */
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+  .toolbar button,.addform button{border:1.5px solid var(--line);background:#fff;color:var(--ink);
+    border-radius:10px;padding:11px 14px;min-height:44px;font-weight:600}
+  .toolbar button.primary,.addform button.primary{background:var(--orange);border-color:var(--orange);color:#fff}
+  .toolbar button.forest{background:var(--forest);border-color:var(--forest);color:#fff}
+  .toolbar .msg{color:var(--muted);font-size:.92rem;min-height:1.2em}
+  .toolbar .msg.error{color:var(--red);font-weight:600}
+  .toolbar .msg.ok{color:var(--forest);font-weight:600}
+  .addform{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:14px;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr auto;gap:8px;margin-bottom:16px}
+  .addform label{font-size:.82rem;color:var(--muted);font-weight:600;display:block;margin-bottom:3px}
+  .addform input,.addform select{width:100%;border:1.5px solid var(--line);border-radius:9px;
+    padding:10px;min-height:44px;background:#fff;color:var(--ink)}
+  .addform input:focus,.addform select:focus{outline:3px solid #f2c79b;outline-offset:1px;border-color:var(--orange)}
+  .hint{color:var(--muted);font-size:.93rem;margin:0 0 14px}
+  .hint b{color:var(--ink)}
+  /* ---------- Board ---------- */
+  .board{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-items:start}
+  .col{background:#f3eddc;border:1px solid var(--line);border-radius:var(--radius);
+    padding:10px;min-height:220px}
+  .col.drop-target{outline:3px dashed var(--orange);outline-offset:-3px;background:var(--orange-soft)}
+  .col h2{margin:2px 4px 4px;font-size:1rem;display:flex;justify-content:space-between;align-items:center}
+  .col h2 .count{background:var(--forest);color:#fff;border-radius:999px;padding:1px 9px;font-size:.82rem}
+  .col .colsub{margin:0 4px 10px;color:var(--muted);font-size:.85rem}
+  .emptycol{border:1.5px dashed var(--line);border-radius:10px;padding:16px 10px;text-align:center;
+    color:var(--muted);font-size:.9rem;background:var(--card)}
+  /* ---------- Cards ---------- */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:12px;margin-bottom:10px;box-shadow:0 1px 2px rgba(34,39,31,.06)}
+  .card.dragging{opacity:.35}
+  .cardtop{display:flex;gap:8px;align-items:flex-start}
+  .handle{touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;
+    border:1.5px solid var(--line);background:#fff;border-radius:8px;padding:8px 7px;
+    font-size:1rem;line-height:1;min-width:40px;min-height:40px;text-align:center}
+  .handle:active{cursor:grabbing}
+  .card h3{margin:0;font-size:1rem;line-height:1.25;flex:1;overflow-wrap:anywhere}
+  .ver{display:inline-block;background:var(--forest);color:#fff;border-radius:999px;
+    padding:2px 8px;font-size:.78rem;font-weight:700;margin-top:5px}
+  .card p{margin:8px 0;color:var(--muted);font-size:.92rem}
+  .meta{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+  .badge{border-radius:999px;padding:2px 9px;font-size:.8rem;font-weight:700}
+  .risk-low{background:var(--green-soft);color:var(--forest)}
+  .risk-med{background:var(--amber-soft);color:#7a5510}
+  .risk-high{background:var(--red-soft);color:var(--red)}
+  .owner{background:#efe9d8;color:var(--ink)}
+  .cardbtns{display:flex;gap:6px;flex-wrap:wrap}
+  .cardbtns button{flex:1;border:1.5px solid var(--line);background:#fff;border-radius:9px;
+    padding:9px 6px;min-height:42px;font-weight:600;font-size:.88rem}
+  .cardbtns button.move{background:var(--forest);border-color:var(--forest);color:#fff}
+  .cardbtns button.del{flex:0 0 auto;color:var(--red);padding:9px 11px}
+  .ghost{position:fixed;z-index:50;pointer-events:none;background:var(--card);
+    border:2px solid var(--orange);border-radius:12px;padding:10px 12px;max-width:280px;
+    box-shadow:0 10px 24px rgba(34,39,31,.25);font-weight:700}
+  .emptybanner{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px;text-align:center;margin-bottom:16px}
+  .emptybanner h2{margin:0 0 6px}
+  .emptybanner p{margin:0 0 12px;color:var(--muted)}
+  .emptybanner button{background:var(--orange);border-color:var(--orange);color:#fff;
+    border-radius:10px;padding:11px 16px;min-height:44px;font-weight:700}
+  footer{color:var(--muted);font-size:.88rem;text-align:center;padding:10px 16px 28px}
+  @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+  /* ---------- Phone layout ---------- */
+  @media (max-width:760px){
+    header{padding:18px 14px 14px}
+    header h1{font-size:1.45rem}
+    main{padding:12px}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .addform{grid-template-columns:1fr 1fr}
+    .addform .wide{grid-column:1 / -1}
+    .board{grid-template-columns:1fr}
+    .col{min-height:0}
+    .toolbar button{flex:1}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>DEPLOY <span>BOARD</span></h1>
+  <p>A release tracker for small teams. Drag a card by its grip to move a release between stages — or use its Move button. Nothing here is a demo trap: every move sticks, and you can save the board to a file.</p>
+</header>
+
+<main>
+  <!-- Stats -->
+  <section class="stats" aria-label="Board totals">
+    <div class="stat"><b id="statTotal">0</b><span>Total releases</span></div>
+    <div class="stat"><b id="statStaging">0</b><span>In staging</span></div>
+    <div class="stat live"><b id="statLive">0</b><span>Live now</span></div>
+    <div class="stat"><b id="statHigh">0</b><span>High-risk releases</span></div>
+  </section>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button class="primary" id="saveBtn" type="button">Save board (JSON)</button>
+    <button id="openBtn" type="button">Open saved board</button>
+    <button class="forest" id="resetBtn" type="button">Reset to sample</button>
+    <span class="msg" id="msg" role="status"></span>
+    <input type="file" id="fileInput" accept=".json,application/json" hidden>
+  </div>
+
+  <!-- Add form -->
+  <form class="addform" id="addForm">
+    <div class="wide"><label for="fService">Service / release</label>
+      <input id="fService" placeholder="e.g. Checkout API" maxlength="80"></div>
+    <div><label for="fVersion">Version</label>
+      <input id="fVersion" placeholder="e.g. v2.4.1" maxlength="30"></div>
+    <div><label for="fOwner">Owner</label>
+      <input id="fOwner" placeholder="e.g. Priya" maxlength="40"></div>
+    <div><label for="fRisk">Risk</label>
+      <select id="fRisk"><option value="Low">Low</option><option value="Medium" selected>Medium</option><option value="High">High</option></select></div>
+    <div style="align-self:end"><button class="primary" type="submit">Add release</button></div>
+  </form>
+
+  <p class="hint">How to move a release: <b>press and drag the grip (⠿)</b> on a card into another column. On a phone, drag with the grip so the page can still scroll when you touch the rest of the card. The <b>Move</b> button on every card does the same thing without dragging, and works with a keyboard.</p>
+
+  <div id="emptyBanner" class="emptybanner" hidden>
+    <h2>No releases on the board</h2>
+    <p>Add your first release above, open a saved board, or restore the sample board.</p>
+    <button id="emptyResetBtn" type="button">Restore sample board</button>
+  </div>
+
+  <!-- Board -->
+  <section class="board" id="board" aria-label="Release stages"></section>
+
+  <footer>No accounts, no network calls, no setup. Your board is saved in this browser as you move cards, and Save downloads a copy you can keep or share.</footer>
+</main>
+
+<script>
+/* ================= 1. Data & stages ================= */
+var STAGES = [
+  { id: "backlog",  label: "Backlog",  sub: "Planned, not started" },
+  { id: "staging",  label: "Staging",  sub: "Being tested" },
+  { id: "deploying",label: "Deploying",sub: "Rolling out now" },
+  { id: "live",     label: "Live",     sub: "In production" }
+];
+var RISKS = ["Low", "Medium", "High"];
+var STORE_KEY = "deploy-board-v1";
+
+function sampleReleases() {
+  return [
+    { id: "r1", service: "Checkout API",      version: "v2.4.1", owner: "Priya",  risk: "High",   stage: "deploying", note: "New payment retry logic; watch error rate for 1 hour." },
+    { id: "r2", service: "Customer portal",   version: "v3.0.0", owner: "Marcus", risk: "Medium", stage: "staging",   note: "Redesigned account page; needs final design sign-off." },
+    { id: "r3", service: "Search service",    version: "v1.9.2", owner: "Ana",    risk: "Low",    stage: "live",      note: "Faster index rebuild. No customer-facing change." },
+    { id: "r4", service: "Billing worker",    version: "v4.1.0", owner: "Priya",  risk: "High",   stage: "staging",   note: "Changes invoice timing — confirm with Finance first." },
+    { id: "r5", service: "Mobile app",        version: "v5.2.0", owner: "Jules",  risk: "Medium", stage: "backlog",   note: "Offline mode for order history. Awaiting store review slot." },
+    { id: "r6", service: "Reporting dashboard",version: "v2.1.3", owner: "Ana",    risk: "Low",    stage: "live",      note: "Weekly export fix; already verified by two customers." },
+    { id: "r7", service: "Auth service",      version: "v3.3.1", owner: "Marcus", risk: "Medium", stage: "deploying", note: "Session timeout change; announce in advance." },
+    { id: "r8", service: "Notifications",     version: "v1.4.0", owner: "Jules",  risk: "Low",    stage: "backlog",   note: "Digest emails instead of one per event." }
+  ];
+}
+var releases = loadInitial();
+
+function loadInitial() {
+  try {
+    var raw = localStorage.getItem(STORE_KEY);
+    if (raw) {
+      var parsed = JSON.parse(raw);
+      if (validateBoard(parsed)) return parsed.releases;
+    }
+  } catch (e) { /* fall through to sample data */ }
+  return sampleReleases();
+}
+function persist() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify({ app: "deploy-board", version: 1, releases: releases })); }
+  catch (e) { /* storage unavailable; Save still works */ }
+}
+
+/* ================= 2. Validation (bad files never wipe data) ================= */
+function isPlainObject(v) { return v !== null && typeof v === "object" && !Array.isArray(v); }
+function validateBoard(data) {
+  if (!isPlainObject(data)) return false;
+  if (data.app !== "deploy-board" || data.version !== 1) return false;
+  if (!Array.isArray(data.releases)) return false;
+  var stageIds = STAGES.map(function (s) { return s.id; });
+  var seen = {};
+  for (var i = 0; i < data.releases.length; i++) {
+    var r = data.releases[i];
+    if (!isPlainObject(r)) return false;
+    if (typeof r.id !== "string" || !r.id || seen[r.id]) return false;
+    seen[r.id] = true;
+    if (typeof r.service !== "string" || !r.service.trim()) return false;
+    if (typeof r.version !== "string" || !r.version.trim()) return false;
+    if (typeof r.owner !== "string" || !r.owner.trim()) return false;
+    if (typeof r.note !== "string") return false;
+    if (RISKS.indexOf(r.risk) === -1) return false;
+    if (stageIds.indexOf(r.stage) === -1) return false;
+  }
+  return true;
+}
+
+/* ================= 3. Rendering ================= */
+var boardEl = document.getElementById("board");
+var msgEl = document.getElementById("msg");
+
+function showMsg(text, kind) {
+  msgEl.textContent = text;
+  msgEl.className = "msg" + (kind ? " " + kind : "");
+}
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function nextStage(id) {
+  var idx = STAGES.findIndex(function (s) { return s.id === id; });
+  return STAGES[(idx + 1) % STAGES.length];
+}
+function riskClass(risk) {
+  return risk === "High" ? "risk-high" : risk === "Medium" ? "risk-med" : "risk-low";
+}
+function render() {
+  boardEl.innerHTML = "";
+  STAGES.forEach(function (stage) {
+    var col = document.createElement("div");
+    col.className = "col";
+    col.dataset.stage = stage.id;
+    var items = releases.filter(function (r) { return r.stage === stage.id; });
+    col.innerHTML = "<h2>" + esc(stage.label) + " <span class=\"count\">" + items.length + "</span></h2>" +
+      "<p class=\"colsub\">" + esc(stage.sub) + "</p>";
+    if (items.length === 0) {
+      var empty = document.createElement("div");
+      empty.className = "emptycol";
+      empty.textContent = "No releases here yet — drag one in.";
+      col.appendChild(empty);
+    }
+    items.forEach(function (r) { col.appendChild(cardEl(r)); });
+    boardEl.appendChild(col);
+  });
+  document.getElementById("statTotal").textContent = releases.length;
+  document.getElementById("statStaging").textContent = releases.filter(function (r) { return r.stage === "staging"; }).length;
+  document.getElementById("statLive").textContent = releases.filter(function (r) { return r.stage === "live"; }).length;
+  document.getElementById("statHigh").textContent = releases.filter(function (r) { return r.risk === "High"; }).length;
+  document.getElementById("emptyBanner").hidden = releases.length !== 0;
+  persist();
+}
+function cardEl(r) {
+  var card = document.createElement("article");
+  card.className = "card";
+  card.dataset.id = r.id;
+  var nxt = nextStage(r.stage);
+  card.innerHTML =
+    "<div class=\"cardtop\">" +
+      "<button class=\"handle\" type=\"button\" aria-label=\"Drag to move " + esc(r.service) + "\">⠿</button>" +
+      "<h3>" + esc(r.service) + "<br><span class=\"ver\">" + esc(r.version) + "</span></h3>" +
+    "</div>" +
+    "<p>" + esc(r.note) + "</p>" +
+    "<div class=\"meta\"><span class=\"badge " + riskClass(r.risk) + "\">" + esc(r.risk) + " risk</span>" +
+    "<span class=\"badge owner\">" + esc(r.owner) + "</span></div>" +
+    "<div class=\"cardbtns\">" +
+      "<button class=\"move\" type=\"button\" data-action=\"move\">Move to " + esc(nxt.label) + " ▸</button>" +
+      "<button class=\"del\" type=\"button\" data-action=\"delete\" aria-label=\"Delete " + esc(r.service) + "\">Delete</button>" +
+    "</div>";
+  card.querySelector("[data-action=\"move\"]").addEventListener("click", function () {
+    r.stage = nxt.id;
+    showMsg(r.service + " moved to " + nxt.label + ".", "ok");
+    render();
+  });
+  card.querySelector("[data-action=\"delete\"]").addEventListener("click", function () {
+    releases = releases.filter(function (x) { return x.id !== r.id; });
+    showMsg(r.service + " removed.", "ok");
+    render();
+  });
+  var handle = card.querySelector(".handle");
+  handle.addEventListener("pointerdown", function (ev) { startDrag(ev, r, card); });
+  return card;
+}
+
+/* ================= 4. Pointer dragging (mouse + touch) ================= */
+var drag = null;
+function startDrag(ev, release, card) {
+  ev.preventDefault();
+  var ghost = document.createElement("div");
+  ghost.className = "ghost";
+  ghost.textContent = release.service + "  ·  " + release.version;
+  document.body.appendChild(ghost);
+  drag = { release: release, card: card, ghost: ghost, moved: false,
+           startX: ev.clientX, startY: ev.clientY };
+  card.classList.add("dragging");
+  moveGhost(ev);
+  document.addEventListener("pointermove", onDragMove);
+  document.addEventListener("pointerup", onDragEnd, { once: true });
+}
+function moveGhost(ev) {
+  if (!drag) return;
+  drag.ghost.style.left = (ev.clientX + 14) + "px";
+  drag.ghost.style.top = (ev.clientY + 14) + "px";
+}
+function onDragMove(ev) {
+  if (!drag) return;
+  if (Math.abs(ev.clientX - drag.startX) + Math.abs(ev.clientY - drag.startY) > 8) drag.moved = true;
+  moveGhost(ev);
+  document.querySelectorAll(".col").forEach(function (c) { c.classList.remove("drop-target"); });
+  var el = document.elementFromPoint(ev.clientX, ev.clientY);
+  var col = el ? el.closest(".col") : null;
+  if (col) col.classList.add("drop-target");
+}
+function onDragEnd(ev) {
+  document.removeEventListener("pointermove", onDragMove);
+  if (!drag) return;
+  var d = drag; drag = null;
+  d.card.classList.remove("dragging");
+  if (d.ghost.parentNode) d.ghost.parentNode.removeChild(d.ghost);
+  document.querySelectorAll(".col").forEach(function (c) { c.classList.remove("drop-target"); });
+  if (!d.moved) return;
+  var el = document.elementFromPoint(ev.clientX, ev.clientY);
+  var col = el ? el.closest(".col") : null;
+  if (col && col.dataset.stage !== d.release.stage) {
+    var label = STAGES.find(function (s) { return s.id === col.dataset.stage; }).label;
+    d.release.stage = col.dataset.stage;
+    showMsg(d.release.service + " moved to " + label + ".", "ok");
+    render();
+  }
+}
+
+/* ================= 5. Add, Save, Open, Reset ================= */
+document.getElementById("addForm").addEventListener("submit", function (ev) {
+  ev.preventDefault();
+  var service = document.getElementById("fService").value.trim();
+  var version = document.getElementById("fVersion").value.trim() || "v0.1.0";
+  var owner = document.getElementById("fOwner").value.trim() || "Unassigned";
+  if (!service) { showMsg("Give the release a service name first.", "error"); return; }
+  releases.unshift({ id: "r" + Date.now(), service: service, version: version,
+    owner: owner, risk: document.getElementById("fRisk").value, stage: "backlog",
+    note: "Added to the backlog." });
+  document.getElementById("fService").value = "";
+  document.getElementById("fVersion").value = "";
+  document.getElementById("fOwner").value = "";
+  showMsg(service + " added to Backlog.", "ok");
+  render();
+});
+document.getElementById("saveBtn").addEventListener("click", function () {
+  var blob = new Blob([JSON.stringify({ app: "deploy-board", version: 1, releases: releases }, null, 2)],
+    { type: "application/json" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "deploy-board.json";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function () { URL.revokeObjectURL(a.href); }, 500);
+  showMsg("Board saved as deploy-board.json.", "ok");
+});
+document.getElementById("openBtn").addEventListener("click", function () {
+  document.getElementById("fileInput").click();
+});
+document.getElementById("fileInput").addEventListener("change", function (ev) {
+  var file = ev.target.files[0];
+  ev.target.value = "";
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function () {
+    try {
+      var data = JSON.parse(reader.result);
+      if (!validateBoard(data)) throw new Error("invalid");
+      releases = data.releases;
+      showMsg("Board restored: " + releases.length + " releases.", "ok");
+      render();
+    } catch (e) {
+      showMsg("That file is not a valid Deploy Board file — your current board is unchanged.", "error");
+    }
+  };
+  reader.onerror = function () {
+    showMsg("Could not read that file — your current board is unchanged.", "error");
+  };
+  reader.readAsText(file);
+});
+function resetSample() {
+  releases = sampleReleases();
+  showMsg("Sample board restored.", "ok");
+  render();
+}
+document.getElementById("resetBtn").addEventListener("click", resetSample);
+document.getElementById("emptyResetBtn").addEventListener("click", resetSample);
+
+/* No custom keyboard shortcuts are mapped, so no key can do two jobs.
+   Every action is a real button, reachable by Tab + Enter/Space. */
+
+render();
+</script>
+</body>
+</html>

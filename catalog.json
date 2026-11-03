@@ -35,7 +35,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/9",
-        "fetched": "2026-11-02"
+        "fetched": "2026-11-03"
       }
     },
     "foldwork": {
@@ -311,7 +311,7 @@
         "reactions": 1,
         "comments": 1,
         "url": "https://github.com/trez63/trez63.com/discussions/6",
-        "fetched": "2026-11-02"
+        "fetched": "2026-11-03"
       }
     },
     "sonogram": {
@@ -373,7 +373,7 @@
         "reactions": 1,
         "comments": 1,
         "url": "https://github.com/trez63/trez63.com/discussions/7",
-        "fetched": "2026-11-02"
+        "fetched": "2026-11-03"
       }
     },
     "sprout-garden": {
@@ -474,7 +474,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/11",
-        "fetched": "2026-11-02"
+        "fetched": "2026-11-03"
       }
     },
     "budget": {
@@ -579,7 +579,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/10",
-        "fetched": "2026-11-02"
+        "fetched": "2026-11-03"
       }
     },
     "tessera": {
@@ -638,7 +638,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/8",
-        "fetched": "2026-11-02"
+        "fetched": "2026-11-03"
       }
     },
     "dayblock": {
@@ -743,7 +743,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/12",
-        "fetched": "2026-11-02"
+        "fetched": "2026-11-03"
       }
     },
     "cosmic-breath": {
@@ -835,7 +835,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/13",
-        "fetched": "2026-11-02"
+        "fetched": "2026-11-03"
       }
     },
     "tidytext": {
@@ -1376,8 +1376,102 @@
         }
       ],
       "category": "sim"
+    },
+    "dibs": {
+      "title": "Dibs",
+      "engine": "Claude",
+      "description": "Multi-touch attribution for a path report. Paste the touch paths from your analytics export with converted and non-converted counts, and it runs seven models over the same data — last, first, linear, position, decay, Markov removal effect and exact Shapley — and shows where they disagree about which channels open, assist and close.",
+      "source_file": "Dibs-Claude.html",
+      "first_published": "2026-11-03",
+      "last_updated": "2026-11-03",
+      "version": 1,
+      "sha": "8b4ac73d78d7",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-03",
+          "sha": "8b4ac73d78d7"
+        }
+      ],
+      "category": "finance"
+    },
+    "common-hour": {
+      "title": "Common Hour",
+      "engine": "ChatGPT",
+      "description": "Find a meeting time that fits everyone's working day. Add up to six people with their time zones, work windows and weekdays, then slide the start across the day and watch the local clocks line up; it marks the starts that fit all of them, jumps to the best overlap, and copies or exports the proposal with every local time.",
+      "source_file": "common-hour-Codex.html",
+      "first_published": "2026-11-03",
+      "last_updated": "2026-11-03",
+      "version": 1,
+      "sha": "517bada396c6",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-03",
+          "sha": "517bada396c6"
+        }
+      ],
+      "category": "tool"
+    },
+    "contrast-checker": {
+      "title": "Contrast Checker",
+      "engine": "Muse",
+      "description": "Pick a text colour and a background colour and see the WCAG contrast ratio and which levels it passes, with a live preview at body, button and small-print sizes. One tap nudges the text colour until it reaches AA or AAA, and pairs that pass can be saved and moved between machines as JSON.",
+      "source_file": "contrast-checker-Muse.html",
+      "first_published": "2026-11-03",
+      "last_updated": "2026-11-03",
+      "version": 1,
+      "sha": "bbfb94d735ad",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-03",
+          "sha": "bbfb94d735ad"
+        }
+      ],
+      "category": "tool"
+    },
+    "linework": {
+      "title": "Linework",
+      "engine": "ChatGPT",
+      "description": "A reusable recipe for cleaning up lists. Paste a list, one item per line, then stack up to eight steps — trim, drop blanks, dedupe, replace, prefix or suffix, sort, keep or exclude matches, number — and inspect the rows at any stage before copying or exporting the final result. The source stays intact and the recipe saves as JSON.",
+      "source_file": "linework-Codex.html",
+      "first_published": "2026-11-03",
+      "last_updated": "2026-11-03",
+      "version": 1,
+      "sha": "320b7fac50a1",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-03",
+          "sha": "320b7fac50a1"
+        }
+      ],
+      "category": "text",
+      "thumb": {
+        "actions": [
+          {
+            "wait": 1200
+          },
+          {
+            "key": "Escape"
+          },
+          {
+            "selector_click": "#recipe button.step:last-child"
+          },
+          {
+            "wait": 400
+          },
+          {
+            "eval": "document.getElementById('recipeTitle').scrollIntoView({block:'start'})"
+          },
+          {
+            "wait": 800
+          }
+        ]
+      }
     }
   },
-  "generated": "2026-11-02",
-  "votes_fetched": "2026-11-02"
+  "generated": "2026-11-03",
+  "votes_fetched": "2026-11-03"
 }

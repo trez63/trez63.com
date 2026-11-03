@@ -1,0 +1,387 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Daily Build 2026-11-02 — Dibs</title>
+<style>
+:root{--bg:#f6f4ef;--panel:#fffdf8;--ink:#1f1d1a;--mute:#6f6a60;--line:#e2ddd2;--accent:#b2512b;--good:#2f7d4f;--bad:#b23a3a;--chip:#eee9df;
+ --c0:#b2512b;--c1:#2b6fb2;--c2:#2f7d4f;--c3:#b28c2b;--c4:#7d4fb2;--c5:#b22b7a;--c6:#2ba0b2;--c7:#6b6b6b;--c8:#8f6b3a;--c9:#3a8f6b;--c10:#6b3a8f;--c11:#8f3a3a}
+:root[data-theme="dark"]{--bg:#17191d;--panel:#1f2228;--ink:#ebe8e1;--mute:#9a968d;--line:#32363e;--accent:#e8835a;--good:#5fc389;--bad:#e06a6a;--chip:#2a2e36;
+ --c0:#e8835a;--c1:#5fa3e8;--c2:#5fc389;--c3:#e8c35f;--c4:#a985e8;--c5:#e85fb0;--c6:#5fd3e8;--c7:#a3a3a3;--c8:#d0a070;--c9:#70d0a0;--c10:#a070d0;--c11:#d07070}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-text-size-adjust:100%}
+body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
+h1{font-size:22px;margin:0 8px 0 0;letter-spacing:.5px}
+h1 small{font-size:13px;color:var(--mute);font-weight:400;margin-left:8px}
+.spacer{flex:1}
+button,select,label.btn{min-height:44px;min-width:44px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);font:inherit;font-size:16px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;touch-action:manipulation}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button:active{transform:translateY(1px)}
+main{display:grid;grid-template-columns:minmax(300px,380px) 1fr;gap:16px;padding:16px;max-width:1500px;margin:0 auto}
+section{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;min-width:0}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--mute);margin:0 0 10px}
+textarea{width:100%;min-height:360px;resize:vertical;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:16px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:10px}
+.status{font-size:13px;color:var(--mute);margin-top:8px;min-height:20px}
+.status.err{color:var(--bad)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{min-height:44px;padding:0 12px;border-radius:22px;border:2px solid transparent;background:var(--chip);display:inline-flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;touch-action:manipulation}
+.chip i{width:12px;height:12px;border-radius:50%;display:inline-block}
+.chip.on{border-color:var(--ink)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:14px}
+.tile{background:var(--bg);border-radius:10px;padding:10px 12px}
+.tile b{display:block;font-size:22px;line-height:1.1}
+.tile span{font-size:12px;color:var(--mute)}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.tabs button{min-height:44px;padding:0 12px;font-size:14px}
+.tabs button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.bars{display:grid;gap:8px;margin-bottom:16px}
+.bar{display:grid;grid-template-columns:120px 1fr 110px;align-items:center;gap:10px;font-size:14px;min-height:28px}
+.bar .track{height:22px;background:var(--bg);border-radius:6px;overflow:hidden}
+.bar .fill{height:100%;border-radius:6px;transition:width .35s ease}
+.bar .v{text-align:right;color:var(--mute);font-variant-numeric:tabular-nums}
+.bar.dim{opacity:.35}
+svg{width:100%;height:auto;display:block;touch-action:manipulation}
+.slope text{font-size:11px;fill:var(--mute)}
+.slope .lab{fill:var(--ink);font-weight:600}
+.slope path{fill:none;stroke-width:2.5;transition:opacity .25s}
+.slope path.dim{opacity:.15}
+.slope .grid{stroke:var(--line);stroke-width:1}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+th,td{padding:6px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap;font-variant-numeric:tabular-nums}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--panel)}
+th{color:var(--mute);font-weight:600;font-size:12px}
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.insights{display:grid;gap:8px}
+.insight{padding:10px 12px;border-left:4px solid var(--accent);background:var(--bg);border-radius:8px;font-size:14px}
+.insight b{color:var(--accent)}
+.insight.good{border-color:var(--good)}.insight.good b{color:var(--good)}
+.insight.bad{border-color:var(--bad)}.insight.bad b{color:var(--bad)}
+.format{font-size:12px;color:var(--mute);margin-top:8px;line-height:1.5}
+code{font-family:ui-monospace,Menlo,monospace;background:var(--chip);padding:1px 5px;border-radius:4px}
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:9}
+#overlay.show{display:flex}
+#overlay .card{background:var(--panel);color:var(--ink);border-radius:16px;max-width:620px;max-height:90vh;overflow:auto;padding:22px 24px;line-height:1.6}
+#overlay h3{margin:0 0 8px}
+#overlay kbd{font:13px ui-monospace,Menlo,monospace;background:var(--chip);border:1px solid var(--line);border-radius:5px;padding:1px 6px}
+#overlay p{margin:8px 0}
+.hidden{display:none}
+@media (max-width:860px){main{grid-template-columns:1fr;padding:12px}header{padding:10px 12px}textarea{min-height:220px}.bar{grid-template-columns:96px 1fr 96px;font-size:13px}h1 small{display:none}}
+</style>
+</head>
+<body>
+<header>
+ <h1>Dibs<small>who gets credit for the conversion</small></h1>
+ <div class="spacer"></div>
+ <button id="demoBtn" title="Reload the demo journeys (R)">Demo</button>
+ <label class="btn" for="openFile" title="Open a saved .json (Ctrl+O)">Open<input id="openFile" type="file" accept=".json,application/json" class="hidden"></label>
+ <button id="saveBtn" title="Save journeys + settings as JSON (Ctrl+S)">Save</button>
+ <button id="themeBtn" title="Toggle theme (T)">Theme</button>
+ <button id="helpBtn" title="Help (Ctrl+/)">?</button>
+</header>
+<main>
+ <section>
+  <h2>Journeys</h2>
+  <textarea id="src" spellcheck="false" autocapitalize="off"></textarea>
+  <div id="status" class="status"></div>
+  <div class="format">One touch path per line: <code>Display &gt; Email &gt; Direct | 42 / 310</code> = 42 converted, 310 did not. Counts optional (a bare path is one conversion). <code>#</code> starts a comment. Paste a path report straight from your analytics export.</div>
+  <div id="chips" class="chips"></div>
+ </section>
+ <section>
+  <h2>Credit</h2>
+  <div id="tiles" class="tiles"></div>
+  <div id="tabs" class="tabs"></div>
+  <div id="bars" class="bars"></div>
+  <h2>How the models disagree</h2>
+  <svg id="slope" class="slope" viewBox="0 0 760 320" role="img" aria-label="Credit share of each channel across the seven models"></svg>
+  <div class="tablewrap"><table id="table"></table></div>
+  <h2 style="margin-top:16px">Insights</h2>
+  <div id="insights" class="insights"></div>
+ </section>
+</main>
+<div id="overlay" role="dialog" aria-modal="true"><div class="card">
+ <h3>Dibs — multi-touch attribution, in a browser tab</h3>
+ <p>Paste the touch paths from your analytics path report, one per line, with how many journeys on that path converted and how many didn't. Dibs runs seven attribution models over the same data and shows where they disagree, so you can see which channels <b>open</b> deals, which <b>close</b> them, and which merely <b>assist</b>.</p>
+ <p><b>Last / First / Linear / Position (40-20-40) / Decay</b> are the rule-of-thumb models. <b>Markov</b> builds a transition graph of your paths and credits each channel by its removal effect: how many conversions vanish when the channel is deleted from the graph. <b>Shapley</b> treats channels as players in a cooperative game and pays each its average marginal contribution over every coalition — the game-theory standard behind "data-driven" attribution, computed exactly (up to 12 channels).</p>
+ <p>Tap a channel chip to highlight it everywhere. Tap a model to sort the bars and table by it.</p>
+ <p><kbd>Ctrl/⌘ /</kbd> help · <kbd>Ctrl/⌘ S</kbd> save · <kbd>Ctrl/⌘ O</kbd> open · <kbd>1</kbd>–<kbd>7</kbd> pick model · <kbd>T</kbd> theme · <kbd>R</kbd> reload demo · <kbd>Esc</kbd> close. Shortcuts pause while you type in the editor.</p>
+ <p>Save downloads a <code>dibs-YYYY-MM-DD.json</code> with your journeys, chosen model, highlight and theme; Open restores it exactly. Save works when the file is opened directly (the artifact viewer blocks downloads). Nothing leaves this page: zero network requests.</p>
+ <button id="closeHelp" class="primary">Close</button>
+</div></div>
+
+<script id="core">
+// ---------- pure attribution logic (no DOM; also unit-tested with node) ----------
+const MODELS=['Last','First','Linear','Position','Decay','Markov','Shapley'];
+
+function parseJourneys(text){
+  const groups=[],errors=[];
+  text.split('\n').forEach((raw,i)=>{
+    const line=raw.trim(); if(!line||line[0]==='#') return;
+    const bar=line.indexOf('|');
+    const pathPart=bar<0?line:line.slice(0,bar), countPart=bar<0?null:line.slice(bar+1);
+    const path=pathPart.split('>').map(s=>s.trim()).filter(Boolean);
+    let conv=1,lost=0;
+    if(countPart!==null){
+      const m=countPart.match(/^\s*(\d+)\s*(?:\/\s*(\d+))?\s*$/);
+      if(!m){errors.push(i+1);return;}
+      conv=+m[1]; lost=m[2]?+m[2]:0;
+    }
+    if(!path.length||conv+lost===0){errors.push(i+1);return;}
+    groups.push({path,conv,lost});
+  });
+  return {groups,errors};
+}
+
+function channelsOf(groups){
+  const touches={};
+  groups.forEach(g=>g.path.forEach(c=>{touches[c]=(touches[c]||0)+g.conv+g.lost;}));
+  return Object.keys(touches).sort((a,b)=>touches[b]-touches[a]||a.localeCompare(b));
+}
+
+// Rule-based models: how one converting path's credit is split across its positions.
+const RULES={
+  Last:n=>Array.from({length:n},(_,i)=>i===n-1?1:0),
+  First:n=>Array.from({length:n},(_,i)=>i===0?1:0),
+  Linear:n=>Array(n).fill(1/n),
+  Position:n=>n===1?[1]:n===2?[.5,.5]:Array.from({length:n},(_,i)=>i===0||i===n-1?.4:.2/(n-2)),
+  Decay:n=>{const w=Array.from({length:n},(_,i)=>2**(i-(n-1)));const s=w.reduce((a,b)=>a+b,0);return w.map(x=>x/s);}
+};
+function ruleCredit(groups,channels,rule){
+  const credit=Object.fromEntries(channels.map(c=>[c,0]));
+  groups.forEach(g=>{ if(!g.conv)return; const w=RULES[rule](g.path.length); g.path.forEach((c,i)=>credit[c]+=w[i]*g.conv); });
+  return credit;
+}
+
+// Markov: absorbing chain over Start -> channels -> Conversion|Null. Credit by removal effect.
+function markovCredit(groups,channels){
+  const idx=Object.fromEntries(channels.map((c,i)=>[c,i+1])); // 0 = start
+  const k=channels.length, CONV=k+1, NULL=k+2, n=k+3;
+  const T=Array.from({length:n},()=>Array(n).fill(0));
+  groups.forEach(g=>{
+    const w=g.conv+g.lost; T[0][idx[g.path[0]]]+=w;
+    for(let i=0;i+1<g.path.length;i++) T[idx[g.path[i]]][idx[g.path[i+1]]]+=w;
+    const last=idx[g.path[g.path.length-1]]; T[last][CONV]+=g.conv; T[last][NULL]+=g.lost;
+  });
+  // probability of reaching CONV from start when channels in `removed` are redirected to NULL
+  const pConv=removed=>{
+    const m=k+1; // transient states: start + channels
+    const A=Array.from({length:m},(_,r)=>{ // (I - Q) x = b
+      const row=Array(m+1).fill(0); row[r]=1;
+      const tot=T[r].reduce((a,b)=>a+b,0); if(!tot) return row;
+      for(let c=0;c<n;c++){ const p=T[r][c]/tot; if(!p)continue;
+        if(c===CONV) row[m]+=p; else if(c<m&&!removed.has(c)) row[c]-=p; }
+      return row;
+    });
+    for(let i=0;i<m;i++){ // Gaussian elimination with partial pivoting
+      let p=i; for(let r=i+1;r<m;r++) if(Math.abs(A[r][i])>Math.abs(A[p][i])) p=r;
+      [A[i],A[p]]=[A[p],A[i]]; const d=A[i][i]||1e-12;
+      for(let r=0;r<m;r++){ if(r===i)continue; const f=A[r][i]/d; if(!f)continue; for(let c=i;c<=m;c++) A[r][c]-=f*A[i][c]; }
+    }
+    return A[0][m]/(A[0][0]||1e-12);
+  };
+  const base=pConv(new Set()), total=groups.reduce((a,g)=>a+g.conv,0);
+  const removal={}; channels.forEach(c=>{ removal[c]=base>0?Math.max(0,1-pConv(new Set([idx[c]]))/base):0; });
+  const sum=Object.values(removal).reduce((a,b)=>a+b,0);
+  const credit={}; channels.forEach(c=>credit[c]=sum?removal[c]/sum*total:total/channels.length);
+  return {credit,removal,pConv:base};
+}
+
+// Shapley: v(S) = conversions from journeys whose channel set lies within S. Exact over all 2^k coalitions.
+function shapleyCredit(groups,channels){
+  const k=channels.length; if(k>12) return null;
+  const bit=Object.fromEntries(channels.map((c,i)=>[c,1<<i]));
+  const v=new Float64Array(1<<k);
+  groups.forEach(g=>{ let m=0; g.path.forEach(c=>m|=bit[c]); v[m]+=g.conv; });
+  for(let b=0;b<k;b++) for(let m=0;m<v.length;m++) if(m&(1<<b)) v[m]+=v[m^(1<<b)]; // subset-sum (zeta) transform
+  const fact=[1]; for(let i=1;i<=k;i++) fact[i]=fact[i-1]*i;
+  const w=Array.from({length:k},(_,s)=>fact[s]*fact[k-s-1]/fact[k]);
+  const pop=m=>{let c=0;while(m){m&=m-1;c++;}return c;};
+  const credit={};
+  channels.forEach((c,i)=>{ let phi=0; const b=1<<i;
+    for(let m=0;m<v.length;m++) if(!(m&b)) phi+=w[pop(m)]*(v[m|b]-v[m]);
+    credit[c]=phi; });
+  return credit;
+}
+
+function analyze(groups){
+  const channels=channelsOf(groups);
+  const total=groups.reduce((a,g)=>a+g.conv,0), journeys=groups.reduce((a,g)=>a+g.conv+g.lost,0);
+  const credit={}; ['Last','First','Linear','Position','Decay'].forEach(r=>credit[r]=ruleCredit(groups,channels,r));
+  const mk=markovCredit(groups,channels); credit.Markov=mk.credit;
+  const sh=shapleyCredit(groups,channels); if(sh) credit.Shapley=sh;
+  const share={}; MODELS.forEach(m=>{ if(credit[m]) share[m]=Object.fromEntries(channels.map(c=>[c,total?credit[m][c]/total:0])); });
+  return {channels,total,journeys,credit,share,removal:mk.removal,pConv:mk.pConv};
+}
+
+function insights(a){
+  const out=[], ref=a.share.Shapley||a.share.Markov, refName=a.share.Shapley?'Shapley':'Markov';
+  if(!ref||!a.channels.length) return out;
+  const pct=x=>(x*100).toFixed(0)+'%';
+  const gap=a.channels.map(c=>({c,d:a.share.Last[c]-ref[c]})).sort((x,y)=>y.d-x.d);
+  const over=gap[0], under=gap[gap.length-1];
+  if(over&&over.d>0.03) out.push({cls:'bad',html:`<b>${esc(over.c)} is a closer, not a driver.</b> Last touch hands it ${pct(a.share.Last[over.c])} of credit; ${refName} says ${pct(ref[over.c])}. It shows up at the end of journeys other channels started.`});
+  if(under&&under.d<-0.03) out.push({cls:'good',html:`<b>${esc(under.c)} is under-credited by last touch.</b> ${pct(a.share.Last[under.c])} last-touch vs ${pct(ref[under.c])} ${refName} — it earns its keep earlier in the journey.`});
+  const opener=a.channels.map(c=>({c,d:a.share.First[c]-ref[c]})).sort((x,y)=>y.d-x.d)[0];
+  if(opener&&opener.d>0.03&&opener.c!==over?.c) out.push({cls:'',html:`<b>${esc(opener.c)} opens journeys.</b> First touch gives it ${pct(a.share.First[opener.c])}; it rarely finishes the job alone (${refName}: ${pct(ref[opener.c])}).`});
+  const rm=a.channels.map(c=>({c,r:a.removal[c]})).sort((x,y)=>y.r-x.r)[0];
+  if(rm) out.push({cls:'bad',html:`<b>Most load-bearing: ${esc(rm.c)}.</b> Remove it from the Markov graph and modelled conversions fall ${pct(rm.r)} — the channel you cannot cut without replacing.`});
+  const mis=a.channels.reduce((s,c)=>s+Math.abs(a.share.Last[c]-ref[c]),0)/2;
+  out.push({cls:'',html:`<b>Last touch misplaces ${pct(mis)} of all credit</b> compared with ${refName}. If budgets follow last-touch reports, that is the share of spend being steered by the wrong signal.`});
+  return out;
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+if(typeof module!=='undefined') module.exports={parseJourneys,channelsOf,ruleCredit,markovCredit,shapleyCredit,analyze,insights,MODELS};
+</script>
+
+<script>
+// ---------- app ----------
+const DEMO=`# Q3 path report — 7 channels, 31 distinct paths
+# path | converted / did not
+Direct | 310 / 2900
+Organic Search | 240 / 3100
+Paid Search | 190 / 2600
+Email | 120 / 1500
+Paid Social | 45 / 2200
+Display | 12 / 2600
+Referral | 60 / 700
+Organic Search > Direct | 280 / 1400
+Paid Search > Direct | 230 / 1300
+Email > Direct | 260 / 900
+Paid Social > Direct | 90 / 1100
+Display > Direct | 70 / 1500
+Referral > Direct | 85 / 500
+Display > Organic Search | 55 / 900
+Display > Paid Search | 60 / 850
+Display > Email > Direct | 95 / 600
+Paid Social > Organic Search > Direct | 110 / 700
+Paid Social > Email | 70 / 500
+Paid Social > Email > Direct | 140 / 650
+Organic Search > Email | 150 / 800
+Organic Search > Email > Direct | 210 / 700
+Paid Search > Email > Direct | 160 / 600
+Display > Paid Social > Email > Direct | 80 / 500
+Referral > Organic Search > Direct | 65 / 400
+Display > Organic Search > Email > Direct | 90 / 450
+Paid Search > Paid Search > Direct | 75 / 500
+Organic Search > Organic Search | 120 / 1100
+Email > Email > Direct | 85 / 400
+Display > Display > Paid Search > Direct | 40 / 600
+Paid Social > Paid Social | 20 / 900
+Referral > Email > Direct | 55 / 300`;
+
+const $=s=>document.querySelector(s);
+const state={model:'Shapley',highlight:null,analysis:null};
+const COLORS=12;
+const color=i=>`var(--c${i%COLORS})`;
+const fmt=n=>Math.round(n).toLocaleString();
+const pct=x=>(x*100).toFixed(1)+'%';
+
+function run(){
+  const {groups,errors}=parseJourneys($('#src').value);
+  const st=$('#status');
+  if(!groups.length){ st.textContent='No journeys yet — paste paths or press Demo.'; st.className='status err'; return; }
+  const a=analyze(groups);
+  if(!a.share.Shapley){ st.textContent='More than 12 channels: Shapley is skipped (exact coalition maths needs ≤ 12).'; st.className='status err'; if(state.model==='Shapley')state.model='Markov'; }
+  else { st.textContent=errors.length?`Ignored ${errors.length} unreadable line${errors.length>1?'s':''}: ${errors.slice(0,6).join(', ')}`:`${groups.length} paths · ${fmt(a.journeys)} journeys · ${a.channels.length} channels`; st.className='status'+(errors.length?' err':''); }
+  if(state.highlight&&!a.channels.includes(state.highlight)) state.highlight=null;
+  state.analysis=a; render();
+}
+
+function render(){
+  const a=state.analysis, ch=a.channels, ci=Object.fromEntries(ch.map((c,i)=>[c,i]));
+  const models=MODELS.filter(m=>a.share[m]);
+  $('#chips').innerHTML=ch.map(c=>`<button class="chip${state.highlight===c?' on':''}" data-c="${esc(c)}"><i style="background:${color(ci[c])}"></i>${esc(c)}</button>`).join('');
+  const rate=a.journeys?a.total/a.journeys:0;
+  $('#tiles').innerHTML=[[fmt(a.total),'conversions'],[fmt(a.journeys),'journeys'],[pct(rate),'conversion rate'],[ch.length,'channels'],[pct(a.pConv),'Markov P(convert)']]
+    .map(([v,l])=>`<div class="tile"><b>${v}</b><span>${l}</span></div>`).join('');
+  $('#tabs').innerHTML=models.map((m,i)=>`<button class="${state.model===m?'on':''}" data-m="${m}">${i+1} ${m}</button>`).join('');
+  const sh=a.share[state.model], order=[...ch].sort((x,y)=>sh[y]-sh[x]), max=Math.max(...order.map(c=>sh[c]),1e-9);
+  $('#bars').innerHTML=order.map(c=>`<div class="bar${state.highlight&&state.highlight!==c?' dim':''}"><span>${esc(c)}</span><div class="track"><div class="fill" style="width:${sh[c]/max*100}%;background:${color(ci[c])}"></div></div><span class="v">${fmt(a.credit[state.model][c])} · ${pct(sh[c])}</span></div>`).join('');
+  renderSlope(a,models,ci);
+  $('#table').innerHTML=`<tr><th>Channel</th>${models.map(m=>`<th>${m}</th>`).join('')}<th>Removal</th></tr>`+order.map(c=>`<tr><td>${esc(c)}</td>${models.map(m=>{const v=a.share[m][c];return `<td style="background:color-mix(in srgb,${color(ci[c])} ${Math.round(v*55+4)}%,transparent)">${pct(v)}</td>`;}).join('')}<td>−${pct(a.removal[c])}</td></tr>`).join('');
+  $('#insights').innerHTML=insights(a).map(i=>`<div class="insight ${i.cls}">${i.html}</div>`).join('')||'<div class="insight">Add more paths to get insights.</div>';
+}
+
+function renderSlope(a,models,ci){
+  // viewBox tracks the real width so 11px labels stay 11px on a phone instead of shrinking with the chart
+  const svg=$('#slope'), W=Math.max(360,Math.min(760,svg.clientWidth||760)), narrow=W<520;
+  const H=narrow?300:320,L=narrow?40:70,R=narrow?92:130,T=20,B=34, x=i=>L+i*(W-L-R)/(models.length-1);
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const max=Math.max(...models.flatMap(m=>a.channels.map(c=>a.share[m][c])),.01), y=v=>T+(H-T-B)*(1-v/max);
+  let s='';
+  for(let t=0;t<=4;t++){const v=max*t/4;s+=`<line class="grid" x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end">${(v*100).toFixed(0)}%</text>`;}
+  models.forEach((m,i)=>s+=`<line class="grid" x1="${x(i)}" x2="${x(i)}" y1="${T}" y2="${H-B}"/><text x="${x(i)}" y="${H-12}" text-anchor="middle" class="lab">${narrow?({Linear:'Lin.',Position:'Pos.',Markov:'Mark.',Shapley:'Shap.'}[m]||m):m}</text>`);
+  // label placement on the right edge: nudge apart so names never overlap
+  const ends=a.channels.map(c=>({c,y:y(a.share[models[models.length-1]][c])})).sort((p,q)=>p.y-q.y);
+  for(let i=1;i<ends.length;i++) if(ends[i].y-ends[i-1].y<13) ends[i].y=ends[i-1].y+13;
+  a.channels.forEach(c=>{
+    const dim=state.highlight&&state.highlight!==c, col=color(ci[c]);
+    const d=models.map((m,i)=>`${i?'L':'M'}${x(i).toFixed(1)},${y(a.share[m][c]).toFixed(1)}`).join('');
+    s+=`<path d="${d}" stroke="${col}" class="${dim?'dim':''}" data-c="${esc(c)}"/>`;
+    const e=ends.find(p=>p.c===c);
+    s+=`<text x="${W-R+8}" y="${e.y+4}" class="lab" style="opacity:${dim?.3:1};fill:${col}">${esc(c)}</text>`;
+  });
+  svg.innerHTML=s;
+}
+addEventListener('resize',debounce(()=>{if(state.analysis)render();},150));
+
+// ---------- interactions ----------
+$('#src').addEventListener('input',debounce(run,150));
+$('#chips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;state.highlight=state.highlight===b.dataset.c?null:b.dataset.c;render();});
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;state.model=b.dataset.m;render();});
+$('#slope').addEventListener('click',e=>{const p=e.target.closest('path[data-c]');if(!p)return;state.highlight=state.highlight===p.dataset.c?null:p.dataset.c;render();});
+$('#demoBtn').addEventListener('click',()=>{$('#src').value=DEMO;state.highlight=null;run();});
+$('#themeBtn').addEventListener('click',toggleTheme);
+$('#helpBtn').addEventListener('click',()=>toggleHelp(true));
+$('#closeHelp').addEventListener('click',()=>toggleHelp(false));
+$('#overlay').addEventListener('click',e=>{if(e.target.id==='overlay')toggleHelp(false);});
+$('#saveBtn').addEventListener('click',save);
+$('#openFile').addEventListener('change',e=>{const f=e.target.files[0];if(f)restore(f);e.target.value='';});
+
+function toggleTheme(){const r=document.documentElement;r.dataset.theme=r.dataset.theme==='dark'?'light':'dark';}
+function toggleHelp(on){$('#overlay').classList.toggle('show',on);}
+function debounce(f,ms){let t;return()=>{clearTimeout(t);t=setTimeout(f,ms);};}
+
+function save(){
+  const data={app:'dibs',version:1,saved:new Date().toISOString(),text:$('#src').value,model:state.model,highlight:state.highlight,theme:document.documentElement.dataset.theme};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`dibs-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+}
+function restore(file){
+  const rd=new FileReader();
+  rd.onload=()=>{ let d;
+    try{d=JSON.parse(rd.result);}catch{return fail('That file is not JSON.');}
+    if(!d||d.app!=='dibs'||typeof d.text!=='string') return fail('Not a Dibs file: expected {"app":"dibs","version":1,...}.');
+    if(d.version!==1) return fail(`Unsupported Dibs file version ${d.version}.`);
+    $('#src').value=d.text; state.model=MODELS.includes(d.model)?d.model:'Shapley'; state.highlight=d.highlight||null;
+    if(d.theme) document.documentElement.dataset.theme=d.theme;
+    run(); $('#status').textContent='Opened '+file.name; };
+  rd.readAsText(file);
+}
+function fail(msg){const st=$('#status');st.textContent=msg;st.className='status err';}
+
+// Keyboard map: Ctrl/Cmd+/ help · Ctrl/Cmd+S save · Ctrl/Cmd+O open · 1-7 model · T theme · R demo · Esc close
+document.addEventListener('keydown',e=>{
+  const mod=e.ctrlKey||e.metaKey;
+  if(mod&&e.key==='/'){e.preventDefault();toggleHelp(!$('#overlay').classList.contains('show'));return;}
+  if(e.key==='Escape'){toggleHelp(false);return;}
+  if(mod&&e.key.toLowerCase()==='s'){e.preventDefault();save();return;}
+  if(mod&&e.key.toLowerCase()==='o'){e.preventDefault();$('#openFile').click();return;}
+  if(mod||e.altKey) return;
+  const t=e.target; if(t.matches('input,textarea,select')||t.isContentEditable) return;
+  const k=e.key.toLowerCase();
+  if(k==='t') toggleTheme();
+  else if(k==='r'){$('#src').value=DEMO;state.highlight=null;run();}
+  else if(/^[1-7]$/.test(k)&&state.analysis){const ms=MODELS.filter(m=>state.analysis.share[m]);if(ms[+k-1]){state.model=ms[+k-1];render();}}
+});
+
+if(matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.dataset.theme='dark';
+$('#src').value=DEMO; run();
+</script>
+</body>
+</html>
+
+</body></html>

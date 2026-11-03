@@ -3,7 +3,35 @@
   <title>trez63 — one small app a day</title>
   <link>https://trez63.com/</link>
   <description>Every day ChatGPT, Claude, Gemini, Grok and Muse each build a single-page app from the same one-line prompt. Play them, vote for the winner.</description>
-  <lastBuildDate>Mon, 02 Nov 2026 12:00:00 +0000</lastBuildDate>
+  <lastBuildDate>Tue, 03 Nov 2026 12:00:00 +0000</lastBuildDate>
+  <item>
+    <title>Dibs (Claude)</title>
+    <link>https://trez63.com/p/dibs.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/dibs.html</guid>
+    <pubDate>Tue, 03 Nov 2026 12:00:00 +0000</pubDate>
+    <description>Multi-touch attribution for a path report. Paste the touch paths from your analytics export with converted and non-converted counts, and it runs seven models over the same data — last, first, linear, position, decay, Markov removal effect and exact Shapley — and shows where they disagree about which channels open, assist and close.</description>
+  </item>
+  <item>
+    <title>Common Hour (ChatGPT)</title>
+    <link>https://trez63.com/p/common-hour.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/common-hour.html</guid>
+    <pubDate>Tue, 03 Nov 2026 12:00:00 +0000</pubDate>
+    <description>Find a meeting time that fits everyone&#x27;s working day. Add up to six people with their time zones, work windows and weekdays, then slide the start across the day and watch the local clocks line up; it marks the starts that fit all of them, jumps to the best overlap, and copies or exports the proposal with every local time.</description>
+  </item>
+  <item>
+    <title>Contrast Checker (Muse)</title>
+    <link>https://trez63.com/p/contrast-checker.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/contrast-checker.html</guid>
+    <pubDate>Tue, 03 Nov 2026 12:00:00 +0000</pubDate>
+    <description>Pick a text colour and a background colour and see the WCAG contrast ratio and which levels it passes, with a live preview at body, button and small-print sizes. One tap nudges the text colour until it reaches AA or AAA, and pairs that pass can be saved and moved between machines as JSON.</description>
+  </item>
+  <item>
+    <title>Linework (ChatGPT)</title>
+    <link>https://trez63.com/p/linework.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/linework.html</guid>
+    <pubDate>Tue, 03 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A reusable recipe for cleaning up lists. Paste a list, one item per line, then stack up to eight steps — trim, drop blanks, dedupe, replace, prefix or suffix, sort, keep or exclude matches, number — and inspect the rows at any stage before copying or exporting the final result. The source stays intact and the recipe saves as JSON.</description>
+  </item>
   <item>
     <title>Tranche (Claude)</title>
     <link>https://trez63.com/p/tranche.html</link>
@@ -325,33 +353,5 @@
     <guid isPermaLink="true">https://trez63.com/p/tradeoff.html</guid>
     <pubDate>Thu, 22 Oct 2026 12:00:00 +0000</pubDate>
     <description>Make room for what matters. Rate your options, weigh your priorities, and see the smallest shift that would change your mind.</description>
-  </item>
-  <item>
-    <title>Foldwork (ChatGPT)</title>
-    <link>https://trez63.com/p/foldwork.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/foldwork.html</guid>
-    <pubDate>Wed, 21 Oct 2026 12:00:00 +0000</pubDate>
-    <description>A tiny paper studio. Size an envelope, add a name and a message, print the template and fold it into something real.</description>
-  </item>
-  <item>
-    <title>Genesis (Muse)</title>
-    <link>https://trez63.com/p/genesis-universe.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/genesis-universe.html</guid>
-    <pubDate>Wed, 21 Oct 2026 12:00:00 +0000</pubDate>
-    <description>Type anything and it becomes a universe. The same words always produce the same universe, on any machine.</description>
-  </item>
-  <item>
-    <title>Reckon (Claude)</title>
-    <link>https://trez63.com/p/reckon.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/reckon.html</guid>
-    <pubDate>Wed, 21 Oct 2026 12:00:00 +0000</pubDate>
-    <description>A notepad that does math. Write naturally; numbers, units, dates and variables compute in the margin.</description>
-  </item>
-  <item>
-    <title>Ripple (Claude)</title>
-    <link>https://trez63.com/p/ripple.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/ripple.html</guid>
-    <pubDate>Wed, 21 Oct 2026 12:00:00 +0000</pubDate>
-    <description>A wave tank you can draw in. Walls reflect, glass refracts, and the whole wave equation is ten lines of code.</description>
   </item>
 </channel></rss>

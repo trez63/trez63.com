@@ -35,7 +35,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/9",
-        "fetched": "2026-11-07"
+        "fetched": "2026-11-08"
       }
     },
     "foldwork": {
@@ -311,7 +311,7 @@
         "reactions": 1,
         "comments": 1,
         "url": "https://github.com/trez63/trez63.com/discussions/6",
-        "fetched": "2026-11-07"
+        "fetched": "2026-11-08"
       }
     },
     "sonogram": {
@@ -373,7 +373,7 @@
         "reactions": 1,
         "comments": 1,
         "url": "https://github.com/trez63/trez63.com/discussions/7",
-        "fetched": "2026-11-07"
+        "fetched": "2026-11-08"
       }
     },
     "sprout-garden": {
@@ -474,7 +474,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/11",
-        "fetched": "2026-11-07"
+        "fetched": "2026-11-08"
       }
     },
     "budget": {
@@ -579,7 +579,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/10",
-        "fetched": "2026-11-07"
+        "fetched": "2026-11-08"
       }
     },
     "tessera": {
@@ -638,7 +638,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/8",
-        "fetched": "2026-11-07"
+        "fetched": "2026-11-08"
       }
     },
     "dayblock": {
@@ -743,7 +743,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/12",
-        "fetched": "2026-11-07"
+        "fetched": "2026-11-08"
       }
     },
     "cosmic-breath": {
@@ -835,7 +835,7 @@
         "reactions": 1,
         "comments": 0,
         "url": "https://github.com/trez63/trez63.com/discussions/13",
-        "fetched": "2026-11-07"
+        "fetched": "2026-11-08"
       }
     },
     "tidytext": {
@@ -1470,8 +1470,45 @@
           }
         ]
       }
+    },
+    "pipelineforge": {
+      "title": "PipelineForge",
+      "engine": "Grok",
+      "description": "A deal list with a live forecast. Add deals with a value, win probability and stage, filter by stage or search by name, and the bar on top keeps pipeline total, weighted forecast and won value current. Arrow keys move the selection; save or reopen the list as JSON.",
+      "source_file": "pipelineforge-grok.html",
+      "first_published": "2026-11-08",
+      "last_updated": "2026-11-08",
+      "version": 1,
+      "sha": "ab0a7db7906d",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-08",
+          "sha": "ab0a7db7906d"
+        }
+      ],
+      "category": "tool",
+      "thumb": {
+        "actions": [
+          {
+            "wait": 1000
+          },
+          {
+            "key": "Escape"
+          },
+          {
+            "click": [
+              0.5,
+              0.3
+            ]
+          },
+          {
+            "wait": 500
+          }
+        ]
+      }
     }
   },
-  "generated": "2026-11-07",
-  "votes_fetched": "2026-11-07"
+  "generated": "2026-11-08",
+  "votes_fetched": "2026-11-08"
 }

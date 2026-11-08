@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>PipelineForge — Deal Forecast</title>
+<style>
+:root {
+  --bg:#0f1115; --fg:#e8e8e8; --card:#1a1d24; --border:#2a2e38; --accent:#4f8cff;
+  --won:#3ecf8e; --lost:#ff5c5c; --mid:#f5a623;
+}
+[data-theme="light"] {
+  --bg:#f6f7f9; --fg:#1a1d24; --card:#fff; --border:#d0d4dc; --accent:#2563eb;
+  --won:#059669; --lost:#dc2626; --mid:#d97706;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,sans-serif;overflow:hidden}
+body{display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+header{display:flex;align-items:center;gap:6px;padding:10px 12px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+header h1{font-size:1.1rem;font-weight:600;flex:1;min-width:140px}
+button,select,input{background:var(--card);color:var(--fg);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:0.85rem}
+button{cursor:pointer;user-select:none}
+button:active{transform:scale(0.97)}
+.stats{display:flex;gap:12px;padding:8px 12px;font-size:0.8rem;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.stat b{color:var(--accent);font-size:1.05rem}
+.main{flex:1;overflow:auto;padding:8px}
+.filters{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.deal{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;margin:6px 0;display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:0.85rem}
+.deal.selected{border-color:var(--accent)}
+.deal .name{font-weight:600}
+.deal .meta{font-size:0.75rem;opacity:0.75}
+.deal .value{text-align:right;font-weight:700}
+.deal .stage{text-align:right;font-size:0.75rem;padding:2px 6px;border-radius:4px;background:var(--border)}
+.stage-won{background:var(--won);color:#fff}
+.stage-lost{background:var(--lost);color:#fff}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
+.overlay.show{display:flex}
+.modal{background:var(--card);border-radius:16px;padding:18px;max-width:400px;width:100%;max-height:80vh;overflow-y:auto;border:1px solid var(--border)}
+.modal h3{margin-bottom:10px}
+.modal label{display:block;margin:8px 0 2px;font-size:0.8rem}
+.modal input,.modal select,.modal textarea{width:100%;margin-bottom:6px}
+.modal kbd{background:#333;padding:2px 6px;border-radius:4px;font-size:0.75rem}
+[data-theme="light"] .modal kbd{background:#ddd;color:#111}
+footer{padding:6px 12px;font-size:0.7rem;opacity:0.6;text-align:center;border-top:1px solid var(--border);flex-shrink:0}
+@media(max-width:600px){
+  .deal{grid-template-columns:1fr}
+  .deal .value,.deal .stage{text-align:left}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>PipelineForge</h1>
+  <button id="btnAdd" title="Add (A)">+ Deal</button>
+  <button id="btnEdit" title="Edit (E)">Edit</button>
+  <button id="btnTheme" title="Theme (T)">☀/☾</button>
+  <button id="btnHelp" title="Help (?)">?</button>
+  <button id="btnSave" title="Save (S)">Save</button>
+  <button id="btnOpen" title="Open (O)">Open</button>
+  <input type="file" id="fileOpen" accept=".json" hidden>
+</header>
+<div class="stats" id="stats"></div>
+<div class="main">
+  <div class="filters">
+    <select id="filterStage">
+      <option value="">All stages</option>
+      <option>Prospect</option><option>Qualified</option><option>Proposal</option>
+      <option>Negotiation</option><option>Closed Won</option><option>Closed Lost</option>
+    </select>
+    <input type="search" id="search" placeholder="Search name…" style="flex:1;min-width:120px">
+  </div>
+  <div id="list"></div>
+</div>
+<footer>Weighted forecast = Σ (value × probability). Double-click or E to edit.</footer>
+<div class="overlay" id="helpOverlay">
+  <div class="modal">
+    <h3>PipelineForge Help</h3>
+    <p>Track deals by stage. Probability is 0–100. Forecast updates live.</p>
+    <p><kbd>A</kbd> Add &nbsp; <kbd>E</kbd> Edit selected &nbsp; <kbd>Del</kbd> Delete</p>
+    <p><kbd>T</kbd> Theme &nbsp; <kbd>S</kbd> Save JSON &nbsp; <kbd>O</kbd> Open JSON</p>
+    <p><kbd>?</kbd>/<kbd>H</kbd> Help &nbsp; <kbd>↑↓</kbd> Navigate &nbsp; <kbd>Esc</kbd> Close</p>
+    <button id="closeHelp" style="margin-top:10px;width:100%">Close</button>
+  </div>
+</div>
+<div class="overlay" id="editOverlay">
+  <div class="modal">
+    <h3 id="editTitle">Deal</h3>
+    <label>Name</label><input id="fName" type="text">
+    <label>Value ($)</label><input id="fValue" type="number" min="0" step="100">
+    <label>Probability (%)</label><input id="fProb" type="number" min="0" max="100" step="5">
+    <label>Stage</label>
+    <select id="fStage">
+      <option>Prospect</option><option>Qualified</option><option>Proposal</option>
+      <option>Negotiation</option><option>Closed Won</option><option>Closed Lost</option>
+    </select>
+    <label>Notes</label><textarea id="fNotes" rows="3"></textarea>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button id="saveDeal" style="flex:1">Save</button>
+      <button id="cancelEdit" style="flex:1">Cancel</button>
+    </div>
+  </div>
+</div>
+<script>
+const $ = s => document.querySelector(s);
+const STAGES = ['Prospect','Qualified','Proposal','Negotiation','Closed Won','Closed Lost'];
+let deals = [];
+let selectedId = null;
+let editingId = null;
+const DEMO = [
+  {id:1,name:"Acme Corp – Platform",value:85000,prob:60,stage:"Negotiation",notes:"Decision by Friday"},
+  {id:2,name:"Beta Inc – Pilot",value:24000,prob:80,stage:"Proposal",notes:"Legal review"},
+  {id:3,name:"Gamma LLC – Expansion",value:120000,prob:40,stage:"Qualified",notes:"Budget next quarter"},
+  {id:4,name:"Delta – Renewal",value:45000,prob:90,stage:"Closed Won",notes:"Signed"},
+  {id:5,name:"Epsilon – Trial",value:12000,prob:30,stage:"Prospect",notes:"Intro call done"},
+  {id:6,name:"Zeta Systems",value:67000,prob:25,stage:"Prospect",notes:"Waiting on RFP"},
+  {id:7,name:"Eta Group – Lost",value:31000,prob:0,stage:"Closed Lost",notes:"Went with competitor"},
+  {id:8,name:"Theta – Enterprise",value:210000,prob:55,stage:"Proposal",notes:"POC success"}
+];
+function loadTheme(){
+  const t = localStorage.getItem('theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+}
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', cur);
+  localStorage.setItem('theme', cur);
+}
+function forecast(){
+  const open = deals.filter(d => d.stage !== 'Closed Lost');
+  const total = open.reduce((s,d)=>s+d.value,0);
+  const weighted = open.reduce((s,d)=>s+(d.value*(d.prob/100)),0);
+  const won = deals.filter(d=>d.stage==='Closed Won').reduce((s,d)=>s+d.value,0);
+  $('#stats').innerHTML = `<div class="stat">Pipeline <b>$${total.toLocaleString()}</b></div>
+    <div class="stat">Weighted <b>$${Math.round(weighted).toLocaleString()}</b></div>
+    <div class="stat">Won <b>$${won.toLocaleString()}</b></div>
+    <div class="stat">Deals <b>${open.length}</b></div>`;
+}
+function render(){
+  const stage = $('#filterStage').value;
+  const q = $('#search').value.toLowerCase();
+  const filtered = deals.filter(d => (!stage || d.stage===stage) && (!q || d.name.toLowerCase().includes(q)));
+  const list = $('#list');
+  list.innerHTML = '';
+  filtered.forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'deal' + (d.id===selectedId?' selected':'');
+    el.dataset.id = d.id;
+    const stageClass = d.stage==='Closed Won'?'stage-won':d.stage==='Closed Lost'?'stage-lost':'';
+    el.innerHTML = `<div><div class="name"></div><div class="meta"></div></div>
+      <div><div class="value"></div><div class="stage ${stageClass}"></div></div>`;
+    el.querySelector('.name').textContent = d.name;
+    el.querySelector('.meta').textContent = (d.notes||'') + (d.prob?` · ${d.prob}%`:'');
+    el.querySelector('.value').textContent = '$'+d.value.toLocaleString();
+    el.querySelector('.stage').textContent = d.stage;
+    list.appendChild(el);
+  });
+  forecast();
+}
+function select(id){ selectedId=id; render(); }
+function openEdit(id){
+  editingId = id;
+  const d = id ? deals.find(x=>x.id===id) : {name:'',value:10000,prob:50,stage:'Prospect',notes:''};
+  $('#editTitle').textContent = id ? 'Edit Deal' : 'New Deal';
+  $('#fName').value = d.name;
+  $('#fValue').value = d.value;
+  $('#fProb').value = d.prob;
+  $('#fStage').value = d.stage;
+  $('#fNotes').value = d.notes||'';
+  $('#editOverlay').classList.add('show');
+  setTimeout(()=>$('#fName').focus(),50);
+}
+function saveDeal(){
+  const data = {
+    name: $('#fName').value.trim()||'Untitled',
+    value: Math.max(0, +$('#fValue').value||0),
+    prob: Math.min(100, Math.max(0, +$('#fProb').value||0)),
+    stage: $('#fStage').value,
+    notes: $('#fNotes').value.trim()
+  };
+  if(editingId){
+    Object.assign(deals.find(d=>d.id===editingId), data);
+  }else{
+    deals.push({id:Date.now(), ...data});
+  }
+  $('#editOverlay').classList.remove('show');
+  render();
+}
+function deleteSelected(){
+  if(!selectedId) return;
+  deals = deals.filter(d=>d.id!==selectedId);
+  selectedId=null;
+  render();
+}
+function saveJSON(){
+  const blob = new Blob([JSON.stringify({deals},null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'pipelineforge.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+function openJSON(file){
+  const reader = new FileReader();
+  reader.onload = e => {
+    try{
+      const data = JSON.parse(e.target.result);
+      if(Array.isArray(data.deals)){ deals = data.deals; selectedId=null; render(); }
+    }catch(err){ alert('Invalid file'); }
+  };
+  reader.readAsText(file);
+}
+function showHelp(show=true){ $('#helpOverlay').classList.toggle('show',show); }
+// Events – all listeners, no inline handlers
+$('#btnAdd').addEventListener('click', () => openEdit(null));
+$('#btnEdit').addEventListener('click', () => selectedId && openEdit(selectedId));
+$('#btnTheme').addEventListener('click', toggleTheme);
+$('#btnHelp').addEventListener('click', () => showHelp(true));
+$('#closeHelp').addEventListener('click', () => showHelp(false));
+$('#btnSave').addEventListener('click', saveJSON);
+$('#btnOpen').addEventListener('click', () => $('#fileOpen').click());
+$('#fileOpen').addEventListener('change', e => { if(e.target.files[0]) openJSON(e.target.files[0]); e.target.value=''; });
+$('#filterStage').addEventListener('change', render);
+$('#search').addEventListener('input', render);
+$('#saveDeal').addEventListener('click', saveDeal);
+$('#cancelEdit').addEventListener('click', () => $('#editOverlay').classList.remove('show'));
+$('#list').addEventListener('click', e => {
+  const el = e.target.closest('.deal');
+  if(el) select(+el.dataset.id);
+});
+$('#list').addEventListener('dblclick', e => {
+  const el = e.target.closest('.deal');
+  if(el) openEdit(+el.dataset.id);
+});
+document.addEventListener('keydown', e => {
+  if(e.target.matches('input,textarea,select')) return;
+  const k = e.key.toLowerCase();
+  if(k==='?' || k==='h'){ showHelp(true); e.preventDefault(); }
+  else if(k==='t') toggleTheme();
+  else if(k==='a'){ openEdit(null); e.preventDefault(); }
+  else if(k==='e' && selectedId){ openEdit(selectedId); e.preventDefault(); }
+  else if(k==='delete' || k==='backspace'){ deleteSelected(); e.preventDefault(); }
+  else if(k==='s'){ saveJSON(); e.preventDefault(); }
+  else if(k==='o'){ $('#fileOpen').click(); e.preventDefault(); }
+  else if(k==='escape'){ showHelp(false); $('#editOverlay').classList.remove('show'); }
+  else if(k==='arrowup' || k==='arrowdown'){
+    const items = [...document.querySelectorAll('.deal')];
+    if(!items.length) return;
+    let idx = items.findIndex(el => +el.dataset.id === selectedId);
+    if(idx<0) idx = 0;
+    else idx = k==='arrowup' ? Math.max(0,idx-1) : Math.min(items.length-1,idx+1);
+    select(+items[idx].dataset.id);
+    e.preventDefault();
+  }
+});
+// Init
+loadTheme();
+deals = DEMO.map(d=>({...d}));
+render();
+</script>
+</body>
+</html>

@@ -3,7 +3,14 @@
   <title>trez63 — one small app a day</title>
   <link>https://trez63.com/</link>
   <description>Every day ChatGPT, Claude, Gemini, Grok and Muse each build a single-page app from the same one-line prompt. Play them, vote for the winner.</description>
-  <lastBuildDate>Sat, 07 Nov 2026 12:00:00 +0000</lastBuildDate>
+  <lastBuildDate>Sun, 08 Nov 2026 12:00:00 +0000</lastBuildDate>
+  <item>
+    <title>PipelineForge (Grok)</title>
+    <link>https://trez63.com/p/pipelineforge.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/pipelineforge.html</guid>
+    <pubDate>Sun, 08 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A deal list with a live forecast. Add deals with a value, win probability and stage, filter by stage or search by name, and the bar on top keeps pipeline total, weighted forecast and won value current. Arrow keys move the selection; save or reopen the list as JSON.</description>
+  </item>
   <item>
     <title>Dibs (Claude)</title>
     <link>https://trez63.com/p/dibs.html</link>
@@ -346,12 +353,5 @@
     <guid isPermaLink="true">https://trez63.com/p/sonogram.html</guid>
     <pubDate>Thu, 22 Oct 2026 12:00:00 +0000</pubDate>
     <description>Draw a picture; hear it. The canvas is a spectrogram — left to right is time, bottom to top is pitch.</description>
-  </item>
-  <item>
-    <title>Tradeoff (ChatGPT)</title>
-    <link>https://trez63.com/p/tradeoff.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/tradeoff.html</guid>
-    <pubDate>Thu, 22 Oct 2026 12:00:00 +0000</pubDate>
-    <description>Make room for what matters. Rate your options, weigh your priorities, and see the smallest shift that would change your mind.</description>
   </item>
 </channel></rss>

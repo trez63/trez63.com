@@ -29,14 +29,7 @@
           }
         ]
       },
-      "category": "image",
-      "votes": {
-        "up": 1,
-        "reactions": 1,
-        "comments": 0,
-        "url": "https://github.com/trez63/trez63.com/discussions/9",
-        "fetched": "2026-11-08"
-      }
+      "category": "image"
     },
     "foldwork": {
       "title": "Foldwork",
@@ -305,14 +298,7 @@
           }
         ]
       },
-      "category": "sim",
-      "votes": {
-        "up": 1,
-        "reactions": 1,
-        "comments": 1,
-        "url": "https://github.com/trez63/trez63.com/discussions/6",
-        "fetched": "2026-11-08"
-      }
+      "category": "sim"
     },
     "sonogram": {
       "title": "Sonogram",
@@ -367,14 +353,7 @@
           }
         ]
       },
-      "category": "audio",
-      "votes": {
-        "up": 1,
-        "reactions": 1,
-        "comments": 1,
-        "url": "https://github.com/trez63/trez63.com/discussions/7",
-        "fetched": "2026-11-08"
-      }
+      "category": "audio"
     },
     "sprout-garden": {
       "title": "Sprout",
@@ -468,14 +447,7 @@
           "sha": "69ffaf5a8e79"
         }
       ],
-      "category": "tool",
-      "votes": {
-        "up": 1,
-        "reactions": 1,
-        "comments": 0,
-        "url": "https://github.com/trez63/trez63.com/discussions/11",
-        "fetched": "2026-11-08"
-      }
+      "category": "tool"
     },
     "budget": {
       "title": "Budget",
@@ -573,14 +545,7 @@
           "sha": "32b4397ea346"
         }
       ],
-      "category": "tool",
-      "votes": {
-        "up": 1,
-        "reactions": 1,
-        "comments": 0,
-        "url": "https://github.com/trez63/trez63.com/discussions/10",
-        "fetched": "2026-11-08"
-      }
+      "category": "tool"
     },
     "tessera": {
       "title": "Tessera",
@@ -632,14 +597,7 @@
           "sha": "07fbd74082ba"
         }
       ],
-      "category": "image",
-      "votes": {
-        "up": 0,
-        "reactions": 1,
-        "comments": 0,
-        "url": "https://github.com/trez63/trez63.com/discussions/8",
-        "fetched": "2026-11-08"
-      }
+      "category": "image"
     },
     "dayblock": {
       "title": "Dayblock",
@@ -737,14 +695,7 @@
           "sha": "fb211c7a079f"
         }
       ],
-      "category": "audio",
-      "votes": {
-        "up": 1,
-        "reactions": 1,
-        "comments": 0,
-        "url": "https://github.com/trez63/trez63.com/discussions/12",
-        "fetched": "2026-11-08"
-      }
+      "category": "audio"
     },
     "cosmic-breath": {
       "title": "Cosmic Breath",
@@ -829,14 +780,7 @@
           "sha": "9613e61b015e"
         }
       ],
-      "category": "sim",
-      "votes": {
-        "up": 1,
-        "reactions": 1,
-        "comments": 0,
-        "url": "https://github.com/trez63/trez63.com/discussions/13",
-        "fetched": "2026-11-08"
-      }
+      "category": "sim"
     },
     "tidytext": {
       "title": "Tidy Text",
@@ -1509,6 +1453,5 @@
       }
     }
   },
-  "generated": "2026-11-08",
-  "votes_fetched": "2026-11-08"
+  "generated": "2026-11-08"
 }

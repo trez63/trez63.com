@@ -18,94 +18,28 @@ ENGINE_CLASS = {"Claude": "claude", "ChatGPT": "chatgpt", "Muse": "muse", "Gemin
 WORDS = {2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight"}
 CAT_LABEL = {"tool": "Tools", "art": "Generative art", "game": "Games", "audio": "Audio", "sim": "Simulations",
              "image": "Image", "finance": "Finance", "dev": "Dev tools", "focus": "Focus", "text": "Text", "edu": "Explainers"}
-SHARE_CSS = """
-.share{position:relative}
-.share>button{font:inherit;font-weight:700;font-size:12px;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--fg);border-radius:7px;padding:9px 12px;white-space:nowrap}
-.share>button:hover{background:#e2e6ee}
-.share menu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;margin:0;padding:6px;list-style:none;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 14px 40px rgba(23,33,45,.18);min-width:180px;display:none}
-.share[open] menu{display:block}
-.share menu a,.share menu button{display:block;width:100%;text-align:left;font:inherit;font-size:13px;background:none;border:0;color:var(--fg);padding:8px 10px;border-radius:7px;cursor:pointer;text-decoration:none}
-.share menu a:hover,.share menu button:hover{background:#eef2ff}
-"""
-SHARE_JS = """
-(function(){
-  function wire(el){
-    const url=el.dataset.url, title=el.dataset.title, text=el.dataset.text||title;
-    const btn=el.querySelector('button.sb'), menu=el.querySelector('menu'), enc=encodeURIComponent;
-    menu.innerHTML=`<li><button class="copy">Copy link</button></li>
-      <li><a target="_blank" rel="noopener" href="https://x.com/intent/post?text=${enc(text)}&url=${enc(url)}">Post on X</a></li>
-      <li><a target="_blank" rel="noopener" href="https://www.linkedin.com/sharing/share-offsite/?url=${enc(url)}">Share on LinkedIn</a></li>
-      <li><a target="_blank" rel="noopener" href="https://www.reddit.com/submit?url=${enc(url)}&title=${enc(title)}">Post on Reddit</a></li>
-      <li><a target="_blank" rel="noopener" href="https://bsky.app/intent/compose?text=${enc(text+' '+url)}">Post on Bluesky</a></li>
-      <li><a href="mailto:?subject=${enc(title)}&body=${enc(text)}%0A${enc(url)}">Email</a></li>`;
-    btn.addEventListener('click',async e=>{
-      e.preventDefault(); e.stopPropagation();
-      if(navigator.share){ try{ await navigator.share({title,text,url}); return; }catch(_){ if(_.name==='AbortError') return; } }
-      document.querySelectorAll('.share[open]').forEach(o=>{ if(o!==el) o.removeAttribute('open'); });
-      el.toggleAttribute('open');
-    });
-    menu.querySelector('.copy').addEventListener('click',async()=>{
-      try{ await navigator.clipboard.writeText(url); btn.textContent='Copied ✓'; setTimeout(()=>btn.textContent='Share',1500); }catch(_){ prompt('Copy this link:',url); }
-      el.removeAttribute('open');
-    });
-  }
-  document.querySelectorAll('.share').forEach(wire);
-  document.addEventListener('click',e=>{ if(!e.target.closest('.share')) document.querySelectorAll('.share[open]').forEach(o=>o.removeAttribute('open')); });
-  document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.querySelectorAll('.share[open]').forEach(o=>o.removeAttribute('open')); });
-})();
-"""
-WIN_AFTER_DAYS = 7           # a day's winner is locked this many days after publish
+SHARE_CSS = ""
+SHARE_JS = ""
 E = html.escape
 
 def fmt(d):
     y, m, dd = map(int, d.split("-")); return date(y, m, dd).strftime("%b %-d, %Y")
-def up(e): return int((e.get("votes") or {}).get("up", 0))
 def pub(e): return e["first_published"]
 def has_preview(slug): return (ROOT / "previews" / f"{slug}.webm").exists()
 
-# ------------------------------------------------------------------ scoreboard
-by_day = defaultdict(list)
-for slug, e in apps.items(): by_day[pub(e)].append((slug, e))
-wins = defaultdict(float); rounds_locked = 0
-for d, entries in by_day.items():
-    if len({e["engine"] for _, e in entries}) < 2: continue            # a round needs 2+ engines
-    if date.fromisoformat(d) + timedelta(days=WIN_AFTER_DAYS) > TODAY: continue
-    best = max(up(e) for _, e in entries)
-    if best == 0: continue
-    winners = {e["engine"] for _, e in entries if up(e) == best}
-    for w in winners: wins[w] += 1 / len(winners)
-    rounds_locked += 1
-all_engines = sorted({e["engine"] for e in apps.values()})
-totals = {en: sum(up(e) for e in apps.values() if e["engine"] == en) for en in all_engines}
-counts = {en: sum(1 for e in apps.values() if e["engine"] == en) for en in all_engines}
-board = sorted(all_engines, key=lambda en: (-wins[en], -totals[en], en))
-
-# ------------------------------------------------------------------ matchup: newest app per engine
-newest = {}
-for slug, e in sorted(apps.items(), key=lambda kv: (pub(kv[1]), kv[1]["last_updated"]), reverse=True):
-    newest.setdefault(e["engine"], (slug, e))
-matchup = [newest[en] for en in all_engines if en in newest]
-matchup_date = max(pub(e) for _, e in matchup) if matchup else None
-matchup_locked = bool(matchup_date) and date.fromisoformat(matchup_date) + timedelta(days=WIN_AFTER_DAYS) <= TODAY
-
 # ------------------------------------------------------------------ cards
+all_engines = sorted({e["engine"] for e in apps.values()})
 def shot(slug, e, lazy=True):
     v = f'<video src="previews/{slug}.webm" muted loop playsinline preload="none" poster="thumbs/{slug}.webp"></video>' if has_preview(slug) else ""
     return (f'<a class="shot" href="p/{slug}.html" aria-label="Open {E(e["title"])}">'
             f'<img src="thumbs/{slug}.webp" alt="" {"loading=lazy" if lazy else ""} width="640" height="400">{v}</a>')
 
-def share_el(slug, e, cls="share"):
-    url = f"{SITE}/p/{slug}.html"
-    text = f"{e['title']} — a one-page app built by {e['engine']} from a single prompt. Play it, vote for it:"
-    return (f'<span class="{cls}" data-url="{url}" data-title="{E(e["title"])} — trez63" data-text="{E(text)}">'
-            f'<button class="sb" type="button" aria-haspopup="menu">Share</button><menu></menu></span>')
-
 def card(slug, e, big=False):
-    eng = E(e["engine"]); cls = ENGINE_CLASS.get(e["engine"], "other"); u = up(e)
+    eng = E(e["engine"]); cls = ENGINE_CLASS.get(e["engine"], "other")
     cat = e.get("category", "")
     search = E((e["title"] + " " + (e.get("description") or "") + " " + slug + " " + cat + " " + e["engine"]).lower())
     return f"""
-    <article class="card{' big' if big else ''}" data-engine="{eng}" data-cat="{E(cat)}" data-up="{u}" data-date="{e['last_updated']}" data-search="{search}">
+    <article class="card{' big' if big else ''}" data-engine="{eng}" data-cat="{E(cat)}" data-date="{e['last_updated']}" data-search="{search}">
       {shot(slug, e, lazy=not big)}
       <div class="body">
         <div class="row">
@@ -118,7 +52,6 @@ def card(slug, e, big=False):
           <span>·</span>
           <a href="{REPO}/commits/main/apps/{slug}.html" title="Version history on GitHub">v{e['version']}</a>
           {f'<span>· {E(CAT_LABEL.get(cat, cat))}</span>' if cat else ''}
-          <span class="acts"><a class="rate" href="rate.html?app={slug}" title="Vote for this app">👍 {u if u else 'Vote'}</a>{share_el(slug, e, "share mini")}</span>
         </div>
       </div>
     </article>"""
@@ -129,33 +62,7 @@ engine_filters = "".join(f'<button data-filter="{E(x)}">{E(x)}</button>' for x i
 cats_present = sorted({e.get("category") for e in apps.values() if e.get("category")}, key=lambda c: CAT_LABEL.get(c, c))
 cat_filters = "".join(f'<button data-cat="{E(c)}">{E(CAT_LABEL.get(c, c))}</button>' for c in cats_present)
 
-matchup_html = ""
-if len(matchup) >= 2:
-    lead = max(up(e) for _, e in matchup)
-    cols = "".join(card(s, e, big=True) for s, e in matchup)
-    status = ("Winner locked" if matchup_locked else
-              f"Voting open — winner locks {fmt((date.fromisoformat(matchup_date) + timedelta(days=WIN_AFTER_DAYS)).isoformat())}")
-    matchup_html = f"""
-<section class="board matchup" id="matchup" aria-label="Latest matchup">
-  <div class="board-top">
-    <h2 class="board-title"><span class="step-tag">01</span>Latest matchup <span class="board-note">{fmt(matchup_date)}</span></h2>
-    <span class="board-note">{status}{' · ' + str(lead) + (' vote' if lead == 1 else ' votes') + ' leads' if lead else ''}{'' if matchup_locked else '<span class="example-tag">VOTING OPEN</span>'}</span>
-  </div>
-  <div class="board-body"><div class="mgrid">{cols}</div></div>
-</section>"""
 
-rows = "".join(
-    f'<tr><td><span class="badge {ENGINE_CLASS.get(en, "other")}">{E(en)}</span></td>'
-    f'<td class="num">{wins[en]:g}</td><td class="num">{totals[en]}</td><td class="num">{counts[en]}</td></tr>'
-    for en in board)
-score_html = f"""
-<section class="board score" aria-label="Scoreboard">
-  <div class="board-top">
-    <h2 class="board-title"><span class="step-tag">02</span>Scoreboard</h2>
-    <span class="board-note">{rounds_locked} round{'s' if rounds_locked != 1 else ''} decided · a day's winner is the app with the most 👍 {WIN_AFTER_DAYS} days after it ships; ties split</span>
-  </div>
-  <table><thead><tr><th>Model</th><th class="num">Wins</th><th class="num">Total 👍</th><th class="num">Apps</th></tr></thead><tbody>{rows}</tbody></table>
-</section>"""
 
 CSS = """
 :root{--bg:#eff1f5;--panel:#fff;--line:#dce1e9;--fg:#17212d;--mute:#677180;--acc:#244fe5;--acc-fg:#fff;--acc-soft:#eef2ff;--yellow:#e5ff80;--soft:#f6f8fb;--radius:16px;
@@ -215,7 +122,6 @@ h1 em{font-style:normal;color:var(--acc)}
 .mgrid{grid-template-columns:repeat(auto-fit,minmax(215px,1fr))}
 .card{background:var(--soft);border:1px solid var(--line);border-radius:12px;overflow:visible;display:flex;flex-direction:column;position:relative}
 .card[hidden]{display:none}
-.card:has(.share[open]){z-index:30}
 .shot{display:block;aspect-ratio:16/10;background:#000;overflow:hidden;position:relative;border-radius:12px 12px 0 0;border-bottom:1px solid var(--line)}
 .shot img,.shot video{width:100%;height:100%;object-fit:cover;display:block}
 .shot video{position:absolute;inset:0;opacity:0;transition:opacity .25s}
@@ -229,15 +135,6 @@ h2{margin:0}
 .body p{margin:0;color:var(--mute);font-size:13px;flex:1;line-height:1.55}
 .meta{display:flex;flex-wrap:wrap;gap:6px;font:11px "Courier New",monospace;color:var(--mute);align-items:center;letter-spacing:.3px}
 .meta a{text-decoration:underline dotted}
-.meta .acts{margin-left:auto;display:flex;gap:6px;align-items:center}
-.meta .rate{text-decoration:none;background:var(--fg);color:#fff;font:700 11px Arial,Helvetica,sans-serif;padding:6px 10px;border-radius:6px}
-.meta .rate:hover{filter:brightness(1.15)}
-.card .share menu{top:auto;bottom:calc(100% + 6px)}
-.share.mini>button{font-size:11px;font-weight:700;padding:5px 10px;border-radius:6px;border:1px solid var(--line);background:#fff}
-.score table{border-collapse:separate;border-spacing:0;width:100%;max-width:560px}
-.score th,.score td{padding:11px 23px;text-align:left;border-top:1px solid var(--line);font-size:14px}
-.score th{font:11px "Courier New",monospace;letter-spacing:1px;text-transform:uppercase;color:var(--mute);border-top:0;padding-top:0}
-.score .num{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
 .toolbar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;padding:0 23px 14px}
 #q{font:inherit;font-size:14px;padding:10px 13px;border-radius:7px;border:1px solid var(--line);background:#fff;color:var(--fg);width:min(100%,320px);outline:none}
 #q:focus-visible{outline:3px solid var(--acc);outline-offset:3px}
@@ -245,8 +142,6 @@ h2{margin:0}
 .filters button{padding:9px 12px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--fg);cursor:pointer;font-size:11px;font-weight:700}
 .filters button:hover{background:#e2e6ee}
 .filters button[aria-pressed=true]{background:var(--fg);color:#fff;border-color:var(--fg)}
-.sort{margin-left:auto}
-.sort button[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:#fff}
 .cats{padding:0 23px 20px}
 .cats button{font:11px "Courier New",monospace;letter-spacing:.5px;background:var(--soft)}
 .cats button[aria-pressed=true]{background:var(--acc-soft);color:var(--acc);border-color:var(--acc)}
@@ -258,7 +153,7 @@ footer a{text-decoration:underline}
 
 JS = """
 const q=document.getElementById('q'), grid=document.getElementById('grid'), cards=[...grid.querySelectorAll('.card')], empty=document.getElementById('empty');
-let engine='all', cat='all', sort='new';
+let engine='all', cat='all';
 function apply(){
   const terms=q.value.toLowerCase().trim().split(/\\s+/).filter(Boolean);
   let shown=0;
@@ -268,17 +163,10 @@ function apply(){
   });
   empty.hidden=shown>0;
 }
-function resort(){
-  const by = sort==='top'
-    ? (a,b)=>(+b.dataset.up-(+a.dataset.up))||b.dataset.date.localeCompare(a.dataset.date)
-    : (a,b)=>b.dataset.date.localeCompare(a.dataset.date);
-  [...cards].sort(by).forEach(c=>grid.appendChild(c));
-}
 function press(group,b){ group.forEach(x=>x.setAttribute('aria-pressed',x===b)); }
-const eng=[...document.querySelectorAll('.engines button')], cts=[...document.querySelectorAll('.cats button')], srt=[...document.querySelectorAll('.sort button')];
+const eng=[...document.querySelectorAll('.engines button')], cts=[...document.querySelectorAll('.cats button')];
 eng.forEach(b=>b.addEventListener('click',()=>{engine=b.dataset.filter;press(eng,b);apply();}));
 cts.forEach(b=>b.addEventListener('click',()=>{cat=(cat===b.dataset.cat?'all':b.dataset.cat);press(cts,cat==='all'?null:b);apply();}));
-srt.forEach(b=>b.addEventListener('click',()=>{sort=b.dataset.sort;press(srt,b);resort();}));
 q.addEventListener('input',apply);
 document.addEventListener('keydown',e=>{ if(e.key==='/'&&document.activeElement!==q){e.preventDefault();q.focus();} if(e.key==='Escape'&&document.activeElement===q){q.value='';apply();} });
 document.querySelectorAll('.card').forEach(c=>{
@@ -319,7 +207,7 @@ newest_slug = items[0][0] if items else ""
 n_eng = len(all_engines)
 eng_list = (", ".join(all_engines[:-1]) + " and " + all_engines[-1]) if n_eng > 1 else (all_engines[0] if all_engines else "AI models")
 n_word = WORDS.get(n_eng, str(n_eng))
-SITE_DESC = f"Every day {eng_list} each build a single-page app from the same one-line prompt. Play them, vote for the winner."
+SITE_DESC = f"Every day {eng_list} each build a single-page app from the same one-line prompt. Play them all."
 page = f"""<!doctype html>
 <html lang="en">
 <head>
@@ -343,7 +231,7 @@ page = f"""<!doctype html>
     <span class="privacy">RUNS IN YOUR BROWSER · NOTHING UPLOADED</span>
     <a href="#prompt">The prompt</a>
     <a href="feed.xml">RSS</a>
-    <a class="new" href="#matchup">Play today's {n_word}</a>
+    <a class="new" href="#all">Browse apps</a>
   </nav>
 </div>
 <header class="hero">
@@ -351,22 +239,17 @@ page = f"""<!doctype html>
     <div class="eyebrow">{n_word} models · one prompt · every day</div>
     <h1>One small app <em>a day.</em></h1>
   </div>
-  <p class="hero-copy"><strong>{eng_list}</strong> each build a single-page app from the same one-line brief. They land here untouched. Play them, then vote for the one that should win.</p>
+  <p class="hero-copy"><strong>{eng_list}</strong> each build a single-page app from the same one-line brief. They land here untouched. Click any card and play.</p>
 </header>
 {PROMPT}
-{matchup_html}
-{score_html}
-<section class="board all">
+<section class="board all" id="all">
   <div class="board-top">
-    <h2 class="board-title"><span class="step-tag">03</span>All apps <span class="board-note">{len(apps)}</span></h2>
+    <h2 class="board-title">All apps <span class="board-note">{len(apps)}</span></h2>
   </div>
   <div class="toolbar">
     <input id="q" type="search" placeholder="Search apps…" aria-label="Search apps by title or description" autocomplete="off">
     <div class="filters engines" role="group" aria-label="Filter by model">
       <button data-filter="all" aria-pressed="true">All</button>{engine_filters}
-    </div>
-    <div class="filters sort" role="group" aria-label="Sort">
-      <button data-sort="new" aria-pressed="true">Newest</button><button data-sort="top">Top voted</button>
     </div>
   </div>
   <div class="filters cats" role="group" aria-label="Filter by category">{cat_filters}</div>
@@ -387,7 +270,7 @@ PDIR = ROOT / "p"; PDIR.mkdir(exist_ok=True)
 for old in PDIR.glob("*.html"):
     if old.stem not in apps: old.unlink()
 for slug, e in apps.items():
-    eng = E(e["engine"]); cls = ENGINE_CLASS.get(e["engine"], "other"); u = up(e)
+    eng = E(e["engine"]); cls = ENGINE_CLASS.get(e["engine"], "other")
     desc = e.get("description") or ""
     (PDIR / f"{slug}.html").write_text(f"""<!doctype html>
 <html lang="en">
@@ -412,8 +295,6 @@ body{{display:flex;flex-direction:column;background:var(--bg);color:var(--fg);fo
 .badge{{font:10px "Courier New",monospace;letter-spacing:.8px;text-transform:uppercase;padding:4px 7px;border-radius:4px;color:#fff}}
 .badge.claude{{background:var(--claude)}}.badge.chatgpt{{background:var(--chatgpt)}}.badge.muse{{background:var(--muse)}}.badge.gemini{{background:var(--gemini)}}.badge.grok{{background:var(--grok)}}.badge.llama{{background:var(--llama)}}.badge.mistral{{background:var(--mistral)}}.badge.deepseek{{background:var(--deepseek)}}.badge.copilot{{background:var(--copilot)}}.badge.other{{background:var(--other)}}
 .desc{{color:var(--mute);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:1;min-width:0}}
-.vote{{background:var(--fg);color:#fff!important;font-weight:700;font-size:12px;padding:9px 13px;border-radius:7px;white-space:nowrap}}
-.vote:hover{{filter:brightness(1.15)}}
 .raw{{color:var(--mute);white-space:nowrap;font:11px "Courier New",monospace;letter-spacing:.5px}} .raw:hover{{color:var(--fg)}}
 .back img{{height:36px;width:auto;display:block}}
 iframe{{flex:1;border:0;width:100%;background:#fff}}
@@ -428,11 +309,8 @@ iframe{{flex:1;border:0;width:100%;background:#fff}}
   <span class="badge {cls}">{eng}</span>
   <span class="desc">{E(desc)}</span>
   <a class="raw" href="../apps/{slug}.html" title="Open the app on its own, full window">open raw ↗</a>
-  {share_el(slug, e)}
-  <a class="vote" href="../rate.html?app={slug}">👍 {('Vote · ' + str(u)) if u else 'Vote'}</a>
 </div>
 <iframe src="../apps/{slug}.html" title="{E(e['title'])}" allow="clipboard-write; fullscreen; autoplay" allowfullscreen></iframe>
-<script>{SHARE_JS}</script>
 </body>
 </html>
 """)
@@ -456,4 +334,4 @@ feed_items = "".join(f"""
   <lastBuildDate>{rfc822(TODAY.isoformat())}</lastBuildDate>{feed_items}
 </channel></rss>
 """)
-print(f"index.html: {len(apps)} apps · {len(list(PDIR.glob('*.html')))} play pages · feed.xml · wins {dict(wins)}")
+print(f"index.html: {len(apps)} apps · {len(list(PDIR.glob('*.html')))} play pages · feed.xml")

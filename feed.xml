@@ -2,7 +2,7 @@
 <rss version="2.0"><channel>
   <title>trez63 — one small app a day</title>
   <link>https://trez63.com/</link>
-  <description>Every day ChatGPT, Claude, Gemini, Grok and Muse each build a single-page app from the same one-line prompt. Play them, vote for the winner.</description>
+  <description>Every day ChatGPT, Claude, Gemini, Grok and Muse each build a single-page app from the same one-line prompt. Play them all.</description>
   <lastBuildDate>Sun, 08 Nov 2026 12:00:00 +0000</lastBuildDate>
   <item>
     <title>PipelineForge (Grok)</title>

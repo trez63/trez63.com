@@ -1,0 +1,456 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Daily Build 2026-11-09 — Nib</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: a proof sheet on the left (specimen, live-font proof, glyph inspector) and one pen with its dials
+   on the right; a single column on phones, with the specimen pinned so every dial shows its effect. */
+:root{--bg:#f3f4f8;--panel:#fff;--ink:#131a2c;--mute:#5a6379;--line:#d8dce8;--wash:#e8ecf7;--accent:#2545d6;--guide:#cf2f72;--on:#fff;
+  --ui:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--live:system-ui}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d111a;--panel:#151a26;--ink:#e8ecf6;--mute:#98a1b8;--line:#2a3144;--wash:#1c2333;--accent:#8ba3ff;--guide:#ff7dae;--on:#0d111a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0d111a;--panel:#151a26;--ink:#e8ecf6;--mute:#98a1b8;--line:#2a3144;--wash:#1c2333;--accent:#8ba3ff;--guide:#ff7dae;--on:#0d111a;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--ui);-webkit-text-size-adjust:100%}
+.wrap{max-width:1180px;margin:0 auto;padding-block:12px 32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:14px}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
+h1{margin:0;font:400 40px/1 var(--live),var(--ui);letter-spacing:.01em}
+.tag{color:var(--mute);flex:1 1 220px;min-width:0}
+.acts,.chips,.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{display:inline-grid;place-items:center;min-height:44px;min-width:44px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);font:600 14px var(--ui);cursor:pointer}
+.btn.pri{background:var(--accent);border-color:transparent;color:var(--on)}
+.btn[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+main{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+.sheet,.side{display:grid;gap:14px;min-width:0}
+.side{position:sticky;top:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:10px;min-width:0}
+h2{margin:0;font:600 12px var(--ui);letter-spacing:.09em;text-transform:uppercase;color:var(--mute)}
+canvas{display:block;width:100%}
+#spec{height:250px;background:var(--panel);border:1px solid var(--line);border-radius:14px}
+#big{height:320px}
+#pad{height:170px;touch-action:none;cursor:grab;border-radius:10px;background:var(--bg)}
+#grid{cursor:pointer}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:6px}.legend i{display:inline-block;width:14px;height:3px;margin-right:5px;vertical-align:middle;background:var(--accent)}.legend .k2{background:var(--guide)}.legend .k3{background:var(--mute)}
+input[type=text]{flex:1 1 200px;min-width:0;height:44px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);font:16px var(--ui)}
+input[type=range]{width:100%;height:44px;margin:0;accent-color:var(--accent);touch-action:pan-y}
+.dial{display:grid;grid-template-columns:1fr auto;align-items:end;font-size:13px}
+.dial input{grid-column:1/-1}
+.dial output,.mono{font:12px var(--mono);color:var(--mute);font-variant-numeric:tabular-nums}
+.size{display:flex;align-items:center;gap:8px;flex:1 1 180px;color:var(--mute);font-size:13px}
+#proof{margin:0;font:30px/1.25 var(--live),var(--ui);overflow-wrap:anywhere}
+.split{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:14px;align-items:start}
+.over{position:fixed;inset:0;z-index:20;background:rgba(8,11,18,.55);display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top,0px)) 16px max(16px,env(safe-area-inset-bottom,0px))}
+.help{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:16px;padding:20px;max-width:560px;max-height:100%;overflow:auto;display:grid;gap:10px}
+.help h3{margin:0;font:400 30px/1 var(--live),var(--ui)}
+.help p,.help ul{margin:0}.help ul{padding-left:18px}
+kbd{justify-self:start;font:12px var(--mono);border:1px solid var(--line);border-radius:5px;padding:1px 5px;background:var(--bg)}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px}
+#toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;max-width:min(92vw,520px);background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:10px;font-size:14px}
+#toast.err{background:var(--guide);color:var(--on)}
+@media (max-width:860px){
+  main{grid-template-columns:minmax(0,1fr);gap:14px}
+  .sheet,.side{display:contents}   /* phones: pinned specimen, then the pen, then the proof and glyphs */
+  .sheet>.card{order:2}
+  .pin{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:6px}
+  #spec{height:150px}
+  .split{grid-template-columns:minmax(0,1fr)}
+  #big{height:260px}
+  h1{font-size:34px}
+}
+</style>
+<div class="wrap">
+  <header>
+    <h1>Nib</h1>
+    <span class="tag">One pen draws the whole alphabet. Turn the pen, and every letter follows. Export a real font.</span>
+    <div class="acts">
+      <button class="btn" id="save">Save</button>
+      <button class="btn" id="open">Open</button>
+      <button class="btn pri" id="export">Export .ttf</button>
+      <button class="btn" id="theme" aria-label="Switch between dark and light"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M9 1.75a7.25 7.25 0 0 1 0 14.5z" fill="currentColor"/></svg></button>
+      <button class="btn" id="helpb" aria-label="Help">?</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="sheet">
+      <div class="pin"><canvas id="spec" role="img" aria-label="Specimen of the typeface"></canvas></div>
+      <div class="row">
+        <input type="text" id="text" aria-label="Specimen text" autocomplete="off" spellcheck="false">
+        <label class="size">Size <input type="range" id="size" min="20" max="160" step="1"></label>
+      </div>
+      <div class="card">
+        <h2>Live font proof</h2>
+        <p id="proof"></p>
+        <div class="mono" id="stat">Compiling…</div>
+      </div>
+      <div class="card">
+        <div class="row"><h2 style="flex:1">Glyphs</h2>
+          <button class="btn" id="cons" aria-pressed="true">Construction</button></div>
+        <div class="split">
+          <div><canvas id="big" role="img" aria-label="Selected glyph, enlarged"></canvas><div class="mono" id="ginfo"></div>
+            <div class="legend mono" id="legend"><span><i class="k1"></i>skeleton</span><span><i class="k2"></i>nib at each stroke start</span><span><i class="k3"></i>one outline per pen sweep</span></div></div>
+          <canvas id="grid" role="img" aria-label="All glyphs. Tap one to inspect it."></canvas>
+        </div>
+      </div>
+    </section>
+
+    <aside class="side">
+      <div class="card">
+        <h2>Starting points</h2>
+        <div class="chips" id="chips"></div>
+      </div>
+      <div class="card">
+        <h2>Pen</h2>
+        <canvas id="pad" role="img" aria-label="Pen nib. Drag to turn and widen it."></canvas>
+        <div class="mono" id="padinfo"></div>
+        <div id="pendials"></div>
+      </div>
+      <div class="card">
+        <h2>Proportions</h2>
+        <div id="dials"></div>
+        <label class="dial" for="name">Font name</label>
+        <input type="text" id="name" maxlength="24" autocomplete="off" spellcheck="false">
+      </div>
+    </aside>
+  </main>
+</div>
+
+<div class="over" id="help" hidden>
+  <div class="help" role="dialog" aria-modal="true" aria-labelledby="hh">
+    <h3 id="hh">Nib</h3>
+    <p>Every letter here is a bare skeleton of lines and arcs. A single pen nib is dragged along each skeleton, and the shape it sweeps out is the letter. Change the pen and the whole typeface changes with it.</p>
+    <ul>
+      <li><b>Pen pad:</b> drag to turn the nib and set its width. A flat nib at an angle gives thick and thin strokes, like a calligraphy pen.</li>
+      <li><b>Dials:</b> contrast, nib shape, slant, x-height, width, bowl shape, wobble and spacing.</li>
+      <li><b>Glyphs:</b> tap any glyph to see its skeleton and the pen stamps that build it.</li>
+      <li><b>Export .ttf:</b> writes a real TrueType font you can install and use in any app.</li>
+      <li><b>Save / Open:</b> keeps the design as a small JSON file and restores it exactly.</li>
+    </ul>
+    <p class="mono">Save and Export download files. That works when this page is opened directly as a file; a hosted preview asks you to confirm each download first.</p>
+    <div class="keys">
+      <kbd>Ctrl/⌘ + /</kbd><span>Help</span>
+      <kbd>Ctrl/⌘ + S</kbd><span>Save design</span>
+      <kbd>Ctrl/⌘ + O</kbd><span>Open design</span>
+      <kbd>E</kbd><span>Export .ttf</span>
+      <kbd>1 – 8</kbd><span>Starting points</span>
+      <kbd>R</kbd><span>Random pen</span>
+      <kbd>K</kbd><span>Construction view</span>
+      <kbd>← →</kbd><span>Previous / next glyph</span>
+      <kbd>T</kbd><span>Dark / light</span>
+      <kbd>Esc</kbd><span>Close help</span>
+    </div>
+    <button class="btn pri" id="helpx">Close</button>
+  </div>
+</div>
+<input type="file" id="file" accept=".json,application/json" hidden>
+<div id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id), RAD = Math.PI / 180, CAP = 700;
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+
+/* ── 1. Skeletons ─ [advance, path] on a grid where cap height = 10, x-height = 7, descender = −3.
+   M, L, Q as in SVG. "A cx cy rx ry from to" starts a stroke with an elliptical arc (degrees, counter-clockwise
+   positive); "a" continues the current stroke with one. A lone M is a dot. */
+const SK = {
+  '.notdef': [5, 'M0 0L5 0L5 10L0 10L0 0'], ' ': [3, ''],
+  A: [8, 'M0 0L4 10L8 0M1.4 3.5L6.6 3.5'], B: [6.2, 'M0 0L0 10L3 10a3 7.6 2.6 2.4 90 -90L0 5.2M3 5.2L3.2 5.2a3.2 2.6 3 2.6 90 -90L0 0'],
+  C: [7.8, 'A4.6 5 4.6 5 48 312'], D: [7.8, 'M0 0L0 10L3 10a3 5 4.8 5 90 -90L0 0'], E: [5.4, 'M5.4 10L0 10L0 0L5.4 0M0 5.2L4.6 5.2'],
+  F: [5.2, 'M5.2 10L0 10L0 0M0 5.2L4.4 5.2'], G: [9.2, 'A4.6 5 4.6 5 48 360L5.2 5'], H: [7, 'M0 0L0 10M7 0L7 10M0 5.2L7 5.2'],
+  I: [0, 'M0 0L0 10'], J: [4.4, 'M4.4 10L4.4 2.5a2.2 2.5 2.2 2.5 0 -160'], K: [6.6, 'M0 0L0 10M6.2 10L0 3.6M2.2 5.9L6.6 0'],
+  L: [5, 'M0 10L0 0L5 0'], M: [9, 'M0 0L0 10L4.5 1.5L9 10L9 0'], N: [7.2, 'M0 0L0 10L7.2 0L7.2 10'], O: [9.4, 'A4.7 5 4.7 5 0 360'],
+  P: [5.8, 'M0 0L0 10L3 10a3 7.4 2.8 2.6 90 -90L0 4.8'], Q: [9.4, 'A4.7 5 4.7 5 0 360M5.6 2.8L9.6 -0.8'],
+  R: [6.2, 'M0 0L0 10L3 10a3 7.4 2.8 2.6 90 -90L0 4.8M3 4.8L6.2 0'], S: [6, 'A3 7.5 2.8 2.5 35 270a3 2.5 3 2.5 90 -145'],
+  T: [7, 'M0 10L7 10M3.5 10L3.5 0'], U: [7, 'M0 10L0 3.5a3.5 3.5 3.5 3.5 180 360L7 10'], V: [8, 'M0 10L4 0L8 10'],
+  W: [11, 'M0 10L2.75 0L5.5 10L8.25 0L11 10'], X: [7, 'M0 10L7 0M7 10L0 0'], Y: [7.4, 'M0 10L3.7 4.6L7.4 10M3.7 4.6L3.7 0'], Z: [7, 'M0 10L7 10L0 0L7 0'],
+  a: [6, 'A3 3.5 3 3.5 0 360M6 7L6 0'], b: [6, 'M0 10.5L0 0A3 3.5 3 3.5 0 360'], c: [5.4, 'A3 3.5 3 3.5 42 318'], d: [6, 'A3 3.5 3 3.5 0 360M6 10.5L6 0'],
+  e: [6, 'M0 3.5L6 3.5a3 3.5 3 3.5 0 318'], f: [4, 'M1.5 0L1.5 8.5a3.5 8.5 2 2 180 55M0 7L3.6 7'], g: [6, 'A3 3.5 3 3.5 0 360M6 7L6 -1a3 -1 3 2 0 -140'],
+  h: [5, 'M0 10.5L0 0M0 4.5a2.5 4.5 2.5 2.5 180 0L5 0'], i: [0, 'M0 0L0 7M0 9.6'], j: [2, 'M2 7L2 -1a0.25 -1 1.75 2 0 -120M2 9.6'],
+  k: [4.8, 'M0 10.5L0 0M4.5 7L0 2.8M1.6 4.3L4.8 0'], l: [0, 'M0 10.5L0 0'], m: [8, 'M0 7L0 0M0 5a2 5 2 2 180 0L4 0M4 5a6 5 2 2 180 0L8 0'],
+  n: [5, 'M0 7L0 0M0 4.5a2.5 4.5 2.5 2.5 180 0L5 0'], o: [6, 'A3 3.5 3 3.5 0 360'], p: [6, 'M0 7L0 -3A3 3.5 3 3.5 0 360'], q: [6, 'A3 3.5 3 3.5 0 360M6 7L6 -3'],
+  r: [3.6, 'M0 7L0 0M0 4.8a2.2 4.8 2.2 2.2 180 40'], s: [5, 'A2.5 5.25 2.3 1.75 40 270a2.5 1.75 2.5 1.75 90 -140'], t: [4, 'M1.5 9.5L1.5 1.8a3.3 1.8 1.8 1.8 180 300M0 7L3.8 7'],
+  u: [5, 'M0 7L0 2.5a2.5 2.5 2.5 2.5 180 360M5 7L5 0'], v: [5.5, 'M0 7L2.75 0L5.5 7'], w: [8, 'M0 7L2 0L4 7L6 0L8 7'], x: [5, 'M0 7L5 0M5 7L0 0'],
+  y: [5.5, 'M0 7L2.75 0M5.5 7L1.57 -3'], z: [5, 'M0 7L5 7L0 0L5 0'],
+  0: [6, 'A3 5 3 5 0 360'], 1: [6, 'M1.2 7.8L3.6 10L3.6 0'], 2: [6, 'A3 7.2 2.9 2.8 160 -40L0 0L6 0'], 3: [6, 'A2.9 7.6 2.7 2.4 150 -90a2.9 2.6 3.1 2.6 90 -150'],
+  4: [6, 'M4.6 0L4.6 10L0 3L6 3'], 5: [6, 'M5.4 10L1 10L0.74 5.65a2.8 3.2 3.2 3.2 130 -150'], 6: [6, 'M4.6 10Q0.4 8.8 0 3.1A3 3.1 3 3.1 0 360'], 7: [6, 'M0 10L6 10L2 0'],
+  8: [6, 'A3 7.5 2.6 2.5 0 360A3 2.5 3 2.5 0 360'], 9: [6, 'A3 6.9 3 3.1 0 360M6 6.9Q5.6 1.2 1.4 0'],
+  '.': [0, 'M0 0'], ',': [0.6, 'M0.6 0.2L0 -1.7'], '!': [0, 'M0 10L0 3M0 0'], '?': [5, 'A2.5 7.5 2.5 2.5 165 -30Q2.5 5 2.5 2.8M2.5 0'], '-': [3.4, 'M0 3.9L3.4 3.9'],
+  "'": [0, 'M0 10L0 8'], '"': [1.9, 'M0 10L0 8M1.9 10L1.9 8'], ':': [0, 'M0 0M0 5.6'], ';': [0.6, 'M0.6 5.6M0.6 0.2L0 -1.7'], '(': [2, 'M2 11Q-0.8 4 2 -3'],
+  ')': [2, 'M0 11Q2.8 4 0 -3'], '/': [4, 'M0 -1L4 11'], '+': [5, 'M0 4L5 4M2.5 6.5L2.5 1.5'], '=': [5, 'M0 5.2L5 5.2M0 2.8L5 2.8'], '_': [5, 'M0 -1.5L5 -1.5'],
+  '#': [6, 'M1.9 10L1.1 0M4.9 10L4.1 0M0 6.8L6 6.8M0 3.2L6 3.2'], '%': [7.5, 'A1.5 8 1.5 2 0 360A6 2 1.5 2 0 360M6.4 10L1.1 0'],
+  '&': [7, 'M7 0L1.85 7.15a3.2 8 1.5 2 205 -30L0.4 4.05a2.9 2.7 2.9 2.7 150 375L6.6 5.2'],
+};
+const CHARS = Object.keys(SK).filter(k => k.length === 1).sort((a, b) => a.charCodeAt(0) - b.charCodeAt(0));   // font order
+const GRID = [...CHARS.filter(c => /[A-Z]/.test(c)), ...CHARS.filter(c => /[a-z]/.test(c)), ...CHARS.filter(c => /\d/.test(c)), ...CHARS.filter(c => /[^A-Za-z\d ]/.test(c))];   // display order
+const ARITY = { M: 2, L: 2, Q: 4, A: 6, a: 6 };
+const parse = d => { const t = d.match(/[MLQAa]|-?[\d.]+/g) || [], out = []; for (let i = 0; i < t.length;) { const c = t[i++]; out.push([c, ...t.slice(i, i += ARITY[c]).map(Number)]); } return out; };
+const CMDS = Object.fromEntries(Object.entries(SK).map(([k, v]) => [k, parse(v[1])]));
+
+/* ── 2. Dials and starting points ─ [key, label, min, max, unit] */
+const PEN = [['pen', 'Pen width', 14, 230, ''], ['contrast', 'Nib thickness', 8, 100, '%'], ['angle', 'Pen angle', 0, 179, '°'], ['nib', 'Nib shape: round to square', 0, 100, '']];
+const BODY = [['slant', 'Slant', -8, 24, '°'], ['xh', 'x-height', 50, 85, '%'], ['asc', 'Ascenders', 100, 125, '%'], ['desc', 'Descenders', 15, 40, '%'], ['width', 'Width', 60, 140, '%'],
+  ['bowl', 'Bowls: round to square', 0, 100, ''], ['wobble', 'Wobble', 0, 100, ''], ['spacing', 'Spacing', 10, 120, '']];
+const DIALS = [...PEN, ...BODY], KEYS = DIALS.map(d => d[0]);
+const mk = (...v) => Object.fromEntries(KEYS.map((k, i) => [k, v[i]]));
+const PRESETS = {             // pen contrast angle nib slant xh asc desc width bowl wobble spacing
+  Quill: mk(104, 24, 28, 30, 0, 68, 112, 30, 100, 0, 0, 46), Mono: mk(78, 100, 0, 0, 0, 70, 108, 28, 100, 0, 0, 52),
+  Italic: mk(92, 22, 42, 40, 12, 64, 118, 34, 78, 0, 0, 34), Hairline: mk(20, 100, 0, 0, 0, 66, 110, 30, 104, 0, 0, 70),
+  Techno: mk(76, 100, 0, 100, 0, 74, 104, 22, 98, 90, 0, 50), Marker: mk(128, 58, 62, 0, 6, 72, 106, 26, 96, 20, 70, 44),
+  Poster: mk(150, 100, 0, 0, 0, 78, 104, 20, 96, 10, 0, 34), Saloon: mk(124, 20, 90, 100, 0, 70, 106, 24, 110, 0, 0, 44),
+};
+
+/* ── 3. Geometry ─ skeleton → strokes → the convex hull of the nib at both ends of every segment */
+const se = (v, e) => Math.sign(v) * Math.abs(v) ** e;   // superellipse: e = 1 is an ellipse, e → 0 a rectangle
+function trace(cmds, e) {
+  const strokes = []; let cur;
+  for (const [c, ...a] of cmds) {
+    if (c === 'M') strokes.push(cur = [[a[0], a[1]]]);
+    else if (c === 'L') cur.push([a[0], a[1]]);
+    else if (c === 'Q') { const [x0, y0] = cur.at(-1); for (let i = 1; i <= 8; i++) { const t = i / 8, u = 1 - t; cur.push([u * u * x0 + 2 * u * t * a[0] + t * t * a[2], u * u * y0 + 2 * u * t * a[1] + t * t * a[3]]); } }
+    else { const [cx, cy, rx, ry, a0, a1] = a, n = Math.ceil(Math.abs(a1 - a0) / 10); if (c === 'A') strokes.push(cur = []);
+      for (let i = 0; i <= n; i++) { const t = (a0 + (a1 - a0) * i / n) * RAD; cur.push([cx + rx * se(Math.cos(t), e), cy + ry * se(Math.sin(t), e)]); } }
+  }
+  return strokes;
+}
+function hull(pts) {                                      // monotone chain, returned clockwise (TrueType's outer direction)
+  pts = pts.slice().sort((p, q) => p[0] - q[0] || p[1] - q[1]);
+  const cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]), half = list => { const h = [];
+    for (const p of list) { while (h.length > 1 && cross(h.at(-2), h.at(-1), p) <= 0) h.pop(); h.push(p); } h.pop(); return h; };
+  return [...half(pts), ...half(pts.reverse())].reverse();
+}
+function makeNib(P, scale = 1) {
+  const a = P.pen / 2 * scale, b = a * P.contrast / 100, e = 2 / (2 + P.nib / 10), c = Math.cos(P.angle * RAD), s = Math.sin(P.angle * RAD);
+  return Array.from({ length: 12 }, (_, i) => { const t = (15 + 30 * i) * RAD, x = a * se(Math.cos(t), e), y = b * se(Math.sin(t), e); return [x * c - y * s, x * s + y * c]; });
+}
+const sweep = (nib, p, q) => hull([...nib.map(n => [p[0] + n[0], p[1] + n[1]]), ...nib.map(n => [q[0] + n[0], q[1] + n[1]])]);
+
+function build(P) {
+  const nib = makeNib(P), dotNib = makeNib(P, Math.max(1.15, 60 / P.pen)), xb = Math.max(...nib.map(p => p[0])), yb = Math.max(...nib.map(p => p[1]));
+  const uy = (CAP - 2 * yb) / 10, ux = 70 * P.width / 100, tan = Math.tan(P.slant * RAD), e = 2 / (2 + P.bowl / 20), wob = P.wobble * 0.16;
+  const xh = P.xh / 10, asc = P.asc / 10, a = P.pen / 2, dv = 0.7 * a * (1 - P.contrast / 100), dot = [-Math.sin(P.angle * RAD) * dv, Math.cos(P.angle * RAD) * dv];
+  const warp = y => y <= 0 ? y * P.desc / 30 : y <= 7 ? y * xh / 7 : xh + (y - 7) * (asc - xh) / 3.5;   // lowercase follows the x-height dial
+  const glyphs = {};
+  for (const k in SK) {
+    const lower = k >= 'a' && k <= 'z', ph = k.charCodeAt(0) * 1.7;
+    const place = ([x, y]) => { let X = x * ux, Y = yb + (lower ? warp(y) : y) * uy;
+      if (wob) { X += wob * Math.sin(Y * .017 + ph); Y += wob * Math.sin(X * .014 + ph * 2.3); }
+      return [X + Y * tan + P.spacing + xb, Y]; };
+    const skel = trace(CMDS[k], e).map(s => s.map(place)), contours = [];
+    for (const s of skel) {
+      if (s.length === 1) contours.push(sweep(dotNib, [s[0][0] - dot[0], s[0][1] - dot[1]], [s[0][0] + dot[0], s[0][1] + dot[1]]));
+      for (let i = 1; i < s.length; i++) if (Math.hypot(s[i][0] - s[i - 1][0], s[i][1] - s[i - 1][1]) > .01) contours.push(sweep(nib, s[i - 1], s[i]));
+    }
+    const path = new Path2D(); for (const c of contours) { c.forEach((p, i) => i ? path.lineTo(p[0], p[1]) : path.moveTo(p[0], p[1])); path.closePath(); }
+    glyphs[k] = { adv: SK[k][0] * ux + 2 * xb + 2 * P.spacing, skel, contours, path };
+  }
+  return { glyphs, nib, yb, up: Math.round(Math.max(10, asc) * uy + 2 * yb + 40), down: -Math.round(P.desc / 10 * uy + 40), xHeight: Math.round(xh * uy + 2 * yb) };
+}
+
+/* ── 4. TrueType writer ─ ten tables, all points on-curve, one contour per pen sweep (overlaps are legal in glyf) */
+const bytes = () => { const b = []; return Object.assign(b, {
+  u8(...v) { for (const x of v) b.push(x & 255); return b; }, u16(...v) { for (const x of v) b.push(x >> 8 & 255, x & 255); return b; },
+  u32(...v) { for (const x of v) b.push(x >>> 24, x >>> 16 & 255, x >>> 8 & 255, x & 255); return b; }, str(s) { for (const c of s) b.push(c.charCodeAt(0)); return b; } }); };
+function ttf(F, family, P) {
+  const order = ['.notdef', ...CHARS], glyf = bytes(), loca = bytes().u32(0), hmtx = bytes();
+  let maxPts = 0, maxCon = 0, points = 0, advSum = 0, advMax = 0, minL = 0, minR = 1e4, box = [1e4, 1e4, -1e4, -1e4];
+  for (const k of order) {
+    const g = F.glyphs[k], adv = Math.round(g.adv); let lsb = 0;
+    const cs = g.contours.map(c => c.map(p => [Math.round(p[0]), Math.round(p[1])]).filter((p, i, a) => { const q = a[(i + a.length - 1) % a.length]; return p[0] !== q[0] || p[1] !== q[1]; })).filter(c => c.length > 2);
+    if (cs.length) {
+      const all = cs.flat(), xs = all.map(p => p[0]), ys = all.map(p => p[1]), b = [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
+      glyf.u16(cs.length, ...b); let end = -1; for (const c of cs) glyf.u16(end += c.length); glyf.u16(0);
+      const flags = [], dx = bytes(), dy = bytes(), delta = (d, out, short, same) => d === 0 ? same : Math.abs(d) < 256 ? (out.u8(Math.abs(d)), short | (d > 0 ? same : 0)) : (out.u16(d), 0);
+      let px = 0, py = 0; for (const [x, y] of all) { flags.push(1 | delta(x - px, dx, 2, 16) | delta(y - py, dy, 4, 32)); px = x; py = y; }
+      flags[0] |= 64;                                     // OVERLAP_SIMPLE: tell rasterizers the contours overlap on purpose
+      glyf.u8(...flags); for (const v of dx) glyf.push(v); for (const v of dy) glyf.push(v); while (glyf.length % 4) glyf.push(0);
+      lsb = b[0]; maxPts = Math.max(maxPts, all.length); maxCon = Math.max(maxCon, cs.length); points += all.length;
+      minL = Math.min(minL, lsb); minR = Math.min(minR, adv - b[2]); box = [Math.min(box[0], b[0]), Math.min(box[1], b[1]), Math.max(box[2], b[2]), Math.max(box[3], b[3])];
+    }
+    loca.u32(glyf.length); hmtx.u16(adv, lsb); advSum += adv; advMax = Math.max(advMax, adv);
+  }
+  const n = order.length, now = Math.floor(Date.now() / 1000) + 2082844800, ps = family.replace(/[^A-Za-z0-9]/g, '') || 'Nib';
+  const head = bytes().u16(1, 0).u32(0x10000, 0, 0x5F0F3CF5).u16(3, 1000).u32(0, now, 0, now).u16(...box, 0, 8, 2, 1, 0);
+  const hhea = bytes().u16(1, 0, F.up, F.down, 0, advMax, minL, minR, box[2], 1, 0, 0, 0, 0, 0, 0, 0, n);
+  const maxp = bytes().u32(0x10000).u16(n, maxPts, maxCon, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0);
+  const os2 = bytes().u16(4, Math.round(advSum / n), clamp(Math.round(P.pen / 20) * 100, 100, 900), 5, 0, 650, 600, 0, 75, 650, 600, 0, 350, 50, 250, 0)
+    .u8(0, 0, 0, 0, 0, 0, 0, 0, 0, 0).u32(1, 0, 0, 0).str('NIB ').u16(64, 32, 122, F.up, F.down, 0, Math.max(F.up, box[3]), Math.max(-F.down, -box[1])).u32(1, 0).u16(F.xHeight, CAP, 0, 32, 0);
+  const post = bytes().u32(0x30000, Math.round(-P.slant * 65536), 0xFF9C0032, 0, 0, 0, 0, 0);   // 0xFF9C0032 = underline −100, thickness 50
+  const segs = []; CHARS.forEach((ch, i) => { const c = ch.charCodeAt(0), d = i + 1 - c, last = segs.at(-1); if (last && last[1] === c - 1 && last[2] === d) last[1] = c; else segs.push([c, c, d]); });
+  segs.push([0xFFFF, 0xFFFF, 1]);
+  const sc = segs.length, pow = 2 ** Math.floor(Math.log2(sc));
+  const cmap = bytes().u16(0, 2, 0, 3).u32(20).u16(3, 1).u32(20).u16(4, 16 + sc * 8, 0, sc * 2, pow * 2, Math.log2(pow), (sc - pow) * 2, ...segs.map(s => s[1]), 0, ...segs.map(s => s[0]), ...segs.map(s => s[2]), ...segs.map(() => 0));
+  const names = [[1, family], [2, 'Regular'], [3, 'Nib: ' + family + ' ' + now], [4, family], [5, 'Version 1.000'], [6, ps + '-Regular']], name = bytes().u16(0, names.length, 6 + 12 * names.length), strs = bytes();
+  for (const [id, s] of names) { name.u16(3, 1, 0x409, id, s.length * 2, strs.length); for (const c of s) strs.u16(c.charCodeAt(0)); }
+  for (const v of strs) name.push(v);
+  const tables = { 'OS/2': os2, cmap, glyf, head, hhea, hmtx, loca, maxp, name, post }, tags = Object.keys(tables).sort(), nt = tags.length, p2 = 2 ** Math.floor(Math.log2(nt));
+  const sum = b => { let s = 0; for (let i = 0; i < b.length; i += 4) s = (s + (b[i] << 24 | b[i + 1] << 16 | b[i + 2] << 8 | b[i + 3])) >>> 0; return s; };
+  const out = bytes().u32(0x10000).u16(nt, p2 * 16, Math.log2(p2), (nt - p2) * 16); let off = 12 + 16 * nt, headAt = 0;
+  for (const t of tags) { const b = tables[t], len = b.length; while (b.length % 4) b.push(0); if (t === 'head') headAt = off; out.str(t).u32(sum(b), off, len); off += b.length; }
+  for (const t of tags) for (const v of tables[t]) out.push(v);
+  const adj = (0xB1B0AFBA - sum(out)) >>> 0; [adj >>> 24, adj >>> 16 & 255, adj >>> 8 & 255, adj & 255].forEach((v, i) => out[headAt + 8 + i] = v);
+  return { data: new Uint8Array(out), glyphs: n, points };
+}
+
+/* ── 5. State and drawing */
+const S = { P: { ...PRESETS.Mono }, text: 'Sphinx of black quartz, judge my vow. 0123456789', size: innerWidth < 560 ? 34 : 66, name: 'Nib Quill', sel: 'a', construct: true };
+let F, font, liveFace, liveN = 0, compileTimer, raf, toastTimer;
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const col = k => getComputedStyle(document.documentElement).getPropertyValue(k).trim();
+function fit(cv) {
+  const r = cv.getBoundingClientRect(), d = devicePixelRatio || 1, w = Math.round(r.width * d), h = Math.round(r.height * d);
+  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+  const c = cv.getContext('2d'); c.setTransform(d, 0, 0, d, 0, 0); c.clearRect(0, 0, r.width, r.height); return [c, r.width, r.height, d];
+}
+const glyphOf = ch => F.glyphs[ch] || F.glyphs['.notdef'];
+const stamp = (c, g, x, y, s, d) => { c.setTransform(d * s, 0, 0, -d * s, d * x, d * y); c.fill(g.path, 'nonzero'); c.setTransform(d, 0, 0, d, 0, 0); };
+
+function drawSpec() {
+  const [c, w, , d] = fit($('spec')), s = S.size / 1000, pad = 16; let x = pad, y = pad + F.up * s;
+  c.fillStyle = col('--ink');
+  for (const word of S.text.split(/(?<= )/)) {
+    const ww = [...word.trimEnd()].reduce((a, ch) => a + glyphOf(ch).adv * s, 0);
+    if (x > pad && x + ww > w - pad) { x = pad; y += S.size * 1.18; }
+    for (const ch of word) { stamp(c, glyphOf(ch), x, y, s, d); x += glyphOf(ch).adv * s; }
+  }
+}
+function gridShape(w) { const cols = Math.max(5, Math.floor(w / 50)); return [cols, w / cols]; }
+function drawGrid() {
+  const cv = $('grid'), [cols, cell] = gridShape(cv.getBoundingClientRect().width || 300); cv.style.height = Math.ceil(GRID.length / cols) * cell + 'px';
+  const [c, , , d] = fit(cv), s = cell * .5 / 1000, ink = col('--ink');
+  GRID.forEach((ch, i) => { const x = i % cols * cell, y = Math.floor(i / cols) * cell, g = F.glyphs[ch];
+    if (ch === S.sel) { c.fillStyle = col('--wash'); c.strokeStyle = col('--accent'); c.lineWidth = 2; c.beginPath(); c.roundRect(x + 2, y + 2, cell - 4, cell - 4, 8); c.fill(); c.stroke(); }
+    c.fillStyle = ink; stamp(c, g, x + (cell - g.adv * s) / 2, y + cell * .7, s, d); });
+}
+function drawBig() {
+  const [c, w, h, d] = fit($('big')), g = glyphOf(S.sel), s = (h - 34) / (F.up - F.down), ox = (w - g.adv * s) / 2, oy = 17 + F.up * s, Y = v => oy - v * s;
+  c.font = '10px ' + col('--mono'); c.lineWidth = 1;
+  for (const [v, label] of [[0, 'baseline'], [F.xHeight, 'x-height'], [CAP, 'cap height']]) { c.strokeStyle = col('--line'); c.beginPath(); c.moveTo(0, Y(v)); c.lineTo(w, Y(v)); c.stroke(); c.fillStyle = col('--mute'); c.fillText(label, 2, Y(v) - 3); }
+  c.strokeStyle = col('--line'); c.setLineDash([3, 4]); c.beginPath(); for (const v of [0, g.adv]) { c.moveTo(ox + v * s, 6); c.lineTo(ox + v * s, h - 6); } c.stroke(); c.setLineDash([]);
+  const T = p => [ox + p[0] * s, Y(p[1])], poly = pts => { c.beginPath(); pts.forEach((p, i) => i ? c.lineTo(...T(p)) : c.moveTo(...T(p))); };
+  c.fillStyle = col('--ink'); c.globalAlpha = S.construct ? .16 : 1; stamp(c, g, ox, oy, s, d); c.globalAlpha = 1;
+  if (S.construct) {
+    c.strokeStyle = col('--ink'); c.globalAlpha = .55; c.lineWidth = .8; for (const k of g.contours) { poly(k); c.closePath(); c.stroke(); } c.globalAlpha = 1;
+    c.strokeStyle = col('--accent'); c.lineWidth = 2; c.lineJoin = c.lineCap = 'round'; for (const k of g.skel) { poly(k.length > 1 ? k : [k[0], k[0]]); c.stroke(); }
+    c.strokeStyle = col('--guide'); c.lineWidth = 1.5; for (const k of g.skel) { poly(F.nib.map(n => [k[0][0] + n[0], k[0][1] + n[1]])); c.closePath(); c.stroke(); }
+  }
+  const pts = g.contours.reduce((a, k) => a + k.length, 0);
+  $('ginfo').textContent = `${S.sel === ' ' ? 'space' : S.sel}  U+${S.sel.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0')} · advance ${Math.round(g.adv)} · ${g.skel.length} strokes · ${g.contours.length} sweeps · ${pts} points`;
+}
+const padScale = (w, h) => (Math.min(w, h) / 2 - 14) / 115;
+function drawPad() {
+  const [c, w, h] = fit($('pad')), k = padScale(w, h), cx = w / 2, cy = h / 2, P = S.P, a = Math.max(P.pen / 2 * k, 20), t = P.angle * RAD;
+  const wave = Array.from({ length: 49 }, (_, i) => [(-w / 2 + 24 + (w - 48) * i / 48) / k, Math.sin(i / 48 * Math.PI * 2) * (h / 2 - 34) / k]);
+  c.fillStyle = col('--line'); c.translate(cx, cy); c.scale(k, -k);
+  for (let i = 1; i < wave.length; i++) { const hl = sweep(F.nib, wave[i - 1], wave[i]); c.beginPath(); hl.forEach((p, j) => j ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.fill(); }
+  c.fillStyle = col('--accent'); c.beginPath(); F.nib.forEach((p, j) => j ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.fill();
+  c.setTransform(devicePixelRatio || 1, 0, 0, devicePixelRatio || 1, 0, 0);
+  const hx = cx + Math.cos(t) * a, hy = cy - Math.sin(t) * a;
+  c.strokeStyle = col('--guide'); c.lineWidth = 1.5; c.beginPath(); c.moveTo(2 * cx - hx, 2 * cy - hy); c.lineTo(hx, hy); c.stroke();
+  c.fillStyle = col('--guide'); c.strokeStyle = col('--panel'); c.lineWidth = 2; c.beginPath(); c.arc(hx, hy, 9, 0, 7); c.fill(); c.stroke();
+  $('padinfo').textContent = `Drag to turn and widen · ${Math.round(P.angle)}° · ${Math.round(P.pen)} wide`;
+}
+function draw() { drawSpec(); drawGrid(); drawBig(); drawPad(); }
+function render() {
+  F = build(S.P);
+  for (const [k, , , , unit] of DIALS) { $('d-' + k).value = S.P[k]; $('o-' + k).textContent = Math.round(S.P[k]) + unit; }
+  draw(); clearTimeout(compileTimer); compileTimer = setTimeout(compile, 160);
+}
+async function compile() {
+  font = ttf(F, S.name.trim() || 'Nib', S.P);
+  const info = `${font.glyphs} glyphs · ${font.points.toLocaleString('en-US')} points · ${(font.data.length / 1024).toFixed(1)} KB TrueType`;
+  $('proof').textContent = [...S.text].filter(ch => SK[ch]).join('');
+  try {
+    const face = new FontFace('NibLive' + ++liveN, font.data.buffer.slice(0)); await face.load(); document.fonts.add(face);
+    document.documentElement.style.setProperty('--live', `"${face.family}"`); if (liveFace) document.fonts.delete(liveFace); liveFace = face;
+    $('stat').textContent = info + ' · loaded by this page as a web font. The heading and the line above are real text set in it.'; $('stat').dataset.live = '1';
+  } catch (err) { $('stat').textContent = info + ' · this browser would not load it as a live web font (' + err.message + ').'; $('stat').dataset.live = '0'; }
+}
+
+/* ── 6. Actions */
+function toast(msg, bad) { const t = $('toast'); t.textContent = msg; t.className = bad ? 'err' : ''; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, bad ? 6000 : 2600); }
+function morph(to, ms = 420) {
+  cancelAnimationFrame(raf); const from = { ...S.P }, t0 = performance.now();
+  const step = now => { const t = reduced || !ms ? 1 : clamp((now - t0) / ms, 0, 1), e = t * t * (3 - 2 * t);
+    for (const k of KEYS) S.P[k] = t === 1 ? to[k] : from[k] + (to[k] - from[k]) * e; render(); if (t < 1) raf = requestAnimationFrame(step); };
+  raf = requestAnimationFrame(step);
+}
+function preset(name) { S.name = 'Nib ' + name; $('name').value = S.name; morph(PRESETS[name]); }
+function random() {
+  const r = (lo, hi) => Math.round(lo + Math.random() * (hi - lo)), flat = Math.random() < .65;
+  S.name = 'Nib Random'; $('name').value = S.name;
+  morph(mk(r(30, 170), flat ? r(15, 60) : 100, flat ? r(0, 179) : 0, Math.random() < .5 ? 0 : r(0, 100), Math.random() < .5 ? 0 : r(-4, 16), r(58, 80), r(102, 122), r(18, 36), r(75, 125), Math.random() < .6 ? 0 : r(20, 100), Math.random() < .7 ? 0 : r(20, 80), r(30, 70)));
+}
+function select(ch) { S.sel = ch; drawGrid(); drawBig(); }
+function setConstruct(on) { S.construct = on; $('cons').setAttribute('aria-pressed', on); $('legend').hidden = !on; drawBig(); }
+const themeNow = () => document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+function setTheme(t) { if (t) document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme; draw(); }
+let hostSave = null;                                             // a hosted viewer can offer a confirmed save; a plain file uses a download link
+if (window.claude && window.claude.use) window.claude.use('downloads').then(d => hostSave = d, () => {});
+async function download(name, data, type) {
+  if (hostSave) try { await hostSave.save({ filename: name, data }); return true; }
+    catch (err) { if (err && err.code !== 'declined') toast('This viewer could not save ' + name + '. Open the page as a file to download it.', true); return false; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type })); a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000); return true;
+}
+const snapshot = () => ({ app: 'Nib', version: 1, saved: new Date().toISOString(), name: S.name, text: S.text, size: S.size, glyph: S.sel, construction: S.construct, theme: document.documentElement.dataset.theme || null, pen: { ...S.P } });
+async function save() { const d = new Date(), ymd = [d.getFullYear(), d.getMonth() + 1, d.getDate()].map(v => String(v).padStart(2, '0')).join('-'); if (await download(`nib-${ymd}.json`, JSON.stringify(snapshot(), null, 2), 'application/json')) toast('Design saved as nib-' + ymd + '.json'); }
+function restore(o) {
+  if (!o || o.app !== 'Nib') throw Error('That file is not a Nib design. Its "app" field should be "Nib".');
+  if (!(o.version >= 1 && o.version <= 1)) throw Error('That design was saved by a newer Nib (version ' + o.version + '). This page reads version 1.');
+  if (!o.pen || KEYS.some(k => !Number.isFinite(+o.pen[k]))) throw Error('That Nib file is missing pen settings, so it cannot be opened.');
+  cancelAnimationFrame(raf); DIALS.forEach(([k, , lo, hi]) => S.P[k] = clamp(+o.pen[k], lo, hi));
+  S.name = String(o.name || 'Nib').slice(0, 24); S.text = String(o.text ?? ''); S.size = clamp(+o.size || 60, 20, 160); S.sel = SK[o.glyph] && o.glyph.length === 1 ? o.glyph : 'a';
+  $('name').value = S.name; $('text').value = S.text; $('size').value = S.size; S.construct = o.construction !== false; $('cons').setAttribute('aria-pressed', S.construct); $('legend').hidden = !S.construct;
+  if (o.theme === 'dark' || o.theme === 'light') document.documentElement.dataset.theme = o.theme; else delete document.documentElement.dataset.theme;
+  render();
+}
+async function openFile(file) { try { let o; try { o = JSON.parse(await file.text()); } catch { throw Error('That file is not JSON, so it is not a Nib design.'); } restore(o); toast('Opened ' + file.name); } catch (err) { toast(err.message, true); } }
+async function exportTtf() { clearTimeout(compileTimer); compile(); const f = (S.name.trim() || 'Nib').replace(/[^\w-]+/g, '') + '.ttf', kb = (font.data.length / 1024).toFixed(1); if (await download(f, font.data, 'font/ttf')) toast(`Exported ${f} (${kb} KB). Install it like any font.`); }
+function help(show) { $('help').hidden = !show; if (show) $('helpx').focus(); }
+
+/* ── 7. Wiring */
+for (const [host, list] of [['pendials', PEN], ['dials', BODY]]) for (const [k, label, lo, hi] of list) {
+  const el = document.createElement('label'); el.className = 'dial';
+  el.innerHTML = `<span>${label}</span><output id="o-${k}"></output><input type="range" id="d-${k}" min="${lo}" max="${hi}" step="1">`;
+  el.lastChild.addEventListener('input', ev => { cancelAnimationFrame(raf); S.P[k] = +ev.target.value; render(); }); $(host).append(el);
+}
+Object.keys(PRESETS).forEach(name => { const b = document.createElement('button'); b.className = 'btn'; b.textContent = name; b.dataset.preset = name; b.onclick = () => preset(name); $('chips').append(b); });
+{ const b = document.createElement('button'); b.className = 'btn'; b.id = 'dice'; b.textContent = 'Random'; b.onclick = random; $('chips').append(b); }
+$('text').value = S.text; $('size').value = S.size; $('name').value = S.name;
+$('text').oninput = ev => { S.text = ev.target.value; drawSpec(); clearTimeout(compileTimer); compileTimer = setTimeout(compile, 160); };
+$('size').oninput = ev => { S.size = +ev.target.value; drawSpec(); };
+$('name').oninput = ev => { S.name = ev.target.value; clearTimeout(compileTimer); compileTimer = setTimeout(compile, 300); };
+$('save').onclick = save; $('open').onclick = () => $('file').click(); $('export').onclick = exportTtf;
+$('file').onchange = ev => { const f = ev.target.files[0]; if (f) openFile(f); ev.target.value = ''; };
+$('theme').onclick = () => setTheme(themeNow() === 'dark' ? 'light' : 'dark');
+$('helpb').onclick = () => help(true); $('helpx').onclick = () => help(false); $('help').onclick = ev => { if (ev.target === $('help')) help(false); };
+$('cons').onclick = () => setConstruct(!S.construct);
+$('grid').onclick = ev => { const r = $('grid').getBoundingClientRect(), [cols, cell] = gridShape(r.width), i = Math.floor((ev.clientY - r.top) / cell) * cols + Math.floor((ev.clientX - r.left) / cell); if (GRID[i]) select(GRID[i]); };
+{ const pad = $('pad'); let held = false;                       // the pen pad: direction sets the angle, distance sets the width
+  const turn = ev => { const r = pad.getBoundingClientRect(), dx = ev.clientX - r.left - r.width / 2, dy = ev.clientY - r.top - r.height / 2;
+    cancelAnimationFrame(raf); S.P.angle = Math.round((Math.atan2(-dy, dx) / RAD + 360) % 180) % 180; S.P.pen = clamp(Math.round(2 * Math.hypot(dx, dy) / padScale(r.width, r.height)), 14, 230); render(); };
+  pad.addEventListener('pointerdown', ev => { held = true; pad.setPointerCapture(ev.pointerId); turn(ev); ev.preventDefault(); });
+  pad.addEventListener('pointermove', ev => { if (held) turn(ev); });
+  for (const t of ['pointerup', 'pointercancel']) pad.addEventListener(t, () => held = false);
+}
+addEventListener('keydown', ev => {
+  const mod = ev.ctrlKey || ev.metaKey, key = ev.key.toLowerCase(), typing = ev.target.closest && ev.target.closest('input, textarea, select, [contenteditable]');
+  if (mod && key === '/') { ev.preventDefault(); return help($('help').hidden); }
+  if (mod && key === 's') { ev.preventDefault(); return save(); }
+  if (mod && key === 'o') { ev.preventDefault(); return $('file').click(); }
+  if (key === 'escape') return help(false);
+  if (mod || ev.altKey || typing || !$('help').hidden) return;
+  const names = Object.keys(PRESETS), i = GRID.indexOf(S.sel);
+  if (key.length === 1 && key >= '1' && key <= '8') preset(names[key - 1]);
+  else if (key === 'e') exportTtf(); else if (key === 'r') random(); else if (key === 'k') setConstruct(!S.construct); else if (key === 't') $('theme').click();
+  else if (key === 'arrowright') { ev.preventDefault(); select(GRID[(i + 1) % GRID.length]); } else if (key === 'arrowleft') { ev.preventDefault(); select(GRID[(i + GRID.length - 1) % GRID.length]); }
+});
+new ResizeObserver(() => F && draw()).observe(document.querySelector('main'));
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => F && draw());
+render(); setTimeout(() => morph(PRESETS.Quill, 900), 350);       // open with the alphabet reshaping itself from monoline to broad pen
+window.Nib = { state: S, build, ttf, snapshot, restore, PRESETS };   // handle for tests and the curious
+})();
+</script>
+
+</body></html>

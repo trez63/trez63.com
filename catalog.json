@@ -1451,7 +1451,79 @@
           }
         ]
       }
+    },
+    "nib": {
+      "title": "Nib",
+      "engine": "Claude",
+      "description": "A typeface drawn by one pen. Every letter is a bare skeleton of lines and arcs, and a single nib swept along it makes the shape — drag the pen pad to turn and widen the nib, adjust slant, x-height, bowls and wobble, tap any glyph to see its construction, and export the result as a real TrueType font you can install.",
+      "source_file": "Nib-Claude.html",
+      "first_published": "2026-11-09",
+      "last_updated": "2026-11-09",
+      "version": 1,
+      "sha": "a58a4e30bd6a",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-09",
+          "sha": "a58a4e30bd6a"
+        }
+      ],
+      "category": "art"
+    },
+    "parapet": {
+      "title": "Parapet",
+      "engine": "Claude",
+      "description": "A security-header audit that runs in the page. Paste the response headers from curl or DevTools and it grades them out of 100, lists each finding with a one-tap fix, maps every Content-Security-Policy source by how open it is, and exports the hardened set as nginx, Apache, Caddy or Express config.",
+      "source_file": "Parapet-Claude.html",
+      "first_published": "2026-11-09",
+      "last_updated": "2026-11-09",
+      "version": 1,
+      "sha": "b2e8fb9a857d",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-09",
+          "sha": "b2e8fb9a857d"
+        }
+      ],
+      "category": "dev"
+    },
+    "keycuts": {
+      "title": "Keycuts",
+      "engine": "Muse",
+      "description": "A keyboard shortcut trainer. Pick VS Code, Gmail, Chrome or macOS, read the action and press its combo on your keyboard or the on-screen keys; misses go into a needs-work pile, a learn mode shows flip cards, and you can add your own shortcuts and save progress as JSON.",
+      "source_file": "keycuts-muse.html",
+      "first_published": "2026-11-09",
+      "last_updated": "2026-11-09",
+      "version": 1,
+      "sha": "e9178fa9e17e",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-09",
+          "sha": "e9178fa9e17e"
+        }
+      ],
+      "category": "edu"
+    },
+    "rename-studio": {
+      "title": "Rename Studio",
+      "engine": "Muse",
+      "description": "Plan a batch rename before touching any files. Build a naming pattern from date, client, project, name and counter tokens, watch the new name for every file update as you type with duplicates flagged, then copy the names or download the plan as text.",
+      "source_file": "rename-studio-muse.html",
+      "first_published": "2026-11-09",
+      "last_updated": "2026-11-09",
+      "version": 1,
+      "sha": "5d9f0b966330",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-09",
+          "sha": "5d9f0b966330"
+        }
+      ],
+      "category": "tool"
     }
   },
-  "generated": "2026-11-08"
+  "generated": "2026-11-09"
 }

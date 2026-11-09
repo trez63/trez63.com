@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>KEYCUTS — Keyboard Shortcut Trainer</title>
+<style>
+/* ============ 1. TOKENS & BASE ============ */
+:root{
+  --bg:#171512;          /* charcoal black */
+  --panel:#221f1b;       /* dark warm panel */
+  --panel2:#2b2721;
+  --ink:#f5efe3;         /* warm paper text */
+  --muted:#b8ad9c;
+  --line:#3a342c;
+  --accent:#ffd21f;      /* safety yellow */
+  --accent-ink:#1a1600;
+  --good:#37c978;
+  --bad:#ff5a4e;
+  --key-bg:#f5efe3;      /* physical keycap */
+  --key-ink:#221f1b;
+  --key-edge:#b9b0a0;
+  --radius:14px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:17px; line-height:1.5;
+}
+.wrap{max-width:680px; margin:0 auto; padding:16px 16px 48px}
+h1{font-size:30px; line-height:1.1; margin:6px 0 2px; letter-spacing:.5px}
+h1 .dot{color:var(--accent)}
+.sub{color:var(--muted); margin:0 0 14px; font-size:15px}
+h2{font-size:13px; text-transform:uppercase; letter-spacing:1.2px; color:var(--muted); margin:22px 0 8px}
+button{font:inherit; color:inherit; cursor:pointer; -webkit-tap-highlight-color:transparent}
+button:focus-visible, input:focus-visible, select:focus-visible{outline:3px solid var(--accent); outline-offset:2px}
+
+/* ============ 2. STATS BAR ============ */
+.stats{
+  display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:12px 0 4px;
+}
+.stat{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:10px 8px; text-align:center}
+.stat b{display:block; font-size:22px; line-height:1.1}
+.stat span{font-size:12px; color:var(--muted)}
+.bar{height:8px; background:var(--panel2); border-radius:99px; overflow:hidden; margin-top:8px}
+.bar i{display:block; height:100%; background:var(--accent); width:0%}
+
+/* ============ 3. CHIPS & MODE TOGGLE ============ */
+.row{display:flex; flex-wrap:wrap; gap:8px}
+.chip{
+  min-height:44px; padding:10px 16px; border-radius:99px;
+  background:var(--panel); border:1px solid var(--line); font-weight:600; font-size:15px;
+}
+.chip[aria-pressed="true"]{background:var(--accent); color:var(--accent-ink); border-color:var(--accent)}
+.mode-toggle{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
+.mode-toggle .chip{text-align:center}
+.hint{font-size:13px; color:var(--muted); margin:8px 0 0}
+
+/* ============ 4. DRILL CARD ============ */
+.card{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:20px 16px; margin-top:10px;
+}
+.card .count{font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:1px}
+.action{font-size:26px; font-weight:800; line-height:1.25; margin:8px 0 4px}
+.prompt{color:var(--muted); font-size:15px; margin:0 0 14px}
+.pressed{
+  min-height:60px; display:flex; flex-wrap:wrap; gap:8px; align-items:center;
+  background:var(--bg); border:1px dashed var(--line); border-radius:12px; padding:10px 12px;
+}
+.pressed .empty{color:var(--muted); font-size:15px}
+.badge{
+  display:inline-block; margin-top:10px; font-size:13px; font-weight:700;
+  background:#3d2b12; color:#ffcf5c; border:1px solid #6b5316; border-radius:99px; padding:5px 10px;
+}
+
+/* ============ 5. KEYCAPS & KEYPAD ============ */
+.keycap{
+  display:inline-flex; align-items:center; justify-content:center;
+  min-width:44px; min-height:44px; padding:8px 12px;
+  background:var(--key-bg); color:var(--key-ink); font-weight:800; font-size:17px;
+  border-radius:9px; border-bottom:4px solid var(--key-edge);
+}
+.keycap.small{min-width:36px; min-height:36px; font-size:15px; padding:6px 10px}
+.keypad{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px}
+.pad-key{
+  min-width:54px; min-height:54px; padding:10px 12px;
+  background:var(--key-bg); color:var(--key-ink); font-weight:800; font-size:18px;
+  border-radius:10px; border:1px solid #d8d0c0; border-bottom:4px solid var(--key-edge);
+}
+.pad-key:active{transform:translateY(2px); border-bottom-width:2px}
+.pad-key.on{background:var(--accent); border-color:#c9a400; border-bottom-color:#a38600}
+.pad-key.mod{font-size:15px}
+
+/* ============ 6. ACTION BUTTONS & FEEDBACK ============ */
+.actions{display:flex; flex-wrap:wrap; gap:8px; margin-top:16px}
+.btn{
+  min-height:48px; padding:12px 18px; border-radius:12px; font-weight:700; font-size:16px;
+  background:var(--panel2); border:1px solid var(--line);
+}
+.btn.primary{background:var(--accent); color:var(--accent-ink); border-color:var(--accent)}
+.btn.good{background:var(--good); color:#04160c; border-color:var(--good)}
+.feedback{margin-top:14px; font-size:16px; font-weight:700; min-height:24px}
+.feedback.good{color:var(--good)}
+.feedback.bad{color:var(--bad)}
+.feedback .keys{display:inline-flex; gap:6px; vertical-align:middle; margin-left:6px}
+
+/* ============ 7. LEARN GRID (FLIP CARDS) ============ */
+.learn-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.flip{perspective:900px; min-height:120px; background:none; border:none; padding:0; text-align:left; width:100%}
+.flip-inner{
+  position:relative; width:100%; height:100%; min-height:120px;
+  transform-style:preserve-3d; transition:transform .35s ease;
+}
+.flip.flipped .flip-inner{transform:rotateY(180deg)}
+.flip-face{
+  position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:14px; display:flex; flex-direction:column; justify-content:center; gap:8px;
+}
+.flip-face.back{transform:rotateY(180deg); background:var(--panel2); align-items:flex-start}
+.flip-face .act{font-weight:700; font-size:16px; line-height:1.3}
+.flip-face .tap{font-size:12px; color:var(--muted)}
+.flip-face .keys{display:flex; flex-wrap:wrap; gap:6px}
+.flip-face .del{
+  margin-top:4px; background:none; border:none; color:var(--bad); font-size:13px; padding:6px 0; text-align:left;
+}
+.flip-face .tag{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px}
+
+/* ============ 8. FORMS ============ */
+.form{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:16px}
+.form label{display:block; font-size:14px; font-weight:700; margin:10px 0 4px}
+.form label:first-child{margin-top:0}
+.form input, .form select{
+  width:100%; min-height:48px; padding:10px 12px; font:inherit; font-size:16px;
+  background:var(--bg); color:var(--ink); border:1px solid var(--line); border-radius:10px;
+}
+.form .msg{font-size:14px; margin:10px 0 0; min-height:20px}
+.form .msg.err{color:var(--bad)}
+.form .msg.ok{color:var(--good)}
+
+/* ============ 9. SAVE / OPEN & FOOTER ============ */
+.save-row{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px}
+.note{font-size:13px; color:var(--muted); margin-top:18px}
+.hidden{display:none !important}
+.empty-state{
+  background:var(--panel); border:1px dashed var(--line); border-radius:var(--radius);
+  padding:24px 16px; text-align:center; color:var(--muted); margin-top:10px;
+}
+
+/* ============ 10. MOTION & SMALL SCREENS ============ */
+@media (prefers-reduced-motion: reduce){
+  .flip-inner{transition:none}
+  .pad-key:active{transform:none}
+}
+@media (max-width:420px){
+  h1{font-size:26px}
+  .action{font-size:23px}
+  .learn-grid{grid-template-columns:1fr}
+  .stat b{font-size:19px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ HEADER ============ -->
+  <h1>KEY<span class="dot">CUTS</span></h1>
+  <p class="sub">Keyboard shortcut trainer — press the combo, build the muscle memory. No setup, no account, works offline.</p>
+
+  <!-- ============ STATS ============ -->
+  <div class="stats" id="stats" aria-live="polite">
+    <div class="stat"><b id="stMastered">0</b><span>mastered</span></div>
+    <div class="stat"><b id="stStreak">0</b><span>streak</span></div>
+    <div class="stat"><b id="stBest">0</b><span>best streak</span></div>
+    <div class="stat"><b id="stAcc">–</b><span>accuracy</span></div>
+  </div>
+  <div class="bar" aria-hidden="true"><i id="stBar"></i></div>
+
+  <!-- ============ DECK PICKER ============ -->
+  <h2>Pick an app</h2>
+  <div class="row" id="deckChips" role="group" aria-label="Shortcut decks"></div>
+
+  <!-- ============ MODE TOGGLE ============ -->
+  <h2>Mode</h2>
+  <div class="mode-toggle" role="group" aria-label="Mode">
+    <button class="chip" id="modeDrill" aria-pressed="true">▶ Drill</button>
+    <button class="chip" id="modeLearn" aria-pressed="false">▦ Learn</button>
+    <button class="chip" id="modeNeeds" aria-pressed="false">⚠ Needs work <span id="needsCount"></span></button>
+  </div>
+  <p class="hint">Drill: I show an action, you press its shortcut — on your real keyboard, or by tapping the keys below. Learn: tap any card to flip it and see the keys.</p>
+
+  <!-- ============ DRILL ============ -->
+  <section id="drillSection" aria-label="Drill">
+    <div class="card">
+      <div class="count" id="drillCount">Card 1 of 10</div>
+      <div class="action" id="drillAction">Open the Command Palette</div>
+      <p class="prompt">Press the shortcut for this action.</p>
+      <div class="pressed" id="pressedBox" aria-live="polite"><span class="empty">Nothing pressed yet — type on your keyboard or tap keys below.</span></div>
+      <div id="reservedBadge"></div>
+      <div class="keypad" id="keypad" aria-label="On-screen keys"></div>
+      <div class="actions">
+        <button class="btn primary" id="btnCheck">Check ✓</button>
+        <button class="btn" id="btnClear">Clear</button>
+        <button class="btn" id="btnShow">Show answer</button>
+        <button class="btn good hidden" id="btnNext">Next →</button>
+      </div>
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- ============ LEARN ============ -->
+  <section id="learnSection" class="hidden" aria-label="Learn">
+    <div class="learn-grid" id="learnGrid"></div>
+  </section>
+
+  <!-- ============ EMPTY STATE (NEEDS WORK) ============ -->
+  <div class="empty-state hidden" id="needsEmpty">
+    <b>Nothing needs work yet.</b><br>
+    Drill a deck first — any shortcut you miss lands here for extra practice.
+  </div>
+
+  <!-- ============ ADD YOUR OWN ============ -->
+  <h2>Add your own shortcut</h2>
+  <form class="form" id="addForm">
+    <label for="addDeck">App</label>
+    <select id="addDeck"></select>
+    <label for="addAction">What does it do?</label>
+    <input id="addAction" type="text" maxlength="120" placeholder="e.g. Mute the current tab" autocomplete="off">
+    <label for="addKeys">Keys — write them with + between, e.g. Ctrl+Shift+M</label>
+    <input id="addKeys" type="text" maxlength="60" placeholder="Ctrl+Shift+M" autocomplete="off">
+    <div class="actions"><button class="btn primary" type="submit">Add shortcut</button></div>
+    <p class="msg" id="addMsg" aria-live="polite"></p>
+  </form>
+
+  <!-- ============ SAVE / OPEN ============ -->
+  <h2>Save &amp; restore</h2>
+  <div class="save-row">
+    <button class="btn" id="btnSave">↓ Save progress (.json)</button>
+    <button class="btn" id="btnOpen">↑ Open saved file</button>
+    <button class="btn" id="btnReset">Reset progress</button>
+  </div>
+  <p class="msg form" id="fileMsg" style="background:none;border:none;padding:0" aria-live="polite"></p>
+  <input type="file" id="fileInput" accept=".json,application/json" class="hidden">
+
+  <p class="note">
+    Heads-up: some shortcuts are <b>browser-reserved</b> (Ctrl+W closes a tab, Ctrl+T opens one…) — the browser will act before this page can see them. Those cards are marked and are drilled on the on-screen keys instead.
+    There are no app keyboard shortcuts to memorise here: the keys you press <i>are</i> the answer.
+    Progress autosaves in this browser.
+  </p>
+</div>
+
+<script>
+/* ================================================================
+   KEYCUTS — keyboard shortcut trainer
+   Sections: 1 Data · 2 State · 3 Utils · 4 Render · 5 Drill ·
+             6 Learn · 7 Custom shortcuts · 8 Save/Load · 9 Init
+   ================================================================ */
+
+/* ============ 1. DATA ============ */
+const DECKS = {
+  vscode: { name: "VS Code", shortcuts: [
+    { action: "Open the Command Palette",        keys: ["Ctrl","Shift","P"] },
+    { action: "Quick-open a file by name",       keys: ["Ctrl","P"] },
+    { action: "Toggle the integrated terminal",  keys: ["Ctrl","`"] },
+    { action: "Comment / uncomment this line",   keys: ["Ctrl","/"] },
+    { action: "Search across all files",         keys: ["Ctrl","Shift","F"] },
+    { action: "Go to a line number",             keys: ["Ctrl","G"] },
+    { action: "Format the document",             keys: ["Shift","Alt","F"] },
+    { action: "Toggle the sidebar",              keys: ["Ctrl","B"] },
+    { action: "Duplicate the line below",        keys: ["Shift","Alt","↓"] },
+    { action: "Rename the symbol under cursor",  keys: ["F2"] }
+  ]},
+  gmail: { name: "Gmail", shortcuts: [
+    { action: "Compose a new message",           keys: ["C"] },
+    { action: "Send the message you're writing", keys: ["Ctrl","Enter"] },
+    { action: "Archive the open conversation",   keys: ["E"] },
+    { action: "Reply to the sender",             keys: ["R"] },
+    { action: "Reply to everyone",               keys: ["A"] },
+    { action: "Forward the message",             keys: ["F"] },
+    { action: "Mark as unread",                  keys: ["Shift","U"] },
+    { action: "Star the conversation",           keys: ["S"] },
+    { action: "Jump to search",                  keys: ["/"] },
+    { action: "Select this conversation",        keys: ["X"] }
+  ]},
+  chrome: { name: "Chrome", shortcuts: [
+    { action: "Open a new tab",                  keys: ["Ctrl","T"],     reserved: true },
+    { action: "Reopen the last closed tab",      keys: ["Ctrl","Shift","T"], reserved: true },
+    { action: "Close the current tab",           keys: ["Ctrl","W"],     reserved: true },
+    { action: "Open a new window",               keys: ["Ctrl","N"],     reserved: true },
+    { action: "Open an Incognito window",        keys: ["Ctrl","Shift","N"], reserved: true },
+    { action: "Find text on this page",          keys: ["Ctrl","F"] },
+    { action: "Jump to the address bar",         keys: ["Ctrl","L"] },
+    { action: "Reload the page",                 keys: ["Ctrl","R"] },
+    { action: "Bookmark this page",              keys: ["Ctrl","D"] },
+    { action: "Switch to the next tab",          keys: ["Ctrl","Tab"] }
+  ]},
+  macos: { name: "macOS", shortcuts: [
+    { action: "Open Spotlight search",           keys: ["Cmd","Space"],        reserved: true },
+    { action: "Screenshot a selection",          keys: ["Cmd","Shift","4"],    reserved: true },
+    { action: "Force-quit the front app",        keys: ["Cmd","Option","Esc"], reserved: true },
+    { action: "Lock the screen",                 keys: ["Cmd","Ctrl","Q"],     reserved: true },
+    { action: "Switch between open apps",        keys: ["Cmd","Tab"],          reserved: true },
+    { action: "Close the front window",          keys: ["Cmd","W"],            reserved: true },
+    { action: "Quit the front app",              keys: ["Cmd","Q"],            reserved: true },
+    { action: "Undo the last action",            keys: ["Cmd","Z"] },
+    { action: "Paste without formatting",        keys: ["Cmd","Option","Shift","V"], reserved: true },
+    { action: "Empty the Trash",                 keys: ["Cmd","Shift","Delete"], reserved: true }
+  ]}
+};
+/* Keys the add-form and file loader are allowed to use. */
+const ALLOWED_KEYS = new Set([
+  "Ctrl","Cmd","Shift","Alt","Option",
+  ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""),
+  ..."0123456789".split(""),
+  "F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12",
+  "Tab","Enter","Space","Esc","Delete","Backspace","`","/","\\",".",",",";","'","[","]","-","=",
+  "↑","↓","←","→"
+]);
+/* Modifiers first, then the rest — the order the keypad shows them in. */
+const KEY_ORDER = ["Ctrl","Cmd","Shift","Alt","Option"];
+
+const LS_KEY = "keycuts-v1";
+const SAVE_APP = "keycuts";
+const SAVE_VERSION = 1;
+
+/* ============ 2. STATE ============ */
+const state = {
+  deck: "vscode",
+  mode: "drill",          // "drill" | "learn" | "needs"
+  queue: [],              // indices into current deck's shortcuts, drill order
+  pos: 0,                 // position inside queue
+  pressed: [],            // keys tapped / held right now (labels as displayed)
+  held: new Set(),        // physical keys currently held down (canonical)
+  answered: false,        // current card already judged
+  progress: {             // persisted
+    mastered: {},         // id -> true
+    misses: {},           // id -> count
+    correct: 0, wrong: 0, bestStreak: 0
+  },
+  streak: 0,
+  customSeq: 0            // counter so custom ids stay unique
+};
+
+function shortcutId(deckId, sc){ return deckId + "|" + sc.action; }
+function allShortcuts(){
+  const out = [];
+  for (const [deckId, deck] of Object.entries(DECKS))
+    deck.shortcuts.forEach(sc => out.push({ deckId, sc, id: shortcutId(deckId, sc) }));
+  return out;
+}
+function totalCount(){ return allShortcuts().length; }
+function masteredCount(){ return allShortcuts().filter(x => state.progress.mastered[x.id]).length; }
+function needsList(){ return allShortcuts().filter(x => (state.progress.misses[x.id] || 0) > 0 && !state.progress.mastered[x.id]); }
+
+function persist(){
+  try{
+    localStorage.setItem(LS_KEY, JSON.stringify({
+      app: SAVE_APP, version: SAVE_VERSION,
+      deck: state.deck,
+      progress: state.progress,
+      customs: collectCustoms(),
+      customSeq: state.customSeq
+    }));
+  }catch(e){ /* storage full / private mode — the file Save still works */ }
+}
+function collectCustoms(){
+  const out = {};
+  for (const [deckId, deck] of Object.entries(DECKS))
+    out[deckId] = deck.shortcuts.filter(sc => sc.custom).map(sc => ({ action: sc.action, keys: sc.keys }));
+  return out;
+}
+
+/* ============ 3. UTILS ============ */
+/* Canonical form for comparing keys: Alt and Option are the same physical key. */
+function canon(k){
+  if (k === "Option") return "Alt";
+  return k;
+}
+/* Order-insensitive set comparison, after canonicalisation. */
+function keysEqual(a, b){
+  if (a.length !== b.length) return false;
+  const sa = new Set(a.map(canon)), sb = new Set(b.map(canon));
+  if (sa.size !== sb.size) return false;
+  for (const k of sa) if (!sb.has(k)) return false;
+  return true;
+}
+/* "Ctrl+Shift+M" -> ["Ctrl","Shift","M"] or null if any token is not allowed.
+   Matching is case-insensitive ("ctrl+p", "CONTROL+ESC" all work). */
+function parseKeysInput(str){
+  if (typeof str !== "string") return null;
+  const parts = str.split("+").map(s => s.trim()).filter(Boolean);
+  if (parts.length < 1 || parts.length > 5) return null;
+  const out = [];
+  for (const raw of parts){
+    const low = raw.toLowerCase();
+    let k;
+    if (low === "ctrl" || low === "control") k = "Ctrl";
+    else if (low === "cmd" || low === "command" || low === "meta" || low === "commandkey") k = "Cmd";
+    else if (low === "shift") k = "Shift";
+    else if (low === "alt") k = "Alt";
+    else if (low === "option") k = "Option";
+    else if (low === "esc" || low === "escape") k = "Esc";
+    else if (low === "del") k = "Delete";
+    else if (low === "delete") k = "Delete";
+    else if (low === "return" || low === "enter") k = "Enter";
+    else if (low === "space" || low === "spacebar") k = "Space";
+    else if (low === "tab") k = "Tab";
+    else if (low === "backspace") k = "Backspace";
+    else if (low === "up" || low === "arrowup") k = "↑";
+    else if (low === "down" || low === "arrowdown") k = "↓";
+    else if (low === "left" || low === "arrowleft") k = "←";
+    else if (low === "right" || low === "arrowright") k = "→";
+    else if (/^f\d{1,2}$/.test(low)) k = low.toUpperCase();
+    else if (low.length === 1) k = low.toUpperCase();
+    else k = raw;
+    if (!ALLOWED_KEYS.has(k)) return null;
+    if (out.includes(k)) return null;                 // no duplicate keys in one combo
+    out.push(k);
+  }
+  return out;
+}
+/* Normalise a physical KeyboardEvent key to a displayed label (or null to ignore). */
+function eventKey(e){
+  const k = e.key;
+  if (k === "Control") return "Ctrl";
+  if (k === "Meta") return "Cmd";
+  if (k === "Alt") return "Alt";
+  if (k === "Shift") return "Shift";
+  if (k === " ") return "Space";
+  if (k === "ArrowDown") return "↓";
+  if (k === "ArrowUp") return "↑";
+  if (k === "ArrowLeft") return "←";
+  if (k === "ArrowRight") return "→";
+  if (k === "Escape") return "Esc";
+  if (k.length === 1) return k.toUpperCase();
+  if (/^F\d{1,2}$/.test(k)) return k;
+  if (["Tab","Enter","Delete","Backspace"].includes(k)) return k;
+  return null;
+}
+function el(id){ return document.getElementById(id); }
+function keycapsHTML(keys, small){
+  return keys.map(k => '<span class="keycap' + (small ? ' small' : '') + '">' + escapeHTML(k) + '</span>').join('<span aria-hidden="true" style="font-weight:800;color:var(--muted)">+</span>');
+}
+function escapeHTML(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+/* ============ 4. RENDER ============ */
+function renderAll(){
+  renderStats(); renderDeckChips(); renderMode(); renderDrill(); renderLearn(); renderAddDeckOptions();
+}
+function renderStats(){
+  const total = totalCount(), done = masteredCount();
+  const p = state.progress, attempts = p.correct + p.wrong;
+  el("stMastered").textContent = done + "/" + total;
+  el("stStreak").textContent = state.streak;
+  el("stBest").textContent = p.bestStreak;
+  el("stAcc").textContent = attempts ? Math.round(100 * p.correct / attempts) + "%" : "–";
+  el("stBar").style.width = total ? Math.round(100 * done / total) + "%" : "0%";
+  const n = needsList().length;
+  el("needsCount").textContent = n ? "(" + n + ")" : "";
+}
+function renderDeckChips(){
+  const box = el("deckChips");
+  box.innerHTML = "";
+  for (const [deckId, deck] of Object.entries(DECKS)){
+    const b = document.createElement("button");
+    b.className = "chip"; b.type = "button";
+    b.setAttribute("aria-pressed", String(state.deck === deckId));
+    const done = deck.shortcuts.filter(sc => state.progress.mastered[shortcutId(deckId, sc)]).length;
+    b.textContent = deck.name + "  " + done + "/" + deck.shortcuts.length;
+    b.addEventListener("click", () => { state.deck = deckId; state.mode = "drill"; buildQueue(); renderAll(); });
+    box.appendChild(b);
+  }
+}
+function renderMode(){
+  el("modeDrill").setAttribute("aria-pressed", String(state.mode === "drill"));
+  el("modeLearn").setAttribute("aria-pressed", String(state.mode === "learn"));
+  el("modeNeeds").setAttribute("aria-pressed", String(state.mode === "needs"));
+  el("drillSection").classList.toggle("hidden", state.mode === "learn");
+  el("learnSection").classList.toggle("hidden", state.mode !== "learn");
+  const showEmpty = state.mode === "needs" && needsList().length === 0;
+  el("needsEmpty").classList.toggle("hidden", !showEmpty);
+  el("drillSection").classList.toggle("hidden", showEmpty);
+}
+function renderAddDeckOptions(){
+  const sel = el("addDeck");
+  if (sel.options.length) return;
+  for (const [deckId, deck] of Object.entries(DECKS)){
+    const o = document.createElement("option");
+    o.value = deckId; o.textContent = deck.name;
+    sel.appendChild(o);
+  }
+}
+
+/* ============ 5. DRILL ============ */
+function deckShortcuts(){
+  if (state.mode === "needs") return needsList().map(x => x.sc);
+  return DECKS[state.deck].shortcuts;
+}
+function buildQueue(){
+  const list = deckShortcuts();
+  const idx = list.map((_, i) => i);
+  // Shuffle (Fisher–Yates), needs-work first when drilling a deck.
+  for (let i = idx.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [idx[i], idx[j]] = [idx[j], idx[i]];
+  }
+  if (state.mode === "drill"){
+    idx.sort((a, b) => {
+      const na = needsList().some(x => x.sc === list[a]) ? 0 : 1;
+      const nb = needsList().some(x => x.sc === list[b]) ? 0 : 1;
+      return na - nb;
+    });
+  }
+  state.queue = idx; state.pos = 0;
+}
+function currentCard(){
+  const list = deckShortcuts();
+  if (!list.length || state.pos >= state.queue.length) return null;
+  return list[state.queue[state.pos]];
+}
+function renderDrill(){
+  const card = currentCard();
+  const list = deckShortcuts();
+  if (!card){
+    el("drillCount").textContent = "";
+    el("drillAction").textContent = state.mode === "needs" ? "Nothing to practise" : "No shortcuts in this deck yet";
+    el("reservedBadge").innerHTML = "";
+    el("keypad").innerHTML = "";
+    el("pressedBox").innerHTML = '<span class="empty">Add a shortcut below to get started.</span>';
+    el("feedback").textContent = "";
+    el("btnNext").classList.add("hidden");
+    return;
+  }
+  el("drillCount").textContent = "Card " + (state.pos + 1) + " of " + list.length +
+    (state.mode === "needs" ? " · needs work" : " · " + DECKS[state.deck].name);
+  el("drillAction").textContent = card.action;
+  el("reservedBadge").innerHTML = card.reserved
+    ? '<span class="badge">⚠ Browser-reserved — use the on-screen keys below, not your keyboard</span>' : "";
+  renderPressed(); renderKeypad();
+  el("feedback").textContent = ""; el("feedback").className = "feedback";
+  el("btnNext").classList.add("hidden");
+  el("btnCheck").disabled = false; el("btnShow").disabled = false;
+}
+function renderPressed(){
+  const box = el("pressedBox");
+  if (!state.pressed.length){
+    box.innerHTML = '<span class="empty">Nothing pressed yet — type on your keyboard or tap keys below.</span>';
+    return;
+  }
+  box.innerHTML = keycapsHTML(state.pressed);
+}
+function renderKeypad(){
+  const list = deckShortcuts();
+  const keys = new Set();
+  list.forEach(sc => sc.keys.forEach(k => keys.add(k)));
+  const ordered = [...keys].sort((a, b) => {
+    const ia = KEY_ORDER.indexOf(canon(a)), ib = KEY_ORDER.indexOf(canon(b));
+    if (ia !== -1 || ib !== -1) return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+    return a.localeCompare(b);
+  });
+  const pad = el("keypad");
+  pad.innerHTML = "";
+  ordered.forEach(k => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "pad-key" + (KEY_ORDER.includes(canon(k)) ? " mod" : "");
+    b.textContent = k;
+    b.setAttribute("aria-pressed", String(state.pressed.includes(k)));
+    if (state.pressed.includes(k)) b.classList.add("on");
+    b.addEventListener("click", () => togglePadKey(k));
+    pad.appendChild(b);
+  });
+}
+function togglePadKey(k){
+  if (state.answered) return;
+  const i = state.pressed.indexOf(k);
+  if (i === -1) state.pressed.push(k); else state.pressed.splice(i, 1);
+  renderPressed(); renderKeypad();
+}
+function judge(){
+  const card = currentCard();
+  if (!card || state.answered) return;
+  const ok = keysEqual(state.pressed, card.keys);
+  const id = state.mode === "needs"
+    ? needsList()[state.queue[state.pos]].id
+    : shortcutId(state.deck, card);
+  const fb = el("feedback");
+  if (ok){
+    state.progress.correct++;
+    state.streak++;
+    if (state.streak > state.progress.bestStreak) state.progress.bestStreak = state.streak;
+    state.progress.mastered[id] = true;
+    fb.className = "feedback good";
+    fb.textContent = "✓ Correct — nice. " + (state.streak > 1 ? state.streak + " in a row!" : "");
+    state.answered = true;
+    el("btnNext").classList.remove("hidden");
+    el("btnCheck").disabled = true; el("btnShow").disabled = true;
+  } else {
+    state.progress.wrong++;
+    state.streak = 0;
+    state.progress.misses[id] = (state.progress.misses[id] || 0) + 1;
+    delete state.progress.mastered[id];
+    fb.className = "feedback bad";
+    fb.innerHTML = "✗ Not quite — it's " + keycapsHTML(card.keys, true);
+    state.answered = true;
+    el("btnNext").classList.remove("hidden");
+    el("btnCheck").disabled = true; el("btnShow").disabled = true;
+  }
+  persist(); renderStats(); renderDeckChips();
+}
+function showAnswer(){
+  const card = currentCard();
+  if (!card || state.answered) return;
+  const id = state.mode === "needs"
+    ? needsList()[state.queue[state.pos]].id
+    : shortcutId(state.deck, card);
+  state.progress.misses[id] = (state.progress.misses[id] || 0) + 1;
+  delete state.progress.mastered[id];
+  state.streak = 0;
+  const fb = el("feedback");
+  fb.className = "feedback bad";
+  fb.innerHTML = "It's " + keycapsHTML(card.keys, true) + " — it'll come back for extra practice.";
+  state.answered = true;
+  el("btnNext").classList.remove("hidden");
+  el("btnCheck").disabled = true; el("btnShow").disabled = true;
+  persist(); renderStats(); renderDeckChips();
+}
+function nextCard(){
+  state.pressed = []; state.held.clear(); state.answered = false;
+  state.pos++;
+  if (state.pos >= state.queue.length) buildQueue();
+  if (state.mode === "needs") buildQueue();   // re-filter after each answer
+  renderDrill();
+}
+
+/* Physical keyboard: keys held = the combo. Judged when the set matches,
+   or when all keys are released after a non-empty, non-matching press. */
+function onKeyDown(e){
+  if (state.mode === "learn") return;
+  if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "SELECT" || e.target.tagName === "TEXTAREA")) return;
+  const card = currentCard();
+  if (!card || state.answered || card.reserved) return;
+  const k = eventKey(e);
+  if (!k) return;
+  // Stop the browser stealing the combo while drilling (Ctrl+R, Ctrl+L, …).
+  if (e.ctrlKey || e.metaKey || e.altKey || k === "Tab" || k === "F2") e.preventDefault();
+  const ck = canon(k);
+  if (!state.held.has(ck)){
+    state.held.add(ck);
+    if (!state.pressed.includes(k)) state.pressed.push(k);
+    renderPressed();
+    if (keysEqual(state.pressed, card.keys)) judge();
+  }
+}
+function onKeyUp(e){
+  if (state.mode === "learn") return;
+  if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "SELECT" || e.target.tagName === "TEXTAREA")) return;
+  const card = currentCard();
+  if (!card || state.answered || card.reserved) return;
+  const k = eventKey(e);
+  if (k) state.held.delete(canon(k));
+  if (state.held.size === 0 && state.pressed.length && !state.answered){
+    judge();   // released everything: what was pressed is the answer
+  }
+}
+
+/* ============ 6. LEARN ============ */
+function renderLearn(){
+  const grid = el("learnGrid");
+  grid.innerHTML = "";
+  const list = DECKS[state.deck].shortcuts;
+  list.forEach(sc => {
+    const id = shortcutId(state.deck, sc);
+    const mastered = !!state.progress.mastered[id];
+    const misses = state.progress.misses[id] || 0;
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "flip";
+    b.setAttribute("aria-label", sc.action + " — tap to reveal the shortcut");
+    b.innerHTML =
+      '<span class="flip-inner">' +
+        '<span class="flip-face">' +
+          '<span class="act">' + escapeHTML(sc.action) + '</span>' +
+          '<span class="tap">' + (mastered ? "✓ mastered" : misses ? "⚠ missed " + misses + "×" : "tap to reveal") + '</span>' +
+        '</span>' +
+        '<span class="flip-face back">' +
+          '<span class="tag">' + escapeHTML(DECKS[state.deck].name) + '</span>' +
+          '<span class="keys">' + keycapsHTML(sc.keys, true) + '</span>' +
+          (sc.custom ? '<span class="del" data-del="' + escapeHTML(id) + '">Remove this shortcut ✕</span>' : '') +
+        '</span>' +
+      '</span>';
+    b.addEventListener("click", ev => {
+      const del = ev.target.closest("[data-del]");
+      if (del){ ev.stopPropagation(); deleteCustom(id); return; }
+      b.classList.toggle("flipped");
+    });
+    grid.appendChild(b);
+  });
+}
+
+/* ============ 7. CUSTOM SHORTCUTS ============ */
+function deleteCustom(id){
+  for (const [deckId, deck] of Object.entries(DECKS)){
+    const i = deck.shortcuts.findIndex(sc => sc.custom && shortcutId(deckId, sc) === id);
+    if (i !== -1){
+      deck.shortcuts.splice(i, 1);
+      delete state.progress.mastered[id];
+      delete state.progress.misses[id];
+      persist(); buildQueue(); renderAll();
+      return;
+    }
+  }
+}
+function addCustom(deckId, action, keys){
+  const deck = DECKS[deckId];
+  if (!deck) return "Unknown app.";
+  if (deck.shortcuts.some(sc => sc.action.toLowerCase() === action.toLowerCase()))
+    return "That action is already in this deck.";
+  if (deck.shortcuts.length >= 60) return "This deck is full (60 max).";
+  deck.shortcuts.push({ action, keys, custom: true, reserved: false });
+  persist(); buildQueue(); renderAll();
+  return null;
+}
+
+/* ============ 8. SAVE / LOAD ============ */
+function saveData(){
+  return {
+    app: SAVE_APP, version: SAVE_VERSION,
+    deck: state.deck,
+    progress: state.progress,
+    customs: collectCustoms(),
+    customSeq: state.customSeq
+  };
+}
+/* Full validation: a bad file must never wipe current data. Returns an error string or null. */
+function validateSaveData(d){
+  if (!d || typeof d !== "object" || Array.isArray(d)) return "Not a JSON object.";
+  if (d.app !== SAVE_APP) return "Not a KEYCUTS file (wrong app tag).";
+  if (d.version !== SAVE_VERSION) return "Unsupported file version.";
+  if (typeof d.deck !== "string" || !DECKS[d.deck]) return "Unknown deck in file.";
+  if (!d.progress || typeof d.progress !== "object") return "Missing progress data.";
+  const p = d.progress;
+  if (!p.mastered || typeof p.mastered !== "object" || Array.isArray(p.mastered)) return "Bad mastered data.";
+  if (!p.misses || typeof p.misses !== "object" || Array.isArray(p.misses)) return "Bad misses data.";
+  for (const [k, v] of Object.entries(p.mastered)) if (typeof k !== "string" || v !== true) return "Bad mastered entry.";
+  for (const [k, v] of Object.entries(p.misses)) if (typeof k !== "string" || !Number.isInteger(v) || v < 0 || v > 1000) return "Bad misses entry.";
+  if (!Number.isInteger(p.correct) || p.correct < 0 || !Number.isInteger(p.wrong) || p.wrong < 0) return "Bad score counters.";
+  if (!Number.isInteger(p.bestStreak) || p.bestStreak < 0) return "Bad streak data.";
+  if (!d.customs || typeof d.customs !== "object") return "Missing custom shortcuts.";
+  for (const [deckId, list] of Object.entries(d.customs)){
+    if (!DECKS[deckId]) return "Unknown deck in custom shortcuts.";
+    if (!Array.isArray(list) || list.length > 60) return "Bad custom list.";
+    for (const sc of list){
+      if (!sc || typeof sc !== "object") return "Bad custom shortcut.";
+      if (typeof sc.action !== "string" || !sc.action.trim() || sc.action.length > 120) return "Bad custom action.";
+      if (!Array.isArray(sc.keys) || sc.keys.length < 1 || sc.keys.length > 5) return "Bad custom keys.";
+      if (sc.keys.some(k => typeof k !== "string" || !ALLOWED_KEYS.has(k))) return "Unknown key in custom shortcut.";
+      if (new Set(sc.keys).size !== sc.keys.length) return "Duplicate key in custom shortcut.";
+    }
+  }
+  if (d.customSeq !== undefined && (!Number.isInteger(d.customSeq) || d.customSeq < 0)) return "Bad custom counter.";
+  return null;
+}
+function applySaveData(d){
+  state.progress = {
+    mastered: d.progress.mastered, misses: d.progress.misses,
+    correct: d.progress.correct, wrong: d.progress.wrong, bestStreak: d.progress.bestStreak
+  };
+  state.streak = 0;
+  state.customSeq = d.customSeq || 0;
+  for (const [deckId, deck] of Object.entries(DECKS)){
+    deck.shortcuts = deck.shortcuts.filter(sc => !sc.custom);
+    (d.customs[deckId] || []).forEach(sc => deck.shortcuts.push({ action: sc.action, keys: sc.keys.slice(), custom: true }));
+  }
+  state.deck = d.deck;
+  state.mode = "drill";
+  persist(); buildQueue(); renderAll();
+}
+function downloadJSON(){
+  const blob = new Blob([JSON.stringify(saveData(), null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  const today = new Date().toISOString().slice(0, 10);
+  a.href = URL.createObjectURL(blob);
+  a.download = "keycuts-" + today + ".json";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  el("fileMsg").textContent = "Saved — your progress and custom shortcuts are in the downloaded file.";
+  el("fileMsg").className = "msg form ok";
+}
+
+/* ============ 9. INIT ============ */
+function restore(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    const err = validateSaveData(d);
+    if (err) return;               // corrupt autosave: start fresh, never crash
+    applySaveData(d);
+  }catch(e){ /* bad autosave — start fresh */ }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  restore();
+  buildQueue();
+
+  el("modeDrill").addEventListener("click", () => { state.mode = "drill"; buildQueue(); renderAll(); });
+  el("modeLearn").addEventListener("click", () => { state.mode = "learn"; renderAll(); });
+  el("modeNeeds").addEventListener("click", () => { state.mode = "needs"; buildQueue(); renderAll(); });
+
+  el("btnCheck").addEventListener("click", judge);
+  el("btnClear").addEventListener("click", () => { if (!state.answered){ state.pressed = []; state.held.clear(); renderPressed(); renderKeypad(); } });
+  el("btnShow").addEventListener("click", showAnswer);
+  el("btnNext").addEventListener("click", nextCard);
+
+  document.addEventListener("keydown", onKeyDown);
+  document.addEventListener("keyup", onKeyUp);
+
+  el("addForm").addEventListener("submit", ev => {
+    ev.preventDefault();
+    const msg = el("addMsg");
+    const action = el("addAction").value.trim();
+    const keys = parseKeysInput(el("addKeys").value);
+    if (!action){ msg.textContent = "Give the shortcut a name first — what does it do?"; msg.className = "msg err"; return; }
+    if (!keys){ msg.textContent = "Keys don't look right — use + between keys, e.g. Ctrl+Shift+M."; msg.className = "msg err"; return; }
+    const err = addCustom(el("addDeck").value, action, keys);
+    if (err){ msg.textContent = err; msg.className = "msg err"; return; }
+    msg.textContent = "Added to " + DECKS[el("addDeck").value].name + ".";
+    msg.className = "msg ok";
+    el("addAction").value = ""; el("addKeys").value = "";
+  });
+
+  el("btnSave").addEventListener("click", downloadJSON);
+  el("btnOpen").addEventListener("click", () => el("fileInput").click());
+  el("fileInput").addEventListener("change", ev => {
+    const file = ev.target.files[0];
+    const msg = el("fileMsg");
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      let data;
+      try { data = JSON.parse(reader.result); }
+      catch(e){ msg.textContent = "That file isn't valid JSON — current data kept."; msg.className = "msg form err"; ev.target.value = ""; return; }
+      const err = validateSaveData(data);
+      if (err){ msg.textContent = "Couldn't load that file (" + err + ") — current data kept."; msg.className = "msg form err"; ev.target.value = ""; return; }
+      applySaveData(data);
+      msg.textContent = "Loaded — progress and custom shortcuts restored.";
+      msg.className = "msg form ok";
+      ev.target.value = "";
+    };
+    reader.onerror = () => { msg.textContent = "Couldn't read that file — current data kept."; msg.className = "msg form err"; ev.target.value = ""; };
+    reader.readAsText(file);
+  });
+  el("btnReset").addEventListener("click", () => {
+    if (!confirm("Reset all progress (mastered, misses, scores) to zero? Custom shortcuts stay.")) return;
+    state.progress = { mastered: {}, misses: {}, correct: 0, wrong: 0, bestStreak: 0 };
+    state.streak = 0;
+    persist(); buildQueue(); renderAll();
+  });
+
+  renderAll();
+});
+</script>
+</body>
+</html>

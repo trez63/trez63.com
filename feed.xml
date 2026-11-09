@@ -3,7 +3,35 @@
   <title>trez63 — one small app a day</title>
   <link>https://trez63.com/</link>
   <description>Every day ChatGPT, Claude, Gemini, Grok and Muse each build a single-page app from the same one-line prompt. Play them all.</description>
-  <lastBuildDate>Sun, 08 Nov 2026 12:00:00 +0000</lastBuildDate>
+  <lastBuildDate>Mon, 09 Nov 2026 12:00:00 +0000</lastBuildDate>
+  <item>
+    <title>Nib (Claude)</title>
+    <link>https://trez63.com/p/nib.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/nib.html</guid>
+    <pubDate>Mon, 09 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A typeface drawn by one pen. Every letter is a bare skeleton of lines and arcs, and a single nib swept along it makes the shape — drag the pen pad to turn and widen the nib, adjust slant, x-height, bowls and wobble, tap any glyph to see its construction, and export the result as a real TrueType font you can install.</description>
+  </item>
+  <item>
+    <title>Parapet (Claude)</title>
+    <link>https://trez63.com/p/parapet.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/parapet.html</guid>
+    <pubDate>Mon, 09 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A security-header audit that runs in the page. Paste the response headers from curl or DevTools and it grades them out of 100, lists each finding with a one-tap fix, maps every Content-Security-Policy source by how open it is, and exports the hardened set as nginx, Apache, Caddy or Express config.</description>
+  </item>
+  <item>
+    <title>Keycuts (Muse)</title>
+    <link>https://trez63.com/p/keycuts.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/keycuts.html</guid>
+    <pubDate>Mon, 09 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A keyboard shortcut trainer. Pick VS Code, Gmail, Chrome or macOS, read the action and press its combo on your keyboard or the on-screen keys; misses go into a needs-work pile, a learn mode shows flip cards, and you can add your own shortcuts and save progress as JSON.</description>
+  </item>
+  <item>
+    <title>Rename Studio (Muse)</title>
+    <link>https://trez63.com/p/rename-studio.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/rename-studio.html</guid>
+    <pubDate>Mon, 09 Nov 2026 12:00:00 +0000</pubDate>
+    <description>Plan a batch rename before touching any files. Build a naming pattern from date, client, project, name and counter tokens, watch the new name for every file update as you type with duplicates flagged, then copy the names or download the plan as text.</description>
+  </item>
   <item>
     <title>PipelineForge (Grok)</title>
     <link>https://trez63.com/p/pipelineforge.html</link>
@@ -325,33 +353,5 @@
     <guid isPermaLink="true">https://trez63.com/p/meadowsong.html</guid>
     <pubDate>Fri, 23 Oct 2026 12:00:00 +0000</pubDate>
     <description>A wind-chime meadow you play by gliding your cursor through it.</description>
-  </item>
-  <item>
-    <title>Position (Claude)</title>
-    <link>https://trez63.com/p/position.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/position.html</guid>
-    <pubDate>Fri, 23 Oct 2026 12:00:00 +0000</pubDate>
-    <description>Press or fold — nothing in between. Six crude signals decide whether you have position in a deal, so there is nothing to interpret in the moment.</description>
-  </item>
-  <item>
-    <title>Crosslight (ChatGPT)</title>
-    <link>https://trez63.com/p/crosslight.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/crosslight.html</guid>
-    <pubDate>Fri, 23 Oct 2026 12:00:00 +0000</pubDate>
-    <description>A mirror puzzle. Turn the mirrors so every beam reaches its receiver — a small game that rewards a second look.</description>
-  </item>
-  <item>
-    <title>Kaleido (Muse)</title>
-    <link>https://trez63.com/p/kaleido.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/kaleido.html</guid>
-    <pubDate>Thu, 22 Oct 2026 12:00:00 +0000</pubDate>
-    <description>Draw once, see it eight times. Every stroke mirrors around the centre into a mandala.</description>
-  </item>
-  <item>
-    <title>Sonogram (Claude)</title>
-    <link>https://trez63.com/p/sonogram.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/sonogram.html</guid>
-    <pubDate>Thu, 22 Oct 2026 12:00:00 +0000</pubDate>
-    <description>Draw a picture; hear it. The canvas is a spectrogram — left to right is time, bottom to top is pitch.</description>
   </item>
 </channel></rss>

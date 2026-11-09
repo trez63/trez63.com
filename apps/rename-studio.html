@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RENAME STUDIO — Batch File Rename Planner</title>
+<style>
+  /* ---------- Palette & base ---------- */
+  :root{
+    --bg:#eef1f5; --card:#ffffff; --ink:#16202e; --muted:#5b6b7d;
+    --line:#d5dce4; --accent:#b3402a; --accent-soft:#fbe9e3;
+    --steel:#2f5d8a; --steel-soft:#e3edf7; --warn:#9a6a00; --warn-soft:#fff3cf;
+    --ok:#2e7d4f; --radius:14px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.5}
+  header{padding:20px 16px 4px;max-width:860px;margin:0 auto}
+  h1{margin:0;font-size:30px;letter-spacing:-.5px}
+  h1 span{color:var(--accent)}
+  .tag{color:var(--muted);margin:6px 0 0;font-size:16px}
+  main{max-width:860px;margin:0 auto;padding:12px 16px 40px;display:grid;gap:16px}
+  section{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+  h2{margin:0 0 4px;font-size:18px}
+  .hint{color:var(--muted);font-size:14px;margin:0 0 12px}
+  label{display:block;font-weight:650;font-size:14px;margin:12px 0 4px}
+  input[type=text],select{width:100%;padding:12px;border:1px solid var(--line);
+    border-radius:10px;font-size:16px;background:#fff;color:var(--ink)}
+  input[type=text]:focus,select:focus,button:focus-visible{outline:3px solid #f0b429;outline-offset:2px}
+  /* ---------- Token chips ---------- */
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 2px}
+  .chip{border:1px solid var(--steel);background:var(--steel-soft);color:var(--steel);
+    border-radius:999px;padding:10px 14px;font-size:15px;font-weight:650;cursor:pointer;min-height:44px}
+  .chip:active{transform:scale(.97)}
+  .chip small{display:block;font-weight:400;font-size:12px;color:var(--muted)}
+  /* ---------- Options row ---------- */
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:560px){.opts{grid-template-columns:1fr}}
+  /* ---------- Buttons ---------- */
+  .btnrow{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+  button{font:inherit;cursor:pointer;border-radius:10px;padding:12px 16px;min-height:48px;
+    border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:650;font-size:15px}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button.steel{background:var(--steel);border-color:var(--steel);color:#fff}
+  button.danger{color:var(--accent);border-color:#e5b8ad}
+  button:active{transform:scale(.98)}
+  .msg{margin-top:12px;font-size:14px;border-radius:10px;padding:10px 12px;display:none}
+  .msg.show{display:block}
+  .msg.ok{background:#e6f4ea;color:var(--ok)}
+  .msg.bad{background:var(--warn-soft);color:var(--warn)}
+  /* ---------- Preview table ---------- */
+  table{width:100%;border-collapse:collapse;font-size:15px}
+  th{text-align:left;color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.4px;padding:6px 4px;border-bottom:2px solid var(--line)}
+  td{padding:10px 4px;border-bottom:1px solid var(--line);vertical-align:top;word-break:break-all}
+  td.old{color:var(--muted)}
+  td.new{font-weight:650}
+  tr.dup td.new{color:var(--accent)}
+  tr.dup td.new::after{content:"  ⚠ duplicate";font-weight:400;font-size:13px}
+  .rowbtn{padding:6px 10px;min-height:38px;font-size:14px;margin:2px}
+  .empty{padding:18px 4px;color:var(--muted)}
+  .stats{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+  .stat{background:var(--accent-soft);border-radius:999px;padding:6px 12px;font-size:14px;font-weight:650}
+  .stat b{color:var(--accent)}
+  .warnbox{background:var(--warn-soft);border-radius:10px;padding:10px 12px;font-size:14px;margin-top:12px}
+  .addrow{display:flex;gap:10px}
+  .addrow input{flex:1}
+  @media(max-width:560px){.addrow{flex-direction:column}}
+  footer{max-width:860px;margin:0 auto;padding:0 16px 24px;color:var(--muted);font-size:13px}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <h1>RENAME <span>STUDIO</span></h1>
+  <p class="tag">Plan a batch rename before you touch a single file. Build a pattern, watch every new name update live, then copy the plan.</p>
+</header>
+
+<main>
+  <!-- SECTION: Pattern builder -->
+  <section aria-labelledby="h-pattern">
+    <h2 id="h-pattern">1 · Build your pattern</h2>
+    <p class="hint">Tap a token chip to insert it where your cursor sits in the pattern. Anything you type is kept literally. <code>{ext}</code> is always added automatically if you leave it out.</p>
+    <label for="pattern">Naming pattern</label>
+    <input id="pattern" type="text" value="{date}_{client}_{name}_{n}" autocomplete="off" spellcheck="false" aria-describedby="pattern-help">
+    <p class="hint" id="pattern-help">Example: <code>2026-11-04_acme_proposal_01.pdf</code></p>
+    <div class="chips" id="chips" aria-label="Insert a token"></div>
+    <div class="opts">
+      <div>
+        <label for="client">Client / tag</label>
+        <input id="client" type="text" value="acme" autocomplete="off">
+      </div>
+      <div>
+        <label for="project">Project / tag</label>
+        <input id="project" type="text" value="sow" autocomplete="off">
+      </div>
+      <div>
+        <label for="casemode">Letter case</label>
+        <select id="casemode">
+          <option value="keep" selected>Keep as typed</option>
+          <option value="lower">all lowercase</option>
+          <option value="upper">ALL UPPERCASE</option>
+          <option value="title">Title Case</option>
+        </select>
+      </div>
+      <div>
+        <label for="counter">Counter start · padding</label>
+        <select id="counter">
+          <option value="1|2" selected>Start at 1, two digits (01)</option>
+          <option value="1|3">Start at 1, three digits (001)</option>
+          <option value="0|2">Start at 0, two digits (00)</option>
+          <option value="1|1">Start at 1, no padding (1)</option>
+        </select>
+      </div>
+    </div>
+    <div class="btnrow">
+      <button class="primary" id="copyBtn" type="button">Copy new names</button>
+      <button id="planBtn" type="button">Download rename plan (.txt)</button>
+      <button class="steel" id="saveBtn" type="button">Save JSON</button>
+      <button id="openBtn" type="button">Open JSON</button>
+      <input id="fileInput" type="file" accept=".json,application/json" hidden>
+    </div>
+    <p class="msg" id="msg" role="status"></p>
+  </section>
+
+  <!-- SECTION: Live preview -->
+  <section aria-labelledby="h-preview">
+    <h2 id="h-preview">2 · Live preview</h2>
+    <p class="hint">The new name for every file updates as you type. Duplicates are flagged — fix the pattern or a file name before renaming anything for real.</p>
+    <div class="stats" id="stats"></div>
+    <div id="preview"></div>
+    <div class="warnbox" id="dupWarn" hidden></div>
+  </section>
+
+  <!-- SECTION: File list -->
+  <section aria-labelledby="h-files">
+    <h2 id="h-files">3 · Your files</h2>
+    <p class="hint">These are sample files so the preview is alive on load. Add your own, remove any you don't need — nothing here touches your real files.</p>
+    <div class="addrow">
+      <input id="newFile" type="text" placeholder="Add a file, e.g. notes from call.docx" autocomplete="off">
+      <button class="steel" id="addBtn" type="button">Add file</button>
+    </div>
+    <div id="fileList" style="margin-top:12px"></div>
+  </section>
+</main>
+
+<footer>
+  Rename Studio plans renames only — it never renames, moves, or deletes real files.
+  Use the downloaded plan with your file manager or a rename tool. No data leaves this page.
+</footer>
+
+<script>
+"use strict";
+/* ================= State ================= */
+var state = {
+  pattern: "{date}_{client}_{name}_{n}",
+  client: "acme",
+  project: "sow",
+  casemode: "keep",
+  counter: "1|2",
+  files: [
+    "Proposal draft v3.docx",
+    "SOW - final (signed).pdf",
+    "pricing notes.txt",
+    "Meeting Notes  Oct 28.md",
+    "invoice_1042.xlsx",
+    "logo concept.PNG"
+  ]
+};
+
+/* Tokens the chips can insert. {name} = original base name, cleaned up. */
+var TOKENS = [
+  { t: "{date}",    d: "today's date" },
+  { t: "{client}",  d: "client tag" },
+  { t: "{project}", d: "project tag" },
+  { t: "{name}",    d: "original name" },
+  { t: "{n}",       d: "counter" },
+  { t: "{ext}",     d: "extension" }
+];
+
+/* ================= Helpers ================= */
+function $(id){ return document.getElementById(id); }
+function todayISO(){
+  var d = new Date();
+  var m = String(d.getMonth() + 1).padStart(2, "0");
+  var day = String(d.getDate()).padStart(2, "0");
+  return d.getFullYear() + "-" + m + "-" + day;
+}
+/* Split "archive.tar.gz" into base "archive.tar" and ext "gz". */
+function splitName(name){
+  var i = name.lastIndexOf(".");
+  if (i <= 0) return { base: name, ext: "" };
+  return { base: name.slice(0, i), ext: name.slice(i + 1) };
+}
+/* Make a base name filename-safe: spaces to -, drop illegal chars, collapse dashes. */
+function cleanBase(s){
+  return s.replace(/[\\/:*?"<>|]/g, "").trim().replace(/\s+/g, "-").replace(/-+/g, "-");
+}
+function applyCase(s, mode){
+  if (mode === "lower") return s.toLowerCase();
+  if (mode === "upper") return s.toUpperCase();
+  if (mode === "title") return s.replace(/\w\S*/g, function(w){
+    return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+  });
+  return s;
+}
+/* Build one new name. Unknown {tokens} are left literally so nothing is silently lost. */
+function buildName(file, index){
+  var parts = splitName(file);
+  var startPad = state.counter.split("|");
+  var start = parseInt(startPad[0], 10), pad = parseInt(startPad[1], 10);
+  var n = String(start + index).padStart(pad, "0");
+  var out = state.pattern
+    .replace(/\{date\}/g, todayISO())
+    .replace(/\{client\}/g, cleanBase(state.client) || "client")
+    .replace(/\{project\}/g, cleanBase(state.project) || "project")
+    .replace(/\{name\}/g, cleanBase(parts.base))
+    .replace(/\{n\}/g, n);
+  var hasExtToken = /\{ext\}/.test(state.pattern);
+  out = out.replace(/\{ext\}/g, parts.ext);
+  out = cleanBase(out.replace(/_+/g, "_"));
+  if (parts.ext && !hasExtToken) out += "." + parts.ext;
+  return applyCase(out, state.casemode);
+}
+function previewAll(){
+  return state.files.map(function(f, i){ return { old: f, next: buildName(f, i) }; });
+}
+function findDups(rows){
+  var seen = {}, dups = [];
+  rows.forEach(function(r){
+    if (seen[r.next]) dups.push(r.next); else seen[r.next] = true;
+  });
+  return dups;
+}
+
+/* ================= Render ================= */
+function renderChips(){
+  $("chips").innerHTML = "";
+  TOKENS.forEach(function(tok){
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "chip";
+    b.innerHTML = tok.t + "<small>" + tok.d + "</small>";
+    b.setAttribute("aria-label", "Insert token " + tok.t + ", " + tok.d);
+    b.addEventListener("click", function(){
+      var input = $("pattern"), pos = input.selectionStart || input.value.length;
+      input.value = input.value.slice(0, pos) + tok.t + input.value.slice(pos);
+      input.focus(); input.setSelectionRange(pos + tok.t.length, pos + tok.t.length);
+      syncFromInputs(); render();
+    });
+    $("chips").appendChild(b);
+  });
+}
+function render(){
+  var rows = previewAll(), dups = findDups(rows);
+  $("stats").innerHTML =
+    '<span class="stat"><b>' + rows.length + "</b> files</span>" +
+    '<span class="stat"><b>' + dups.length + "</b> duplicate " + (dups.length === 1 ? "name" : "names") + "</span>";
+  var warn = $("dupWarn");
+  if (dups.length){
+    warn.hidden = false;
+    warn.textContent = "Duplicate new names: " + dups.join(", ") +
+      ". Add {n} to your pattern, or rename one of the originals, before using this plan.";
+  } else warn.hidden = true;
+  var preview = $("preview");
+  preview.innerHTML = "";
+  if (!rows.length){
+    var p = document.createElement("p"); p.className = "empty";
+    p.textContent = "No files yet. Add one below and its new name will appear here.";
+    preview.appendChild(p);
+  } else {
+    var table = document.createElement("table");
+    var thead = document.createElement("thead"), hr = document.createElement("tr");
+    ["Original", "New name"].forEach(function(h){
+      var th = document.createElement("th"); th.textContent = h; hr.appendChild(th);
+    });
+    thead.appendChild(hr); table.appendChild(thead);
+    var tbody = document.createElement("tbody");
+    rows.forEach(function(r){
+      var tr = document.createElement("tr");
+      if (dups.indexOf(r.next) !== -1) tr.className = "dup";
+      var tdOld = document.createElement("td"); tdOld.className = "old"; tdOld.textContent = r.old;
+      var tdNew = document.createElement("td"); tdNew.className = "new"; tdNew.textContent = r.next;
+      tr.appendChild(tdOld); tr.appendChild(tdNew); tbody.appendChild(tr);
+    });
+    table.appendChild(tbody); preview.appendChild(table);
+  }
+  var list = $("fileList");
+  list.innerHTML = "";
+  if (!state.files.length){
+    var pe = document.createElement("p"); pe.className = "empty";
+    pe.textContent = "File list is empty. Add a file above to start a new plan.";
+    list.appendChild(pe);
+  } else {
+    var ftable = document.createElement("table"), fbody = document.createElement("tbody");
+    state.files.forEach(function(f, i){
+      var tr = document.createElement("tr");
+      var tdName = document.createElement("td"); tdName.textContent = f;
+      var tdBtns = document.createElement("td");
+      tdBtns.style.textAlign = "right"; tdBtns.style.whiteSpace = "nowrap";
+      [["up", "↑", "Move file up"], ["down", "↓", "Move file down"], ["del", "Remove", "Remove file"]].forEach(function(spec){
+        var b = document.createElement("button");
+        b.type = "button"; b.className = spec[0] === "del" ? "rowbtn danger" : "rowbtn";
+        b.textContent = spec[1]; b.setAttribute("aria-label", spec[2]);
+        b.addEventListener("click", function(){
+          if (spec[0] === "del") state.files.splice(i, 1);
+          if (spec[0] === "up" && i > 0){ var t = state.files[i-1]; state.files[i-1] = state.files[i]; state.files[i] = t; }
+          if (spec[0] === "down" && i < state.files.length - 1){ var u = state.files[i+1]; state.files[i+1] = state.files[i]; state.files[i] = u; }
+          saveLocal(); render();
+        });
+        tdBtns.appendChild(b);
+      });
+      tr.appendChild(tdName); tr.appendChild(tdBtns); fbody.appendChild(tr);
+    });
+    ftable.appendChild(fbody); list.appendChild(ftable);
+  }
+}
+function syncFromInputs(){
+  state.pattern = $("pattern").value;
+  state.client = $("client").value;
+  state.project = $("project").value;
+  state.casemode = $("casemode").value;
+  state.counter = $("counter").value;
+}
+function showMsg(text, ok){
+  var m = $("msg");
+  m.textContent = text; m.className = "msg show " + (ok ? "ok" : "bad");
+}
+
+/* ================= Save / Open / autosave ================= */
+function saveLocal(){
+  try { localStorage.setItem("rename-studio", JSON.stringify(state)); } catch (e) { /* private mode: ignore */ }
+}
+function loadLocal(){
+  try {
+    var raw = localStorage.getItem("rename-studio");
+    if (!raw) return false;
+    var data = validateImport(JSON.parse(raw));
+    if (data){ state = data; return true; }
+  } catch (e) { /* corrupt autosave: keep defaults */ }
+  return false;
+}
+/* Full validation: a bad file must leave the current data untouched. */
+function validateImport(data){
+  if (!data || typeof data !== "object" || Array.isArray(data)) return null;
+  if (typeof data.pattern !== "string" || data.pattern.length > 200) return null;
+  if (typeof data.client !== "string" || data.client.length > 100) return null;
+  if (typeof data.project !== "string" || data.project.length > 100) return null;
+  if (["keep", "lower", "upper", "title"].indexOf(data.casemode) === -1) return null;
+  if (["1|2", "1|3", "0|2", "1|1"].indexOf(data.counter) === -1) return null;
+  if (!Array.isArray(data.files) || data.files.length > 200) return null;
+  for (var i = 0; i < data.files.length; i++){
+    if (typeof data.files[i] !== "string" || !data.files[i].trim() || data.files[i].length > 200) return null;
+  }
+  return { pattern: data.pattern, client: data.client, project: data.project,
+           casemode: data.casemode, counter: data.counter, files: data.files.slice() };
+}
+function download(filename, text, type){
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], { type: type || "text/plain" }));
+  a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* ================= Events ================= */
+["pattern", "client", "project"].forEach(function(id){
+  $(id).addEventListener("input", function(){ syncFromInputs(); saveLocal(); render(); });
+});
+["casemode", "counter"].forEach(function(id){
+  $(id).addEventListener("change", function(){ syncFromInputs(); saveLocal(); render(); });
+});
+$("addBtn").addEventListener("click", function(){
+  var v = $("newFile").value.trim();
+  if (!v){ showMsg("Type a file name first — for example: contract notes.docx", false); $("newFile").focus(); return; }
+  state.files.push(v); $("newFile").value = ""; saveLocal(); render();
+  showMsg("Added “" + v + "”. Its new name is in the preview.", true);
+});
+$("newFile").addEventListener("keydown", function(e){
+  if (e.key === "Enter"){ e.preventDefault(); $("addBtn").click(); }
+});
+$("copyBtn").addEventListener("click", function(){
+  var rows = previewAll();
+  if (!rows.length){ showMsg("Nothing to copy — add a file first.", false); return; }
+  var text = rows.map(function(r){ return r.next; }).join("\n");
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){
+      showMsg("Copied " + rows.length + " new names to the clipboard.", true);
+    }, function(){ showMsg("Copy was blocked by the browser — select the preview instead.", false); });
+  } else showMsg("Clipboard is not available in this browser.", false);
+});
+$("planBtn").addEventListener("click", function(){
+  var rows = previewAll();
+  if (!rows.length){ showMsg("Nothing to plan — add a file first.", false); return; }
+  var lines = ["RENAME PLAN — " + todayISO(), "Pattern: " + state.pattern, ""];
+  rows.forEach(function(r){ lines.push(r.old + "  ->  " + r.next); });
+  download("rename-plan-" + todayISO() + ".txt", lines.join("\n"));
+  showMsg("Rename plan downloaded. It only lists names — it changes no real files.", true);
+});
+$("saveBtn").addEventListener("click", function(){
+  syncFromInputs(); saveLocal();
+  download("rename-studio.json", JSON.stringify(state, null, 2), "application/json");
+  showMsg("Saved rename-studio.json — pattern, tags and file list.", true);
+});
+$("openBtn").addEventListener("click", function(){ $("fileInput").click(); });
+$("fileInput").addEventListener("change", function(){
+  var file = $("fileInput").files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(){
+    var data = null;
+    try { data = validateImport(JSON.parse(reader.result)); } catch (e) { data = null; }
+    if (!data){ showMsg("That file is not a valid Rename Studio save — your current plan is unchanged.", false); }
+    else {
+      state = data;
+      $("pattern").value = state.pattern; $("client").value = state.client;
+      $("project").value = state.project; $("casemode").value = state.casemode;
+      $("counter").value = state.counter;
+      saveLocal(); render();
+      showMsg("Plan restored: " + state.files.length + " files.", true);
+    }
+    $("fileInput").value = "";
+  };
+  reader.readAsText(file);
+});
+
+/* ================= Init: restored autosave wins, else the sample plan ================= */
+if (loadLocal()){
+  $("pattern").value = state.pattern; $("client").value = state.client;
+  $("project").value = state.project; $("casemode").value = state.casemode;
+  $("counter").value = state.counter;
+}
+renderChips();
+render();
+</script>
+</body>
+</html>

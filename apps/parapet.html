@@ -1,0 +1,400 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<title>Daily Build 2026-11-03 — Parapet</title>
+<style>
+:root{--bg:#0f1115;--panel:#171a21;--line:#272c38;--text:#e6e8ee;--mute:#8a93a6;--acc:#7aa2ff;--ok:#3ecf8e;--warn:#f5b84b;--bad:#ff6b6b;--chip:#21252f;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+html[data-theme=light]{--bg:#f3f4f7;--panel:#fff;--line:#dde1e8;--text:#171a21;--mute:#5d6676;--acc:#2f63e6;--ok:#1d9b63;--warn:#b7791f;--bad:#d64545;--chip:#eceef3}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);min-height:100dvh;overflow-x:hidden}
+header{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap;position:sticky;top:0;background:var(--bg);z-index:5}
+h1{font-size:19px;margin:0 4px 0 0}
+h1 small{color:var(--mute);font-weight:400;font-size:12px;margin-left:8px}
+.sp{flex:1}
+button,select{min-height:44px;min-width:44px;padding:0 13px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--text);font:inherit;font-size:15px;cursor:pointer;white-space:nowrap}
+button.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+button:disabled{opacity:.45;cursor:default}
+main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:14px;padding:14px;max-width:1320px;margin:0 auto}
+.pane{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;min-width:0}
+.pane h2{font-size:13px;color:var(--mute);margin:0 0 8px;font-weight:600;text-transform:uppercase;letter-spacing:.6px}
+textarea{width:100%;height:62vh;min-height:220px;resize:vertical;font:16px/1.5 var(--mono);background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px;display:block}
+.meta{color:var(--mute);font-size:13px;margin-top:8px}
+.url{display:flex;gap:8px;margin-bottom:8px}
+.url input{flex:1;min-width:0;min-height:44px;font:16px var(--mono);background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:0 10px}
+.tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto}
+.tabs button[aria-selected=true]{background:var(--acc);color:#fff;border-color:var(--acc)}
+.grade{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+.badge{width:76px;height:76px;flex:none;border-radius:18px;display:grid;place-items:center;font-size:34px;font-weight:700;color:#fff;transition:background .3s}
+.grade b{font-size:22px}
+.bar{height:8px;border-radius:4px;background:var(--chip);overflow:hidden;margin:6px 0 10px}
+.bar i{display:block;height:100%;background:var(--acc);transition:width .4s}
+.row{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:10px;align-items:start;padding:10px 0;border-top:1px solid var(--line)}
+.dot{width:12px;height:12px;border-radius:50%;margin-top:6px;background:var(--mute)}
+.row code{font:13px var(--mono);color:var(--mute)}
+.row p{margin:2px 0 0;color:var(--mute);font-size:14px}
+.row .t{font-weight:600}
+.crit{color:var(--bad);font-weight:700;font-size:12px;margin-left:6px;letter-spacing:.5px}
+.s-pass .dot{background:var(--ok)}.s-warn .dot{background:var(--warn)}.s-fail .dot,.s-missing .dot{background:var(--bad)}.s-info .dot{background:var(--acc)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td{padding:8px 6px;border-top:1px solid var(--line);vertical-align:top}
+td:first-child{font:13px var(--mono);white-space:nowrap;width:1%}
+.chip{display:inline-block;font:12px/1.2 var(--mono);padding:5px 8px;border-radius:7px;margin:2px 4px 2px 0;background:var(--chip);border:1px solid var(--line)}
+.c-ok{border-color:var(--ok);color:var(--ok)}.c-warn{border-color:var(--warn);color:var(--warn)}.c-bad{border-color:var(--bad);color:var(--bad)}
+.inh{opacity:.55}
+pre{font:13px/1.5 var(--mono);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto;white-space:pre-wrap;word-break:break-all;margin:10px 0 0}
+.legend{color:var(--mute);font-size:13px;margin:0 0 8px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9}
+.toast.on{opacity:1}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--text);max-width:560px;width:calc(100% - 32px);padding:20px}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+dialog h3{margin:0 0 8px}dialog p{margin:8px 0;color:var(--mute)}dialog kbd{font:13px var(--mono);background:var(--chip);border:1px solid var(--line);border-radius:5px;padding:2px 6px}
+dialog table td{border:0;padding:4px 6px}
+.hide{display:none}
+@media(max-width:860px){main{grid-template-columns:1fr}.row{grid-template-columns:12px minmax(0,1fr)}.row button{grid-column:2;justify-self:start}textarea{height:210px}header button{padding:0 11px}.badge{width:64px;height:64px;font-size:28px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Parapet<small>security-header audit</small></h1>
+  <span class="sp"></span>
+  <button id="bDemo" title="Load demo (R)">Demo</button>
+  <button id="bFix" class="pri" title="Apply every fix (F)">Fix all</button>
+  <button id="bSave" title="Save (Ctrl+S)">Save</button>
+  <button id="bOpen" title="Open (Ctrl+O)">Open</button>
+  <button id="bTheme" title="Theme (T)">Light</button>
+  <button id="bHelp" title="Help (Ctrl+/)">?</button>
+  <input id="file" type="file" accept=".json,application/json" class="hide">
+</header>
+<main>
+  <section class="pane">
+    <h2>Response headers</h2>
+    <div class="url"><input id="url" type="url" placeholder="Fetch a path on this site, e.g. /login" autocomplete="off" spellcheck="false"><button id="bFetch" title="Fetch headers (U)">Fetch</button></div>
+    <textarea id="ed" spellcheck="false" placeholder="Paste the raw response headers here — from curl -I, curl -v, or DevTools › Network › Headers › copy."></textarea>
+    <div class="meta" id="meta"></div>
+  </section>
+  <section class="pane">
+    <div class="tabs" role="tablist">
+      <button role="tab" data-tab="report" aria-selected="true">Report</button>
+      <button role="tab" data-tab="csp">CSP map</button>
+      <button role="tab" data-tab="export">Export</button>
+    </div>
+    <div id="report"></div>
+    <div id="csp" class="hide"></div>
+    <div id="export" class="hide">
+      <p class="legend">The security headers currently in the editor, as server config. Fix all first, then copy. <code>{{nonce}}</code> must become a fresh random value per response.</p>
+      <select id="fmt"><option value="nginx">nginx</option><option value="apache">Apache</option><option value="caddy">Caddy</option><option value="express">Express / Node</option></select>
+      <button id="bCopy">Copy (E)</button>
+      <pre id="out"></pre>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+<dialog id="help">
+  <h3>Parapet</h3>
+  <p>An offline auditor for HTTP response headers. Paste what <code>curl -I</code> or DevTools shows you — or, when parapet.html is hosted on the site itself, type a path and press Fetch — and get a grade, a finding-by-finding report with one-tap fixes, a map of every Content-Security-Policy directive, and the hardened set as nginx / Apache / Caddy / Express config. Nothing leaves this page, so it works on intranet apps no online scanner can reach.</p>
+  <table>
+    <tr><td><kbd>Ctrl/⌘ /</kbd></td><td>this help</td><td><kbd>Ctrl/⌘ S</kbd></td><td>save JSON</td></tr>
+    <tr><td><kbd>Ctrl/⌘ O</kbd></td><td>open JSON</td><td><kbd>1 2 3</kbd></td><td>Report · CSP · Export</td></tr>
+    <tr><td><kbd>F</kbd></td><td>fix all</td><td><kbd>E</kbd></td><td>copy export</td></tr>
+    <tr><td><kbd>T</kbd></td><td>theme</td><td><kbd>R</kbd></td><td>reload demo</td></tr>
+    <tr><td><kbd>U</kbd></td><td>focus the Fetch box</td><td><kbd>Esc</kbd></td><td>close</td></tr>
+  </table>
+  <p>Single-key shortcuts pause while you type in the editor; Ctrl/⌘ combos always work. Save downloads <code>parapet-DATE.json</code> (headers, tab, format, theme) and Open restores it — Save works when the file is opened directly; the artifact viewer blocks downloads.</p>
+  <p>Fetch: browsers let a page read only a few safelisted headers from another origin, and never Set-Cookie, so Fetch works for paths on the same site Parapet is served from (drop the file into that site's static folder) and reads everything except cookies; for other sites, or when opened from file://, paste <code>curl -I</code> output.</p>
+  <p>Grading: 100 weighted points across HSTS, CSP, framing, MIME sniffing, referrer, permissions, cross-origin isolation, cookies, disclosure, deprecated headers and CORS. A critical finding caps the grade at D.</p>
+  <button id="bClose" class="pri">Close</button>
+</dialog>
+
+<script id="core">
+// ---------- Core: pure functions over header lines, no DOM (node tests load this block) ----------
+const Parapet = (() => {
+const YEAR = 31536000;
+const SEC = ['strict-transport-security','content-security-policy','content-security-policy-report-only','x-frame-options','x-content-type-options','referrer-policy','permissions-policy','cross-origin-opener-policy','cross-origin-resource-policy','cross-origin-embedder-policy','x-xss-protection'];
+const FETCH = ['script-src','style-src','img-src','connect-src','font-src','media-src','object-src','frame-src','worker-src','manifest-src','child-src'];
+const BYPASS = /(^|\.)(googleapis\.com|cdnjs\.cloudflare\.com|cdn\.jsdelivr\.net|unpkg\.com|ajax\.aspnetcdn\.com|yastatic\.net|cloudflare\.com)$/i;
+
+function parse(text) {
+  const lines = [], notes = []; let status = null;
+  for (let raw of text.split(/\r?\n/)) {
+    raw = raw.replace(/^[<>]\s?/, '').trim();              // curl -v prefixes
+    const m = raw.match(/^([A-Za-z0-9-]+):\s*(.*)$/);
+    if (m) lines.push({ name: m[1].toLowerCase(), value: m[2].trim() });
+    else if (/^HTTP\//i.test(raw)) status = raw;
+    else if (raw.startsWith('#')) notes.push(raw);           // comments survive fixes
+  }
+  return { lines, status, notes };
+}
+const serialize = (lines, status, notes = []) => notes.concat(status ? [status] : [], lines.map(l => l.name + ': ' + l.value)).join('\n');
+const get = (lines, n) => lines.filter(l => l.name === n).map(l => l.value);
+const first = (lines, n) => get(lines, n)[0];
+const set = (lines, n, v) => { const out = lines.filter(l => l.name !== n), i = lines.findIndex(l => l.name === n); out.splice(i < 0 ? out.length : i, 0, { name: n, value: v }); return out; };
+const drop = (lines, n) => lines.filter(l => l.name !== n);
+
+function parseCSP(value) {
+  const d = {};
+  for (const part of value.split(';')) {
+    const toks = part.trim().split(/\s+/).filter(Boolean);
+    if (toks.length && !(toks[0].toLowerCase() in d)) d[toks[0].toLowerCase()] = toks.slice(1);   // first occurrence wins
+  }
+  return d;
+}
+const cspString = d => Object.entries(d).map(([k, v]) => [k, ...v].join(' ')).join('; ');
+const hasNonce = srcs => srcs.some(s => /^'(nonce|sha(256|384|512))-/.test(s));
+
+// One CSP source → [level, reason]; level is ok | neutral | warn | bad
+function rateSource(src, directive, nonced) {
+  const s = src.toLowerCase(), scripty = /^(script|object|default|frame|child|worker)-src$/.test(directive);
+  if (/^'(none|self|strict-dynamic)'$/.test(s) || /^'(nonce|sha(256|384|512))-/.test(s)) return ['ok'];
+  if (s === "'report-sample'" || s === "'unsafe-allow-redirects'") return ['neutral'];
+  if (s === "'unsafe-inline'") return nonced ? ['neutral', 'ignored by browsers that see the nonce/hash'] : [directive === 'style-src' ? 'warn' : 'bad', 'inline ' + (directive === 'style-src' ? 'styles' : 'scripts') + ' run: any injected markup executes'];
+  if (s === "'unsafe-eval'") return ['bad', 'eval() and new Function() allowed'];
+  if (s === "'wasm-unsafe-eval'" || s === "'unsafe-hashes'") return ['warn', 'relaxes the policy'];
+  if (s === '*') return [scripty || directive === 'connect-src' ? 'bad' : 'warn', 'any origin'];
+  if (s === 'http:' || s.startsWith('http://')) return ['bad', 'plaintext origin'];
+  if (s === 'https:') return [scripty ? 'bad' : 'warn', 'every https origin on the internet'];
+  if (s === 'data:') return [scripty ? 'bad' : 'neutral', 'data: URIs can carry scripts'];
+  if (s === 'blob:' || s === 'filesystem:') return [scripty ? 'warn' : 'neutral', 'blob: scripts'];
+  const host = s.replace(/^[a-z]+:\/\//, '').split(/[/:]/)[0];
+  if (BYPASS.test(host.replace(/^\*\./, ''))) return ['warn', 'hosts JSONP / AngularJS endpoints known to bypass CSP'];
+  if (host.startsWith('*.')) return ['warn', 'wildcard subdomains'];
+  return ['neutral'];
+}
+
+function analyze(text) {
+  const { lines, status, notes } = parse(text), F = [], fetched = notes.some(n => /^# fetched/.test(n));
+  const add = (header, state, title, detail, weight, fix, crit) => F.push({ header, state, title, detail, weight, fix: fix || null, crit: !!crit });
+  const pass = (header, title, weight) => add(header, 'pass', title, '', weight);
+
+  // Strict-Transport-Security (15)
+  const hsts = first(lines, 'strict-transport-security');
+  if (!hsts) add('strict-transport-security', 'missing', 'No HSTS', 'Browsers will still try plain http:// first; a network attacker can downgrade the first request.', 15, { label: 'Add HSTS', apply: L => set(L, 'strict-transport-security', 'max-age=' + YEAR + '; includeSubDomains') });
+  else {
+    const age = +(hsts.match(/max-age\s*=\s*(\d+)/i) || [0, 0])[1], subs = /includeSubDomains/i.test(hsts);
+    const fix = { label: 'Fix HSTS', apply: L => set(L, 'strict-transport-security', 'max-age=' + YEAR + '; includeSubDomains' + (/preload/i.test(hsts) ? '; preload' : '')) };
+    if (age >= YEAR) pass('strict-transport-security', 'HSTS max-age is at least one year', 10);
+    else add('strict-transport-security', age ? 'warn' : 'fail', age ? 'HSTS max-age is only ' + Math.round(age / 86400) + ' day(s)' : 'HSTS max-age is zero or unreadable', 'Preload lists and most guides expect max-age=31536000 or more.', 10, fix);
+    if (subs) pass('strict-transport-security', 'includeSubDomains present', 5);
+    else add('strict-transport-security', 'warn', 'includeSubDomains missing', 'A cookie set from any plaintext subdomain can shadow this host’s cookies.', 5, fix);
+  }
+
+  // Content-Security-Policy (25)
+  const cspText = first(lines, 'content-security-policy'), cspRO = first(lines, 'content-security-policy-report-only'), csp = cspText ? parseCSP(cspText) : null;
+  const xfo = (first(lines, 'x-frame-options') || '').toUpperCase();
+  const baseline = "default-src 'self'; script-src 'self' 'nonce-{{nonce}}'; object-src 'none'; base-uri 'self'; frame-ancestors " + (xfo.startsWith('DENY') ? "'none'" : "'self'") + "; form-action 'self'; upgrade-insecure-requests";
+  if (!csp) add('content-security-policy', cspRO ? 'warn' : 'missing', cspRO ? 'CSP is report-only' : 'No Content-Security-Policy', cspRO ? 'Report-Only observes violations but blocks nothing.' : 'CSP is the one header that contains an XSS once it happens.', 25, { label: 'Add CSP', apply: L => set(drop(L, 'content-security-policy-report-only'), 'content-security-policy', baseline) });
+  else {
+    const eff = d => csp[d] || csp['default-src'];            // directive with default-src fallback
+    const clean = (srcs, d) => { const n = hasNonce(srcs); return srcs.filter(s => rateSource(s, d, n)[0] !== 'bad'); };
+    const script = eff('script-src');
+    const fixScript = { label: 'Use nonce', apply: L => { const c = parseCSP(first(L, 'content-security-policy')); let s = clean(c['script-src'] || c['default-src'] || ["'self'"], 'script-src'); if (!hasNonce(s)) s.push("'nonce-{{nonce}}'"); if (!s.some(x => /^'(self|none|strict-dynamic)'$/i.test(x))) s.unshift("'self'"); c['script-src'] = s; return set(L, 'content-security-policy', cspString(c)); } };
+    if (!script) add('content-security-policy', 'fail', 'Scripts are unrestricted', 'Neither script-src nor default-src is set, so the policy allows every script.', 10, fixScript);
+    else {
+      const bad = script.filter(s => rateSource(s, 'script-src', hasNonce(script))[0] === 'bad');
+      if (!bad.length) pass('content-security-policy', 'script-src blocks inline and remote injection', 10);
+      else add('content-security-policy', 'fail', 'script-src allows ' + bad.join(', '), 'The policy does not stop injected scripts, which is the whole point of CSP. Use nonces or hashes instead.', 10, fixScript, bad.includes("'unsafe-inline'") || bad.includes('*'));
+    }
+    const obj = eff('object-src');
+    if (obj && obj.join() === "'none'") pass('content-security-policy', "object-src 'none'", 4);
+    else add('content-security-policy', 'warn', "object-src is not 'none'", 'Flash-era plugins are gone; the directive should simply be closed.', 4, { label: 'Close object-src', apply: L => { const c = parseCSP(first(L, 'content-security-policy')); c['object-src'] = ["'none'"]; return set(L, 'content-security-policy', cspString(c)); } });
+    if (csp['base-uri']) pass('content-security-policy', 'base-uri set', 3);
+    else add('content-security-policy', 'warn', 'base-uri missing', 'An injected <base> tag can redirect every relative script URL to an attacker host.', 3, { label: 'Add base-uri', apply: L => { const c = parseCSP(first(L, 'content-security-policy')); c['base-uri'] = ["'self'"]; return set(L, 'content-security-policy', cspString(c)); } });
+    if (csp['frame-ancestors']) pass('content-security-policy', 'frame-ancestors set', 3);
+    else add('content-security-policy', xfo ? 'warn' : 'fail', 'frame-ancestors missing', xfo ? 'X-Frame-Options covers legacy browsers; frame-ancestors is the modern, more precise control.' : 'Nothing prevents clickjacking.', 3, { label: 'Add frame-ancestors', apply: L => { const c = parseCSP(first(L, 'content-security-policy')); c['frame-ancestors'] = [(first(L, 'x-frame-options') || '').toUpperCase().startsWith('DENY') ? "'none'" : "'self'"]; return set(L, 'content-security-policy', cspString(c)); } });
+    if (csp['default-src']) pass('content-security-policy', 'default-src set', 2);
+    else add('content-security-policy', 'warn', 'default-src missing', 'Any fetch directive you forgot is wide open.', 2, { label: 'Add default-src', apply: L => { const c = parseCSP(first(L, 'content-security-policy')); c['default-src'] = ["'self'"]; return set(L, 'content-security-policy', cspString(c)); } });
+    const loose = Object.entries(csp).filter(([d, s]) => d !== 'script-src' && s.some(x => rateSource(x, d, hasNonce(s))[0] === 'bad')).map(([d]) => d);
+    if (!loose.length) pass('content-security-policy', 'Other directives have no wide-open sources', 3);
+    else add('content-security-policy', 'warn', 'Wide-open sources in ' + loose.join(', '), 'See the CSP map tab for the exact tokens.', 3, { label: 'Tighten', apply: L => { const c = parseCSP(first(L, 'content-security-policy')); for (const d of Object.keys(c)) { if (d === 'script-src') continue; const s = clean(c[d], d); c[d] = s.length ? s : ["'self'"]; } return set(L, 'content-security-policy', cspString(c)); } });
+  }
+
+  // Framing, sniffing, referrer, permissions (8 + 8 + 8 + 6)
+  if (/^(DENY|SAMEORIGIN)$/.test(xfo)) pass('x-frame-options', 'X-Frame-Options ' + xfo, 8);
+  else if (xfo.startsWith('ALLOW-FROM')) add('x-frame-options', 'warn', 'ALLOW-FROM is ignored by every current browser', 'Use frame-ancestors with the allowed origin instead.', 8, { label: 'Set SAMEORIGIN', apply: L => set(L, 'x-frame-options', 'SAMEORIGIN') });
+  else add('x-frame-options', csp && csp['frame-ancestors'] ? 'info' : 'missing', csp && csp['frame-ancestors'] ? 'No X-Frame-Options (frame-ancestors covers it)' : 'No X-Frame-Options', 'Without it older browsers can frame the page for clickjacking.', 8, csp && csp['frame-ancestors'] ? null : { label: 'Set SAMEORIGIN', apply: L => set(L, 'x-frame-options', 'SAMEORIGIN') });
+  if (/^nosniff$/i.test(first(lines, 'x-content-type-options') || '')) pass('x-content-type-options', 'nosniff', 8);
+  else add('x-content-type-options', 'missing', 'No X-Content-Type-Options', 'Browsers may sniff a text or image upload into executable script.', 8, { label: 'Set nosniff', apply: L => set(L, 'x-content-type-options', 'nosniff') });
+  const ref = (first(lines, 'referrer-policy') || '').toLowerCase(), refFix = { label: 'Fix referrer', apply: L => set(L, 'referrer-policy', 'strict-origin-when-cross-origin') };
+  if (!ref) add('referrer-policy', 'missing', 'No Referrer-Policy', 'Full URLs, including tokens in query strings, leak to every third party you link to.', 8, refFix);
+  else if (/unsafe-url|no-referrer-when-downgrade/.test(ref)) add('referrer-policy', 'warn', 'Referrer-Policy ' + ref + ' leaks full URLs', 'Prefer strict-origin-when-cross-origin or stricter.', 8, refFix);
+  else pass('referrer-policy', 'Referrer-Policy ' + ref, 8);
+  if (first(lines, 'permissions-policy')) pass('permissions-policy', 'Permissions-Policy set', 6);
+  else add('permissions-policy', first(lines, 'feature-policy') ? 'warn' : 'missing', first(lines, 'feature-policy') ? 'Feature-Policy is the deprecated spelling' : 'No Permissions-Policy', 'Camera, microphone, geolocation and payment stay available to any framed or injected code.', 6, { label: 'Add policy', apply: L => set(drop(L, 'feature-policy'), 'permissions-policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=()') });
+
+  // Cross-origin isolation (4 + 3)
+  if (/same-origin/i.test(first(lines, 'cross-origin-opener-policy') || '')) pass('cross-origin-opener-policy', 'COOP same-origin', 4);
+  else add('cross-origin-opener-policy', 'warn', 'No Cross-Origin-Opener-Policy', 'Pages you open keep a handle to your window (tabnabbing, XS-Leaks).', 4, { label: 'Add COOP', apply: L => set(L, 'cross-origin-opener-policy', 'same-origin') });
+  if (first(lines, 'cross-origin-resource-policy')) pass('cross-origin-resource-policy', 'CORP set', 3);
+  else add('cross-origin-resource-policy', 'warn', 'No Cross-Origin-Resource-Policy', 'Other sites can embed this response (Spectre-class reads).', 3, { label: 'Add CORP', apply: L => set(L, 'cross-origin-resource-policy', 'same-origin') });
+  if (first(lines, 'cross-origin-embedder-policy')) add('cross-origin-embedder-policy', 'info', 'COEP set — SharedArrayBuffer unlocked', '', 0);
+
+  // Cookies (12)
+  const cookies = get(lines, 'set-cookie');
+  if (!cookies.length) add('set-cookie', 'info', fetched ? 'Cookies not audited' : 'No cookies in this response', fetched ? 'Browsers never show Set-Cookie to page scripts; paste curl -I output to check cookie flags.' : '', 12);
+  cookies.forEach((c, i) => {
+    const name = c.split('=')[0].trim(), attrs = c.toLowerCase(), problems = [];
+    const secure = /;\s*secure\b/.test(attrs), http = /;\s*httponly\b/.test(attrs), same = (attrs.match(/;\s*samesite=(\w+)/) || [])[1];
+    if (!secure) problems.push('no Secure');
+    if (!http) problems.push('no HttpOnly');
+    if (!same) problems.push('no SameSite');
+    if (same === 'none' && !secure) problems.push('SameSite=None requires Secure');
+    if (/^__host-/i.test(name) && (!secure || /;\s*domain=/.test(attrs) || !/;\s*path=\/\s*(;|$)/.test(attrs))) problems.push('__Host- prefix rules broken');
+    if (/^__secure-/i.test(name) && !secure) problems.push('__Secure- prefix needs Secure');
+    const w = 12 / cookies.length, crit = !secure || (same === 'none' && !secure);
+    if (!problems.length) pass('set-cookie', 'Cookie ' + name + ' is Secure, HttpOnly, SameSite', w);
+    else add('set-cookie', crit ? 'fail' : 'warn', 'Cookie ' + name + ': ' + problems.join(', '), 'Secure keeps it off plaintext, HttpOnly keeps it from scripts, SameSite blocks CSRF.', w, { label: 'Harden cookie', apply: L => { let k = 0; return L.map(l => l.name === 'set-cookie' && k++ === i ? { name: l.name, value: hardenCookie(l.value) } : l); } }, crit);
+  });
+
+  // Disclosure (5), deprecated (3), CORS (3)
+  const server = first(lines, 'server');
+  if (server && /\d/.test(server)) add('server', 'warn', 'Server header reveals a version: ' + server, 'Version strings let scanners pick exploits.', 2.5, { label: 'Strip version', apply: L => set(L, 'server', server.split(/[\/ ]/)[0]) });
+  else pass('server', 'Server header gives no version', 2.5);
+  const powered = ['x-powered-by', 'x-aspnet-version', 'x-aspnetmvc-version', 'x-generator'].filter(n => first(lines, n));
+  if (powered.length) add('x-powered-by', 'warn', 'Framework disclosed via ' + powered.join(', '), 'Free reconnaissance for an attacker.', 2.5, { label: 'Remove', apply: L => powered.reduce(drop, L) });
+  else pass('x-powered-by', 'No framework disclosure', 2.5);
+  const xss = first(lines, 'x-xss-protection');
+  if (xss && !/^0\b/.test(xss)) add('x-xss-protection', 'warn', 'X-XSS-Protection ' + xss + ' can introduce vulnerabilities', 'The auditor it enabled was removed from Chrome; in old browsers it enabled XS-Leaks. Set 0 or drop it.', 2, { label: 'Set 0', apply: L => set(L, 'x-xss-protection', '0') });
+  else pass('x-xss-protection', 'X-XSS-Protection is off or absent', 2);
+  const dead = ['public-key-pins', 'expect-ct'].filter(n => first(lines, n));
+  if (dead.length) add(dead[0], 'warn', dead.join(', ') + ' deprecated', 'Browsers ignore these; HPKP could brick a site.', 1, { label: 'Remove', apply: L => dead.reduce(drop, L) });
+  else pass('expect-ct', 'No deprecated pinning headers', 1);
+  const acao = first(lines, 'access-control-allow-origin'), creds = /true/i.test(first(lines, 'access-control-allow-credentials') || '');
+  if (acao === '*' && creds) add('access-control-allow-origin', 'fail', 'CORS: wildcard origin with credentials', 'Browsers reject this combination, and servers that reflect the Origin header instead expose every authenticated API to any site.', 3, { label: 'Drop creds', apply: L => drop(L, 'access-control-allow-credentials') }, true);
+  else if (acao === 'null') add('access-control-allow-origin', 'fail', 'CORS allows the null origin', 'Sandboxed iframes and data: pages send Origin: null — any attacker can get it.', 3, { label: 'Remove', apply: L => drop(L, 'access-control-allow-origin') });
+  else if (acao === '*') add('access-control-allow-origin', 'info', 'CORS allows any origin (public, no credentials)', '', 3);
+  else pass('access-control-allow-origin', acao ? 'CORS restricted to ' + acao : 'No CORS exposure', 3);
+
+  const total = F.reduce((s, f) => s + f.weight, 0), earned = F.reduce((s, f) => s + f.weight * ({ pass: 1, info: 1, warn: .5 }[f.state] || 0), 0);
+  const pct = Math.round(earned / total * 100), crit = F.some(f => f.crit);
+  let grade = pct >= 95 ? 'A+' : pct >= 85 ? 'A' : pct >= 70 ? 'B' : pct >= 55 ? 'C' : pct >= 40 ? 'D' : 'F';
+  if (crit && ['A+', 'A', 'B', 'C'].includes(grade)) grade = 'D';
+  return { status, lines, notes, findings: F, pct, grade, crit, csp, cookies: cookies.length };
+}
+
+function hardenCookie(v) {
+  const parts = v.split(';').map(s => s.trim()).filter(Boolean), has = k => parts.some(p => p.toLowerCase().split('=')[0] === k);
+  if (!has('secure')) parts.push('Secure');
+  if (!has('httponly')) parts.push('HttpOnly');
+  if (!has('samesite')) parts.push('SameSite=Lax');
+  if (/^__host-/i.test(parts[0])) { const keep = parts.filter(p => !/^(domain|path)=/i.test(p)); keep.splice(1, 0, 'Path=/'); return keep.join('; '); }
+  return parts.join('; ');
+}
+const fixAll = text => { const { status, notes } = parse(text); let r = analyze(text), L = r.lines, guard = 0; while (guard++ < 40) { const f = r.findings.find(x => x.fix && x.state !== 'pass'); if (!f) break; L = f.fix.apply(L); r = analyze(serialize(L, status)); } return serialize(L, status, notes); };
+
+const CAP = { 'x-xss-protection': 'X-XSS-Protection' };
+const cap = n => CAP[n] || n.replace(/(^|-)([a-z])/g, (m, d, c) => d + c.toUpperCase());
+function exportConfig(text, fmt) {
+  const sec = parse(text).lines.filter(l => SEC.includes(l.name)), q = v => '"' + v.replace(/"/g, '\\"') + '"';
+  if (!sec.length) return '';
+  if (fmt === 'nginx') return sec.map(l => 'add_header ' + cap(l.name) + ' ' + q(l.value) + ' always;').join('\n');
+  if (fmt === 'apache') return sec.map(l => 'Header always set ' + cap(l.name) + ' ' + q(l.value)).join('\n');
+  if (fmt === 'caddy') return 'header {\n' + sec.map(l => '  ' + cap(l.name) + ' ' + q(l.value)).join('\n') + '\n}';
+  return 'app.use((req, res, next) => {\n' + sec.map(l => "  res.setHeader('" + cap(l.name) + "', " + JSON.stringify(l.value) + ');').join('\n') + '\n  next();\n});';
+}
+return { parse, serialize, parseCSP, rateSource, analyze, fixAll, hardenCookie, exportConfig, FETCH, hasNonce };
+})();
+if (typeof module !== 'undefined') module.exports = Parapet;
+</script>
+<script>
+// ---------- UI ----------
+const $ = s => document.querySelector(s), ed = $('#ed'), st = { tab: 'report', fmt: 'nginx' };
+const DEMO = `HTTP/2 200
+server: nginx/1.18.0
+date: Tue, 03 Nov 2026 14:00:00 GMT
+content-type: text/html; charset=utf-8
+x-powered-by: Express
+strict-transport-security: max-age=86400
+content-security-policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com *.googleapis.com; style-src 'self' 'unsafe-inline'; img-src * data:; connect-src 'self' https://api.acme.example
+x-frame-options: ALLOW-FROM https://partner.acme.example
+x-xss-protection: 1; mode=block
+referrer-policy: no-referrer-when-downgrade
+set-cookie: session=8f1c3a9e; Path=/; HttpOnly
+set-cookie: prefs=dark; Path=/; Secure; SameSite=None
+access-control-allow-origin: *
+access-control-allow-credentials: true
+cache-control: no-cache`;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const GRADE = { 'A+': '#1d9b63', A: '#3ecf8e', B: '#2bb3a6', C: '#f5b84b', D: '#f08a3c', F: '#ff6b6b' };
+const RANK = { fail: 0, missing: 0, warn: 1, info: 2, pass: 3 };
+let last = null;
+
+function render() {
+  const r = last = Parapet.analyze(ed.value);
+  $('#meta').textContent = r.lines.length + ' header' + (r.lines.length === 1 ? '' : 's') + (r.status ? ' · ' + r.status : '') + (r.cookies ? ' · ' + r.cookies + ' cookie' + (r.cookies > 1 ? 's' : '') : '');
+  const rows = r.findings.map((f, i) => ({ f, i })).sort((a, b) => RANK[a.f.state] - RANK[b.f.state] || a.i - b.i);
+  $('#report').innerHTML = `<div class="grade"><div class="badge" style="background:${GRADE[r.grade]}">${r.grade}</div><div><b>${r.pct} / 100</b>${r.crit ? '<span class="crit">CRITICAL</span>' : ''}<div style="color:var(--mute);font-size:14px">${r.findings.filter(f => RANK[f.state] === 0).length} failing · ${r.findings.filter(f => f.state === 'warn').length} warnings · ${r.findings.filter(f => f.state === 'pass').length} passing</div></div></div><div class="bar"><i style="width:${r.pct}%;background:${GRADE[r.grade]}"></i></div>` +
+    (r.lines.length ? rows.map(({ f, i }) => `<div class="row s-${f.state}"><span class="dot"></span><div><code>${f.header}</code><div class="t">${esc(f.title)}${f.crit ? '<span class="crit">CRITICAL</span>' : ''}</div>${f.detail ? '<p>' + esc(f.detail) + '</p>' : ''}</div>${f.fix && f.state !== 'pass' ? `<button data-fix="${i}">${esc(f.fix.label)}</button>` : ''}</div>`).join('') : '<p class="legend">Paste response headers on the left, or press Demo.</p>');
+  renderCSP(r); $('#out').textContent = Parapet.exportConfig(ed.value, st.fmt) || '(no security headers in the editor yet)';
+}
+function renderCSP(r) {
+  const el = $('#csp');
+  if (!r.csp) { el.innerHTML = '<p class="legend">No enforced Content-Security-Policy to map.' + (r.lines.length ? ' Use the fix in the report to add a baseline.' : '') + '</p>'; return; }
+  const chips = (srcs, d) => srcs.length ? srcs.map(s => { const [lvl, why] = Parapet.rateSource(s, d, Parapet.hasNonce(srcs)); return `<span class="chip c-${lvl}" title="${esc(why || '')}">${esc(s)}${why ? ' · ' + esc(why) : ''}</span>`; }).join('') : '<span class="chip">(empty = none)</span>';
+  const setRows = Object.entries(r.csp).map(([d, s]) => `<tr><td>${esc(d)}</td><td>${chips(s, d)}</td></tr>`);
+  const inh = r.csp['default-src'] ? Parapet.FETCH.filter(d => !r.csp[d]).map(d => `<tr class="inh"><td>${d}</td><td><span class="chip">← default-src</span></td></tr>`) : [];
+  el.innerHTML = '<p class="legend"><span class="chip c-ok">green</span> keyword / nonce / hash <span class="chip">grey</span> host <span class="chip c-warn">amber</span> loose <span class="chip c-bad">red</span> wide open. Dimmed rows inherit default-src.</p><table>' + setRows.concat(inh).join('') + '</table>';
+}
+function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('on'), Math.max(1600, m.length * 45)); }
+function setTab(t) { st.tab = t; document.querySelectorAll('[role=tab]').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t)); ['report', 'csp', 'export'].forEach(id => $('#' + id).classList.toggle('hide', id !== t)); }
+function setTheme(t) { document.documentElement.dataset.theme = t; $('#bTheme').textContent = t === 'dark' ? 'Light' : 'Dark'; }
+const theme = () => document.documentElement.dataset.theme;
+
+function applyFix(i) { const f = last.findings[i]; ed.value = Parapet.serialize(f.fix.apply(last.lines), last.status, last.notes); render(); toast(f.fix.label); }
+function fixAll() { ed.value = Parapet.fixAll(ed.value); render(); toast('Grade ' + last.grade); }
+// Browsers only let a page read another origin's safelisted headers, so Fetch is same-origin by design.
+async function fetchHeaders() {
+  const raw = $('#url').value.trim(); if (!raw) return toast('Enter a path or URL first');
+  let u; try { u = new URL(raw, location.href); } catch { return toast('That is not a valid URL'); }
+  if (location.protocol === 'file:') return toast('A file:// page cannot read response headers. Host parapet.html on the site you want to audit, or paste curl -I output.');
+  if (u.origin !== location.origin) return toast('Different origin: browsers hide security headers from scripts. Host parapet.html on ' + u.host + ', or paste curl -I output.');
+  try {
+    const r = await fetch(u, { cache: 'no-store', credentials: 'same-origin' });
+    const lines = ['# fetched ' + u.href + ' — Set-Cookie is never visible to page scripts; paste curl -I output to audit cookies', 'HTTP/? ' + r.status + (r.statusText ? ' ' + r.statusText : '')];
+    r.headers.forEach((v, k) => lines.push(k + ': ' + v));
+    ed.value = lines.join('\n'); render(); toast('Fetched ' + (lines.length - 2) + ' headers from ' + u.pathname);
+  } catch (e) { toast('Fetch failed: ' + (e.message || e)); }
+}
+function save() {
+  const data = { app: 'parapet', version: 1, headers: ed.value, tab: st.tab, fmt: st.fmt, theme: theme() };
+  const a = document.createElement('a'), d = new Date(), pad = n => String(n).padStart(2, '0');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+  a.download = `parapet-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); toast('Saved ' + a.download);
+}
+function open(file) {
+  file.text().then(t => { const d = JSON.parse(t); if (d.app !== 'parapet' || d.version !== 1 || typeof d.headers !== 'string') throw 0; ed.value = d.headers; st.fmt = d.fmt in { nginx: 1, apache: 1, caddy: 1, express: 1 } ? d.fmt : 'nginx'; $('#fmt').value = st.fmt; setTab(['report', 'csp', 'export'].includes(d.tab) ? d.tab : 'report'); if (d.theme === 'light' || d.theme === 'dark') setTheme(d.theme); render(); toast('Opened ' + file.name); })
+    .catch(() => toast('Not a Parapet file — expected JSON with app "parapet", version 1'));
+}
+function copyOut() { setTab('export'); const t = $('#out').textContent; (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast('Copied'), () => { const r = document.createRange(); r.selectNodeContents($('#out')); getSelection().removeAllRanges(); getSelection().addRange(r); toast('Selected — press copy'); }); }
+
+ed.addEventListener('input', render);
+$('#report').addEventListener('click', e => { const b = e.target.closest('[data-fix]'); if (b) applyFix(+b.dataset.fix); });
+document.querySelectorAll('[role=tab]').forEach(b => b.onclick = () => setTab(b.dataset.tab));
+$('#fmt').onchange = e => { st.fmt = e.target.value; render(); };
+$('#bDemo').onclick = () => { ed.value = DEMO; render(); toast('Demo loaded'); };
+$('#bFetch').onclick = fetchHeaders; $('#url').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); fetchHeaders(); } });
+$('#bFix').onclick = fixAll; $('#bSave').onclick = save; $('#bOpen').onclick = () => $('#file').click(); $('#bCopy').onclick = copyOut;
+$('#file').onchange = e => { if (e.target.files[0]) open(e.target.files[0]); e.target.value = ''; };
+$('#bTheme').onclick = () => setTheme(theme() === 'dark' ? 'light' : 'dark');
+$('#bHelp').onclick = () => $('#help').showModal(); $('#bClose').onclick = () => $('#help').close();
+document.addEventListener('keydown', e => {
+  const mod = e.ctrlKey || e.metaKey, typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable;
+  if (mod && e.key === '/') { e.preventDefault(); $('#help').open ? $('#help').close() : $('#help').showModal(); return; }
+  if (mod && e.key.toLowerCase() === 's') { e.preventDefault(); save(); return; }
+  if (mod && e.key.toLowerCase() === 'o') { e.preventDefault(); $('#file').click(); return; }
+  if (e.key === 'Escape') { $('#help').close(); return; }
+  if (mod || e.altKey || typing) return;
+  const k = e.key.toLowerCase();
+  if (k === '1') setTab('report'); else if (k === '2') setTab('csp'); else if (k === '3') setTab('export');
+  else if (k === 'f') fixAll(); else if (k === 'e') copyOut(); else if (k === 't') $('#bTheme').click(); else if (k === 'r') $('#bDemo').click(); else if (k === 'u') { e.preventDefault(); $('#url').focus(); }
+});
+setTheme(matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+ed.value = DEMO; render();
+</script>
+</body>
+</html>
+
+</body></html>

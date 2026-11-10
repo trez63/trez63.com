@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Fourier Epicycles Studio</title>
+<style>
+:root {
+  --bg: #0f1117;
+  --fg: #e8eaed;
+  --accent: #6ee7b7;
+  --panel: #1a1d27;
+  --border: #2d3340;
+  --muted: #8b93a7;
+}
+[data-theme="light"] {
+  --bg: #f7f8fc;
+  --fg: #1a1d27;
+  --accent: #0d9488;
+  --panel: #ffffff;
+  --border: #e2e8f0;
+  --muted: #64748b;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--bg); color: var(--fg); font-family: system-ui, -apple-system, sans-serif; overflow: hidden; }
+#app { display: flex; flex-direction: column; height: 100%; height: 100dvh; }
+header { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 1rem; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+header h1 { font-size: 1.05rem; font-weight: 600; letter-spacing: -0.02em; }
+.controls { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+button, input[type="range"], label { font-size: 0.85rem; }
+button { background: var(--panel); color: var(--fg); border: 1px solid var(--border); border-radius: 6px; padding: 0.35rem 0.7rem; cursor: pointer; }
+button:hover, button.active { background: var(--accent); color: #0f1117; border-color: var(--accent); }
+input[type="range"] { accent-color: var(--accent); width: 90px; }
+canvas { flex: 1; width: 100%; touch-action: none; background: var(--bg); display: block; }
+#help { position: fixed; inset: 0; background: rgba(0,0,0,.72); display: none; align-items: center; justify-content: center; z-index: 100; padding: 1rem; }
+#help.open { display: flex; }
+.help-box { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 1.4rem; max-width: 420px; max-height: 90vh; overflow: auto; }
+.help-box h2 { margin-bottom: 0.6rem; }
+.help-box p, .help-box li { margin: 0.35rem 0; line-height: 1.45; color: var(--muted); }
+.help-box kbd { background: var(--border); padding: 0.1rem 0.35rem; border-radius: 4px; font-size: 0.8rem; }
+.status { font-size: 0.75rem; color: var(--muted); padding: 0 1rem 0.4rem; }
+@media (max-width: 640px) {
+  header { flex-direction: column; align-items: stretch; gap: 0.4rem; }
+  .controls { justify-content: center; }
+  button { padding: 0.5rem 0.8rem; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>Fourier Epicycles Studio</h1>
+    <div class="controls">
+      <button id="drawBtn" class="active">Draw</button>
+      <button id="playBtn">Play</button>
+      <button id="clearBtn">Clear</button>
+      <label>Terms <input id="terms" type="range" min="1" max="80" value="24"></label>
+      <label>Speed <input id="speed" type="range" min="0.2" max="3" step="0.1" value="1"></label>
+      <button id="themeBtn">Theme</button>
+      <button id="saveBtn">Save</button>
+      <button id="openBtn">Open</button>
+      <input type="file" id="file" accept=".json" hidden>
+      <button id="helpBtn">?</button>
+    </div>
+  </header>
+  <div class="status" id="status">Draw a closed shape, then press Play (or Space)</div>
+  <canvas id="c"></canvas>
+</div>
+<div id="help">
+  <div class="help-box">
+    <h2>Fourier Epicycles Studio</h2>
+    <p>Draw any closed path. The app computes its discrete Fourier transform and reconstructs it with rotating circles (epicycles).</p>
+    <ul>
+      <li><kbd>Space</kbd> or Play — toggle animation</li>
+      <li><kbd>D</kbd> — draw mode</li>
+      <li><kbd>C</kbd> — clear path</li>
+      <li><kbd>↑ / ↓</kbd> — more / fewer terms</li>
+      <li><kbd>← / →</kbd> — slower / faster</li>
+      <li><kbd>T</kbd> — cycle theme</li>
+      <li><kbd>S</kbd> — save JSON</li>
+      <li><kbd>O</kbd> — open JSON</li>
+      <li><kbd>?</kbd> or <kbd>H</kbd> — this help</li>
+    </ul>
+    <p>On mobile, touch and drag to draw. Controls stay reachable at the top.</p>
+    <button id="closeHelp">Close</button>
+  </div>
+</div>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const statusEl = document.getElementById('status');
+const termsEl = document.getElementById('terms');
+const speedEl = document.getElementById('speed');
+const drawBtn = document.getElementById('drawBtn');
+const playBtn = document.getElementById('playBtn');
+const clearBtn = document.getElementById('clearBtn');
+const themeBtn = document.getElementById('themeBtn');
+const saveBtn = document.getElementById('saveBtn');
+const openBtn = document.getElementById('openBtn');
+const fileEl = document.getElementById('file');
+const help = document.getElementById('help');
+const helpBtn = document.getElementById('helpBtn');
+const closeHelp = document.getElementById('closeHelp');
+
+let path = [];
+let drawing = false;
+let playing = false;
+let time = 0;
+let coeffs = [];
+let theme = localStorage.getItem('theme') || 'dark';
+document.documentElement.dataset.theme = theme;
+
+const demoPath = (() => {
+  const pts = [];
+  for (let i = 0; i < 120; i++) {
+    const t = i / 120 * Math.PI * 2;
+    const r = 0.42 + 0.18 * Math.sin(5 * t) * Math.cos(3 * t);
+    pts.push({ x: Math.cos(t) * r, y: Math.sin(t) * r * 0.85 });
+  }
+  return pts;
+})();
+
+function resize() {
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', resize);
+resize();
+
+function toCanvas(nx, ny) {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  return { x: (nx + 1) * 0.5 * w, y: (1 - (ny + 1) * 0.5) * h };
+}
+function fromCanvas(x, y) {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  return { x: (x / w) * 2 - 1, y: 1 - (y / h) * 2 };
+}
+
+function computeDFT(points) {
+  const N = points.length;
+  if (N < 3) return [];
+  const maxK = Math.min(40, Math.floor(N / 2));
+  const cs = [];
+  for (let k = -maxK; k <= maxK; k++) {
+    let re = 0, im = 0;
+    for (let n = 0; n < N; n++) {
+      const ang = -2 * Math.PI * k * n / N;
+      const p = points[n];
+      re += p.x * Math.cos(ang) - p.y * Math.sin(ang);
+      im += p.x * Math.sin(ang) + p.y * Math.cos(ang);
+    }
+    re /= N; im /= N;
+    const amp = Math.hypot(re, im);
+    if (amp > 0.002) cs.push({ k, re, im, amp, phase: Math.atan2(im, re) });
+  }
+  cs.sort((a, b) => b.amp - a.amp);
+  return cs;
+}
+
+function setPath(pts) {
+  path = pts.map(p => ({ x: p.x, y: p.y }));
+  coeffs = computeDFT(path);
+  statusEl.textContent = path.length ? `${path.length} points · ${coeffs.length} coefficients ready` : 'Draw a closed shape';
+}
+
+setPath(demoPath);
+
+function draw() {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  ctx.clearRect(0, 0, w, h);
+  if (!path.length) return;
+
+  if (!playing) {
+    ctx.beginPath();
+    path.forEach((p, i) => {
+      const c = toCanvas(p.x, p.y);
+      i ? ctx.lineTo(c.x, c.y) : ctx.moveTo(c.x, c.y);
+    });
+    ctx.closePath();
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent');
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+    return;
+  }
+
+  const nTerms = +termsEl.value;
+  const used = coeffs.slice(0, nTerms);
+  let x = 0, y = 0;
+  const trail = [];
+  const steps = 240;
+  for (let s = 0; s <= steps; s++) {
+    const t = (time + s / steps) % 1;
+    let px = 0, py = 0;
+    used.forEach(c => {
+      const ang = c.phase + 2 * Math.PI * c.k * t;
+      px += c.amp * Math.cos(ang);
+      py += c.amp * Math.sin(ang);
+    });
+    trail.push(toCanvas(px, py));
+  }
+
+  ctx.beginPath();
+  trail.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
+  ctx.strokeStyle = 'rgba(110,231,183,0.35)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  x = y = 0;
+  used.forEach(c => {
+    const prev = { x, y };
+    const ang = c.phase + 2 * Math.PI * c.k * time;
+    x += c.amp * Math.cos(ang);
+    y += c.amp * Math.sin(ang);
+    const a = toCanvas(prev.x, prev.y);
+    const b = toCanvas(x, y);
+    ctx.beginPath();
+    ctx.arc(a.x, a.y, Math.hypot(b.x - a.x, b.y - a.y), 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(139,147,167,0.45)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.strokeStyle = '#6ee7b7';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  });
+  const tip = toCanvas(x, y);
+  ctx.beginPath();
+  ctx.arc(tip.x, tip.y, 4, 0, Math.PI * 2);
+  ctx.fillStyle = '#6ee7b7';
+  ctx.fill();
+}
+
+function loop(ts) {
+  if (playing) time = (time + 0.004 * +speedEl.value) % 1;
+  draw();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+function getPos(e) {
+  const r = canvas.getBoundingClientRect();
+  const src = e.touches ? e.touches[0] : e;
+  return fromCanvas(src.clientX - r.left, src.clientY - r.top);
+}
+canvas.addEventListener('pointerdown', e => {
+  if (playing) return;
+  drawing = true;
+  path = [getPos(e)];
+  e.target.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener('pointermove', e => {
+  if (!drawing) return;
+  path.push(getPos(e));
+  if (path.length > 400) path.shift();
+});
+canvas.addEventListener('pointerup', () => {
+  drawing = false;
+  if (path.length > 8) setPath(path);
+});
+
+function togglePlay() {
+  if (!path.length) return;
+  playing = !playing;
+  playBtn.textContent = playing ? 'Pause' : 'Play';
+  playBtn.classList.toggle('active', playing);
+  drawBtn.classList.toggle('active', !playing);
+  statusEl.textContent = playing ? `Animating with ${termsEl.value} terms` : 'Draw mode';
+}
+playBtn.onclick = togglePlay;
+drawBtn.onclick = () => { playing = false; playBtn.textContent = 'Play'; playBtn.classList.remove('active'); drawBtn.classList.add('active'); };
+clearBtn.onclick = () => { path = []; coeffs = []; playing = false; statusEl.textContent = 'Cleared — draw a new shape'; };
+
+themeBtn.onclick = () => {
+  theme = theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = theme;
+  try { localStorage.setItem('theme', theme); } catch(e) {}
+};
+
+function saveState() {
+  const data = { path, terms: +termsEl.value, speed: +speedEl.value, theme };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'fourier-epicycles.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+saveBtn.onclick = saveState;
+openBtn.onclick = () => fileEl.click();
+fileEl.onchange = e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (data.path) setPath(data.path);
+      if (data.terms) termsEl.value = data.terms;
+      if (data.speed) speedEl.value = data.speed;
+      if (data.theme) { theme = data.theme; document.documentElement.dataset.theme = theme; }
+      statusEl.textContent = 'State restored';
+    } catch(err) { statusEl.textContent = 'Invalid file'; }
+  };
+  reader.readAsText(f);
+  fileEl.value = '';
+};
+
+function showHelp(on) { help.classList.toggle('open', on); }
+helpBtn.onclick = () => showHelp(true);
+closeHelp.onclick = () => showHelp(false);
+help.onclick = e => { if (e.target === help) showHelp(false); };
+
+const keyMap = {
+  ' ': togglePlay,
+  'd': () => drawBtn.click(),
+  'c': () => clearBtn.click(),
+  't': () => themeBtn.click(),
+  's': saveState,
+  'o': () => openBtn.click(),
+  '?': () => showHelp(true),
+  'h': () => showHelp(true),
+  'ArrowUp': () => { termsEl.value = Math.min(80, +termsEl.value + 2); },
+  'ArrowDown': () => { termsEl.value = Math.max(1, +termsEl.value - 2); },
+  'ArrowRight': () => { speedEl.value = Math.min(3, +speedEl.value + 0.2); },
+  'ArrowLeft': () => { speedEl.value = Math.max(0.2, +speedEl.value - 0.2); }
+};
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  const fn = keyMap[e.key.toLowerCase()] || keyMap[e.key];
+  if (fn) { e.preventDefault(); fn(); }
+});
+</script>
+</body>
+</html>

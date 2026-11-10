@@ -1523,7 +1523,74 @@
         }
       ],
       "category": "tool"
+    },
+    "fourier-epicycles-studio": {
+      "title": "Fourier Epicycles Studio",
+      "engine": "Grok",
+      "description": "Draw any closed shape and watch it redrawn by a chain of rotating circles. The app takes the discrete Fourier transform of your path and traces it back with epicycles; slide the number of terms up and down to see the reconstruction sharpen or blur, change the speed, and save or reload a drawing as JSON.",
+      "source_file": "Fourier Epicycles Studio - Grok.html",
+      "first_published": "2026-11-10",
+      "last_updated": "2026-11-10",
+      "version": 1,
+      "sha": "7bec873b4f63",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-10",
+          "sha": "7bec873b4f63"
+        }
+      ],
+      "category": "edu",
+      "thumb": {
+        "actions": [
+          {
+            "wait": 1200
+          },
+          {
+            "selector_click": "#playBtn"
+          },
+          {
+            "wait": 2500
+          }
+        ]
+      }
+    },
+    "breathe": {
+      "title": "Breathe",
+      "engine": "Muse",
+      "description": "A guided breathing pacer. Pick box, 4-7-8, coherent or deep-slow breathing and a session length and follow the circle as it grows and shrinks, or switch to hold mode and press the circle to breathe in and let go to breathe out; sessions are logged on the device and can be saved as JSON.",
+      "source_file": "breathe-muse.html",
+      "first_published": "2026-11-10",
+      "last_updated": "2026-11-10",
+      "version": 1,
+      "sha": "e1b2c2f15391",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-10",
+          "sha": "e1b2c2f15391"
+        }
+      ],
+      "category": "focus"
+    },
+    "celestialtrace": {
+      "title": "CelestialTrace",
+      "engine": "Gemini",
+      "description": "A gravitational N-body sandbox. Drag on the canvas to launch a planet with a velocity vector and watch it orbit, slingshot or merge with the other bodies, tune the gravitational constant, trail length and collision mode, and save or reload a system as JSON.",
+      "source_file": "celestialtrace-gemini.html",
+      "first_published": "2026-11-10",
+      "last_updated": "2026-11-10",
+      "version": 1,
+      "sha": "1734b0e4748f",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-10",
+          "sha": "1734b0e4748f"
+        }
+      ],
+      "category": "sim"
     }
   },
-  "generated": "2026-11-09"
+  "generated": "2026-11-10"
 }

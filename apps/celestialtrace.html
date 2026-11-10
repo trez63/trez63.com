@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CelestialTrace — Gravitational N-Body Physics Lab</title>
+    <style>
+        :root {
+            --bg: #070a12; --panel: #0f172a; --card: #1e293b; --border: #334155;
+            --text: #f8fafc; --sub: #94a3b8; --accent: #38bdf8; --accent-hover: #0284c7;
+            --shadow: rgba(0,0,0,0.6);
+        }
+        [data-theme="light"] {
+            --bg: #f8fafc; --panel: #ffffff; --card: #f1f5f9; --border: #cbd5e1;
+            --text: #0f172a; --sub: #64748b; --accent: #0284c7; --accent-hover: #0369a1;
+            --shadow: rgba(0,0,0,0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+
+        header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; z-index: 10; }
+        .brand { font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em; }
+        .star-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+        .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        button, label.btn-label, select { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; user-select: none; transition: 0.15s; outline: none; }
+        button:hover, label.btn-label:hover { border-color: var(--accent); color: var(--accent); }
+        button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+        button.primary:hover { background: var(--accent-hover); color: #fff; }
+        input[type="file"] { display: none; }
+
+        .metrics-bar { background: var(--panel); border-bottom: 1px solid var(--border); padding: 10px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; font-size: 0.8rem; z-index: 10; }
+        .metric-card { background: var(--bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); }
+        .metric-title { color: var(--sub); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+        .metric-val { font-size: 1rem; font-weight: 700; color: var(--text); }
+
+        main { flex: 1; padding: 16px; max-width: 1400px; width: 100%; margin: 0 auto; display: grid; grid-template-columns: 320px 1fr; gap: 16px; }
+        .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; box-shadow: 0 4px 6px var(--shadow); display: flex; flex-direction: column; gap: 12px; }
+        .section-title { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sub); display: flex; justify-content: space-between; align-items: center; }
+
+        .form-group { margin-bottom: 8px; }
+        .form-group label { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--sub); margin-bottom: 4px; font-weight: 500; }
+        .form-group input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+
+        .sim-container { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0; height: 480px; position: relative; overflow: hidden; }
+        canvas { width: 100%; height: 100%; display: block; cursor: crosshair; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 200; padding: 16px; }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 440px; padding: 20px; box-shadow: 0 20px 25px -5px var(--shadow); }
+        .modal h3 { font-size: 1.1rem; margin-bottom: 12px; }
+
+        .shortcut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem; margin: 12px 0 16px; }
+        .shortcut-row { display: flex; justify-content: space-between; background: var(--card); padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border); }
+        kbd { background: var(--panel); border: 1px solid var(--border); padding: 1px 5px; border-radius: 3px; font-weight: 600; font-size: 0.75rem; }
+
+        @media (max-width: 850px) {
+            header { flex-direction: column; align-items: stretch; }
+            .actions { justify-content: space-between; }
+            main { grid-template-columns: 1fr; padding: 8px; }
+            .metrics-bar { grid-template-columns: repeat(2, 1fr); }
+            .sim-container { height: 360px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand"><div class="star-dot"></div> CelestialTrace Physics Lab</div>
+        <div class="actions">
+            <button id="pauseBtn" class="primary">⏸ Pause Simulation</button>
+            <button id="resetBtn">🔄 Reset System</button>
+            <button id="saveBtn">💾 Save JSON</button>
+            <label class="btn-label" for="openFile">📂 Open JSON</label>
+            <input type="file" id="openFile" accept=".json">
+            <button id="themeBtn">🌓 Theme</button>
+            <button id="helpBtn">❓ Help</button>
+        </div>
+    </header>
+
+    <div class="metrics-bar">
+        <div class="metric-card"><div class="metric-title">Active Celestial Bodies</div><div class="metric-val" id="mBodyCount">0</div></div>
+        <div class="metric-card"><div class="metric-title">Gravitational Constant (G)</div><div class="metric-val" id="mGravConst">1.5</div></div>
+        <div class="metric-card"><div class="metric-title">System Kinetic Energy</div><div class="metric-val" id="mEnergy" style="color:var(--accent);">0.0 J</div></div>
+        <div class="metric-card"><div class="metric-title">Simulation Speed</div><div class="metric-val" id="mSpeed">1.0x</div></div>
+    </div>
+
+    <main>
+        <!-- Simulation Controls -->
+        <div class="panel">
+            <div class="section-title"><span>Physics Parameters</span></div>
+            
+            <div class="form-group">
+                <label>Gravitational Pull (G): <span id="valG">1.5</span></label>
+                <input type="range" id="cfgG" min="0.1" max="5.0" step="0.1" value="1.5">
+            </div>
+
+            <div class="form-group">
+                <label>Trace Trail Length: <span id="valTrail">60</span> frames</label>
+                <input type="range" id="cfgTrail" min="10" max="150" step="10" value="60">
+            </div>
+
+            <div class="form-group">
+                <label>Collision Elasticity: <span id="valMerge">Merge</span></label>
+                <input type="range" id="cfgMerge" min="0" max="1" step="1" value="1">
+            </div>
+
+            <div class="section-title" style="margin-top:8px;"><span>Interactive Controls</span></div>
+            <p style="font-size:0.78rem; color:var(--sub); line-height:1.4;">
+                • <strong>Click/Tap & Drag</strong> on canvas to launch a new orbiting planet.<br>
+                • Vector line determines initial velocity trajectory.
+            </p>
+        </div>
+
+        <!-- Interactive Canvas Stage -->
+        <div class="panel">
+            <div class="section-title"><span>Real-Time N-Body Orbital Field</span></div>
+            <div class="sim-container" id="simWrapper">
+                <canvas id="simCanvas"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal">
+            <h3>CelestialTrace Guide & Shortcuts</h3>
+            <p style="font-size:0.85rem; color:var(--sub); line-height:1.4; margin-bottom:10px;">Zero-dependency client-side N-body gravitational physics simulator and orbital trace visualizer.</p>
+            <div class="shortcut-grid">
+                <div class="shortcut-row"><span>Pause / Play</span> <kbd>Space</kbd></div>
+                <div class="shortcut-row"><span>Reset System</span> <kbd>R</kbd></div>
+                <div class="shortcut-row"><span>Save System</span> <kbd>S</kbd></div>
+                <div class="shortcut-row"><span>Open System</span> <kbd>O</kbd></div>
+                <div class="shortcut-row"><span>Toggle Theme</span> <kbd>T</kbd></div>
+                <div class="shortcut-row"><span>Close Modal</span> <kbd>Esc</kbd></div>
+            </div>
+            <button id="closeHelpBtn" class="primary" style="width:100%; justify-content:center; margin-top:10px;">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        // --- State & Physics Setup ---
+        let isPaused = false;
+        let G = 1.5;
+        let trailLength = 60;
+        let autoMerge = true;
+
+        let bodies = [];
+
+        function initDemoState() {
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+
+            bodies = [
+                // Central Sun
+                { id: 'b1', x: cx, y: cy, vx: 0, vy: 0, mass: 1200, radius: 16, color: '#f59e0b', trail: [] },
+                // Orbiting Planet 1
+                { id: 'b2', x: cx, y: cy - 140, vx: 3.2, vy: 0, mass: 25, radius: 6, color: '#38bdf8', trail: [] },
+                // Orbiting Planet 2 (Inner Fast)
+                { id: 'b3', x: cx + 80, y: cy, vx: 0, vy: 4.5, mass: 10, radius: 4, color: '#ec4899', trail: [] },
+                // Moon around Planet 1
+                { id: 'b4', x: cx, y: cy - 152, vx: 4.4, vy: 0, mass: 2, radius: 2, color: '#a855f7', trail: [] }
+            ];
+        }
+
+        // --- Range Controls Sync ---
+        document.getElementById('cfgG').addEventListener('input', e => { G = parseFloat(e.target.value); document.getElementById('valG').innerText = G; document.getElementById('mGravConst').innerText = G; });
+        document.getElementById('cfgTrail').addEventListener('input', e => { trailLength = parseInt(e.target.value); document.getElementById('valTrail').innerText = trailLength; });
+        document.getElementById('cfgMerge').addEventListener('input', e => { autoMerge = e.target.value === '1'; document.getElementById('valMerge').innerText = autoMerge ? 'Merge' : 'Bounce'; });
+
+        // --- N-Body Gravitational Engine ---
+        function updatePhysics() {
+            if (isPaused) return;
+
+            let totalKE = 0;
+
+            for (let i = 0; i < bodies.length; i++) {
+                let b1 = bodies[i];
+                let fx = 0, fy = 0;
+
+                for (let j = 0; j < bodies.length; j++) {
+                    if (i === j) continue;
+                    let b2 = bodies[j];
+
+                    let dx = b2.x - b1.x;
+                    let dy = b2.y - b1.y;
+                    let distSq = dx * dx + dy * dy + 100; // Softening factor to prevent infinity division
+                    let dist = Math.sqrt(distSq);
+
+                    // Collision detection and momentum merge
+                    if (autoMerge && dist < (b1.radius + b2.radius)) {
+                        if (b1.mass >= b2.mass) {
+                            // Merge b2 into b1
+                            b1.vx = (b1.vx * b1.mass + b2.vx * b2.mass) / (b1.mass + b2.mass);
+                            b1.vy = (b1.vy * b1.mass + b2.vy * b2.mass) / (b1.mass + b2.mass);
+                            b1.mass += b2.mass;
+                            b1.radius = Math.min(30, Math.sqrt(b1.mass) * 0.5 + 2);
+                            bodies.splice(j, 1);
+                            if (j < i) i--;
+                            continue;
+                        }
+                    }
+
+                    let force = (G * b1.mass * b2.mass) / distSq;
+                    fx += force * (dx / dist);
+                    fy += force * (dy / dist);
+                }
+
+                b1.vx += fx / b1.mass;
+                b1.vy += fy / b1.mass;
+            }
+
+            // Move bodies & record trail position
+            bodies.forEach(b => {
+                b.x += b.vx;
+                b.y += b.vy;
+
+                b.trail.push({ x: b.x, y: b.y });
+                if (b.trail.length > trailLength) b.trail.shift();
+
+                totalKE += 0.5 * b.mass * (b.vx * b.vx + b.vy * b.vy);
+            });
+
+            document.getElementById('mBodyCount').innerText = bodies.length;
+            document.getElementById('mEnergy').innerText = `${Math.round(totalKE).toLocaleString()} J`;
+        }
+
+        // --- Canvas Renderer ---
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+            if (bodies.length === 0) initDemoState();
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        function render() {
+            updatePhysics();
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Trails
+            bodies.forEach(b => {
+                if (b.trail.length > 1) {
+                    ctx.beginPath();
+                    ctx.moveTo(b.trail[0].x, b.trail[0].y);
+                    for (let i = 1; i < b.trail.length; i++) {
+                        ctx.lineTo(b.trail[i].x, b.trail[i].y);
+                    }
+                    ctx.strokeStyle = b.color;
+                    ctx.globalAlpha = 0.35;
+                    ctx.lineWidth = Math.max(1, b.radius * 0.4);
+                    ctx.stroke();
+                    ctx.globalAlpha = 1.0;
+                }
+            });
+
+            // Draw Bodies
+            bodies.forEach(b => {
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+                ctx.fillStyle = b.color;
+                ctx.shadowColor = b.color;
+                ctx.shadowBlur = b.radius > 10 ? 15 : 5;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            });
+
+            // Draw Interactive Launch Drag Vector Line
+            if (isDragging && dragStart && dragCurrent) {
+                ctx.beginPath();
+                ctx.moveTo(dragStart.x, dragStart.y);
+                ctx.lineTo(dragCurrent.x, dragCurrent.y);
+                ctx.strokeStyle = '#38bdf8';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([4, 4]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            requestAnimationFrame(render);
+        }
+
+        // --- Interactive Drag-to-Launch Mechanics ---
+        let isDragging = false;
+        let dragStart = null, dragCurrent = null;
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+
+        canvas.addEventListener('mousedown', startLaunch);
+        canvas.addEventListener('touchstart', startLaunch, { passive: false });
+
+        function startLaunch(e) {
+            isDragging = true;
+            dragStart = getPos(e);
+            dragCurrent = dragStart;
+        }
+
+        window.addEventListener('mousemove', moveLaunch);
+        window.addEventListener('touchmove', moveLaunch, { passive: false });
+
+        function moveLaunch(e) {
+            if (!isDragging) return;
+            if (e.touches) e.preventDefault();
+            dragCurrent = getPos(e);
+        }
+
+        window.addEventListener('mouseup', endLaunch);
+        window.addEventListener('touchend', endLaunch);
+
+        function endLaunch() {
+            if (!isDragging) return;
+            isDragging = false;
+            if (dragStart && dragCurrent) {
+                const vx = (dragStart.x - dragCurrent.x) * 0.08;
+                const vy = (dragStart.y - dragCurrent.y) * 0.08;
+                const colors = ['#38bdf8', '#ec4899', '#a855f7', '#10b981', '#f59e0b'];
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+                bodies.push({
+                    id: 'b_' + Date.now(),
+                    x: dragStart.x,
+                    y: dragStart.y,
+                    vx: vx,
+                    vy: vy,
+                    mass: 20,
+                    radius: 5,
+                    color: randomColor,
+                    trail: []
+                });
+            }
+            dragStart = null; dragCurrent = null;
+        }
+
+        // --- Actions & Persistence ---
+        document.getElementById('pauseBtn').addEventListener('click', togglePause);
+        document.getElementById('resetBtn').addEventListener('click', () => { initDemoState(); });
+
+        function togglePause() {
+            isPaused = !isPaused;
+            document.getElementById('pauseBtn').innerText = isPaused ? '▶ Resume Simulation' : '⏸ Pause Simulation';
+        }
+
+        document.getElementById('saveBtn').addEventListener('click', exportJSON);
+        document.getElementById('openFile').addEventListener('change', importJSON);
+
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(bodies, null, 2));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            a.setAttribute("download", `celestialtrace_system_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        function importJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const imported = JSON.parse(evt.target.result);
+                    if (Array.isArray(imported)) {
+                        bodies = imported;
+                    } else alert('Invalid orbital system JSON format.');
+                } catch(err) { alert('Error reading file.'); }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Shortcuts & Theme ---
+        const helpModal = document.getElementById('helpModal');
+        document.getElementById('helpBtn').addEventListener('click', () => helpModal.classList.add('open'));
+        document.getElementById('closeHelpBtn').addEventListener('click', () => helpModal.classList.remove('open'));
+        document.getElementById('themeBtn').addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-theme');
+            document.documentElement.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+        });
+
+        // Strict Keyboard Shortcuts Mapping:
+        // Space = Pause/Resume, R = Reset, S = Save JSON, O = Open JSON, T = Toggle Theme, Esc = Close Modal
+        window.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT') return;
+            const key = e.key.toLowerCase();
+            if (e.code === 'Space') { e.preventDefault(); togglePause(); }
+            if (key === 'r') { e.preventDefault(); initDemoState(); }
+            if (key === 's') { e.preventDefault(); exportJSON(); }
+            if (key === 'o') { e.preventDefault(); document.getElementById('openFile').click(); }
+            if (key === 't') { e.preventDefault(); document.getElementById('themeBtn').click(); }
+            if (e.key === 'Escape') helpModal.classList.remove('open');
+        });
+
+        // Pre-loaded Initialization
+        resizeCanvas();
+        requestAnimationFrame(render);
+    </script>
+</body>
+</html>

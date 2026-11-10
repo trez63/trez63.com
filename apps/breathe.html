@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BREATHE — a guided breathing pacer</title>
+<style>
+/* ============ 1. Base & palette ============ */
+:root{
+  --bg:#0d1b2e;          /* deep midnight navy */
+  --bg2:#12263f;         /* panel navy */
+  --ink:#e8f1f2;         /* soft off-white */
+  --muted:#9db4c6;       /* dusty blue-grey */
+  --teal:#6fd3c0;        /* calm aqua */
+  --teal-dim:#2e6f63;
+  --lav:#b9a7e8;         /* soft lavender */
+  --peach:#f4a988;       /* warm peach accent */
+  --line:#24405e;
+  --radius:16px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; min-height:100vh;
+  background:radial-gradient(120% 90% at 50% 0%, #16324e 0%, var(--bg) 60%);
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  line-height:1.45;
+}
+main{max-width:640px;margin:0 auto;padding:20px 16px 48px}
+
+/* ============ 2. Header ============ */
+header{text-align:center;margin-bottom:8px}
+h1{margin:0;font-size:30px;letter-spacing:.22em;font-weight:700}
+h1 span{color:var(--teal)}
+.sub{color:var(--muted);margin:6px 0 0;font-size:15px}
+.mode-tabs{display:flex;gap:8px;justify-content:center;margin:18px 0 4px}
+.mode-tabs button{
+  flex:1;max-width:220px;min-height:48px;border-radius:999px;
+  border:1px solid var(--line);background:var(--bg2);color:var(--ink);
+  font-size:16px;font-weight:600;cursor:pointer;
+}
+.mode-tabs button[aria-pressed="true"]{background:var(--teal);color:#0d1b2e;border-color:var(--teal)}
+.hint{color:var(--muted);font-size:14px;text-align:center;margin:6px 0 0;min-height:20px}
+
+/* ============ 3. Breath circle ============ */
+.stage{display:flex;flex-direction:column;align-items:center;padding:18px 0 6px}
+.ring{
+  width:min(78vw,300px);height:min(78vw,300px);border-radius:50%;
+  border:2px solid var(--line);display:flex;align-items:center;justify-content:center;
+  position:relative;touch-action:none;user-select:none;-webkit-user-select:none;
+}
+.orb{
+  width:62%;height:62%;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #a5ecdd 0%, var(--teal) 45%, var(--teal-dim) 100%);
+  box-shadow:0 0 48px rgba(111,211,192,.45);
+  transform:scale(.55);
+  transition:transform 4s ease-in-out;
+  display:flex;align-items:center;justify-content:center;text-align:center;
+}
+.orb-text{color:#0d1b2e;font-weight:700;font-size:19px;line-height:1.3;padding:0 12px}
+.count{font-size:13px;font-weight:600;opacity:.75;display:block;margin-top:2px}
+.ring.holdable{cursor:pointer}
+.ring.holdable:active .orb{box-shadow:0 0 64px rgba(111,211,192,.7)}
+.phase-line{margin-top:16px;font-size:17px;color:var(--lav);min-height:24px;text-align:center}
+.breath-readout{color:var(--muted);font-size:14px;min-height:20px;text-align:center}
+
+/* ============ 4. Controls ============ */
+.panel{
+  background:var(--bg2);border:1px solid var(--line);border-radius:var(--radius);
+  padding:16px;margin-top:14px;
+}
+.panel h2{margin:0 0 10px;font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  min-height:44px;padding:8px 14px;border-radius:999px;cursor:pointer;
+  border:1px solid var(--line);background:transparent;color:var(--ink);
+  font-size:15px;
+}
+.chip[aria-pressed="true"]{background:var(--lav);color:#241a3d;border-color:var(--lav);font-weight:700}
+.chip small{display:block;font-size:12px;opacity:.8}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.big-btn{
+  flex:1;min-height:56px;border:none;border-radius:14px;cursor:pointer;
+  background:var(--teal);color:#0d1b2e;font-size:18px;font-weight:800;
+}
+.big-btn.stop{background:var(--peach)}
+.big-btn:disabled{opacity:.45;cursor:default}
+.ghost-btn{
+  min-height:48px;padding:0 18px;border-radius:12px;cursor:pointer;
+  border:1px solid var(--line);background:transparent;color:var(--ink);font-size:15px;
+}
+label.len{font-size:15px;color:var(--muted)}
+select{
+  min-height:48px;border-radius:12px;border:1px solid var(--line);
+  background:var(--bg);color:var(--ink);font-size:16px;padding:0 10px;
+}
+
+/* ============ 5. Stats & log ============ */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.stat{
+  background:var(--bg2);border:1px solid var(--line);border-radius:var(--radius);
+  padding:12px 8px;text-align:center;
+}
+.stat b{display:block;font-size:26px;color:var(--teal)}
+.stat span{font-size:13px;color:var(--muted)}
+.log{list-style:none;margin:10px 0 0;padding:0}
+.log li{
+  display:flex;justify-content:space-between;gap:10px;
+  padding:10px 2px;border-bottom:1px solid var(--line);font-size:15px;
+}
+.log li:last-child{border-bottom:none}
+.log .when{color:var(--muted);font-size:13px}
+.empty{color:var(--muted);font-size:15px;margin:8px 0}
+.status{color:var(--peach);font-size:14px;min-height:20px;margin-top:8px}
+footer{color:var(--muted);font-size:13px;text-align:center;margin-top:22px}
+kbd{border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-family:inherit}
+
+@media (prefers-reduced-motion:reduce){
+  .orb{transition:none}
+}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>BREATHE<span>.</span></h1>
+    <p class="sub">Slow down, one breath at a time.</p>
+  </header>
+
+  <!-- mode switch -->
+  <div class="mode-tabs" role="group" aria-label="Breathing mode">
+    <button id="tabGuided" aria-pressed="true">Guided session</button>
+    <button id="tabHold" aria-pressed="false">Hold to breathe</button>
+  </div>
+  <p class="hint" id="modeHint">Pick a pattern, press Start, and follow the circle.</p>
+
+  <!-- breath circle -->
+  <section class="stage" aria-live="polite">
+    <div class="ring" id="ring">
+      <div class="orb" id="orb">
+        <div class="orb-text"><span id="orbLabel">Ready</span><span class="count" id="orbCount"></span></div>
+      </div>
+    </div>
+    <p class="phase-line" id="phaseLine">Tap Start when you are ready.</p>
+    <p class="breath-readout" id="readout"></p>
+  </section>
+
+  <!-- guided controls -->
+  <section class="panel" id="guidedPanel">
+    <h2>Pattern</h2>
+    <div class="chips" id="patternChips" role="group" aria-label="Breathing pattern"></div>
+    <div class="row" style="margin-top:14px">
+      <label class="len" for="minutes">Session</label>
+      <select id="minutes">
+        <option value="1">1 minute</option>
+        <option value="3" selected>3 minutes</option>
+        <option value="5">5 minutes</option>
+        <option value="10">10 minutes</option>
+        <option value="0">Until I stop</option>
+      </select>
+      <button class="big-btn" id="startBtn">Start breathing</button>
+    </div>
+  </section>
+
+  <!-- hold-mode controls -->
+  <section class="panel" id="holdPanel" hidden>
+    <h2>How it works</h2>
+    <p style="margin:0;font-size:15px">Press and hold the circle to breathe in.
+      Let go to breathe out. There is no timer and no wrong way to do it —
+      each hold of a second or more counts as one breath.</p>
+    <div class="row" style="margin-top:14px">
+      <button class="ghost-btn" id="finishHoldBtn">Finish &amp; log this session</button>
+    </div>
+  </section>
+
+  <!-- stats -->
+  <section class="stats" aria-label="Session stats">
+    <div class="stat"><b id="statBreaths">0</b><span>breaths this session</span></div>
+    <div class="stat"><b id="statTime">0:00</b><span>time breathing</span></div>
+    <div class="stat"><b id="statToday">0</b><span>sessions today</span></div>
+  </section>
+
+  <!-- session log + save/open -->
+  <section class="panel">
+    <h2>Session log</h2>
+    <ul class="log" id="logList"></ul>
+    <p class="empty" id="logEmpty">No sessions yet — your first one will appear here.</p>
+    <div class="row" style="margin-top:12px">
+      <button class="ghost-btn" id="saveBtn">Save</button>
+      <button class="ghost-btn" id="openBtn">Open</button>
+      <button class="ghost-btn" id="clearBtn">Clear log</button>
+    </div>
+    <p class="status" id="status" role="status"></p>
+    <input type="file" id="fileInput" accept=".json,application/json" hidden>
+  </section>
+
+  <footer>Space starts or pauses a guided session. Your log is saved on this device only.</footer>
+</main>
+
+<script>
+"use strict";
+/* ================================================================
+   BREATHE — guided breathing pacer
+   Sections: 1 state · 2 patterns · 3 guided engine · 4 hold mode
+             5 rendering · 6 stats & log · 7 persistence · 8 wiring
+   ================================================================ */
+
+/* ---------- 1. State ---------- */
+const PATTERNS = {
+  box:      {name:"Box breathing",  desc:"4 · 4 · 4 · 4",  phases:[["Breathe in",4,1],["Hold",4,1],["Breathe out",4,.55],["Hold",4,.55]]},
+  calm:     {name:"Calm 4-7-8",     desc:"4 · 7 · 8",      phases:[["Breathe in",4,1],["Hold",7,1],["Breathe out",8,.55]]},
+  coherent: {name:"Coherent",       desc:"5 · 5",          phases:[["Breathe in",5,1],["Breathe out",5,.55]]},
+  deep:     {name:"Deep slow",      desc:"6 · 2 · 6",      phases:[["Breathe in",6,1],["Hold",2,1],["Breathe out",6,.55]]}
+};
+const LS_KEY = "breathe-log-v1";
+const state = {
+  mode:"guided",            // "guided" | "hold"
+  pattern:"box",
+  running:false,
+  phaseIdx:0, phaseLeft:0,  // seconds left in current phase
+  elapsed:0,                // seconds in this session
+  breaths:0,                // breaths in this session
+  sessionSeconds:180,       // 0 = open-ended
+  holdStart:0, holdInhale:0,
+  sessions:[]               // {date, mode, pattern, breaths, seconds}
+};
+let tickId = null;
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------- 2. DOM helpers ---------- */
+const $ = id => document.getElementById(id);
+const ring=$("ring"), orb=$("orb"), orbLabel=$("orbLabel"), orbCount=$("orbCount"),
+      phaseLine=$("phaseLine"), readout=$("readout"),
+      startBtn=$("startBtn"), minutesSel=$("minutes");
+
+function fmtTime(s){ const m=Math.floor(s/60); return m+":"+String(Math.floor(s%60)).padStart(2,"0"); }
+function todayStr(d){ return d.toLocaleDateString(undefined,{month:"short",day:"numeric"}); }
+function setStatus(msg){ $("status").textContent = msg || ""; }
+
+/* ---------- 3. Guided engine ---------- */
+function currentPattern(){ return PATTERNS[state.pattern]; }
+
+function applyPhase(){
+  const [label, dur, scale] = currentPattern().phases[state.phaseIdx];
+  state.phaseLeft = dur;
+  orbLabel.textContent = label;
+  phaseLine.textContent = label + " — " + dur + " seconds";
+  orb.style.transitionDuration = reduceMotion ? "0s" : dur + "s";
+  orb.style.transform = "scale(" + scale + ")";
+  if (label === "Breathe in") state.breaths++;
+  renderStats();
+}
+function tick(){
+  state.elapsed += 0.1;
+  state.phaseLeft -= 0.1;
+  orbCount.textContent = Math.max(0, Math.ceil(state.phaseLeft));
+  renderStats();
+  if (state.phaseLeft <= 0){
+    state.phaseIdx = (state.phaseIdx + 1) % currentPattern().phases.length;
+    applyPhase();
+  }
+  if (state.sessionSeconds > 0 && state.elapsed >= state.sessionSeconds) stopGuided(true);
+}
+function startGuided(){
+  state.running = true;
+  state.elapsed = 0; state.breaths = 0; state.phaseIdx = 0;
+  state.sessionSeconds = Number(minutesSel.value) * 60;
+  startBtn.textContent = "Pause";
+  startBtn.classList.add("stop");
+  readout.textContent = state.sessionSeconds ? "Session: " + minutesSel.value + " min · " + currentPattern().name : "Open session · " + currentPattern().name;
+  applyPhase();
+  tickId = setInterval(tick, 100);
+}
+function stopGuided(finished){
+  clearInterval(tickId); tickId = null;
+  state.running = false;
+  startBtn.textContent = "Start breathing";
+  startBtn.classList.remove("stop");
+  orbCount.textContent = "";
+  orbLabel.textContent = finished ? "Well done" : "Paused";
+  phaseLine.textContent = finished ? "Session complete — nice work." : "Paused. Press Start to begin again.";
+  orb.style.transitionDuration = reduceMotion ? "0s" : "2s";
+  orb.style.transform = "scale(.55)";
+  if (state.elapsed >= 10) logSession("guided", currentPattern().name, state.breaths, Math.round(state.elapsed));
+  state.elapsed = 0; state.breaths = 0;
+  renderStats(); saveLocal();
+}
+function toggleGuided(){ state.running ? stopGuided(false) : startGuided(); }
+
+/* ---------- 4. Hold-to-breathe mode ---------- */
+function holdStart(e){
+  if (e) e.preventDefault();
+  state.holdStart = Date.now();
+  orbLabel.textContent = "Breathe in…";
+  phaseLine.textContent = "Keep holding — breathe in slowly.";
+  orb.style.transitionDuration = reduceMotion ? "0s" : "6s";
+  orb.style.transform = "scale(1)";
+}
+function holdEnd(){
+  if (!state.holdStart) return;
+  const held = (Date.now() - state.holdStart) / 1000;
+  state.holdStart = 0;
+  if (held >= 1){
+    state.breaths++;
+    state.holdInhale = held;
+    state.elapsed += held;
+    readout.textContent = "Inhale " + held.toFixed(1) + "s — now breathe out slowly.";
+    orbLabel.textContent = "Breathe out…";
+    phaseLine.textContent = "Let it all out.";
+    orb.style.transitionDuration = reduceMotion ? "0s" : Math.max(1, held).toFixed(1) + "s";
+    orb.style.transform = "scale(.55)";
+    renderStats();
+  } else {
+    orbLabel.textContent = "Ready";
+    phaseLine.textContent = "Hold a little longer to count a breath.";
+    orb.style.transform = "scale(.55)";
+  }
+}
+function finishHold(){
+  if (state.elapsed >= 10) logSession("hold", "Hold to breathe", state.breaths, Math.round(state.elapsed));
+  state.elapsed = 0; state.breaths = 0; state.holdInhale = 0;
+  orbLabel.textContent = "Ready";
+  phaseLine.textContent = "Session logged. Hold the circle whenever you like.";
+  readout.textContent = "";
+  renderStats(); saveLocal();
+}
+
+/* ---------- 5. Rendering ---------- */
+function renderStats(){
+  $("statBreaths").textContent = state.breaths;
+  $("statTime").textContent = fmtTime(state.elapsed);
+  const today = new Date().toDateString();
+  $("statToday").textContent = state.sessions.filter(s => new Date(s.date).toDateString() === today).length;
+}
+function renderLog(){
+  const list = $("logList");
+  list.innerHTML = "";
+  $("logEmpty").hidden = state.sessions.length > 0;
+  state.sessions.slice(-8).reverse().forEach(s => {
+    const li = document.createElement("li");
+    const left = document.createElement("span");
+    left.textContent = s.pattern + " · " + s.breaths + " breaths · " + fmtTime(s.seconds);
+    const right = document.createElement("span");
+    right.className = "when";
+    right.textContent = todayStr(new Date(s.date));
+    li.append(left, right);
+    list.appendChild(li);
+  });
+  renderStats();
+}
+/* Gentle idle sway so the page is alive on load (skipped for reduced motion). */
+let idleId = null;
+function startIdle(){
+  if (reduceMotion || idleId) return;
+  let up = true;
+  idleId = setInterval(() => {
+    if (state.running || state.mode !== "guided" || state.holdStart) return;
+    orb.style.transitionDuration = "6s";
+    orb.style.transform = up ? "scale(.8)" : "scale(.55)";
+    up = !up;
+  }, 6000);
+}
+
+/* ---------- 6. Stats & log ---------- */
+function logSession(mode, pattern, breaths, seconds){
+  state.sessions.push({date:new Date().toISOString(), mode, pattern, breaths, seconds});
+  renderLog();
+  setStatus("Session logged — " + breaths + " breaths in " + fmtTime(seconds) + ".");
+}
+
+/* ---------- 7. Persistence: localStorage + Save/Open JSON ---------- */
+function saveLocal(){
+  try { localStorage.setItem(LS_KEY, JSON.stringify({sessions: state.sessions, pattern: state.pattern})); } catch(e){ /* storage full/blocked: ignore */ }
+}
+function loadLocal(){
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (validateImport(data)) { state.sessions = data.sessions; state.pattern = data.pattern; }
+  } catch(e){ /* corrupt local copy: keep defaults */ }
+}
+/* Full validation: a bad file must never wipe current data. */
+function validateImport(data){
+  if (!data || typeof data !== "object" || Array.isArray(data)) return false;
+  if (data.app !== "breathe" || data.version !== 1) return false;
+  if (!Array.isArray(data.sessions)) return false;
+  if (typeof data.pattern !== "string" || !PATTERNS[data.pattern]) return false;
+  for (const s of data.sessions){
+    if (!s || typeof s !== "object") return false;
+    if (typeof s.date !== "string" || isNaN(Date.parse(s.date))) return false;
+    if (s.mode !== "guided" && s.mode !== "hold") return false;
+    if (typeof s.pattern !== "string" || !s.pattern) return false;
+    if (!Number.isInteger(s.breaths) || s.breaths < 0) return false;
+    if (!Number.isInteger(s.seconds) || s.seconds < 0) return false;
+  }
+  return true;
+}
+function downloadJSON(){
+  const data = {app:"breathe", version:1, pattern:state.pattern, sessions:state.sessions};
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "breathe-sessions.json";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  setStatus("Saved breathe-sessions.json.");
+}
+function handleFile(file){
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    let data;
+    try { data = JSON.parse(reader.result); }
+    catch(e){ setStatus("That file is not valid JSON — nothing was changed."); return; }
+    if (!validateImport(data)){ setStatus("That file is not a BREATHE save — nothing was changed."); return; }
+    state.sessions = data.sessions; state.pattern = data.pattern;
+    state.elapsed = 0; state.breaths = 0;
+    renderPatternChips(); renderLog(); saveLocal();
+    setStatus("Loaded " + data.sessions.length + " session(s).");
+  };
+  reader.readAsText(file);
+}
+
+/* ---------- 8. Wiring ---------- */
+function renderPatternChips(){
+  const wrap = $("patternChips");
+  wrap.innerHTML = "";
+  Object.entries(PATTERNS).forEach(([key, p]) => {
+    const b = document.createElement("button");
+    b.className = "chip";
+    b.type = "button";
+    b.setAttribute("aria-pressed", String(state.pattern === key));
+    b.innerHTML = "";
+    const name = document.createElement("span"); name.textContent = p.name;
+    const desc = document.createElement("small"); desc.textContent = p.desc + " seconds";
+    b.append(name, desc);
+    b.addEventListener("click", () => {
+      if (state.running) stopGuided(false);
+      state.pattern = key; saveLocal(); renderPatternChips();
+    });
+    wrap.appendChild(b);
+  });
+}
+function setMode(mode){
+  if (state.running) stopGuided(false);
+  if (state.mode === "hold" && mode !== "hold") finishHold();
+  state.mode = mode;
+  $("tabGuided").setAttribute("aria-pressed", String(mode === "guided"));
+  $("tabHold").setAttribute("aria-pressed", String(mode === "hold"));
+  $("guidedPanel").hidden = mode !== "guided";
+  $("holdPanel").hidden = mode !== "hold";
+  ring.classList.toggle("holdable", mode === "hold");
+  $("modeHint").textContent = mode === "guided"
+    ? "Pick a pattern, press Start, and follow the circle."
+    : "Press and hold the circle to breathe in. Let go to breathe out.";
+  orbLabel.textContent = "Ready";
+  orbCount.textContent = "";
+  phaseLine.textContent = mode === "guided" ? "Tap Start when you are ready." : "Hold the circle to begin.";
+  readout.textContent = "";
+  orb.style.transitionDuration = "2s";
+  orb.style.transform = "scale(.55)";
+}
+$("tabGuided").addEventListener("click", () => setMode("guided"));
+$("tabHold").addEventListener("click", () => setMode("hold"));
+startBtn.addEventListener("click", toggleGuided);
+$("finishHoldBtn").addEventListener("click", finishHold);
+ring.addEventListener("pointerdown", e => { if (state.mode === "hold") holdStart(e); });
+ring.addEventListener("pointerup", () => { if (state.mode === "hold") holdEnd(); });
+ring.addEventListener("pointerleave", () => { if (state.mode === "hold") holdEnd(); });
+ring.addEventListener("pointercancel", () => { if (state.mode === "hold") holdEnd(); });
+$("saveBtn").addEventListener("click", downloadJSON);
+$("openBtn").addEventListener("click", () => $("fileInput").click());
+$("fileInput").addEventListener("change", e => { handleFile(e.target.files[0]); e.target.value = ""; });
+$("clearBtn").addEventListener("click", () => {
+  if (!state.sessions.length) return;
+  state.sessions = []; renderLog(); saveLocal();
+  setStatus("Log cleared.");
+});
+minutesSel.addEventListener("change", saveLocal);
+document.addEventListener("keydown", e => {
+  if (e.code === "Space" && state.mode === "guided" && !/BUTTON|SELECT|INPUT/.test(document.activeElement.tagName)){
+    e.preventDefault(); toggleGuided();
+  }
+});
+
+/* ---------- Init ---------- */
+loadLocal();
+renderPatternChips();
+renderLog();
+startIdle();
+</script>
+</body>
+</html>

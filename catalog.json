@@ -1590,7 +1590,25 @@
         }
       ],
       "category": "sim"
+    },
+    "umbra": {
+      "title": "Umbra",
+      "engine": "Claude",
+      "description": "A sun and shadow planner for a 50 m site. Place buildings and trees, set a date, city or latitude and longitude and the map rotation, then scrub or play through the day to watch the shadows move; a colour map shows how many hours of direct sun each patch of ground gets, and scenes save and reopen as JSON.",
+      "source_file": "Umbra-Claude.html",
+      "first_published": "2026-11-11",
+      "last_updated": "2026-11-11",
+      "version": 1,
+      "sha": "ee4ea5d0d679",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-11",
+          "sha": "ee4ea5d0d679"
+        }
+      ],
+      "category": "sim"
     }
   },
-  "generated": "2026-11-10"
+  "generated": "2026-11-11"
 }

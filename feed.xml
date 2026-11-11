@@ -3,7 +3,14 @@
   <title>trez63 — one small app a day</title>
   <link>https://trez63.com/</link>
   <description>Every day ChatGPT, Claude, Gemini, Grok and Muse each build a single-page app from the same one-line prompt. Play them all.</description>
-  <lastBuildDate>Tue, 10 Nov 2026 12:00:00 +0000</lastBuildDate>
+  <lastBuildDate>Wed, 11 Nov 2026 12:00:00 +0000</lastBuildDate>
+  <item>
+    <title>Umbra (Claude)</title>
+    <link>https://trez63.com/p/umbra.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/umbra.html</guid>
+    <pubDate>Wed, 11 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A sun and shadow planner for a 50 m site. Place buildings and trees, set a date, city or latitude and longitude and the map rotation, then scrub or play through the day to watch the shadows move; a colour map shows how many hours of direct sun each patch of ground gets, and scenes save and reopen as JSON.</description>
+  </item>
   <item>
     <title>Fourier Epicycles Studio (Grok)</title>
     <link>https://trez63.com/p/fourier-epicycles-studio.html</link>
@@ -346,12 +353,5 @@
     <guid isPermaLink="true">https://trez63.com/p/aether.html</guid>
     <pubDate>Sun, 25 Oct 2026 12:00:00 +0000</pubDate>
     <description>A cosmic particle weaver. Move the mouse to weave, click to plant a star, scroll to change the force; attract, orbit, chaos and paint modes.</description>
-  </item>
-  <item>
-    <title>PulseForge (Grok)</title>
-    <link>https://trez63.com/p/pulseforge.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/pulseforge.html</guid>
-    <pubDate>Sun, 25 Oct 2026 12:00:00 +0000</pubDate>
-    <description>An offline step sequencer. Eight tracks from kick to pad, click steps to toggle notes, tempo and randomize on the keyboard. Pure Web Audio.</description>
   </item>
 </channel></rss>

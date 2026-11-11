@@ -1,0 +1,452 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Daily Build 2026-11-10 — Umbra</title>
+<style>
+:root{--bg:#f4f1ea;--panel:#fff;--text:#1d2030;--muted:#6b7085;--line:#ddd8cc;--accent:#d9731d;--ground:#b9d7a8;--grid:rgba(0,0,0,.09);--building:#dfcdb0;--bstroke:#8a7556;--tree:#5aa86a;--shadow:rgba(20,30,70,.42);--btn:#ecE8de}
+:root[data-theme="dark"]{--bg:#0f1220;--panel:#171b2e;--text:#e8ebf5;--muted:#98a0b8;--line:#2a3050;--accent:#ffb347;--ground:#223326;--grid:rgba(255,255,255,.08);--building:#b8a088;--bstroke:#f2e6d2;--tree:#3e8f55;--shadow:rgba(0,4,20,.55);--btn:#232946}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);min-height:100vh}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:10px 16px;border-bottom:1px solid var(--line)}
+h1{font-size:22px;margin:0;letter-spacing:.5px}
+h1 small{font-weight:400;color:var(--muted);font-size:13px;margin-left:8px}
+.actions{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto}
+button{min-height:44px;min-width:44px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:var(--btn);color:var(--text);font:inherit;font-size:15px;cursor:pointer}
+button.primary{background:var(--accent);color:#1a1200;border-color:transparent;font-weight:600}
+button[aria-pressed="true"]{outline:2px solid var(--accent)}
+main{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;padding:16px;max-width:1300px;margin:0 auto}
+@media (max-width:860px){main{grid-template-columns:1fr}}
+#stage{position:relative;width:min(100%,calc(100vh - 120px));margin:0 auto;align-self:start}
+canvas#plan{display:block;width:100%;aspect-ratio:1;border-radius:14px;touch-action:none;background:var(--ground);box-shadow:0 2px 14px rgba(0,0,0,.18)}
+#readout{position:absolute;left:10px;bottom:10px;background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(6px);padding:8px 12px;border-radius:10px;font-size:13px;line-height:1.5;pointer-events:none;max-width:70%}
+#readout b{font-size:18px}
+aside{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:14px;align-self:start}
+fieldset{border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+legend{font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:0;margin-bottom:6px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row>label{flex:1 1 120px;display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--muted)}
+input,select{font:inherit;font-size:16px;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;min-height:44px;width:100%}
+input[type=range]{padding:0;min-height:44px;accent-color:var(--accent);background:transparent;border:0}
+.seasons button{flex:1 1 60px;padding:0 6px;font-size:14px}
+#stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#stats div{background:var(--bg);border-radius:10px;padding:8px 10px}
+#stats b{display:block;font-size:20px}
+#stats span{font-size:12px;color:var(--muted)}
+#legend{height:12px;border-radius:6px;background:linear-gradient(90deg,#1e2a5a,#4aa3a2,#ffd166)}
+.legend-labels{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:9}
+.overlay[hidden]{display:none}
+.card{background:var(--panel);border-radius:16px;padding:20px 22px;max-width:560px;width:100%;max-height:90vh;overflow:auto}
+.card h2{margin:0 0 8px}
+.card kbd{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-family:ui-monospace,Menlo,monospace;font-size:13px}
+.card table{width:100%;border-collapse:collapse;font-size:14px}.card td{padding:4px 6px;border-top:1px solid var(--line)}
+.msg{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--accent);color:#1a1200;padding:10px 16px;border-radius:10px;font-weight:600;z-index:10;transition:opacity .3s}
+.muted{color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Umbra<small>sun &amp; shadow planner</small></h1>
+  <div class="actions">
+    <button id="addBox" title="Add building (B)">+ Building</button>
+    <button id="addTree" title="Add tree (R)">+ Tree</button>
+    <button id="del" title="Delete selected (Del)">Delete</button>
+    <button id="heat" title="Toggle sun-hours map (H)" aria-pressed="true">Sun hours</button>
+    <button id="theme" title="Toggle theme (T)">Theme</button>
+    <button id="save" title="Save scene (S)">Save</button>
+    <button id="open" title="Open scene (O)">Open</button>
+    <button id="helpBtn" title="Help (Ctrl/Cmd + /)">?</button>
+  </div>
+</header>
+<main>
+  <section id="stage">
+    <canvas id="plan"></canvas>
+    <div id="readout"></div>
+  </section>
+  <aside>
+    <fieldset>
+      <legend>Time of day</legend>
+      <div class="row">
+        <input type="range" id="time" min="0" max="1435" step="5" style="flex:1 1 160px">
+        <button id="play" class="primary" style="flex:0 0 auto">Pause</button>
+      </div>
+      <div class="row">
+        <label>Date<input type="date" id="date"></label>
+      </div>
+      <div class="row seasons">
+        <button data-season="03-20">Mar 20</button><button data-season="06-21">Jun 21</button>
+        <button data-season="09-22">Sep 22</button><button data-season="12-21">Dec 21</button>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Place</legend>
+      <div class="row"><label>City preset<select id="city"></select></label></div>
+      <div class="row">
+        <label>Latitude<input type="number" id="lat" step="0.01" min="-89.9" max="89.9"></label>
+        <label>Longitude<input type="number" id="lon" step="0.01" min="-180" max="180"></label>
+      </div>
+      <div class="row"><label>Map rotation — compass bearing at the top of the plan: <span id="northLbl"></span><input type="range" id="north" min="0" max="359" step="1"></label></div>
+    </fieldset>
+    <fieldset id="selBox">
+      <legend>Selected</legend>
+      <div id="selNone" class="muted">Tap a building or tree to edit it. Drag to move, drag the corner handle to resize. Tap open ground to read its sun hours.</div>
+      <div id="selForm" hidden>
+        <div class="row"><label>Name<input type="text" id="selName" maxlength="24"></label></div>
+        <div class="row"><label>Height: <span id="selZLbl"></span><input type="range" id="selZ" min="0.5" max="30" step="0.5"></label></div>
+        <div class="muted" id="selInfo"></div>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Direct sun today</legend>
+      <div id="stats"></div>
+      <div id="legend"></div>
+      <div class="legend-labels"><span>0 h</span><span>full-day sun</span></div>
+    </fieldset>
+  </aside>
+</main>
+
+<div id="help" class="overlay" hidden>
+  <div class="card">
+    <h2>Umbra</h2>
+    <p>A sun and shadow planner for any site on Earth. Place buildings and trees on a 50 m plan, pick a date and location, and watch the shadows move through the day. The colour map shows how many hours of direct sun each patch of ground receives that day — where to plant the vegetables, where the patio will be in shade, how a two-storey neighbour shades your garden in December.</p>
+    <p class="muted">Positions come from the NOAA solar equations (declination, equation of time, hour angle). Times are local standard time for the longitude's zone (no daylight saving). Shadows are cast by flat-roofed prisms and cylinders; the map samples 51 moments between sunrise and sunset.</p>
+    <table>
+      <tr><td><kbd>Space</kbd></td><td>Play / pause the day</td></tr>
+      <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>Time −/+ 5 min (<kbd>Shift</kbd>: 30 min)</td></tr>
+      <tr><td><kbd>,</kbd> <kbd>.</kbd></td><td>Date −/+ 1 day (<kbd>Shift</kbd>: 30 days)</td></tr>
+      <tr><td><kbd>1</kbd>–<kbd>4</kbd> <kbd>0</kbd></td><td>Equinox / solstice dates, today</td></tr>
+      <tr><td><kbd>B</kbd> <kbd>R</kbd></td><td>Add building / add tree</td></tr>
+      <tr><td><kbd>↑</kbd> <kbd>↓</kbd></td><td>Selected height +/− 0.5 m (<kbd>Shift</kbd>: 2 m)</td></tr>
+      <tr><td><kbd>Delete</kbd></td><td>Remove selected object</td></tr>
+      <tr><td><kbd>H</kbd> <kbd>T</kbd></td><td>Toggle sun-hours map / theme</td></tr>
+      <tr><td><kbd>S</kbd> <kbd>O</kbd></td><td>Save scene as JSON / open a saved scene</td></tr>
+      <tr><td><kbd>Ctrl/Cmd</kbd>+<kbd>/</kbd> <kbd>Esc</kbd></td><td>This help / close</td></tr>
+    </table>
+    <p class="muted">Everything is also reachable by tap. Save downloads a <code>umbra-YYYY-MM-DD.json</code> file (when the page is opened directly as a file; some embedded viewers block downloads) and Open restores it exactly. Nothing leaves your device.</p>
+    <button id="helpClose" class="primary">Close</button>
+  </div>
+</div>
+<input type="file" id="file" accept=".json,application/json" hidden>
+
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const PLAN = 50;          // metres across the square plan
+const SAMPLES = 51;       // daylight slices in the sun-hours map (51 × 5 = 255, exact in 8 bits)
+const HEAT = 160;         // sun-hours map resolution (cells per side)
+const RAD = Math.PI / 180;
+const CITIES = {'San Francisco':[37.77,-122.42],'Los Angeles':[34.05,-118.24],'Denver':[39.74,-104.99],'New York':[40.71,-74.01],
+  'London':[51.51,-0.13],'Berlin':[52.52,13.41],'Tehran':[35.69,51.39],'Singapore':[1.35,103.82],'Tokyo':[35.68,139.69],
+  'Sydney':[-33.87,151.21],'Cape Town':[-33.92,18.42],'Reykjavik':[64.15,-21.94]};
+const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+
+const state = {
+  lat: 37.77, lon: -122.42, date: todayStr(), time: 870, north: 0, heat: true, sel: null, spot: null,
+  objects: [
+    {id:1, kind:'box',  name:'House',     x:23, y:27, w:12, h:9,   z:6.5},
+    {id:2, kind:'box',  name:'Garage',    x:34, y:20, w:6,  h:6,   z:3.5},
+    {id:3, kind:'box',  name:'Neighbour', x:8,  y:39, w:11, h:8,   z:7.5},
+    {id:4, kind:'box',  name:'Shed',      x:42, y:41, w:3,  h:2.5, z:2.5},
+    {id:5, kind:'box',  name:'Fence',     x:27, y:46, w:26, h:0.3, z:1.8},
+    {id:6, kind:'tree', name:'Oak',       x:10, y:13, r:4.5, z:10},
+    {id:7, kind:'tree', name:'Birch',     x:39, y:8,  r:2.5, z:7},
+  ],
+};
+let nextId = 8, playing = true, day = null, stats = {avg:0, full:0, daylen:0}, shadeData = null;
+
+/* ---------- solar geometry (NOAA) ---------- */
+function dayOfYear(s){ const d = new Date(s+'T12:00:00'); return Math.round((d - new Date(d.getFullYear(),0,0)) / 864e5); }
+const tzOf = lon => Math.round(lon/15);                     // standard-meridian zone, no DST
+function sunAt(lat, lon, dateStr, minutes){                // minutes = local standard time
+  const g = 2*Math.PI/365 * (dayOfYear(dateStr) - 1 + (minutes/60 - 12)/24);
+  const eqt = 229.18*(0.000075 + 0.001868*Math.cos(g) - 0.032077*Math.sin(g) - 0.014615*Math.cos(2*g) - 0.040849*Math.sin(2*g));
+  const dec = 0.006918 - 0.399912*Math.cos(g) + 0.070257*Math.sin(g) - 0.006758*Math.cos(2*g) + 0.000907*Math.sin(2*g) - 0.002697*Math.cos(3*g) + 0.00148*Math.sin(3*g);
+  const ha = ((minutes + eqt + 4*lon - 60*tzOf(lon))/4 - 180) * RAD, phi = lat*RAD;
+  const cosZ = Math.sin(phi)*Math.sin(dec) + Math.cos(phi)*Math.cos(dec)*Math.cos(ha);
+  const elev = 90 - Math.acos(Math.max(-1, Math.min(1, cosZ)))/RAD;
+  const az = Math.atan2(Math.sin(ha), Math.cos(ha)*Math.sin(phi) - Math.tan(dec)*Math.cos(phi))/RAD + 180;
+  return {elev, az: (az % 360 + 360) % 360, dec, eqt};
+}
+function dayBounds(lat, lon, dateStr){                     // sunrise / sunset in local standard minutes
+  const {dec, eqt} = sunAt(lat, lon, dateStr, 720), phi = lat*RAD;
+  const c = Math.cos(90.833*RAD)/(Math.cos(phi)*Math.cos(dec)) - Math.tan(phi)*Math.tan(dec);
+  if (c >= 1) return null;                                  // polar night
+  if (c <= -1) return {rise:0, set:1440, polar:true};       // midnight sun
+  const ha0 = Math.acos(c)/RAD, tz = 60*tzOf(lon);
+  return {rise: 720 - 4*(lon + ha0) - eqt + tz, set: 720 - 4*(lon - ha0) - eqt + tz};
+}
+
+/* ---------- shadow geometry ---------- */
+function footprint(o){
+  if (o.kind === 'tree') return Array.from({length:20}, (_, i) => { const a = i/20*2*Math.PI; return [o.x + o.r*Math.cos(a), o.y + o.r*Math.sin(a)]; });
+  return [[o.x-o.w/2, o.y-o.h/2], [o.x+o.w/2, o.y-o.h/2], [o.x+o.w/2, o.y+o.h/2], [o.x-o.w/2, o.y+o.h/2]];
+}
+function hull(p){                                           // Andrew's monotone chain
+  p = p.slice().sort((a, b) => a[0]-b[0] || a[1]-b[1]);
+  const cr = (o, a, b) => (a[0]-o[0])*(b[1]-o[1]) - (a[1]-o[1])*(b[0]-o[0]);
+  const lo = [], up = [];
+  for (const q of p){ while (lo.length > 1 && cr(lo[lo.length-2], lo[lo.length-1], q) <= 0) lo.pop(); lo.push(q); }
+  for (let i = p.length-1; i >= 0; i--){ const q = p[i]; while (up.length > 1 && cr(up[up.length-2], up[up.length-1], q) <= 0) up.pop(); up.push(q); }
+  return lo.slice(0, -1).concat(up.slice(0, -1));
+}
+const shadowFactor = elev => Math.min(200, 1/Math.tan(Math.max(elev, 0.3)*RAD));   // metres of shadow per metre of height
+function shadowPoly(o, sun){
+  const th = (sun.az + 180 - state.north)*RAD, L = shadowFactor(sun.elev)*o.z;    // shadow falls away from the sun
+  const dx = Math.sin(th)*L, dy = -Math.cos(th)*L, base = footprint(o);
+  return hull(base.concat(base.map(([x, y]) => [x+dx, y+dy])));
+}
+function tracePoly(ctx, poly, k){ ctx.beginPath(); poly.forEach(([x, y], i) => i ? ctx.lineTo(x*k, y*k) : ctx.moveTo(x*k, y*k)); ctx.closePath(); }
+
+/* ---------- sun-hours map: 51 shadow passes summed on the GPU with 'lighter' ---------- */
+const mk = n => { const c = document.createElement('canvas'); c.width = c.height = n; return c; };
+const acc = mk(HEAT), scratch = mk(HEAT), heatImg = mk(HEAT);
+function heatColor(f){                                       // f = fraction of daylight in direct sun
+  const stops = [[30,42,90], [74,163,162], [255,209,102]], t = f*2, i = Math.min(1, Math.floor(t)), u = t - i;
+  return stops[i].map((c, j) => Math.round(c + (stops[i+1][j] - c)*u));
+}
+function computeHeat(){
+  day = dayBounds(state.lat, state.lon, state.date);
+  const a = acc.getContext('2d', {willReadFrequently:true}), s = scratch.getContext('2d'), k = HEAT/PLAN;
+  a.globalCompositeOperation = 'source-over'; a.fillStyle = '#000'; a.fillRect(0, 0, HEAT, HEAT);
+  const len = day ? day.set - day.rise : 0;
+  if (day){
+    a.globalCompositeOperation = 'lighter'; s.fillStyle = 'rgb(5,0,0)';
+    for (let i = 0; i < SAMPLES; i++){
+      const sun = sunAt(state.lat, state.lon, state.date, day.rise + (i + .5)*len/SAMPLES);
+      s.clearRect(0, 0, HEAT, HEAT);
+      if (sun.elev <= 0) s.fillRect(0, 0, HEAT, HEAT);
+      else for (const o of state.objects){ tracePoly(s, shadowPoly(o, sun), k); s.fill(); }
+      a.drawImage(scratch, 0, 0);
+    }
+  }
+  shadeData = a.getImageData(0, 0, HEAT, HEAT).data;        // red channel = 5 × shaded samples
+  const out = heatImg.getContext('2d'), img = out.createImageData(HEAT, HEAT);
+  let sum = 0, full = 0;
+  for (let i = 0; i < HEAT*HEAT; i++){
+    const f = 1 - shadeData[i*4]/255, hrs = f*len/60;
+    sum += hrs; if (hrs >= 6) full++;
+    img.data.set([...heatColor(f), 255], i*4);
+  }
+  out.putImageData(img, 0, 0);
+  stats = {avg: sum/(HEAT*HEAT), full: full/(HEAT*HEAT), daylen: len/60};
+  renderStats();
+}
+function sunHoursAt(x, y){
+  const i = Math.min(HEAT-1, Math.floor(y/PLAN*HEAT))*HEAT + Math.min(HEAT-1, Math.floor(x/PLAN*HEAT));
+  return (1 - shadeData[i*4]/255) * stats.daylen;
+}
+
+/* ---------- drawing ---------- */
+const cv = $('#plan'), ctx = cv.getContext('2d'), shadowLayer = document.createElement('canvas');
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const fmtTime = m => { m = Math.round(m); return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`; };
+function draw(){
+  const cs = cv.clientWidth, dpr = devicePixelRatio || 1, px = Math.round(cs*dpr);
+  if (cv.width !== px){ cv.width = cv.height = px; shadowLayer.width = shadowLayer.height = px; }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const k = cs/PLAN, sun = sunAt(state.lat, state.lon, state.date, state.time);
+  ctx.fillStyle = css('--ground'); ctx.fillRect(0, 0, cs, cs);
+  if (state.heat){ ctx.globalAlpha = .85; ctx.drawImage(heatImg, 0, 0, cs, cs); ctx.globalAlpha = 1; }
+  ctx.strokeStyle = css('--grid'); ctx.lineWidth = 1; ctx.beginPath();
+  for (let m = 5; m < PLAN; m += 5){ ctx.moveTo(m*k, 0); ctx.lineTo(m*k, cs); ctx.moveTo(0, m*k); ctx.lineTo(cs, m*k); }
+  ctx.stroke();
+  if (sun.elev > 0){                                        // union of all shadows, composited once so overlaps stay even
+    const sc = shadowLayer.getContext('2d'); sc.setTransform(dpr, 0, 0, dpr, 0, 0); sc.clearRect(0, 0, cs, cs); sc.fillStyle = css('--shadow');
+    for (const o of state.objects){ tracePoly(sc, shadowPoly(o, sun), k); sc.fill(); }
+    ctx.drawImage(shadowLayer, 0, 0, cs, cs);
+  } else { ctx.fillStyle = 'rgba(8,12,40,.45)'; ctx.fillRect(0, 0, cs, cs); }
+  ctx.font = `${Math.max(10, cs/42)}px system-ui,sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (const o of state.objects){
+    const selected = o.id === state.sel;
+    ctx.fillStyle = o.kind === 'tree' ? css('--tree') : css('--building');
+    ctx.strokeStyle = selected ? css('--accent') : css('--bstroke'); ctx.lineWidth = selected ? 3 : 1.2;
+    tracePoly(ctx, footprint(o), k); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = o.kind === 'tree' ? '#fff' : '#1d2030';
+    const fits = s => ctx.measureText(s).width < (o.kind === 'tree' ? 1.8*o.r*k : o.w*k - 6) && (o.kind === 'tree' || o.h*k > 14);
+    const label = [`${o.name} ${o.z} m`, o.name, `${o.z} m`].find(fits);
+    if (label) ctx.fillText(label, o.x*k, o.y*k);
+    if (selected){ const [hx, hy] = handleOf(o); ctx.beginPath(); ctx.arc(hx*k, hy*k, 10, 0, 7); ctx.fillStyle = css('--accent'); ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke(); }
+  }
+  if (state.spot){                                          // tapped ground point
+    const [x, y] = state.spot.map(v => v*k); ctx.strokeStyle = css('--accent'); ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(x, y, 9, 0, 7); ctx.moveTo(x-16, y); ctx.lineTo(x+16, y); ctx.moveTo(x, y-16); ctx.lineTo(x, y+16); ctx.stroke();
+  }
+  // compass rose
+  const nth = -state.north*RAD, cx = 30, cy = 30;
+  ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.arc(cx, cy, 20, 0, 7); ctx.fill();
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx - 14*Math.sin(nth), cy + 14*Math.cos(nth)); ctx.lineTo(cx + 5*Math.sin(nth), cy - 5*Math.cos(nth)); ctx.stroke();
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 11px system-ui,sans-serif'; ctx.fillText('N', cx + 12*Math.sin(nth), cy - 12*Math.cos(nth));
+  // sun marker on the rim, in the sun's direction
+  if (sun.elev > 0){
+    const th = (sun.az - state.north)*RAD, sx = Math.sin(th), sy = -Math.cos(th), t = (cs/2 - 22)/Math.max(Math.abs(sx), Math.abs(sy));
+    const x = cs/2 + sx*t, y = cs/2 + sy*t, g = ctx.createRadialGradient(x, y, 2, x, y, 22);
+    g.addColorStop(0, 'rgba(255,230,120,1)'); g.addColorStop(.5, 'rgba(255,190,60,.55)'); g.addColorStop(1, 'rgba(255,190,60,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, 22, 0, 7); ctx.fill();
+    ctx.fillStyle = '#ffe66d'; ctx.beginPath(); ctx.arc(x, y, 7 + sun.elev/9, 0, 7); ctx.fill();
+  }
+  renderReadout(sun);
+}
+const handleOf = o => o.kind === 'tree' ? [o.x + o.r, o.y] : [o.x + o.w/2, o.y + o.h/2];
+function renderReadout(sun){
+  const up = sun.elev > 0;
+  const dayTxt = day ? (day.polar ? 'Sun up all day' : `Sunrise ${fmtTime(day.rise)} · Sunset ${fmtTime(day.set)}`) : 'Polar night — the sun does not rise';
+  $('#readout').innerHTML = `<b>${fmtTime(state.time)}</b> <span class="muted">standard time</span><br>` +
+    (up ? `Sun ${sun.az.toFixed(0)}° az · ${sun.elev.toFixed(1)}° high<br>Shadows ${shadowFactor(sun.elev) > 99 ? '>99' : shadowFactor(sun.elev).toFixed(1)}× height` : 'Sun below the horizon') +
+    `<br>${dayTxt}` + (state.spot && shadeData ? `<br>Marked spot: <b>${sunHoursAt(...state.spot).toFixed(1)} h</b> direct sun` : '');
+}
+function renderStats(){
+  $('#stats').innerHTML = `<div><b>${stats.avg.toFixed(1)} h</b><span>average over the lot</span></div><div><b>${stats.daylen.toFixed(1)} h</b><span>daylight</span></div>` +
+    `<div><b>${Math.round(stats.full*100)}%</b><span>of ground gets 6 h+ ("full sun")</span></div><div><b>${state.objects.length}</b><span>objects casting shadow</span></div>`;
+}
+
+/* ---------- panel sync ---------- */
+function syncPanel(){
+  $('#time').value = state.time; $('#date').value = state.date; $('#lat').value = state.lat; $('#lon').value = state.lon;
+  $('#north').value = state.north; $('#northLbl').textContent = `${state.north}°`;
+  $('#heat').setAttribute('aria-pressed', state.heat); $('#play').textContent = playing ? 'Pause' : 'Play';
+  const o = selected();
+  $('#selForm').hidden = !o; $('#selNone').hidden = !!o;
+  if (o){
+    if (document.activeElement !== $('#selName')) $('#selName').value = o.name;
+    $('#selZ').value = o.z; $('#selZLbl').textContent = `${o.z} m`;
+    const sun = sunAt(state.lat, state.lon, state.date, state.time), size = o.kind === 'tree' ? `canopy ⌀ ${(2*o.r).toFixed(1)} m` : `${o.w.toFixed(1)} × ${o.h.toFixed(1)} m`;
+    $('#selInfo').textContent = `${o.kind === 'tree' ? 'Tree' : 'Building'}, ${size}. ` + (sun.elev > 0 ? `Its shadow is ${(shadowFactor(sun.elev)*o.z).toFixed(1)} m long right now.` : 'No shadow — it is night.');
+  }
+  const city = Object.entries(CITIES).find(([, [la, lo]]) => la === state.lat && lo === state.lon);
+  $('#city').value = city ? city[0] : '';
+}
+const selected = () => state.objects.find(o => o.id === state.sel);
+function refresh(full){ if (full) computeHeat(); syncPanel(); draw(); }
+
+/* ---------- pointer interaction (works with mouse, pen and finger) ---------- */
+let drag = null;
+const toWorld = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left)/r.width*PLAN, (e.clientY - r.top)/r.height*PLAN]; };
+const inside = ([x, y], o) => o.kind === 'tree' ? Math.hypot(x-o.x, y-o.y) <= Math.max(o.r, 1.2) : Math.abs(x-o.x) <= Math.max(o.w/2, 1.2) && Math.abs(y-o.y) <= Math.max(o.h/2, 1.2);
+cv.addEventListener('pointerdown', e => {
+  e.preventDefault(); stopPlay();
+  const p = toWorld(e), hitR = 22/(cv.clientWidth/PLAN), o = selected();            // 44 px touch target on the handle
+  if (o && Math.hypot(p[0]-handleOf(o)[0], p[1]-handleOf(o)[1]) <= hitR) drag = {mode:'size', o};
+  else {
+    const hit = [...state.objects].reverse().find(x => inside(p, x));
+    if (hit){ state.sel = hit.id; state.spot = null; drag = {mode:'move', o:hit, dx:hit.x-p[0], dy:hit.y-p[1]}; }
+    else { state.sel = null; state.spot = p; }
+  }
+  cv.setPointerCapture(e.pointerId); refresh(false);
+});
+cv.addEventListener('pointermove', e => {
+  if (!drag) return;
+  const p = toWorld(e), o = drag.o, clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+  if (drag.mode === 'move'){ o.x = clamp(p[0] + drag.dx, 0, PLAN); o.y = clamp(p[1] + drag.dy, 0, PLAN); }
+  else if (o.kind === 'tree') o.r = clamp(Math.hypot(p[0]-o.x, p[1]-o.y), 0.5, 20);
+  else { o.w = clamp(2*(p[0]-o.x), 0.3, 60); o.h = clamp(2*(p[1]-o.y), 0.3, 60); }
+  o.w && (o.w = +o.w.toFixed(1)); o.h && (o.h = +o.h.toFixed(1)); o.r && (o.r = +o.r.toFixed(1));
+  refresh(true);
+});
+const endDrag = () => { if (drag){ drag = null; refresh(true); } };
+cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
+
+/* ---------- actions ---------- */
+function addObject(kind){
+  const o = kind === 'tree' ? {id:nextId++, kind, name:`Tree ${nextId-1}`, x:25, y:25, r:3, z:6} : {id:nextId++, kind, name:`Building ${nextId-1}`, x:25, y:25, w:6, h:4, z:3};
+  state.objects.push(o); state.sel = o.id; state.spot = null; refresh(true); toast(`${o.name} added — drag it into place`);
+}
+function deleteSelected(){ if (!selected()) return toast('Select something first'); state.objects = state.objects.filter(o => o.id !== state.sel); state.sel = null; refresh(true); }
+function setDate(s){ if (!/^\d{4}-\d{2}-\d{2}$/.test(s) || isNaN(Date.parse(s))) return; state.date = s; refresh(true); }
+function shiftDate(days){ const d = new Date(state.date+'T12:00:00'); d.setDate(d.getDate()+days); setDate(d.toISOString().slice(0, 10)); }
+function setPlace(lat, lon){ state.lat = Math.max(-89.9, Math.min(89.9, +lat || 0)); state.lon = Math.max(-180, Math.min(180, +lon || 0)); refresh(true); }
+function stopPlay(){ playing = false; $('#play').textContent = 'Play'; }
+function togglePlay(){ playing = !playing; $('#play').textContent = playing ? 'Pause' : 'Play'; }
+let lastTick = 0;
+function tick(now){                                          // sweeps the day at 50 solar minutes per second (~12 s per daylight)
+  const step = Math.min(100, now - lastTick) * 0.05; lastTick = now;
+  if (playing && day){
+    state.time += step;
+    if (!day.polar && (state.time > day.set + 20 || state.time < day.rise - 20)) state.time = Math.max(0, day.rise - 20);
+    state.time = Math.min(1435, state.time % 1440); $('#time').value = state.time; draw(); if (selected()) syncPanel();
+  }
+  requestAnimationFrame(tick);
+}
+let toastTimer; function toast(msg){ let t = $('.msg'); if (!t){ t = document.createElement('div'); t.className = 'msg'; document.body.appendChild(t); } t.textContent = msg; t.style.opacity = 1; clearTimeout(toastTimer); toastTimer = setTimeout(() => t.style.opacity = 0, 2400); }
+function setTheme(t){ document.documentElement.dataset.theme = t; draw(); }
+const toggleTheme = () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+const toggleHelp = force => { const h = $('#help'); h.hidden = force === undefined ? !h.hidden : !force; };
+
+/* ---------- save / open ---------- */
+function saveScene(){
+  const {lat, lon, date, time, north, heat, objects} = state;
+  const data = {app:'Umbra', version:1, theme: document.documentElement.dataset.theme, scene:{lat, lon, date, time, north, heat, objects}};
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type:'application/json'}));
+  a.download = `umbra-${todayStr()}.json`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); toast('Scene saved');
+}
+function openScene(text){
+  let d; try { d = JSON.parse(text); } catch { return toast('That file is not valid JSON'); }
+  if (!d || d.app !== 'Umbra' || !d.scene || !Array.isArray(d.scene.objects)) return toast('Not an Umbra scene file');
+  if (d.version !== 1) return toast(`Unsupported Umbra file version ${d.version}`);
+  const s = d.scene; stopPlay();
+  Object.assign(state, {lat:+s.lat || 0, lon:+s.lon || 0, date:/^\d{4}-\d{2}-\d{2}$/.test(s.date) ? s.date : todayStr(), time:+s.time || 720, north:+s.north || 0, heat:!!s.heat, sel:null, spot:null});
+  state.objects = s.objects.filter(o => o && (o.kind === 'box' || o.kind === 'tree')).map(o => ({...o, id:nextId++, z:+o.z || 1}));
+  if (d.theme) setTheme(d.theme);
+  refresh(true); toast(`Opened scene with ${state.objects.length} objects`);
+}
+$('#file').addEventListener('change', e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => openScene(r.result); r.readAsText(f); e.target.value = ''; });
+
+/* ---------- wiring ---------- */
+for (const c of Object.keys(CITIES)) $('#city').add(new Option(c, c));
+$('#city').add(new Option('Custom', ''), 0);
+$('#city').addEventListener('change', e => { const c = CITIES[e.target.value]; if (c) setPlace(...c); });
+$('#lat').addEventListener('change', e => setPlace(e.target.value, state.lon));
+$('#lon').addEventListener('change', e => setPlace(state.lat, e.target.value));
+$('#north').addEventListener('input', e => { state.north = +e.target.value; refresh(true); });
+$('#time').addEventListener('input', e => { stopPlay(); state.time = +e.target.value; refresh(false); });
+$('#date').addEventListener('change', e => setDate(e.target.value));
+document.querySelectorAll('[data-season]').forEach(b => b.addEventListener('click', () => setDate(`${state.date.slice(0, 4)}-${b.dataset.season}`)));
+$('#play').addEventListener('click', togglePlay);
+$('#addBox').addEventListener('click', () => addObject('box'));
+$('#addTree').addEventListener('click', () => addObject('tree'));
+$('#del').addEventListener('click', deleteSelected);
+$('#heat').addEventListener('click', () => { state.heat = !state.heat; refresh(false); });
+$('#theme').addEventListener('click', toggleTheme);
+$('#save').addEventListener('click', saveScene);
+$('#open').addEventListener('click', () => $('#file').click());
+$('#helpBtn').addEventListener('click', () => toggleHelp());
+$('#helpClose').addEventListener('click', () => toggleHelp(false));
+$('#help').addEventListener('click', e => { if (e.target === $('#help')) toggleHelp(false); });
+$('#selName').addEventListener('input', e => { const o = selected(); if (o){ o.name = e.target.value; draw(); } });
+$('#selZ').addEventListener('input', e => { const o = selected(); if (o){ o.z = +e.target.value; refresh(true); } });
+
+document.addEventListener('keydown', e => {
+  const t = e.target, typing = t.matches('input,textarea,select') || t.isContentEditable;
+  if ((e.ctrlKey || e.metaKey) && e.key === '/'){ e.preventDefault(); return toggleHelp(); }
+  if (e.key === 'Escape'){ if (!$('#help').hidden) toggleHelp(false); else { state.sel = null; state.spot = null; refresh(false); } return; }
+  if (typing || e.ctrlKey || e.metaKey || e.altKey) return;
+  const o = selected(), big = e.shiftKey, seasons = {'1':'03-20', '2':'06-21', '3':'09-22', '4':'12-21'};
+  const act = {
+    ' ': togglePlay,
+    ArrowLeft: () => { stopPlay(); state.time = Math.max(0, state.time - (big ? 30 : 5)); refresh(false); },
+    ArrowRight: () => { stopPlay(); state.time = Math.min(1435, state.time + (big ? 30 : 5)); refresh(false); },
+    ArrowUp: () => { if (o){ o.z = Math.min(30, +(o.z + (big ? 2 : .5)).toFixed(1)); refresh(true); } },
+    ArrowDown: () => { if (o){ o.z = Math.max(.5, +(o.z - (big ? 2 : .5)).toFixed(1)); refresh(true); } },
+    ',': () => shiftDate(-1), '.': () => shiftDate(1), '<': () => shiftDate(-30), '>': () => shiftDate(30),   // Shift+, and Shift+. arrive as < and >
+    '0': () => setDate(todayStr()),
+    b: () => addObject('box'), r: () => addObject('tree'), Delete: deleteSelected, Backspace: deleteSelected,
+    h: () => { state.heat = !state.heat; refresh(false); }, t: toggleTheme, s: saveScene, o: () => $('#file').click(),
+  };
+  const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  if (seasons[key]) { e.preventDefault(); return setDate(`${state.date.slice(0, 4)}-${seasons[key]}`); }
+  if (act[key]){ e.preventDefault(); act[key](); }
+});
+addEventListener('resize', draw);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => setTheme(e.matches ? 'dark' : 'light'));
+
+setTheme(matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+refresh(true);
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
+
+</body></html>

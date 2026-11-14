@@ -1,6 +1,6 @@
 # trez63.com
 
-One small single-page app a day, built by AI (Claude, ChatGPT, Muse). Served by GitHub Pages at https://trez63.com.
+One small single-page app a day, built by AI (Claude, ChatGPT, Gemini, Grok, Muse). Served by GitHub Pages at https://trez63.com.
 
 ## Layout
 
@@ -32,3 +32,11 @@ Only `*.html` is ever published. Save files (`*.json`), shortcuts and anything e
 Each card and play page has a like button. Counts live in [Abacus](https://abacus.jasoncameron.dev), a free third-party counter service: namespace `trez63.com`, one counter per app slug, incremented straight from the visitor's browser. No account and no backend of ours. A browser remembers what it liked in `localStorage`, so one click per app per browser; that is a courtesy limit, not protection against a determined person.
 
 Pages show the count stored in `catalog.json` (`likes`) and refresh what is on screen from the service. The daily task snapshots the counts with `scripts/fetch_likes.js` (run in a browser tab) and `scripts/apply_likes.py`, which never lowers a stored number, so the catalog doubles as the backup if the service resets or goes away. "Most liked" sorts on the stored counts at once, then fetches the live count for every app (the service has no bulk call, so this is paced under its 30-requests-per-10s limit and takes about half a minute for ~80 apps) and re-orders as they arrive.
+
+## Browsing
+
+The index groups apps under the day they were first published and shows 24 at a time (a page always finishes the day it ends on); "Show more" adds the next 24. "Most liked" is a flat list, paged the same way. "Surprise me" opens a random app from whatever the current search and filters match. Each play page has previous / next links (same order as the index, wrapping at the ends) and its own "Surprise me".
+
+## Editor's choice
+
+`publish.py --picks FILE` reads a plain text file kept outside the repo: one app per line (title, slug or file name; `#` starts a comment). The file is the whole truth: an app is `featured` in `catalog.json` only while a line names it. Featured apps get a row at the top of the index (newest eight), a tag on their card and a filter. With no featured apps none of that is rendered.

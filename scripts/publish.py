@@ -143,12 +143,33 @@ def fallback_card(slug, title, engine, out: Path):
     d.text((40, 160), title, fill="#e9e7e1"); d.text((40, 200), engine or "", fill="#8f8c86")
     im.save(out, "WEBP", quality=82)
 
+# ---------------------------------------------------------------- editor's choice
+def apply_picks(apps, picks_file: Path):
+    """The picks file is the whole truth: an app is featured if (and only if) a line names it.
+    A line may be the app's title, its slug, or its file name; case, spacing and the engine suffix don't matter."""
+    norm = lambda t: re.sub(r"[^a-z0-9]+", "", t.lower())
+    lines = [l.strip() for l in picks_file.read_text(encoding="utf-8-sig", errors="ignore").splitlines()]
+    lines = [l for l in lines if l and not l.startswith("#")]
+    keys = {}
+    for slug, e in apps.items():
+        for k in (slug, e["title"], Path(e.get("source_file", "")).stem, slug_and_engine(e.get("source_file", slug))[0]):
+            if k: keys.setdefault(norm(k), slug)
+    chosen, unknown = set(), []
+    for l in lines:
+        k = norm(Path(l).stem if l.lower().endswith(".html") else l)
+        (chosen.add(keys[k]) if k in keys else unknown.append(l))
+    for slug, e in apps.items():
+        if slug in chosen: e["featured"] = True
+        else: e.pop("featured", None)
+    print(f"picks: {len(chosen)} featured" + (f"; NOT RECOGNISED: {', '.join(unknown)}" if unknown else ""))
+
 # ---------------------------------------------------------------- main
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--source", required=True)
     ap.add_argument("--no-thumbs", action="store_true")
     ap.add_argument("--force-thumbs", default="", help="comma list of slugs to re-screenshot")
+    ap.add_argument("--picks", default="", help="editor's-choice file: one app title, slug or file name per line")
     ap.add_argument("--terms", default="", help="private-terms file for scripts/privacy_check.py (kept outside the repo)")
     args = ap.parse_args()
     src = Path(args.source)
@@ -213,6 +234,8 @@ def main():
                 print(f"  ⚠ {slug}: screenshot failed ({ex}); fallback card")
                 fallback_card(slug, e["title"], e["engine"], out)
 
+    if args.picks and Path(args.picks).exists():
+        apply_picks(apps, Path(args.picks))
     catalog["generated"] = today
     CATALOG.write_text(json.dumps(catalog, indent=2, ensure_ascii=False) + "\n")
     subprocess.run([sys.executable, str(ROOT / "scripts" / "build_index.py")], check=True)

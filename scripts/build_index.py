@@ -99,12 +99,24 @@ def like_btn(slug, e):
     return (f'<button class="like" type="button" data-slug="{slug}" data-n="{likes(e)}" aria-pressed="false" '
             f'title="Like this app" aria-label="Like {E(e["title"])}"><i aria-hidden="true">♥</i><b>{likes(e)}</b></button>')
 
+def featured(e): return bool(e.get("featured"))
+def mini(slug, e):
+    cls = ENGINE_CLASS.get(e["engine"], "other")
+    return f"""
+    <article class="card mini">
+      {shot(slug, e)}
+      <div class="body">
+        <div class="row"><h2><a href="p/{slug}.html">{E(e['title'])}</a></h2><span class="badge {cls}">{E(e['engine'])}</span></div>
+        <p>{E(e.get('description') or '')}</p>
+      </div>
+    </article>"""
+
 def card(slug, e, big=False):
     eng = E(e["engine"]); cls = ENGINE_CLASS.get(e["engine"], "other")
     cat = e.get("category", "")
     search = E((e["title"] + " " + (e.get("description") or "") + " " + slug + " " + cat + " " + e["engine"]).lower())
     return f"""
-    <article class="card{' big' if big else ''}" data-engine="{eng}" data-cat="{E(cat)}" data-date="{e['last_updated']}" data-likes="{likes(e)}" data-search="{search}">
+    <article class="card{' big' if big else ''}{' pick' if featured(e) else ''}" data-slug="{slug}" data-engine="{eng}" data-cat="{E(cat)}" data-date="{e['last_updated']}" data-pub="{pub(e)}" data-likes="{likes(e)}" data-search="{search}">
       {shot(slug, e, lazy=not big)}
       <div class="body">
         <div class="row">
@@ -112,6 +124,7 @@ def card(slug, e, big=False):
           <span class="badge {cls}">{eng}</span>
         </div>
         <p>{E(e.get('description') or '')}</p>
+        {'<span class="picktag">★ Editor’s choice</span>' if featured(e) else ''}
         <div class="meta">
           <span>{fmt(e['last_updated'])}{' · updated' if e['version'] > 1 else ''}</span>
           <span>·</span>
@@ -123,7 +136,20 @@ def card(slug, e, big=False):
     </article>"""
 
 items = sorted(apps.items(), key=lambda kv: (kv[1]["last_updated"], pub(kv[1])), reverse=True)
-cards = "".join(card(s, e) for s, e in items)
+# Index and play-page order: by the day an app was first published (newest day first), then model, then title.
+by_pub = sorted(sorted(apps.items(), key=lambda kv: (kv[1]["engine"], kv[1]["title"].lower())), key=lambda kv: pub(kv[1]), reverse=True)
+cards = "".join(card(s, e) for s, e in by_pub)
+picks = [(s, e) for s, e in by_pub if featured(e)]
+PICKS = f"""
+<section class="board" id="picks">
+  <div class="board-top">
+    <h2 class="board-title"><span class="step-tag">★</span>Editor’s choice <span class="board-note">{len(picks)}</span></h2>
+    <span class="board-note">Hand-picked favorites. Start here.</span>
+  </div>
+  <div class="board-body"><div class="mgrid">{"".join(mini(s, e) for s, e in picks[:8])}
+  </div></div>
+</section>""" if picks else ""
+pick_filter = '<button id="pickf" type="button" aria-pressed="false">★ Editor’s choice</button>' if picks else ""
 engine_filters = "".join(f'<button data-filter="{E(x)}">{E(x)}</button>' for x in all_engines)
 cats_present = sorted({e.get("category") for e in apps.values() if e.get("category")}, key=lambda c: CAT_LABEL.get(c, c))
 cat_filters = "".join(f'<button data-cat="{E(c)}">{E(CAT_LABEL.get(c, c))}</button>' for c in cats_present)
@@ -148,6 +174,7 @@ button{font:inherit}
 .nav a{padding:10px 13px;border-radius:7px;font-size:12px;font-weight:700}
 .nav a:hover{background:#e2e6ee}
 .nav a.new{background:var(--fg);color:#fff}
+.nav a.lucky{background:var(--acc);color:#fff}.nav a.lucky:hover{background:var(--acc);filter:brightness(1.1)}
 .privacy{font:10px/1.3 "Courier New",monospace;letter-spacing:.7px;color:var(--mute);display:flex;gap:6px;align-items:center;margin-right:8px}
 .privacy::before{content:"";width:6px;height:6px;background:#2c816b;border-radius:50%;flex:none}
 @media (max-width:720px){.privacy{display:none}}
@@ -203,6 +230,21 @@ h2{margin:0}
 .meta a{text-decoration:underline dotted}
 .meta .acts{margin-left:auto}
 .sort{margin-left:auto}
+.day{grid-column:1/-1;display:flex;align-items:baseline;gap:10px;margin:14px 0 -2px;padding-top:14px;border-top:1px solid var(--line);font-size:17px;font-weight:800;letter-spacing:-.4px}
+.day:first-child{margin-top:0;padding-top:0;border-top:0}
+.day small{font:11px "Courier New",monospace;letter-spacing:.5px;color:var(--mute);font-weight:400}
+.day .today{font:10px "Courier New",monospace;letter-spacing:.8px;background:var(--yellow);padding:4px 7px;border-radius:4px;font-weight:700}
+.pager{display:flex;align-items:center;justify-content:center;gap:14px;padding:0 23px 26px;flex-wrap:wrap}
+.pager button{padding:11px 18px;border-radius:7px;border:1px solid var(--fg);background:var(--fg);color:#fff;font-size:12px;font-weight:700;cursor:pointer}
+.pager button:hover{filter:brightness(1.25)}
+.pager span{font:11px "Courier New",monospace;letter-spacing:.5px;color:var(--mute)}
+.lucky{padding:9px 12px;border-radius:6px;border:1px solid var(--acc);background:var(--acc);color:#fff;cursor:pointer;font-size:11px;font-weight:700;white-space:nowrap}
+.lucky:hover{filter:brightness(1.1)}
+#pickf{padding:9px 12px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--fg);cursor:pointer;font-size:11px;font-weight:700;white-space:nowrap}
+#pickf[aria-pressed=true]{background:var(--yellow);border-color:var(--fg)}
+.picktag{align-self:flex-start;font:10px "Courier New",monospace;letter-spacing:.6px;background:var(--yellow);color:var(--fg);padding:3px 6px;border-radius:4px;font-weight:700}
+.card.mini .body p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;flex:none}
+button:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
 #likenote{margin:-6px 23px 12px;text-align:right;font:11px "Courier New",monospace;letter-spacing:.3px;color:var(--mute)}
 .toolbar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;padding:0 23px 14px}
 #q{font:inherit;font-size:14px;padding:10px 13px;border-radius:7px;border:1px solid var(--line);background:#fff;color:var(--fg);width:min(100%,320px);outline:none}
@@ -222,37 +264,61 @@ footer a{text-decoration:underline}
 
 JS = """
 const q=document.getElementById('q'), grid=document.getElementById('grid'), cards=[...grid.querySelectorAll('.card')], empty=document.getElementById('empty');
-let engine='all', cat='all';
-function apply(){
+const more=document.getElementById('more'), count=document.getElementById('count'), note=document.getElementById('likenote'), pickf=document.getElementById('pickf');
+const PAGE=24, TODAY=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
+cards.forEach((c,i)=>c.dataset.i=i);
+let engine='all', cat='all', sort='new', picksOnly=false, limit=PAGE, matching=[];
+const dayLabel=d=>{ const t=new Date(d+'T12:00:00'), o={weekday:'long',month:'short',day:'numeric'};
+  if(t.getFullYear()!==new Date().getFullYear()) o.year='numeric'; return t.toLocaleDateString('en-US',o); };
+// One place decides what is on screen: filter, sort, cut to the current page size, and (for Newest) add a heading per publish day.
+function render(){
   const terms=q.value.toLowerCase().trim().split(/\\s+/).filter(Boolean);
-  let shown=0;
-  cards.forEach(c=>{
-    const ok=(engine==='all'||c.dataset.engine===engine)&&(cat==='all'||c.dataset.cat===cat)&&terms.every(t=>c.dataset.search.includes(t));
-    c.hidden=!ok; if(ok) shown++;
+  matching=cards.filter(c=>(engine==='all'||c.dataset.engine===engine)&&(cat==='all'||c.dataset.cat===cat)
+    &&(!picksOnly||c.classList.contains('pick'))&&terms.every(t=>c.dataset.search.includes(t)));
+  const byDay=(a,c)=>c.dataset.pub.localeCompare(a.dataset.pub)||(a.dataset.i-c.dataset.i);
+  matching.sort(sort==='top' ? (a,c)=>(+c.dataset.likes-(+a.dataset.likes))||byDay(a,c) : byDay);
+  const perDay={}; matching.forEach(c=>perDay[c.dataset.pub]=(perDay[c.dataset.pub]||0)+1);
+  // In day view a page never stops partway through a day.
+  let cut=Math.min(limit,matching.length);
+  if(sort==='new') while(cut<matching.length && matching[cut].dataset.pub===matching[cut-1].dataset.pub) cut++;
+  const frag=document.createDocumentFragment(); let last='';
+  matching.slice(0,cut).forEach(c=>{
+    if(sort==='new' && c.dataset.pub!==last){ last=c.dataset.pub;
+      const h=document.createElement('div'); h.className='day'; h.setAttribute('role','heading'); h.setAttribute('aria-level','2');
+      const n=perDay[last]; h.append(dayLabel(last));
+      if(last===TODAY){ const t=document.createElement('span'); t.className='today'; t.textContent='TODAY'; h.append(t); }
+      const sm=document.createElement('small'); sm.textContent=n+(n===1?' app':' apps'); h.append(sm); frag.append(h); }
+    frag.append(c);
   });
-  empty.hidden=shown>0;
+  grid.replaceChildren(frag);
+  const left=matching.length-cut;
+  empty.hidden=matching.length>0;
+  more.hidden=left<=0; more.textContent='Show '+Math.min(PAGE,left)+' more';
+  count.textContent=matching.length ? 'Showing '+cut+' of '+matching.length : '';
 }
+function apply(){ limit=PAGE; render(); }
 function press(group,b){ group.forEach(x=>x.setAttribute('aria-pressed',x===b)); }
 const eng=[...document.querySelectorAll('.engines button')], cts=[...document.querySelectorAll('.cats button')];
 eng.forEach(b=>b.addEventListener('click',()=>{engine=b.dataset.filter;press(eng,b);apply();}));
 cts.forEach(b=>b.addEventListener('click',()=>{cat=(cat===b.dataset.cat?'all':b.dataset.cat);press(cts,cat==='all'?null:b);apply();}));
-const srt=[...document.querySelectorAll('.sort button')], note=document.getElementById('likenote');
-let sort='new', resortTimer=0;
-function resort(){
-  const byDate=(a,c)=>c.dataset.date.localeCompare(a.dataset.date);
-  const by=sort==='top' ? (a,c)=>(+c.dataset.likes-(+a.dataset.likes))||byDate(a,c) : byDate;
-  [...cards].sort(by).forEach(c=>grid.appendChild(c));
-}
+if(pickf) pickf.addEventListener('click',()=>{ picksOnly=!picksOnly; pickf.setAttribute('aria-pressed',picksOnly); apply(); });
+more.addEventListener('click',()=>{ limit=grid.querySelectorAll('.card').length+PAGE; render(); });
+const srt=[...document.querySelectorAll('.sort button')];
+let resortTimer=0;
 srt.forEach(b=>b.addEventListener('click',()=>{
-  sort=b.dataset.sort; press(srt,b); resort();
+  sort=b.dataset.sort; press(srt,b); apply();
   if(sort==='top' && window.trezLikes) window.trezLikes.loadAll(); else note.hidden=true;
 }));
 // Counts arrive a few at a time; while "Most liked" is on, keep the order current as they land.
 document.addEventListener('likes:update',e=>{
   if(sort!=='top') return;
   const d=e.detail; note.hidden=!d.pending; note.textContent='Checking latest counts… '+d.done+' of '+d.total;
-  clearTimeout(resortTimer); resortTimer=setTimeout(resort,d.pending?600:0);
+  clearTimeout(resortTimer); resortTimer=setTimeout(render,d.pending?600:0);
 });
+// Surprise me: a random app from whatever the current search and filters match.
+document.querySelectorAll('.lucky').forEach(b=>b.addEventListener('click',e=>{ e.preventDefault();
+  const pool=matching.length?matching:cards; location.href='p/'+pool[Math.floor(Math.random()*pool.length)].dataset.slug+'.html'; }));
+render();
 q.addEventListener('input',apply);
 document.addEventListener('keydown',e=>{ if(e.key==='/'&&document.activeElement!==q){e.preventDefault();q.focus();} if(e.key==='Escape'&&document.activeElement===q){q.value='';apply();} });
 document.querySelectorAll('.card').forEach(c=>{
@@ -316,6 +382,7 @@ page = f"""<!doctype html>
   <nav class="nav">
     <span class="privacy">RUNS IN YOUR BROWSER · NOTHING UPLOADED</span>
     <a href="#prompt">The prompt</a>
+    <a class="lucky" href="#all">Surprise me</a>
     <a href="feed.xml">RSS</a>
     <a class="new" href="#all">Browse apps</a>
   </nav>
@@ -327,7 +394,7 @@ page = f"""<!doctype html>
   </div>
   <p class="hero-copy"><strong>{eng_list}</strong> each build a single-page app from the same one-line brief. They land here untouched. Click any card and play.</p>
 </header>
-{PROMPT}
+{PROMPT}{PICKS}
 <section class="board all" id="all">
   <div class="board-top">
     <h2 class="board-title">All apps <span class="board-note">{len(apps)}</span></h2>
@@ -337,15 +404,18 @@ page = f"""<!doctype html>
     <div class="filters engines" role="group" aria-label="Filter by model">
       <button data-filter="all" aria-pressed="true">All</button>{engine_filters}
     </div>
+    {pick_filter}
     <div class="filters sort" role="group" aria-label="Sort">
       <button data-sort="new" aria-pressed="true">Newest</button><button data-sort="top">Most liked</button>
     </div>
+    <button class="lucky" type="button" title="Open a random app from the ones listed">Surprise me</button>
   </div>
   <p id="likenote" role="status" hidden></p>
   <div class="filters cats" role="group" aria-label="Filter by category">{cat_filters}</div>
   <p id="empty" hidden>No apps match that.</p>
   <main id="grid">{cards}
   </main>
+  <div class="pager"><button id="more" type="button" hidden>Show more</button><span id="count" role="status"></span></div>
 </section>
 <footer>SOURCE AND FULL VERSION HISTORY ON <a href="{REPO}">GITHUB</a> · <a href="feed.xml">RSS</a> · LAST PUBLISHED {fmt(catalog.get('generated', TODAY.isoformat())).upper()}</footer>
 </div>
@@ -359,7 +429,9 @@ page = f"""<!doctype html>
 PDIR = ROOT / "p"; PDIR.mkdir(exist_ok=True)
 for old in PDIR.glob("*.html"):
     if old.stem not in apps: old.unlink()
+order = [s for s, _ in by_pub]
 for slug, e in apps.items():
+    i = order.index(slug); prev_s, next_s = order[i - 1], order[(i + 1) % len(order)]
     eng = E(e["engine"]); cls = ENGINE_CLASS.get(e["engine"], "other")
     desc = e.get("description") or ""
     (PDIR / f"{slug}.html").write_text(f"""<!doctype html>
@@ -387,6 +459,11 @@ body{{display:flex;flex-direction:column;background:var(--bg);color:var(--fg);fo
 .desc{{color:var(--mute);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:1;min-width:0}}
 .raw{{color:var(--mute);white-space:nowrap;font:11px "Courier New",monospace;letter-spacing:.5px}} .raw:hover{{color:var(--fg)}}
 .back img{{height:36px;width:auto;display:block}}
+.step{{display:inline-flex;align-items:center;height:30px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:#fff;font-weight:700;font-size:11px;white-space:nowrap}}
+.step:hover{{border-color:var(--acc);color:var(--acc)}}
+.step.go{{background:var(--fg);border-color:var(--fg);color:#fff}} .step.go:hover{{color:#fff;filter:brightness(1.25)}}
+.step:focus-visible{{outline:3px solid var(--acc);outline-offset:2px}}
+@media (max-width:640px){{.title{{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}}.step.rnd{{display:none}}.bar{{gap:8px;padding:0 10px}}}}
 iframe{{flex:1;border:0;width:100%;background:#fff}}
 @media (max-width:640px){{.desc,.raw{{display:none}}}}
 {LIKE_CSS}
@@ -400,9 +477,16 @@ iframe{{flex:1;border:0;width:100%;background:#fff}}
   <span class="desc">{E(desc)}</span>
   <a class="raw" href="../apps/{slug}.html" title="Open the app on its own, full window">open raw ↗</a>
   {like_btn(slug, e)}
+  <a class="step" href="{prev_s}.html" title="Previous: {E(apps[prev_s]['title'])}" aria-label="Previous app: {E(apps[prev_s]['title'])}">←</a>
+  <a class="step rnd" id="lucky" href="../" title="Open a random app">Surprise me</a>
+  <a class="step go" href="{next_s}.html" title="Next: {E(apps[next_s]['title'])}">Next app →</a>
 </div>
 <iframe src="../apps/{slug}.html" title="{E(e['title'])}" allow="clipboard-write; fullscreen; autoplay" allowfullscreen></iframe>
-<script>{LIKE_JS}</script>
+<script>{LIKE_JS}
+document.getElementById('lucky').addEventListener('click',async e=>{{ e.preventDefault();
+  try{{ const all=Object.keys((await (await fetch('../catalog.json')).json()).apps).filter(s=>s!=='{slug}');
+    location.href=all[Math.floor(Math.random()*all.length)]+'.html'; }}catch(x){{ location.href='../'; }} }});
+</script>
 </body>
 </html>
 """)

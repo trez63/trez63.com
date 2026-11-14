@@ -32,6 +32,11 @@ body{display:flex;flex-direction:column;background:var(--bg);color:var(--fg);fon
 .desc{color:var(--mute);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:1;min-width:0}
 .raw{color:var(--mute);white-space:nowrap;font:11px "Courier New",monospace;letter-spacing:.5px} .raw:hover{color:var(--fg)}
 .back img{height:36px;width:auto;display:block}
+.step{display:inline-flex;align-items:center;height:30px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:#fff;font-weight:700;font-size:11px;white-space:nowrap}
+.step:hover{border-color:var(--acc);color:var(--acc)}
+.step.go{background:var(--fg);border-color:var(--fg);color:#fff} .step.go:hover{color:#fff;filter:brightness(1.25)}
+.step:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+@media (max-width:640px){.title{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.step.rnd{display:none}.bar{gap:8px;padding:0 10px}}
 iframe{flex:1;border:0;width:100%;background:#fff}
 @media (max-width:640px){.desc,.raw{display:none}}
 
@@ -54,6 +59,9 @@ button.like.on i{color:var(--acc)}
   <span class="desc">Projected income and expenses on one page, offline. Enter anything weekly, monthly or yearly and it normalizes to a monthly view.</span>
   <a class="raw" href="../apps/budget.html" title="Open the app on its own, full window">open raw ↗</a>
   <button class="like" type="button" data-slug="budget" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Budget"><i aria-hidden="true">♥</i><b>0</b></button>
+  <a class="step" href="pulseforge.html" title="Previous: PulseForge" aria-label="Previous app: PulseForge">←</a>
+  <a class="step rnd" id="lucky" href="../" title="Open a random app">Surprise me</a>
+  <a class="step go" href="dayblock.html" title="Next: Dayblock">Next app →</a>
 </div>
 <iframe src="../apps/budget.html" title="Budget" allow="clipboard-write; fullscreen; autoplay" allowfullscreen></iframe>
 <script>
@@ -107,6 +115,10 @@ button.like.on i{color:var(--acc)}
   } else btns.slice(0,12).forEach(b=>want(b,true));
   window.trezLikes={ loadAll(){ btns.forEach(b=>want(b,false)); changed(); } };
 })();
+
+document.getElementById('lucky').addEventListener('click',async e=>{ e.preventDefault();
+  try{ const all=Object.keys((await (await fetch('../catalog.json')).json()).apps).filter(s=>s!=='budget');
+    location.href=all[Math.floor(Math.random()*all.length)]+'.html'; }catch(x){ location.href='../'; } });
 </script>
 </body>
 </html>

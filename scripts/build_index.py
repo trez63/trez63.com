@@ -99,6 +99,11 @@ TRACK_JS = """
     if(/reddit\\.com|redd\\.it/i.test(document.referrer)) hit('stat-r-'+day); }
 }catch(e){} })();
 """
+# Google Analytics (GA4). A property used by this site only. Skipped for browsers opted out with ?notrack=1.
+GA_ID = "G-F4X7P9J00K"
+GA = f"""<script>try{{if(new URLSearchParams(location.search).get('notrack')==='1'||(!new URLSearchParams(location.search).has('notrack')&&localStorage.getItem('notrack')))window['ga-disable-{GA_ID}']=true}}catch(e){{}}</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id={GA_ID}"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){{dataLayer.push(arguments);}}gtag('js',new Date());gtag('config','{GA_ID}');</script>"""
 E = html.escape
 
 def fmt(d):
@@ -393,13 +398,14 @@ page = f"""<!doctype html>
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 {og("trez63 — one small app a day", SITE_DESC, f"{SITE}/assets/og.png", SITE + "/")}
 <style>{CSS}{LIKE_CSS}</style>
+{GA}
 </head>
 <body>
 <div class="shell">
 <div class="topbar">
   <a class="logo" href="./"><img src="assets/logo.png" alt="trez63.com" width="{int(400*1175/783)}" height="400"></a>
   <nav class="nav">
-    <span class="privacy">RUNS IN YOUR BROWSER · NOTHING UPLOADED</span>
+    <span class="privacy">APPS RUN IN YOUR BROWSER</span>
     <a href="#prompt">The prompt</a>
     <a class="lucky" href="#all">Surprise me</a>
     <a href="feed.xml">RSS</a>
@@ -487,6 +493,7 @@ iframe{{flex:1;border:0;width:100%;background:#fff}}
 @media (max-width:640px){{.desc,.raw{{display:none}}}}
 {LIKE_CSS}
 </style>
+{GA}
 </head>
 <body>
 <div class="bar">

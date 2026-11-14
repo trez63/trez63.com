@@ -43,5 +43,5 @@ The index groups apps under the day they were first published and shows 24 at a 
 
 ## Visit counts
 
-No analytics vendor and no cookies. Each page adds one to a few anonymous counters on the same counter service the like buttons use (keys `stat-v-DAY` page views, `stat-u-DAY` browsers seen that day, `stat-r-DAY` of those arriving from Reddit, `stat-o-DAY` app pages opened, `stat-open-<slug>` opens per app; days are Pacific time). `stats.html` (generated, unlinked, noindex) shows the last 7 days. Opening any page once with `?notrack=1` stops that browser being counted.
+Two layers. Google Analytics (GA4, a property used only by this site; the tag is in `build_index.py`) gives referrers, countries and devices, but ad blockers hide part of the audience from it. Underneath, as an unblocked baseline with no cookies, each page adds one to a few anonymous counters on the same counter service the like buttons use (keys `stat-v-DAY` page views, `stat-u-DAY` browsers seen that day, `stat-r-DAY` of those arriving from Reddit, `stat-o-DAY` app pages opened, `stat-open-<slug>` opens per app; days are Pacific time). `stats.html` (generated, unlinked, noindex) shows the last 7 days. Opening any page once with `?notrack=1` stops that browser being counted.
 

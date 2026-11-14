@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PINCH — Recipe Scaler</title>
+<style>
+/* ===== Palette: warm kitchen — cream paper, tomato red, basil green, charcoal ink ===== */
+:root{
+  --paper:#FBF6EE; --card:#FFFDF8; --ink:#26221C; --muted:#7A7264;
+  --red:#C0392B; --red-soft:#FBE9E4; --green:#2E7D32; --green-soft:#E7F2E4;
+  --line:#E8DFCF; --gold:#D98E1F;
+  --radius:14px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:17px; line-height:1.5;
+}
+header{padding:22px 18px 6px; max-width:760px; margin:0 auto}
+h1{margin:0; font-size:34px; letter-spacing:-.5px; line-height:1.1}
+h1 .pinch{color:var(--red)}
+.sub{color:var(--muted); margin:6px 0 0; font-size:16px}
+main{max-width:760px; margin:0 auto; padding:12px 18px 40px}
+.card{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+  padding:16px; margin-top:14px; box-shadow:0 1px 3px rgba(38,34,28,.06);
+}
+.card h2{margin:0 0 10px; font-size:13px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted)}
+label{display:block; font-weight:600; margin:10px 0 4px}
+input[type=text],input[type=number],textarea{
+  width:100%; font:inherit; color:var(--ink); background:#fff;
+  border:1.5px solid var(--line); border-radius:10px; padding:11px 12px;
+}
+input:focus,textarea:focus{outline:2px solid var(--red); outline-offset:1px; border-color:var(--red)}
+textarea{min-height:220px; resize:vertical; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:15px; line-height:1.6}
+.hint{color:var(--muted); font-size:14px; margin:6px 0 0}
+
+/* ===== Servings controls ===== */
+.servings{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+.servings .num{font-size:28px; font-weight:800; color:var(--red)}
+.servings input[type=number]{width:92px; text-align:center; font-size:20px; font-weight:700; padding:8px}
+input[type=range]{
+  -webkit-appearance:none; appearance:none; width:100%; height:34px; background:transparent; margin:6px 0 0;
+}
+input[type=range]::-webkit-slider-runnable-track{height:8px; border-radius:4px; background:linear-gradient(90deg,var(--red) var(--fill,25%),#EDE4D3 var(--fill,25%))}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none; width:34px; height:34px; margin-top:-13px; border-radius:50%;
+  background:var(--red); border:3px solid #fff; box-shadow:0 1px 4px rgba(0,0,0,.25);
+}
+input[type=range]::-moz-range-track{height:8px; border-radius:4px; background:#EDE4D3}
+input[type=range]::-moz-range-progress{height:8px; border-radius:4px; background:var(--red)}
+input[type=range]::-moz-range-thumb{width:28px; height:28px; border-radius:50%; background:var(--red); border:3px solid #fff}
+.chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px}
+.chip{
+  min-height:44px; padding:10px 16px; border-radius:999px; border:1.5px solid var(--line);
+  background:#fff; font:inherit; font-weight:700; color:var(--ink); cursor:pointer;
+}
+.chip:active{background:var(--red-soft); border-color:var(--red)}
+.factor{margin-top:10px; font-size:15px; color:var(--muted)}
+.factor b{color:var(--green); font-size:17px}
+
+/* ===== Scaled output ===== */
+.out-head{display:flex; flex-wrap:wrap; gap:6px 14px; align-items:baseline}
+.out-head h2{margin:0}
+.serves{font-size:20px; font-weight:800; color:var(--green)}
+.stats{color:var(--muted); font-size:14px}
+ul.scaled{list-style:none; margin:12px 0 0; padding:0}
+ul.scaled li{
+  padding:9px 2px; border-bottom:1px dashed var(--line); font-size:17px;
+  display:flex; gap:10px; align-items:baseline; flex-wrap:wrap;
+}
+ul.scaled li:last-child{border-bottom:none}
+.qty{font-weight:800; color:var(--red); white-space:nowrap; min-width:64px}
+.unit{font-weight:600}
+.was{color:var(--muted); font-size:13px}
+.plain{color:var(--muted); font-style:italic}
+.empty{color:var(--muted); padding:14px 2px}
+
+/* ===== Action buttons ===== */
+.actions{display:flex; flex-wrap:wrap; gap:10px; margin-top:14px}
+button.btn{
+  min-height:48px; padding:12px 18px; border-radius:12px; border:1.5px solid var(--line);
+  background:#fff; font:inherit; font-weight:700; color:var(--ink); cursor:pointer; flex:1 1 140px;
+}
+button.btn.primary{background:var(--red); border-color:var(--red); color:#fff}
+button.btn.green{background:var(--green); border-color:var(--green); color:#fff}
+button.btn:active{transform:translateY(1px)}
+button.btn:disabled{opacity:.45; cursor:default}
+#msg{min-height:22px; margin-top:10px; font-size:15px; color:var(--muted)}
+#msg.err{color:var(--red); font-weight:600}
+#msg.ok{color:var(--green); font-weight:600}
+kbd{font-family:inherit; background:#EFE9DC; border-radius:5px; padding:1px 6px; font-size:13px}
+.foot{color:var(--muted); font-size:13px; margin-top:18px; text-align:center}
+@media (max-width:560px){
+  h1{font-size:28px}
+  .servings{grid-template-columns:1fr}
+  .qty{min-width:52px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none !important; animation:none !important}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1><span class="pinch">PINCH</span> — Recipe Scaler</h1>
+  <p class="sub">Paste a recipe, pick how many you're feeding, and every quantity rescales instantly — halves, thirds and quarters included.</p>
+</header>
+
+<main>
+  <!-- ===== Servings ===== -->
+  <section class="card" aria-label="Servings">
+    <h2>Servings</h2>
+    <div class="servings">
+      <div>
+        <label for="origServings">Recipe serves</label>
+        <input type="number" id="origServings" min="1" max="64" step="1" value="4" inputmode="numeric">
+      </div>
+      <div>
+        <label for="targetServings">I want to serve <span class="num" id="targetNum">4</span></label>
+        <input type="range" id="targetServings" min="1" max="16" step="1" value="4" aria-label="Target servings">
+      </div>
+    </div>
+    <div class="chips" role="group" aria-label="Quick scale">
+      <button class="chip" data-mult="0.5" type="button">½× &nbsp;Half</button>
+      <button class="chip" data-mult="1" type="button">1× &nbsp;As written</button>
+      <button class="chip" data-mult="2" type="button">2× &nbsp;Double</button>
+      <button class="chip" data-mult="3" type="button">3× &nbsp;Triple</button>
+    </div>
+    <p class="factor">Scale factor: <b id="factorLabel">×1</b> &nbsp;·&nbsp; <span id="scaleNote">same as written</span></p>
+  </section>
+
+  <!-- ===== Recipe input ===== -->
+  <section class="card" aria-label="Your recipe">
+    <h2>Your recipe</h2>
+    <label for="recipeName">Recipe name</label>
+    <input type="text" id="recipeName" value="Creamy Tomato Basil Pasta" maxlength="200">
+    <label for="recipeText">Ingredients — one per line</label>
+    <textarea id="recipeText" spellcheck="false">2 tablespoons olive oil
+3 cloves garlic, minced
+1 can (28 ounces) crushed tomatoes
+1/2 teaspoon red pepper flakes
+1 teaspoon sugar
+3/4 cup heavy cream
+12 ounces penne pasta
+1/2 cup grated Parmesan
+1/4 cup fresh basil leaves, torn
+Salt and black pepper to taste</textarea>
+    <p class="hint">Lines starting with a number scale automatically — whole numbers, decimals, fractions like 1/2, mixed numbers like 1 1/2, and ranges like 2–3. Lines without a number pass through unchanged.</p>
+  </section>
+
+  <!-- ===== Scaled output ===== -->
+  <section class="card" aria-label="Scaled recipe">
+    <div class="out-head">
+      <h2>Scaled recipe</h2>
+      <span class="serves" id="servesLabel">Serves 4</span>
+      <span class="stats" id="statsLabel"></span>
+    </div>
+    <ul class="scaled" id="scaledList"></ul>
+    <div class="actions">
+      <button class="btn primary" id="copyBtn" type="button">Copy scaled recipe</button>
+      <button class="btn" id="downloadBtn" type="button">Download .txt</button>
+      <button class="btn" id="resetBtn" type="button">Reset sample</button>
+    </div>
+  </section>
+
+  <!-- ===== Save / Open ===== -->
+  <section class="card" aria-label="Save and open">
+    <h2>Save &amp; open</h2>
+    <div class="actions" style="margin-top:0">
+      <button class="btn green" id="saveBtn" type="button">Save JSON</button>
+      <button class="btn" id="openBtn" type="button">Open JSON…</button>
+      <input type="file" id="fileInput" accept=".json,application/json" hidden>
+    </div>
+    <p id="msg" role="status" aria-live="polite"></p>
+    <p class="hint">Shortcuts: <kbd>S</kbd> save · <kbd>O</kbd> open · <kbd>C</kbd> copy. Shortcuts never fire while you're typing.</p>
+  </section>
+
+  <p class="foot">PINCH runs entirely offline — no accounts, no network, your recipes stay on your device.</p>
+</main>
+
+<script>
+"use strict";
+/* =====================================================================
+   PINCH — Recipe Scaler
+   Sections: 1. Quantity parsing  2. Quantity formatting  3. Scaling
+             4. Rendering  5. Save / Open / persistence  6. Wiring
+   ===================================================================== */
+
+/* ---------- 1. Quantity parsing ---------- */
+var FRAC = {"1/8":0.125,"1/4":0.25,"1/3":1/3,"3/8":0.375,"1/2":0.5,
+            "5/8":0.625,"2/3":2/3,"3/4":0.75,"7/8":0.875};
+
+/* Units we recognise right after a quantity (singular or plural). */
+var UNITS = new Set(["cup","cups","tablespoon","tablespoons","tbsp","tbsps",
+  "teaspoon","teaspoons","tsp","tsps","gram","grams","g","kilogram","kilograms","kg",
+  "milliliter","milliliters","millilitre","millilitres","ml","liter","liters","litre","litres","l",
+  "ounce","ounces","oz","pound","pounds","lb","lbs","clove","cloves","can","cans",
+  "package","packages","pkg","bunch","bunches","slice","slices","piece","pieces",
+  "stalk","stalks","head","heads","sprig","sprigs","pinch","pinches","dash","dashes",
+  "drop","drops","stick","sticks","sheet","sheets","scoop","scoops"]);
+
+/* Single-word foods whose name pluralises when the count grows past 1. */
+var FOODS = {"egg":"eggs","onion":"onions","tomato":"tomatoes","potato":"potatoes",
+  "carrot":"carrots","lemon":"lemons","lime":"limes","apple":"apples","avocado":"avocados",
+  "pepper":"peppers","banana":"bananas","garlic":"garlic","shallot":"shallots",
+  "zucchini":"zucchini","cucumber":"cucumbers","mushroom":"mushrooms"};
+
+/* Parse one leading quantity token: "1", "1.5", "1/2", "1 1/2", "2-3", "2–3".
+   Returns {value, rest} or null when the line starts with no quantity. */
+function parseQty(text){
+  var m = text.match(/^(\d+\s+\d+\/\d+|\d+\/\d+|\d+(?:\.\d+)?)\s*(?:[-–]\s*(\d+\s+\d+\/\d+|\d+\/\d+|\d+(?:\.\d+)?))?\s*(.*)$/);
+  if(!m) return null;
+  function val(s){
+    s = s.trim();
+    var parts = s.split(/\s+/);
+    var total = 0;
+    for(var i=0;i<parts.length;i++){
+      var p = parts[i];
+      if(p.indexOf("/") > -1){
+        var ab = p.split("/");
+        var a = parseFloat(ab[0]), b = parseFloat(ab[1]);
+        if(!isFinite(a) || !isFinite(b) || b === 0) return null;
+        total += a / b;
+      } else {
+        var n = parseFloat(p);
+        if(!isFinite(n)) return null;
+        total += n;
+      }
+    }
+    return total;
+  }
+  var lo = val(m[1]);
+  if(lo === null) return null;
+  var hi = m[2] ? val(m[2]) : null;
+  if(m[2] && hi === null) return null;
+  return {lo:lo, hi:hi, rest:(m[3] || "").trim()};
+}
+
+/* Split a scaled line into {qty, unit, name} for display. */
+function parseLine(line){
+  var q = parseQty(line.trim());
+  if(!q) return {qty:null, unit:"", name:line.trim()};
+  var rest = q.rest;
+  var unit = "", name = rest;
+  var first = rest.split(/\s+/)[0] || "";
+  if(UNITS.has(first.toLowerCase())){
+    unit = first;
+    name = rest.slice(first.length).trim();
+  }
+  return {qty:q, unit:unit, name:name};
+}
+
+/* ---------- 2. Quantity formatting ---------- */
+/* Nearest friendly fraction (eighths up to 8, quarters above) rendered with unicode glyphs. */
+var EIGHTHS = ["","⅛","¼","⅜","½","⅝","¾","⅞"];
+function formatQty(x){
+  if(!isFinite(x) || x < 0) return "";
+  if(x === 0) return "0";
+  var whole = Math.floor(x + 1e-9);
+  var frac = x - whole;
+  var denom = x < 8 ? 8 : 4;
+  var n = Math.round(frac * denom);
+  if(n === denom){ whole += 1; n = 0; }
+  if(whole === 0 && n === 0) return "a pinch";
+  var glyph = denom === 8 ? EIGHTHS[n] : ["","¼","½","¾"][n];
+  if(n === 0) return String(whole);
+  if(whole === 0) return glyph;
+  return whole + " " + glyph;
+}
+
+/* Pluralise a recognised unit or single-word food when count > 1; singularise at exactly 1. */
+function pluralise(word, qty){
+  if(!word) return word;
+  var low = word.toLowerCase();
+  if(qty > 1){
+    if(UNITS.has(low) && !low.endsWith("s") && !/^(g|kg|ml|l|oz|lb|tsp|tbsp)$/.test(low)){
+      return word + "s";
+    }
+    if(FOODS[low]) return FOODS[low];
+    return word;
+  }
+  if(qty === 1){
+    if(low.endsWith("s") && UNITS.has(low.slice(0,-1))) return word.slice(0,-1);
+    for(var k in FOODS){ if(FOODS[k] === low) return k; }
+  }
+  return word;
+}
+
+/* ---------- 3. Scaling ---------- */
+function scaleParsed(p, factor){
+  if(!p.qty) return {text:p.name, scaled:false};
+  function one(v){
+    var nv = v * factor;
+    return nv < 0.005 ? 0 : nv;
+  }
+  var lo = one(p.qty.lo), hi = p.qty.hi === null ? null : one(p.qty.hi);
+  var qtyText = hi === null ? formatQty(lo) : formatQty(lo) + "–" + formatQty(hi);
+  var ref = hi === null ? lo : hi; /* pluralise on the larger end */
+  var unit = pluralise(p.unit, ref);
+  var name = p.name;
+  if(!unit){
+    /* No unit: a lone food word ("3 eggs") pluralises with the count. */
+    var words = name.split(/\s+/);
+    if(words.length === 1 && FOODS[words[0].toLowerCase()]){
+      name = pluralise(words[0], ref);
+    }
+  }
+  var wasText = p.qty.hi === null
+    ? formatQty(p.qty.lo) + (p.unit ? " " + p.unit : "")
+    : formatQty(p.qty.lo) + "–" + formatQty(p.qty.hi) + (p.unit ? " " + p.unit : "");
+  return {text:qtyText, unit:unit, name:name, scaled:true, was:wasText};
+}
+
+function scaleLine(line, factor){
+  return scaleParsed(parseLine(line), factor);
+}
+
+/* ---------- 4. Rendering ---------- */
+var els = {};
+["origServings","targetServings","targetNum","recipeName","recipeText",
+ "scaledList","servesLabel","statsLabel","factorLabel","scaleNote","msg",
+ "copyBtn","downloadBtn","resetBtn","saveBtn","openBtn","fileInput"
+].forEach(function(id){ els[id] = document.getElementById(id); });
+
+var SAMPLE_NAME = "Creamy Tomato Basil Pasta";
+var SAMPLE_TEXT = [
+  "2 tablespoons olive oil",
+  "3 cloves garlic, minced",
+  "1 can (28 ounces) crushed tomatoes",
+  "1/2 teaspoon red pepper flakes",
+  "1 teaspoon sugar",
+  "3/4 cup heavy cream",
+  "12 ounces penne pasta",
+  "1/2 cup grated Parmesan",
+  "1/4 cup fresh basil leaves, torn",
+  "Salt and black pepper to taste"
+].join("\n");
+
+var LS_KEY = "pinch-recipe-scaler-v1";
+
+function clampInt(v, lo, hi, fallback){
+  var n = parseInt(v, 10);
+  if(!isFinite(n)) return fallback;
+  return Math.max(lo, Math.min(hi, n));
+}
+
+function currentState(){
+  return {
+    name: els.recipeName.value,
+    orig: clampInt(els.origServings.value, 1, 64, 4),
+    target: clampInt(els.targetServings.value, 1, 16, 4),
+    recipe: els.recipeText.value
+  };
+}
+
+function factorOf(s){ return s.target / s.orig; }
+
+function render(){
+  var s = currentState();
+  var factor = factorOf(s);
+  els.targetNum.textContent = s.target;
+  els.targetServings.style.setProperty("--fill", ((s.target - 1) / 15 * 100) + "%");
+  els.factorLabel.textContent = "×" + (Math.round(factor * 100) / 100);
+  els.scaleNote.textContent =
+    factor === 1 ? "same as written" :
+    factor > 1 ? "bigger batch — multiply everything" :
+                 "smaller batch — scale everything down";
+  els.servesLabel.textContent = "Serves " + s.target;
+
+  var lines = s.recipe.split(/\r?\n/);
+  var nonEmpty = lines.filter(function(l){ return l.trim().length > 0; });
+  var scaledCount = 0;
+  els.scaledList.innerHTML = "";
+  if(nonEmpty.length === 0){
+    var li0 = document.createElement("li");
+    li0.className = "empty";
+    li0.textContent = "Paste a recipe above — quantities like “2 cups flour” scale automatically; lines without a number pass through unchanged.";
+    els.scaledList.appendChild(li0);
+  } else {
+    nonEmpty.forEach(function(line){
+      var r = scaleLine(line, factor);
+      var li = document.createElement("li");
+      if(r.scaled){
+        scaledCount++;
+        var q = document.createElement("span"); q.className = "qty"; q.textContent = r.text;
+        li.appendChild(q);
+        if(r.unit){ var u = document.createElement("span"); u.className = "unit"; u.textContent = r.unit; li.appendChild(u); }
+        var nm = document.createElement("span"); nm.textContent = r.name; li.appendChild(nm);
+        if(factor !== 1){
+          var w = document.createElement("span"); w.className = "was"; w.textContent = "was " + r.was; li.appendChild(w);
+        }
+      } else {
+        var p = document.createElement("span"); p.className = "plain"; p.textContent = r.text; li.appendChild(p);
+      }
+      els.scaledList.appendChild(li);
+    });
+  }
+  els.statsLabel.textContent = nonEmpty.length + " lines · " + scaledCount + " scaled";
+  try{ localStorage.setItem(LS_KEY, JSON.stringify({app:"pinch", version:1, name:s.name, orig:s.orig, target:s.target, recipe:s.recipe})); }catch(e){}
+}
+
+function scaledPlainText(){
+  var s = currentState();
+  var factor = factorOf(s);
+  var out = [s.name + " — Serves " + s.target + " (scaled ×" + (Math.round(factor*100)/100) + ")", ""];
+  s.recipe.split(/\r?\n/).filter(function(l){ return l.trim().length > 0; }).forEach(function(line){
+    var r = scaleLine(line, factor);
+    if(r.scaled) out.push((r.text + (r.unit ? " " + r.unit : "") + (r.name ? " " + r.name : "")).trim());
+    else out.push(r.text);
+  });
+  return out.join("\n");
+}
+
+function showMsg(text, kind){
+  els.msg.textContent = text;
+  els.msg.className = kind || "";
+}
+
+/* ---------- 5. Save / Open / persistence ---------- */
+function download(filename, text, mime){
+  var blob = new Blob([text], {type: mime || "application/json"});
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 400);
+}
+
+function saveJSON(){
+  var s = currentState();
+  var data = {app:"pinch", version:1, name:s.name, origServings:s.orig, targetServings:s.target, recipe:s.recipe};
+  download("pinch-recipe.json", JSON.stringify(data, null, 2));
+  showMsg("Saved pinch-recipe.json — open it later with Open JSON.", "ok");
+}
+
+/* Full validation: any bad shape is rejected and current data is untouched. */
+function validateSave(obj){
+  if(!obj || typeof obj !== "object" || Array.isArray(obj)) return "not a JSON object";
+  if(obj.app !== "pinch") return "not a PINCH file (app field mismatch)";
+  if(obj.version !== 1) return "unsupported version";
+  if(typeof obj.name !== "string" || obj.name.length > 200) return "bad recipe name";
+  if(!Number.isInteger(obj.origServings) || obj.origServings < 1 || obj.origServings > 64) return "bad original servings";
+  if(!Number.isInteger(obj.targetServings) || obj.targetServings < 1 || obj.targetServings > 64) return "bad target servings";
+  if(typeof obj.recipe !== "string" || obj.recipe.length > 20000) return "bad recipe text";
+  if(obj.recipe.split(/\r?\n/).length > 500) return "too many lines";
+  return null;
+}
+
+function applySave(obj){
+  els.recipeName.value = obj.name;
+  els.origServings.value = obj.origServings;
+  els.targetServings.value = Math.max(1, Math.min(16, obj.targetServings));
+  els.recipeText.value = obj.recipe;
+  render();
+}
+
+function openJSON(file){
+  if(!file){ return; }
+  var reader = new FileReader();
+  reader.onload = function(){
+    var obj;
+    try{ obj = JSON.parse(reader.result); }
+    catch(e){ showMsg("Could not open that file — it is not valid JSON. Your current recipe is unchanged.", "err"); return; }
+    var err = validateSave(obj);
+    if(err){ showMsg("That file was rejected (" + err + "). Your current recipe is unchanged.", "err"); return; }
+    applySave(obj);
+    showMsg("Opened “" + obj.name + "” — scaled recipe restored.", "ok");
+  };
+  reader.onerror = function(){ showMsg("Could not read that file. Your current recipe is unchanged.", "err"); };
+  reader.readAsText(file);
+}
+
+function restore(){
+  try{
+    var raw = localStorage.getItem(LS_KEY);
+    if(!raw) return;
+    var obj = JSON.parse(raw);
+    if(obj && obj.app === "pinch" && obj.version === 1){
+      applySave({name:obj.name || SAMPLE_NAME, origServings:obj.orig || 4,
+                 targetServings:obj.target || 4, recipe:typeof obj.recipe === "string" ? obj.recipe : SAMPLE_TEXT});
+    }
+  }catch(e){ /* corrupted autosave: keep the sample */
+  }
+}
+
+/* ---------- 6. Wiring ---------- */
+function copyScaled(){
+  var text = scaledPlainText();
+  function done(){ showMsg("Scaled recipe copied to the clipboard.", "ok"); }
+  function fail(){ showMsg("Copy failed — select the scaled list and copy it manually.", "err"); }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done, fail);
+  } else {
+    var ta = document.createElement("textarea");
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand("copy"); done(); }catch(e){ fail(); }
+    ta.remove();
+  }
+}
+
+els.origServings.addEventListener("input", render);
+els.targetServings.addEventListener("input", render);
+els.recipeName.addEventListener("input", render);
+els.recipeText.addEventListener("input", render);
+
+document.querySelectorAll(".chip").forEach(function(chip){
+  chip.addEventListener("click", function(){
+    var s = currentState();
+    var t = Math.max(1, Math.min(16, Math.round(s.orig * parseFloat(chip.dataset.mult))));
+    els.targetServings.value = t;
+    render();
+  });
+});
+
+els.copyBtn.addEventListener("click", copyScaled);
+els.downloadBtn.addEventListener("click", function(){
+  var s = currentState();
+  download("pinch-" + (s.name || "recipe").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + ".txt",
+           scaledPlainText(), "text/plain");
+  showMsg("Downloaded the scaled recipe as a .txt file.", "ok");
+});
+els.resetBtn.addEventListener("click", function(){
+  els.recipeName.value = SAMPLE_NAME;
+  els.origServings.value = 4;
+  els.targetServings.value = 4;
+  els.recipeText.value = SAMPLE_TEXT;
+  render();
+  showMsg("Sample recipe restored.", "ok");
+});
+els.saveBtn.addEventListener("click", saveJSON);
+els.openBtn.addEventListener("click", function(){ els.fileInput.click(); });
+els.fileInput.addEventListener("change", function(){
+  openJSON(els.fileInput.files && els.fileInput.files[0]);
+  els.fileInput.value = "";
+});
+
+/* Keyboard shortcuts — each key maps to exactly one function, and never while typing. */
+document.addEventListener("keydown", function(e){
+  if(e.metaKey || e.ctrlKey || e.altKey) return;
+  var t = e.target;
+  if(t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+  var k = e.key.toLowerCase();
+  if(k === "s"){ e.preventDefault(); saveJSON(); }
+  else if(k === "o"){ e.preventDefault(); els.openBtn.click(); }
+  else if(k === "c"){ e.preventDefault(); copyScaled(); }
+});
+
+restore();
+render();
+</script>
+</body>
+</html>

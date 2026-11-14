@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Cellular Automata Sonifier</title>
+<style>
+:root{--bg:#0f1115;--fg:#e8e8e8;--acc:#6ee7b7;--grid:#1f2937;--cell:#34d399;--panel:#16181d;--border:#2d3748}
+body.light{--bg:#f8fafc;--fg:#0f172a;--acc:#059669;--grid:#e2e8f0;--cell:#10b981;--panel:#fff;--border:#cbd5e1}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,sans-serif;overflow:hidden;touch-action:none}
+#app{display:flex;flex-direction:column;height:100%;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0}
+h1{font-size:1.1rem;font-weight:600}
+.controls{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+button,select{background:var(--panel);color:var(--fg);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:14px;cursor:pointer}
+button:active{background:var(--acc);color:#000}
+#canvas-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:8px;min-height:0}
+canvas{background:var(--grid);border-radius:8px;max-width:100%;max-height:100%;image-rendering:pixelated;touch-action:none}
+#status{font-size:12px;opacity:.7;padding:0 12px 8px;text-align:center}
+#help{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:10;padding:20px}
+#help.open{display:flex}
+#help-inner{background:var(--panel);color:var(--fg);max-width:420px;width:100%;border-radius:12px;padding:20px;border:1px solid var(--border)}
+#help h2{margin-bottom:12px}
+#help ul{margin-left:18px;line-height:1.6}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+<h1>CA Sonifier</h1>
+<div class="controls">
+<button id="play">▶ Play</button>
+<button id="step">Step</button>
+<button id="rand">Random</button>
+<button id="clear">Clear</button>
+<select id="rule">
+<option value="b3s23">Life B3/S23</option>
+<option value="b36s23">HighLife</option>
+<option value="b3678s34678">Day & Night</option>
+<option value="b2s">Seeds</option>
+<option value="b3s012345678">Life w/o Death</option>
+</select>
+<select id="wave">
+<option value="sine">Sine</option>
+<option value="square">Square</option>
+<option value="sawtooth">Saw</option>
+<option value="triangle">Triangle</option>
+</select>
+<button id="theme">Theme</button>
+<button id="save">Save</button>
+<input type="file" id="open" accept=".json" class="hidden">
+<button id="openBtn">Open</button>
+</div>
+</header>
+<div id="canvas-wrap"><canvas id="c"></canvas></div>
+<div id="status">Generation 0 · Click/tap cells · ? for help</div>
+</div>
+<div id="help">
+<div id="help-inner">
+<h2>Controls</h2>
+<ul>
+<li><b>Space</b> — Play / Pause evolution + sound</li>
+<li><b>S</b> — Single step</li>
+<li><b>R</b> — Randomize grid</li>
+<li><b>C</b> — Clear grid</li>
+<li><b>T</b> — Toggle theme</li>
+<li><b>H</b> or <b>?</b> — This help</li>
+<li><b>1–5</b> — Select ruleset</li>
+<li>Click / tap / drag — Paint cells</li>
+</ul>
+<p style="margin-top:12px;font-size:13px;opacity:.8">Each living cell in a row triggers a note from a pentatonic scale. New births create the melody. Save/Open preserves grid + settings as JSON.</p>
+<button id="closeHelp" style="margin-top:16px;width:100%">Close</button>
+</div>
+</div>
+<script>
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const statusEl=document.getElementById('status');
+const help=document.getElementById('help');
+let cols=24,rows=16,cellSize=0;
+let grid=[],next=[];
+let gen=0,running=false,animId=0,speed=180;
+let audioCtx,gain,playingNotes=new Map();
+let theme=localStorage.getItem('theme')||'dark';
+document.body.className=theme;
+
+const scales={
+pentatonic:[0,2,4,7,9]
+};
+const base=220;
+
+function initGrid(){
+grid=Array.from({length:rows},()=>Array(cols).fill(0));
+next=Array.from({length:rows},()=>Array(cols).fill(0));
+// Demo state: glider + oscillator
+const demo=[[2,3],[3,4],[4,2],[4,3],[4,4],[8,8],[8,9],[9,8],[9,9],[12,5],[13,6],[14,4],[14,5],[14,6]];
+demo.forEach(([r,c])=>{if(r<rows&&c<cols)grid[r][c]=1});
+}
+
+function resize(){
+const wrap=document.getElementById('canvas-wrap');
+const maxW=wrap.clientWidth-16,maxH=wrap.clientHeight-16;
+cellSize=Math.floor(Math.min(maxW/cols,maxH/rows));
+canvas.width=cols*cellSize;canvas.height=rows*cellSize;
+draw();
+}
+
+function draw(){
+ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--grid');
+ctx.fillRect(0,0,canvas.width,canvas.height);
+ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--cell');
+for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)
+if(grid[y][x])ctx.fillRect(x*cellSize+1,y*cellSize+1,cellSize-2,cellSize-2);
+}
+
+function count(x,y){
+let n=0;
+for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)
+if(dx||dy){const ny=(y+dy+rows)%rows,nx=(x+dx+cols)%cols;n+=grid[ny][nx]}
+return n;
+}
+
+const rules={
+b3s23:(n,a)=>a? (n===2||n===3):n===3,
+b36s23:(n,a)=>a?(n===2||n===3):n===3||n===6,
+b3678s34678:(n,a)=>a?(n>=3&&n<=8):(n===3||n===6||n===7||n===8),
+b2s:(n,a)=>!a&&n===2,
+b3s012345678:(n,a)=>a||n===3
+};
+
+function step(){
+const rule=rules[document.getElementById('rule').value];
+const births=[];
+for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
+const a=grid[y][x],n=count(x,y);
+next[y][x]=rule(n,a)?1:0;
+if(!a&&next[y][x])births.push(y);
+}
+[grid,next]=[next,grid];
+gen++;
+if(running&&audioCtx)sonify(births);
+draw();
+statusEl.textContent=`Generation ${gen} · ${running?'Playing':'Paused'} · ${document.getElementById('rule').selectedOptions[0].text}`;
+}
+
+function sonify(births){
+if(!audioCtx)return;
+const wave=document.getElementById('wave').value;
+const now=audioCtx.currentTime;
+births.forEach(y=>{
+const note=scales.pentatonic[y%scales.pentatonic.length];
+const freq=base*Math.pow(2,note/12+(Math.floor(y/scales.pentatonic.length)-1));
+const osc=audioCtx.createOscillator();
+const g=audioCtx.createGain();
+osc.type=wave;osc.frequency.value=freq;
+g.gain.setValueAtTime(0.15,now);
+g.gain.exponentialRampToValueAtTime(0.001,now+0.4);
+osc.connect(g);g.connect(audioCtx.destination);
+osc.start(now);osc.stop(now+0.45);
+});
+}
+
+function loop(){
+if(!running)return;
+step();
+animId=setTimeout(loop,speed);
+}
+
+function togglePlay(){
+if(!audioCtx){audioCtx=new (window.AudioContext||window.webkitAudioContext)();gain=audioCtx.createGain();gain.connect(audioCtx.destination);gain.gain.value=0.3}
+if(audioCtx.state==='suspended')audioCtx.resume();
+running=!running;
+document.getElementById('play').textContent=running?'⏸ Pause':'▶ Play';
+if(running)loop();else clearTimeout(animId);
+}
+
+function randomize(){
+for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)grid[y][x]=Math.random()<0.28?1:0;
+gen=0;draw();statusEl.textContent='Randomized';
+}
+
+function clearGrid(){
+for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)grid[y][x]=0;
+gen=0;draw();statusEl.textContent='Cleared';
+}
+
+function paint(e){
+const rect=canvas.getBoundingClientRect();
+const scaleX=canvas.width/rect.width,scaleY=canvas.height/rect.height;
+const clientX=e.touches?e.touches[0].clientX:e.clientX;
+const clientY=e.touches?e.touches[0].clientY:e.clientY;
+const x=Math.floor((clientX-rect.left)*scaleX/cellSize);
+const y=Math.floor((clientY-rect.top)*scaleY/cellSize);
+if(x>=0&&x<cols&&y>=0&&y<rows){grid[y][x]=grid[y][x]?0:1;draw()}
+}
+
+let painting=false;
+canvas.addEventListener('pointerdown',e=>{painting=true;paint(e)});
+canvas.addEventListener('pointermove',e=>{if(painting)paint(e)});
+window.addEventListener('pointerup',()=>painting=false);
+canvas.addEventListener('touchstart',e=>{e.preventDefault();paint(e)},{passive:false});
+
+document.getElementById('play').onclick=togglePlay;
+document.getElementById('step').onclick=()=>{if(!running)step()};
+document.getElementById('rand').onclick=randomize;
+document.getElementById('clear').onclick=clearGrid;
+document.getElementById('theme').onclick=()=>{
+theme=theme==='dark'?'light':'dark';
+document.body.className=theme;
+localStorage.setItem('theme',theme);
+draw();
+};
+document.getElementById('rule').onchange=()=>statusEl.textContent=`Ruleset: ${document.getElementById('rule').selectedOptions[0].text}`;
+
+document.getElementById('save').onclick=()=>{
+const data={grid,gen,rule:document.getElementById('rule').value,wave:document.getElementById('wave').value,theme};
+const blob=new Blob([JSON.stringify(data)],{type:'application/json'});
+const a=document.createElement('a');
+a.href=URL.createObjectURL(blob);
+a.download='ca-sonifier.json';
+a.click();
+};
+document.getElementById('openBtn').onclick=()=>document.getElementById('open').click();
+document.getElementById('open').onchange=e=>{
+const f=e.target.files[0];if(!f)return;
+const r=new FileReader();
+r.onload=()=>{
+try{
+const d=JSON.parse(r.result);
+if(d.grid&&d.grid.length===rows){grid=d.grid;gen=d.gen||0;
+document.getElementById('rule').value=d.rule||'b3s23';
+document.getElementById('wave').value=d.wave||'sine';
+if(d.theme){theme=d.theme;document.body.className=theme;localStorage.setItem('theme',theme)}
+draw();statusEl.textContent='Loaded';
+}
+}catch(err){statusEl.textContent='Invalid file'}
+};
+r.readAsText(f);
+};
+
+function toggleHelp(){help.classList.toggle('open')}
+document.getElementById('closeHelp').onclick=toggleHelp;
+document.addEventListener('keydown',e=>{
+if(e.target.tagName==='SELECT'||e.target.tagName==='INPUT')return;
+const k=e.key.toLowerCase();
+if(k===' '||e.code==='Space'){e.preventDefault();togglePlay()}
+else if(k==='s')step();
+else if(k==='r')randomize();
+else if(k==='c')clearGrid();
+else if(k==='t')document.getElementById('theme').click();
+else if(k==='h'||k==='?')toggleHelp();
+else if(k>='1'&&k<='5'){document.getElementById('rule').selectedIndex=parseInt(k)-1;document.getElementById('rule').onchange()}
+});
+
+initGrid();
+window.addEventListener('resize',resize);
+resize();
+setTimeout(()=>{statusEl.textContent='Demo pattern loaded · Press Space or Play to hear it evolve'},100);
+</script>
+</body>
+</html>

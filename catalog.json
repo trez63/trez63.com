@@ -1836,6 +1836,60 @@
         }
       ],
       "category": "audio"
+    },
+    "cellular-automata-sonifier": {
+      "title": "CA Sonifier",
+      "engine": "Grok",
+      "description": "A cellular automaton you can hear. Paint cells on a 24×16 wrapping grid, pick Life, HighLife, Day & Night, Seeds or Life without Death, and press play: every birth that generation triggers a pentatonic note whose pitch depends on its row, voiced as sine, square, saw or triangle, and the grid and settings save as JSON.",
+      "source_file": "Cellular Automata Sonifier - grok.html",
+      "first_published": "2026-11-14",
+      "last_updated": "2026-11-14",
+      "version": 1,
+      "sha": "0640402ba42c",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-14",
+          "sha": "0640402ba42c"
+        }
+      ],
+      "category": "audio"
+    },
+    "pinch-recipe-scaler": {
+      "title": "Pinch",
+      "engine": "Muse",
+      "description": "A recipe scaler. Paste ingredients one per line, set how many the recipe serves and how many you are feeding (or tap half, double, triple), and every quantity rescales to friendly fractions with units and foods pluralised correctly, ranges and mixed numbers included; copy or download the result and save the recipe as JSON.",
+      "source_file": "pinch-recipe-scaler-muse.html",
+      "first_published": "2026-11-14",
+      "last_updated": "2026-11-14",
+      "version": 1,
+      "sha": "302349b466df",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-14",
+          "sha": "302349b466df"
+        }
+      ],
+      "category": "tool"
+    },
+    "selvedge": {
+      "title": "Selvedge",
+      "engine": "ChatGPT",
+      "description": "A four-shaft weaving studio. Tap a crossing in the rendered cloth, thread its warp end onto a shaft and choose which shafts lift on each pick, and watch the drawdown, threading and liftplan notation update along with the longest warp and weft floats; start from twill, basket, plain or broken twill, pick yarn colours, undo, save the draft as JSON or export the swatch as SVG.",
+      "source_file": "selvedge-codex.html",
+      "first_published": "2026-11-14",
+      "last_updated": "2026-11-14",
+      "version": 1,
+      "sha": "7d4e7406ce13",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-14",
+          "sha": "7d4e7406ce13"
+        }
+      ],
+      "category": "art"
     }
   },
   "generated": "2026-11-14"

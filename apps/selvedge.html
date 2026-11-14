@@ -1,0 +1,477 @@
+<!doctype html>
+<!-- Selvedge | 2026-11-14 (America/Los_Angeles)
+Purpose: Design a four-shaft woven fabric and inspect the length of exposed yarn floats in its repeating draft.
+Main interaction: Select a crossing, thread its vertical end onto a shaft, and choose the shafts lifted on the horizontal pick.
+Visual approach: A mounted textile specimen on oat-colored card, lacquer-red loom controls, black-ink notation and a ruled sample-book spine.
+Distinct from Paper Cinema, Belfry and Moonpost: an editable interlacing plan translates yarn assignments into a repeatable cloth surface and SVG swatch. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f5f1e7">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Selvedge · Four-shaft weaving studio</title>
+<style>
+:root{color-scheme:light;--paper:#f5f1e7;--card:#fffcf3;--cloth-mount:#e1d8c4;--ink:#27261f;--muted:#625e51;--line:#bdb5a2;--quiet:#e3dccb;--red:#a33a2a;--serif:"Baskervville","Georgia","Times New Roman",serif;--sans:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;font-family:var(--sans);color:var(--ink);background:var(--paper)}
+*,*::before,*::after{box-sizing:border-box}body{margin:0;min-height:100vh;background:linear-gradient(90deg,#ded6c0 0 3px,transparent 3px 6px,#b3a58f 6px 7px,transparent 7px) var(--paper)}
+[hidden]{display:none!important}h1,h2,h3,p,ol,figure{margin:0}button,select,input,textarea{font:inherit}button,select{touch-action:manipulation}
+button,.jump{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;border:1px solid #aaa38f;border-radius:5px;padding:8px 13px;background:var(--card);color:var(--ink);font-size:.9rem;font-weight:650;line-height:1.2;cursor:pointer}
+button:disabled{opacity:.48;cursor:default}button svg,.jump svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #18627c;outline-offset:3px}
+input,select,textarea{min-width:0;max-width:100%;min-height:44px;font-size:16px;color:var(--ink)}input[type=text],textarea,select{border:1px solid #a69e8b;background:var(--card);border-radius:4px;padding:7px 9px}select{padding-right:24px;cursor:pointer}textarea{width:100%;line-height:1.45;font:16px/1.45 var(--mono);resize:vertical}
+.primary{color:var(--card);background:var(--red);border-color:var(--red)}.secondary{background:transparent}.actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.frame{max-width:1280px;margin:0 auto;padding:25px 42px 42px;padding-top:max(25px,env(safe-area-inset-top));padding-bottom:max(42px,env(safe-area-inset-bottom));padding-left:max(42px,env(safe-area-inset-left));padding-right:max(42px,env(safe-area-inset-right))}
+.mast{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:0 0 19px;margin-bottom:22px;border-bottom:2px solid var(--ink)}.identity{display:flex;align-items:center;gap:13px}.identity h1{font:500 clamp(3rem,6vw,5rem)/.88 var(--serif);letter-spacing:-.085em}.identity p{font:.72rem/1.4 var(--mono);text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-top:9px}.identity .monogram{display:block;width:60px;height:69px;flex:none;color:var(--red)}
+.bench{display:grid;grid-template-columns:minmax(0,1.18fr) minmax(330px,.82fr);gap:clamp(18px,3vw,42px);align-items:start}
+.sheet{min-width:0;border:1px solid #b8af99;background:var(--card);box-shadow:1px 3px 0 #d9d1bd,0 9px 22px #392d1e08;padding:clamp(13px,2vw,25px);position:relative}
+.sheet-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:end;margin-bottom:14px}
+.field{display:block;min-width:0}.field-name,.caption{display:block;font-weight:690;font-size:.78rem;letter-spacing:.023em;line-height:1.4}.field-name{margin-bottom:4px;color:var(--muted)}.caption{color:var(--muted)}.sheet-head .field:first-child{min-width:0}#title{width:100%;font:500 clamp(1.45rem,2.7vw,2.08rem)/1.2 var(--serif);letter-spacing:-.04em;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;padding:4px 0}
+.mount{display:grid;place-items:center;position:relative;isolation:isolate;padding:clamp(13px,2.5vw,30px);background:linear-gradient(135deg,#f0eadc,#dfd5be);border:1px solid #c7bea9}
+.mount::before,.mount::after{content:"";position:absolute;width:7px;height:7px;border-radius:50%;background:#8d877a;box-shadow:inset 1px 1px 0 #eee9d7,1px 1px 1px #59544455;pointer-events:none}.mount::before{top:6px;left:6px}.mount::after{right:6px;bottom:6px}
+#swatch{width:100%;aspect-ratio:1;max-width:506px;min-width:0;line-height:0;background:#eae4d5;position:relative;box-shadow:0 2px 2px #29281d49,0 7px 12px #29281d21;touch-action:manipulation;cursor:crosshair}
+#swatch>svg{display:block;width:100%;height:100%}
+.threadbar{display:flex;align-items:center;justify-content:space-between;gap:6px 15px;flex-wrap:wrap;padding:11px 0 0}.yarns{display:flex;align-items:center;gap:13px;flex-wrap:wrap}.yarns label{display:inline-flex;gap:6px;align-items:center;min-height:44px;font-size:.85rem;font-weight:640;cursor:pointer}
+input[type=color]{height:44px;width:46px;background:var(--card);border:1px solid var(--line);padding:4px;border-radius:3px;cursor:pointer}input[type=color]::-webkit-color-swatch-wrapper{padding:0}input[type=color]::-webkit-color-swatch{border-radius:1px;border:1px solid #29281d40}
+.jump{padding-inline:8px;border:0;background:transparent;color:var(--red);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px}
+.exportbar{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-top:9px;padding-top:13px;border-top:1px solid var(--quiet)}.exportbar p{color:var(--muted);font-size:.8rem;line-height:1.4;max-width:27ch}
+.editor{min-width:0;scroll-margin-top:12px}.editor-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.editor h2,.mapcard h2{font:500 clamp(1.7rem,3vw,2.45rem)/1.08 var(--serif);letter-spacing:-.048em}.editor-head button{border:0;color:var(--red);background:transparent;padding:8px 2px 8px 8px}.intro{font-size:.92rem;line-height:1.48;color:var(--muted);max-width:56ch;margin:7px 0 13px}.pattern{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 13px;padding-top:12px;border-top:1px solid var(--ink)}.pattern select{flex:1;max-width:70%}
+.weave-controls{padding:0 13px;background:#eee8da;border:1px solid var(--line);border-left:4px solid var(--red)}.axis{display:grid;grid-template-columns:minmax(70px,.58fr) minmax(0,1.42fr);align-items:end;gap:12px;padding:12px 0}.axis+.axis{border-top:1px solid #c5bca8}.axis select{width:100%}.four{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-top:4px}.four button{min-width:0;padding:5px 1px;font-family:var(--mono);font-size:1rem;min-height:44px}.four button[aria-pressed=true]{color:#fffbed;background:var(--red);border-color:#7f2d22;box-shadow:inset 0 -3px 0 #6c271f}.four button[aria-pressed=false]{color:var(--ink)}
+#crossing{font-size:.86rem;line-height:1.42;padding:9px 0 11px;border-top:1px solid #c5bca8;overflow-wrap:anywhere}
+.mapcard{margin-top:16px;padding-top:13px;border-top:1px solid var(--ink)}.mapcard h2{font-size:1.4rem;margin-bottom:8px}#draftMap{width:100%;min-width:0}#draftMap>svg{display:block;max-width:100%;width:100%;height:auto}
+.floats{margin-top:10px;padding-top:10px;border-top:1px solid var(--line);display:flex;align-items:baseline;gap:5px 15px;flex-wrap:wrap;color:var(--muted);font-size:.8rem;line-height:1.4}.floats h3{font-size:.85rem;color:var(--ink)}.floats strong{color:var(--ink);font-family:var(--mono);font-weight:650}.note{font-size:.86rem;line-height:1.4;color:var(--muted)}
+#status{margin:0;color:var(--red);font-weight:620;font-size:.9rem;line-height:1.45;overflow-wrap:anywhere}#status:not(:empty){margin:0 0 15px;padding:8px 11px;background:#f2e2d8;border-left:3px solid var(--red)}
+dialog{width:min(442px,calc(100% - 28px));max-height:calc(100vh - 30px);max-height:calc(100dvh - max(30px,env(safe-area-inset-top) + env(safe-area-inset-bottom)));overflow:auto;overscroll-behavior:contain;padding:23px;border:1px solid #958c77;border-top:5px solid var(--red);border-radius:6px;background:var(--card);color:var(--ink);box-shadow:3px 8px 60px #302a2038}dialog::backdrop{background:#27251eca}dialog h2{font:500 1.85rem/1.12 var(--serif);letter-spacing:-.035em;margin-bottom:12px}dialog p,dialog li{font-size:.94rem;line-height:1.52;overflow-wrap:anywhere}dialog ol{padding-left:1.3em;margin:10px 0}dialog li+li{margin-top:.4em}dialog .actions{margin-top:14px}#manual{margin-top:14px}#manual button{margin-top:5px}
+@media(hover:hover){button:enabled:hover{filter:brightness(.94)}.jump:hover{text-decoration-thickness:2px}}
+@media(max-width:860px){.frame{padding-inline:max(22px,env(safe-area-inset-left)) max(22px,env(safe-area-inset-right))}.bench{grid-template-columns:minmax(0,1.03fr) minmax(285px,.97fr);gap:15px}.axis{grid-template-columns:72px minmax(0,1fr);gap:7px}.weave-controls{padding-inline:9px}.four{gap:3px}.exportbar{gap:7px}}
+@media(max-width:700px){.frame{padding:15px max(14px,env(safe-area-inset-right)) max(28px,env(safe-area-inset-bottom)) max(17px,env(safe-area-inset-left));padding-top:max(15px,env(safe-area-inset-top))}.mast{margin-bottom:13px;padding-bottom:12px;gap:10px;flex-wrap:wrap}.identity{gap:8px}.identity h1{font-size:3rem}.identity p{font-size:.65rem;margin-top:6px}.identity .monogram{width:40px;height:49px}.mast .actions{gap:4px}.mast button{padding-inline:10px}.bench{grid-template-columns:minmax(0,1fr);gap:20px}.sheet{padding:12px}.sheet-head{gap:8px;margin-bottom:9px}.mount{padding:15px}#swatch{max-width:450px}.threadbar{padding-top:6px}.exportbar{margin-top:5px;padding-top:7px}.editor-head h2{font-size:1.9rem}.axis{grid-template-columns:minmax(75px,.58fr) minmax(0,1.42fr);gap:12px}.weave-controls{padding-inline:12px}.four{gap:5px}.mapcard{margin-top:12px}.jump{padding-inline:2px}}
+@media(max-width:430px){.mast button svg{display:none}.mast .actions{gap:3px}.mast button{padding-inline:8px}.identity h1{font-size:2.55rem}.identity .monogram{width:33px;height:42px}.identity p{letter-spacing:.06em}.yarns{gap:8px}.sheet-head select{padding-left:6px;padding-right:19px}.exportbar p{max-width:22ch}.jump{font-size:.8rem}}
+@media(max-width:345px){.frame{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(9px,env(safe-area-inset-right))}.axis{grid-template-columns:64px minmax(0,1fr);gap:6px}.four{gap:3px}.four button{min-width:44px}.weave-controls{padding-inline:6px}.identity p{font-size:.6rem}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main class="frame">
+ <header class="mast">
+  <div class="identity">
+   <svg class="monogram" viewBox="0 0 60 70" aria-hidden="true" focusable="false">
+    <g stroke="currentColor" fill="none" stroke-width="3.25">
+     <path d="M7 6v52m9-53v58m9-61v62m9-63v63m9-61v58m9-51v47"/>
+    </g>
+    <g fill="none" stroke="#f5f1e7" stroke-width="8"><path d="M4 17h37m-5 0h20M4 28h7m6 0h39M4 39h38m-1 0h15M4 50h11m1 0h40"/></g>
+    <g fill="none" stroke="#29281f" stroke-width="3.5"><path d="M4 17h12m10 0h18m8 0h4M4 28h3m9 0h18m9 0h13M4 39h12m9 0h18m9 0h4M4 50h3m9 0h18m9 0h13"/></g>
+   </svg>
+   <div><h1>Selvedge</h1><p>Four-shaft weaving studio</p></div>
+  </div>
+  <nav class="actions" aria-label="Draft files and guide">
+   <button type="button" id="open"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18V6h7l2 2h8v3M3 18l3-6h15l-3 7H3z"/></svg>Open</button>
+   <button type="button" id="save" class="primary"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 17v3h16v-3"/></svg>Save</button>
+   <button type="button" id="help" class="secondary" aria-haspopup="dialog">Guide</button>
+  </nav>
+  <input type="file" id="file" accept=".json,application/json" hidden>
+ </header>
+ <noscript><p>Enable JavaScript in your browser to edit this weaving draft.</p></noscript>
+ <p id="status" role="status" aria-live="polite" aria-atomic="true"></p>
+ <div class="bench">
+  <section class="sheet" aria-label="Cloth sample">
+   <div class="sheet-head">
+    <label class="field" for="title"><span class="field-name">Sample name</span><input type="text" id="title" maxlength="80" autocomplete="off" placeholder="Untitled sample"></label>
+    <label class="field" for="repeat"><span class="field-name">View repeats</span><select id="repeat"><option value="1">1 × 1</option><option value="2">2 × 2</option><option value="3">3 × 3</option></select></label>
+   </div>
+   <div class="mount"><div id="swatch"></div></div>
+   <div class="threadbar">
+    <div class="yarns"><label for="warp"><input type="color" id="warp" value="#28354a">Warp yarn</label><label for="weft"><input type="color" id="weft" value="#e7d7b3">Weft yarn</label></div>
+    <a class="jump" href="#loom">Edit crossing <span aria-hidden="true">↓</span></a>
+   </div>
+   <div class="exportbar"><button id="exportSVG" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M5 17v3h14v-3"/></svg>Export SVG</button><p>Keep an image of the cloth. Use Save for the editable draft.</p></div>
+  </section>
+  <section class="editor" id="loom" aria-labelledby="draft-title">
+   <div class="editor-head"><h2 id="draft-title">Loom draft</h2><button type="button" id="undo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6-5 5 5 5m-5-5h10a5 5 0 0 1 0 10"/></svg>Undo</button></div>
+   <p class="intro">Tap the cloth to inspect a crossing. Change its warp shaft or the shafts lifted for that pick.</p>
+   <label class="pattern" for="preset"><span class="caption">Starting weave</span><select id="preset"></select></label>
+   <div class="weave-controls">
+    <div class="axis">
+     <label class="field" for="end"><span class="field-name">Warp end</span><select id="end"></select></label>
+     <div><p class="caption" id="shaft-label">Assigned shaft</p><div class="four" id="shafts" role="group" aria-labelledby="shaft-label"></div></div>
+    </div>
+    <div class="axis">
+     <label class="field" for="pick"><span class="field-name">Weft pick</span><select id="pick"></select></label>
+     <div><p class="caption" id="lift-label">Lifted shafts</p><div class="four" id="lifts" role="group" aria-labelledby="lift-label"></div></div>
+    </div>
+    <p id="crossing"></p>
+   </div>
+   <section class="mapcard" aria-labelledby="map-title"><h2 id="map-title">Draft notation</h2><div id="draftMap"></div>
+    <div class="floats"><h3>Longest face floats</h3><span>Warp <strong id="floatWarp"></strong></span><span>Weft <strong id="floatWeft"></strong></span></div>
+   </section>
+  </section>
+ </div>
+</main>
+<dialog id="guideDialog" aria-labelledby="guide-title">
+ <h2 id="guide-title">Read the cloth</h2>
+ <p>Each repeat contains eight vertical warp threads (ends) and eight horizontal passes of weft (picks).</p>
+ <ol><li>Tap a crossing in the cloth, or choose its end and pick in the loom draft.</li><li>Assign the warp end to one of four shafts. For each pick, press the shaft buttons to choose which ones rise. A raised shaft brings its warp yarn to the face of the cloth.</li><li>Inspect the repeating sample. A face float is a run where one yarn stays on top. An unbroken run across a whole repeat continues into the next one.</li></ol>
+ <p><strong>Save</strong> stores the whole draft in a local JSON file. <strong>Open</strong> restores it. <strong>Export SVG</strong> keeps a scalable picture of the cloth.</p>
+ <div class="actions"><button type="button" data-close class="primary">Back to the sample</button></div>
+</dialog>
+<dialog id="fileDialog" aria-labelledby="fileHeading"><h2 id="fileHeading">Save draft</h2><p id="fileInfo"></p>
+ <div class="actions"><button id="share" type="button">Share or save to Files</button><button id="again" type="button">Download again</button></div>
+ <div id="manual" hidden><label for="fileText" class="field-name">Complete file text</label><textarea id="fileText" rows="4" readonly spellcheck="false"></textarea><button id="selectText" type="button">Select text</button></div>
+ <div class="actions"><button type="button" data-close class="primary">Done</button></div>
+</dialog>
+<dialog id="confirmDialog" aria-labelledby="confirm-title"><h2 id="confirm-title">Replace this draft?</h2><p id="confText"></p>
+ <div class="actions"><button type="button" id="keep" class="primary" autofocus>Keep current draft</button><button type="button" id="replace">Replace</button></div>
+</dialog>
+<script>
+(() => { 'use strict';
+const FILE_LIMIT = 64000;
+const DRAFT_PRESETS = [
+  {id:'twill', name:'Straight twill', threading:[1,2,3,4,1,2,3,4],
+   lifts:[3,6,12,9,3,6,12,9], warp:'#343e66', weft:'#e7cfa1'},
+  {id:'basket', name:'Basket weave', threading:[1,1,2,2,3,3,4,4],
+   lifts:[5,5,10,10,5,5,10,10], warp:'#45614b', weft:'#efdca6'},
+  {id:'plain', name:'Plain weave', threading:[1,2,3,4,1,2,3,4],
+   lifts:[5,10,5,10,5,10,5,10], warp:'#914e3b', weft:'#f7dfb9'},
+  {id:'broken', name:'Broken twill', threading:[1,2,3,4,2,1,4,3],
+   lifts:[3,6,12,9,3,6,12,9], warp:'#604e73', weft:'#d9b4a6'}
+];
+
+function presets() {
+  return DRAFT_PRESETS.map(({id,name})=>({id,name}));
+}
+
+function makePreset(id='twill') {
+  const p=DRAFT_PRESETS.find(preset=>preset.id===id);
+  if (!p) throw Error('Unknown weaving draft.');
+  return {title:p.name,threading:p.threading.slice(),lifts:p.lifts.slice(),warp:p.warp,
+    weft:p.weft,end:0,pick:0,repeat:2};
+}
+
+function drawdown(state) {
+  return state.lifts.map(mask=>state.threading.map(shaft=>Boolean(mask & (1<<(shaft-1)))));
+}
+
+// An unbroken line of one yarn stays on top forever when the tile repeats.
+// Otherwise, start at a crossing of the other yarn and count one full circuit.
+function faceFloat(line,face) {
+  const start=line.findIndex(onTop=>onTop!==face);
+  if (start===-1) return Infinity;
+  let run=0, longest=0;
+  for (let offset=1;offset<line.length;offset++) {
+    if (line[(start+offset)%line.length]===face) {
+      run++;
+      longest=Math.max(longest,run);
+    } else run=0;
+  }
+  return longest;
+}
+
+function floats(grid) {
+  let warp=0, weft=0;
+  for (let n=0;n<8;n++) {
+    warp=Math.max(warp,faceFloat(grid.map(row=>row[n]),true));
+    weft=Math.max(weft,faceFloat(grid[n],false));
+  }
+  return {warp,weft};
+}
+
+function draftFields(value,fields) {
+  return value!==null && typeof value==='object' && !Array.isArray(value)
+    && Object.keys(value).length===fields.length
+    && fields.every(key=>Object.prototype.hasOwnProperty.call(value,key));
+}
+function draftInteger(n,min,max) {
+  return Number.isInteger(n) && n>=min && n<=max;
+}
+function draftSequence(seq,min,max) {
+  return Array.isArray(seq) && seq.length===8 && Array.from(seq).every(n=>draftInteger(n,min,max));
+}
+function validateState(state) {
+  if (!draftFields(state,['title','threading','lifts','warp','weft','end','pick','repeat']))
+    throw Error('This draft has missing or unexpected fields.');
+  if (typeof state.title!=='string' || state.title.length>80 || /[\u0000-\u001f\u007f]/.test(state.title))
+    throw Error('The draft title must fit on one line of up to 80 characters.');
+  if (!draftSequence(state.threading,1,4) || !draftSequence(state.lifts,0,15))
+    throw Error('This draft needs eight threading assignments and eight valid shaft lifts.');
+  if (![state.warp,state.weft].every(yarn=>typeof yarn==='string' && /^#[0-9a-f]{6}$/.test(yarn)))
+    throw Error('A yarn color in this draft is invalid.');
+  if (!draftInteger(state.end,0,7) || !draftInteger(state.pick,0,7) || !draftInteger(state.repeat,1,3))
+    throw Error('The draft selection or repeat count is invalid.');
+  return state;
+}
+function serializeSession(state) {
+  return JSON.stringify({app:'selvedge',version:1,workspace:validateState(state)},null,2)+'\n';
+}
+function readSession(text) {
+  if (typeof text!=='string' || text.length>FILE_LIMIT || new Blob([text]).size>FILE_LIMIT)
+    throw Error('Choose a Selvedge file of 64 KB or less.');
+  let doc;
+  try { doc=JSON.parse(text.replace(/^\uFEFF/,'')); }
+  catch { throw Error('This file contains invalid JSON.'); }
+  if (!draftFields(doc,['app','version','workspace']) || doc.app!=='selvedge' || doc.version!==1)
+    throw Error('Choose a version 1 Selvedge draft.');
+  return validateState(doc.workspace);
+}
+
+function xmlText(value) {
+  return value.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function yarnShade(hex,target,ratio) {
+  const parts=hex.slice(1).match(/../g).map(pair=>parseInt(pair,16));
+  return '#'+parts.map((v,i)=>Math.round(v*(1-ratio)+target[i]*ratio).toString(16).padStart(2,'0')).join('');
+}
+function yarnGradient(id,color,vertical) {
+  const dark=[19,15,23],light=[255,248,232];
+  return `<linearGradient id="${id}" x1="0%" y1="0%" x2="${vertical?'100%':'0%'}" y2="${vertical?'0%':'100%'}">
+    <stop stop-color="${yarnShade(color,dark,.59)}"/><stop offset=".13" stop-color="${yarnShade(color,dark,.18)}"/>
+    <stop offset=".38" stop-color="${yarnShade(color,light,.19)}"/><stop offset=".61" stop-color="${color}"/>
+    <stop offset=".86" stop-color="${yarnShade(color,dark,.2)}"/><stop offset="1" stop-color="${yarnShade(color,dark,.57)}"/>
+  </linearGradient>`;
+}
+function clothSVG(work,forExport=false) {
+  const grid=drawdown(work),side=128*work.repeat;
+  let warp='',weft='',exposed='';
+  for(let n=0;n<8;n++) {
+    const v=n*16;
+    warp+=`<rect x="${v+.7}" width="14.6" height="128" fill="url(#warp-yarn)"/><rect x="${v+.7}" width="14.6" height="128" fill="url(#warp-fibre)"/>`;
+    weft+=`<rect y="${v+.7}" height="14.6" width="128" fill="url(#weft-yarn)"/><rect y="${v+.7}" height="14.6" width="128" fill="url(#weft-fibre)"/>`;
+    for(let e=0;e<8;e++) if(grid[n][e]) exposed+=`M${e*16} ${v}h16v16h-16Z`;
+  }
+  // A single tile contains the over/under geometry. The pattern repeats
+  // the same vector yarns at every magnification, including in the exported SVG.
+  const title=xmlText(work.title.trim() || 'Untitled swatch');
+  const markers=[];
+  if(!forExport) for(let r=0;r<work.repeat;r++) for(let c=0;c<work.repeat;c++){
+    const x=16*work.end+c*128+.95,y=16*work.pick+r*128+.95;
+    const d=`M${x} ${y+4}v-4h4m6.1 0h4v4m0 6.1v4h-4m-6.1 0h-4v-4`;
+    markers.push(`<path d="${d}" fill="none" stroke="#201a21" stroke-width="2.6"/><path d="${d}" fill="none" stroke="#ffdd9e" stroke-width="1.25"/>`);
+  }
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${side} ${side}" width="${forExport?1024:'100%'}" height="${forExport?1024:'100%'}" role="img" aria-label="Woven cloth, ${work.repeat} by ${work.repeat} repeats">
+    <title>${title}</title><desc>Four-shaft cloth. Warp threads run vertically, weft threads horizontally. Each repeat has eight ends and eight picks.</desc>
+    <defs>${yarnGradient('warp-yarn',work.warp,true)}${yarnGradient('weft-yarn',work.weft,false)}
+      <pattern id="warp-fibre" width="4" height="8" patternUnits="userSpaceOnUse"><path d="M-1 7 2 1M3 7 6 1" stroke="#fff7db" opacity=".25" stroke-width=".7"/><path d="M0 8l2-4" stroke="#211a20" opacity=".28" stroke-width=".7"/></pattern>
+      <pattern id="weft-fibre" width="8" height="4" patternUnits="userSpaceOnUse"><path d="m1 2 6-3M1 6l6-3" stroke="#fff7db" opacity=".27" stroke-width=".7"/><path d="m4 2 4-2" stroke="#211a20" opacity=".27" stroke-width=".7"/></pattern>
+      <clipPath id="warp-face"><path d="${exposed}"/></clipPath>
+      <pattern id="cloth-tile" width="128" height="128" patternUnits="userSpaceOnUse">
+        <rect width="128" height="128" fill="#302c2c"/>${warp}${weft}<g clip-path="url(#warp-face)">${warp}</g>
+      </pattern>
+    </defs><rect width="${side}" height="${side}" fill="url(#cloth-tile)"/>${markers.join('')}</svg>`;
+}
+function draftPicture(work) {
+  // Each group carries its own coordinates so touch and click need no hit-test math.
+  const parts=['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 178" role="img" aria-label="Threading and liftplan. Filled squares mark assigned or lifted shafts.">'];
+  function text(x,y,value,size=9,anchor='middle') {
+    parts.push(`<text x="${x}" y="${y}" text-anchor="${anchor}" font-family="ui-monospace,monospace" font-size="${size}" fill="#51473f">${value}</text>`);
+  }
+  function cell(x,y,on,active,attribute,value) {
+    parts.push(`<g ${attribute}="${value}" style="cursor:pointer"><rect x="${x}" y="${y}" width="17" height="17" fill="${active?'#ffe3c9':'#faf7ed'}" stroke="#c8bbac" stroke-width=".7"/>`);
+    if(on) parts.push(`<rect x="${x+3}" y="${y+3}" width="11" height="11" rx="1" fill="${active?'#ae3c22':'#453f43'}"/>`);
+    parts.push('</g>');
+  }
+  text(13,13,'Threading',12,'start');text(214,13,'Liftplan',12,'start');
+  for(let e=0;e<8;e++) {
+    const x=25+17*e;
+    text(x+8.5,31,e+1);
+    for(let s=1;s<=4;s++) {
+      const y=37+(4-s)*17;
+      if(e===0) text(14,y+11,s);
+      cell(x,y,work.threading[e]===s,e===work.end,'data-end',e);
+    }
+  }
+  for(let p=0;p<8;p++){
+    const y=37+17*p;
+    text(215,y+11,p+1);
+    for(let s=0;s<4;s++){
+      const x=226+17*s;
+      if(p===0) text(x+8.5,31,s+1);
+      cell(x,y,!!(work.lifts[p]&(1<<s)),p===work.pick,'data-pick',p);
+    }
+  }
+  parts.push('</svg>');return parts.join('');
+}
+
+const get=id=>document.getElementById(id);
+let state=makePreset(), baseline=JSON.stringify(state), pending=null, reading=false, prepared=null;
+const history=[], shaftKeys=[], liftKeys=[];
+const say=text=>{get('status').textContent=text;};
+function option(id,value,text){
+  const el=document.createElement('option');
+  el.value=String(value);el.textContent=text;get(id).append(el);
+}
+option('preset','','Choose a draft…');
+for(const p of presets()) option('preset',p.id,p.name);
+for(let i=0;i<8;i++) for(const key of ['end','pick']) option(key,i,i+1);
+function remember(previous){
+  history.push(previous);
+  if(history.length>48) history.shift();
+}
+function changeStructure(changes) {
+  remember({threading:state.threading,lifts:state.lifts,end:state.end,pick:state.pick});
+  state={...state,...changes};paint();
+  say(get('crossing').textContent);
+}
+function selectCrossing(end,pick){
+  if(!Number.isInteger(end)||end<0||end>7||!Number.isInteger(pick)||pick<0||pick>7) return;
+  state={...state,end,pick};paint();
+  say(get('crossing').textContent);
+}
+for(let shaft=1;shaft<=4;shaft++){
+  const thread=document.createElement('button'),lift=document.createElement('button');
+  for(const b of [thread,lift]) {b.type='button';b.textContent=String(shaft);}
+  thread.setAttribute('aria-label','Thread selected end through shaft '+shaft);
+  lift.setAttribute('aria-label','Lift shaft '+shaft+' on this pick');
+  thread.addEventListener('click',()=>{
+    if(state.threading[state.end]===shaft) return;
+    const threading=state.threading.slice();threading[state.end]=shaft;changeStructure({threading});
+  });
+  lift.addEventListener('click',()=>{
+    const lifts=state.lifts.slice();lifts[state.pick]^=1<<(shaft-1);changeStructure({lifts});
+  });
+  shaftKeys.push(thread);liftKeys.push(lift);get('shafts').append(thread);get('lifts').append(lift);
+}
+function paint(){
+  const shaft=state.threading[state.end],grid=drawdown(state),longest=floats(grid);
+  if(get('title').value!==state.title) get('title').value=state.title;
+  for(const id of ['end','pick','repeat','warp','weft']) get(id).value=String(state[id]);
+  get('swatch').innerHTML=clothSVG(state);get('draftMap').innerHTML=draftPicture(state);
+  get('crossing').textContent='End '+(state.end+1)+' runs through shaft '+shaft+'. On pick '+(state.pick+1)+', the '+(grid[state.pick][state.end]?'warp':'weft')+' passes on top.';
+  for(let i=0;i<4;i++){
+    shaftKeys[i].setAttribute('aria-pressed',String(shaft===i+1));
+    liftKeys[i].setAttribute('aria-pressed',String(Boolean(state.lifts[state.pick] & (1<<i))));
+  }
+  get('floatWarp').textContent=longest.warp===Infinity?'Unbound':longest.warp+' '+(longest.warp===1?'pick':'picks');
+  get('floatWeft').textContent=longest.weft===Infinity?'Unbound':longest.weft+' '+(longest.weft===1?'end':'ends');
+  get('undo').disabled=!history.length;
+}
+get('swatch').addEventListener('click',event=>{
+  const rect=get('swatch').getBoundingClientRect();
+  if(!rect.width||!rect.height||!Number.isFinite(event.clientX)||!Number.isFinite(event.clientY)) return;
+  const n=state.repeat*8;
+  const end=Math.floor((event.clientX-rect.left)*n/rect.width),pick=Math.floor((event.clientY-rect.top)*n/rect.height);
+  if(end>=0 && end<n && pick>=0 && pick<n) selectCrossing(end%8,pick%8);
+});
+get('draftMap').addEventListener('click',event=>{
+  const end=event.target.closest?.('[data-end]'),pick=event.target.closest?.('[data-pick]');
+  if(end) selectCrossing(Number(end.getAttribute('data-end')),state.pick);
+  else if(pick) selectCrossing(state.end,Number(pick.getAttribute('data-pick')));
+});
+get('end').addEventListener('change',()=>selectCrossing(Number(get('end').value),state.pick));
+get('pick').addEventListener('change',()=>selectCrossing(state.end,Number(get('pick').value)));
+get('repeat').addEventListener('change',()=>{
+  const repeat=Number(get('repeat').value);if(![1,2,3].includes(repeat)) return;
+  state={...state,repeat};paint();
+});
+for(const color of ['warp','weft']){
+  function setColor(){
+    const value=get(color).value.toLowerCase();if(value===state[color]||!/^#[0-9a-f]{6}$/.test(value)) return;
+    state={...state,[color]:value};get('swatch').innerHTML=clothSVG(state);
+  }
+  get(color).addEventListener('input',setColor);get(color).addEventListener('change',setColor);
+}
+get('title').addEventListener('input',()=>{
+  const next={...state,title:get('title').value};
+  try {validateState(next);state=next;}
+  catch(error){get('title').value=state.title;say(error.message);}
+});
+get('undo').addEventListener('click',()=>{
+  const item=history.pop();if(!item) return;
+  if(item.workspace) {state=item.workspace;baseline=item.baseline;}
+  else state={...state,...item};
+  paint();say(item.workspace?'Previous draft restored.':'Previous threading and lifts restored.');
+});
+
+const dialogOrigins=new Map();
+function show(id,origin){dialogOrigins.set(id,origin);get(id).showModal();}
+for(const d of document.querySelectorAll('dialog')) d.addEventListener('close',()=>{
+  if(d.id==='confirmDialog') pending=null;
+  if(d.id==='fileDialog'){prepared=null;get('fileText').value='';}
+  const origin=get(dialogOrigins.get(d.id));if(origin&&!origin.disabled) origin.focus();
+});
+for(const button of document.querySelectorAll('[data-close]')) button.addEventListener('click',()=>button.closest('dialog').close());
+get('help').addEventListener('click',()=>show('guideDialog','help'));
+function loadDraft(next){
+  remember({workspace:state,baseline});state=next;baseline=JSON.stringify(next);paint();say('Opened '+(state.title||'untitled draft')+'.');
+}
+function offerDraft(next,origin){
+  if(JSON.stringify(state)===baseline){loadDraft(next);return;}
+  pending=next;
+  get('confText').textContent='Open “'+(next.title.trim()||'Untitled draft')+'” in place of the current draft? Choose Keep to save your edits first.';
+  show('confirmDialog',origin);get('keep').focus();
+}
+get('keep').addEventListener('click',()=>{pending=null;get('confirmDialog').close();say('Current draft kept.');});
+get('confirmDialog').addEventListener('cancel',()=>{pending=null;});
+get('replace').addEventListener('click',()=>{
+  const next=pending;pending=null;get('confirmDialog').close();if(next) loadDraft(next);
+});
+get('preset').addEventListener('change',()=>{
+  const id=get('preset').value;get('preset').value='';
+  if(presets().some(p=>p.id===id)) offerDraft(makePreset(id),'preset');
+});
+function readLocal(file){
+  if(typeof file.text==='function') return file.text();
+  if(typeof FileReader==='undefined') throw Error('This browser could not read the local file.');
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();reader.onload=()=>resolve(reader.result);
+    reader.onerror=reader.onabort=()=>reject(Error('The file could not be read.'));
+    reader.readAsText(file);
+  });
+}
+get('open').addEventListener('click',()=>{
+  if(reading) return;
+  get('file').value='';
+  try{get('file').click();}catch{say('The local file picker could not open.');}
+});
+get('file').addEventListener('cancel',()=>say('Open canceled. Current draft kept.'));
+get('file').addEventListener('change',async()=>{
+  const file=get('file').files?.[0];if(!file||reading) return;
+  reading=true;get('open').disabled=true;
+  try {
+    if(file.size>FILE_LIMIT) throw Error('Choose a Selvedge JSON file of 64 KB or less.');
+    const next=readSession(await readLocal(file));
+    if(['guideDialog','fileDialog','confirmDialog'].some(id=>get(id).open)) throw Error('Finish the current dialog, then choose your draft again.');
+    offerDraft(next,'open');
+  }catch(error){say(error.message+' Current draft kept.');}
+  finally{reading=false;get('open').disabled=false;get('file').value='';}
+});
+function downloadFile(){
+  if(!prepared) return;
+  let url;const a=document.createElement('a');
+  try {
+    try{if(prepared.blob) url=URL.createObjectURL(prepared.blob);}catch{}
+    a.href=url||'data:'+prepared.type+';charset=utf-8,'+encodeURIComponent(prepared.text);
+    a.download=prepared.name;document.body.append(a);a.click();
+    get('fileInfo').textContent='Download requested for '+prepared.name+'.'+(prepared.file?' You can also choose Share, then Save to Files.':'');
+  }catch{get('fileInfo').textContent='Copy the entire file text below and save it as '+prepared.name+'.';}
+  finally{a.remove();if(url) setTimeout(()=>URL.revokeObjectURL(url),60000);}
+}
+function offerFile(artwork){
+  try {
+    const text=artwork?clothSVG(state,true):serializeSession(state),type=artwork?'image/svg+xml':'application/json';
+    const stem=state.title.trim().toLowerCase().replace(/[^a-z0-9_-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,64)||'untitled';
+    const name=stem+'-selvedge.'+(artwork?'svg':'json');
+    prepared={text,type,name,file:null,blob:null};
+    try{
+      prepared.blob=new Blob([text],{type});const f=new File([prepared.blob],name,{type});
+      if(navigator.share && navigator.canShare?.({files:[f]})) prepared.file=f;
+    }catch{}
+    get('fileHeading').textContent=artwork?'Export swatch':'Save draft';get('fileText').value=text;
+    get('share').hidden=!prepared.file;get('manual').hidden=false;
+    downloadFile();show('fileDialog',artwork?'exportSVG':'save');
+  }catch(error){say('Could not prepare the file. '+error.message);}
+}
+get('save').addEventListener('click',()=>offerFile(false));
+get('exportSVG').addEventListener('click',()=>offerFile(true));
+get('again').addEventListener('click',downloadFile);
+get('selectText').addEventListener('click',()=>{get('fileText').focus();get('fileText').select();});
+get('share').addEventListener('click',async()=>{
+  const data=prepared;if(!data?.file) return;
+  try{
+    await navigator.share({files:[data.file]});
+    if(data.type==='application/json' && serializeSession(state)===data.text) baseline=JSON.stringify(state);
+    if(data===prepared) get('fileInfo').textContent='Share sheet completed.';
+  }catch(error){if(data===prepared) get('fileInfo').textContent=error.name==='AbortError'?'Sharing canceled. Your draft is still open.':'Use Download again or copy the file text.';}
+});
+paint();
+
+})();
+</script>
+</body>
+</html>

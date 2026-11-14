@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>trez63 — visits</title>
+<style>
+body{margin:0;background:#eff1f5;color:#17212d;font:14px/1.6 Arial,Helvetica,sans-serif}
+main{max-width:720px;margin:0 auto;padding:36px 18px}
+h1{font-size:28px;letter-spacing:-1px;margin:0 0 4px} p{color:#677180;margin:0 0 18px}
+.wrap{overflow-x:auto;background:#fff;border:1px solid #dce1e9;border-radius:12px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{padding:11px 14px;text-align:right;border-bottom:1px solid #dce1e9;white-space:nowrap}
+th:first-child,td:first-child{text-align:left} tr:last-child td{border-bottom:0}
+th{font:11px "Courier New",monospace;letter-spacing:.6px;color:#677180;text-transform:uppercase}
+td.w{color:#b8bfca}
+</style></head><body><main>
+<h1>Visits</h1>
+<p id="s">Loading the last 7 days…</p>
+<div class="wrap"><table><thead><tr><th>Day (Pacific)</th><th>Visitors</th><th>From Reddit</th><th>Page views</th><th>App opens</th></tr></thead><tbody id="t"></tbody></table></div>
+<p style="margin-top:14px;font-size:12px">Visitors = browsers seen that day. Counting started Nov 14, 2026 mid-afternoon. Your own visits count unless you open <a href="./?notrack=1">trez63.com/?notrack=1</a> once in each browser you use.</p>
+</main><script>
+(async()=>{
+  const A='https://abacus.jasoncameron.dev/get/trez63.com/stat-', t=document.getElementById('t'), s=document.getElementById('s');
+  const fmt=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles'});
+  const get=async k=>{ for(let i=0;i<3;i++){ try{ const r=await fetch(A+k); if(r.status===404) return 0; if(r.ok) return +(await r.json()).value||0; }catch(e){} await new Promise(r=>setTimeout(r,4000)); } return null; };
+  for(let d=0;d<7;d++){
+    const iso=fmt.format(new Date(Date.now()-d*864e5)), day=iso.replace(/-/g,'');
+    const tr=t.insertRow(); tr.insertCell().textContent=iso+(d?'':' (today)');
+    for(const k of ['u','r','v','o']){ const c=tr.insertCell(); c.textContent='…'; c.className='w';
+      const n=await get(k+'-'+day); c.textContent=n===null?'?':n.toLocaleString(); if(n) c.className='';
+      await new Promise(r=>setTimeout(r,350)); }
+  }
+  s.textContent='Last 7 days. Reload for fresh numbers.';
+})();
+</script></body></html>

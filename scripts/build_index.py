@@ -80,6 +80,25 @@ LIKE_JS = """
   window.trezLikes={ loadAll(){ btns.forEach(b=>want(b,false)); changed(); } };
 })();
 """
+# Visit counting, with no analytics vendor and no cookies: a few anonymous counters on the same counter service the
+# like buttons use. Nothing about the visitor is sent, only "+1" to a named counter. Day keys use Pacific time.
+#   stat-v-DAY  page views          stat-u-DAY  browsers seen that day (once per browser per day)
+#   stat-r-DAY  of those, arrived from Reddit      stat-o-DAY  app pages opened      stat-open-<slug>  opens per app
+# Open any page once with ?notrack=1 to stop a browser being counted (?notrack=0 turns it back on).
+TRACK_JS = """
+(()=>{ try{
+  const P=new URLSearchParams(location.search);
+  if(P.has('notrack')) localStorage.setItem('notrack',P.get('notrack')==='0'?'':'1');
+  if(localStorage.getItem('notrack')) return;
+  const day=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles'}).format(new Date()).replace(/-/g,'');
+  const hit=k=>fetch('https://abacus.jasoncameron.dev/hit/trez63.com/'+k,{keepalive:true}).catch(()=>{});
+  const slug=(location.pathname.match(/\\/p\\/([^/]+)\\.html$/)||[])[1];
+  hit('stat-v-'+day);
+  if(slug){ hit('stat-o-'+day); hit('stat-open-'+slug); }
+  if(localStorage.getItem('seen')!==day){ localStorage.setItem('seen',day); hit('stat-u-'+day);
+    if(/reddit\\.com|redd\\.it/i.test(document.referrer)) hit('stat-r-'+day); }
+}catch(e){} })();
+"""
 E = html.escape
 
 def fmt(d):
@@ -419,7 +438,7 @@ page = f"""<!doctype html>
 </section>
 <footer>SOURCE AND FULL VERSION HISTORY ON <a href="{REPO}">GITHUB</a> · <a href="feed.xml">RSS</a> · LAST PUBLISHED {fmt(catalog.get('generated', TODAY.isoformat())).upper()}</footer>
 </div>
-<script>{JS}{LIKE_JS}</script>
+<script>{JS}{LIKE_JS}{TRACK_JS}</script>
 </body>
 </html>
 """
@@ -482,13 +501,49 @@ iframe{{flex:1;border:0;width:100%;background:#fff}}
   <a class="step go" href="{next_s}.html" title="Next: {E(apps[next_s]['title'])}">Next app →</a>
 </div>
 <iframe src="../apps/{slug}.html" title="{E(e['title'])}" allow="clipboard-write; fullscreen; autoplay" allowfullscreen></iframe>
-<script>{LIKE_JS}
+<script>{LIKE_JS}{TRACK_JS}
 document.getElementById('lucky').addEventListener('click',async e=>{{ e.preventDefault();
   try{{ const all=Object.keys((await (await fetch('../catalog.json')).json()).apps).filter(s=>s!=='{slug}');
     location.href=all[Math.floor(Math.random()*all.length)]+'.html'; }}catch(x){{ location.href='../'; }} }});
 </script>
 </body>
 </html>
+""")
+
+# ------------------------------------------------------------------ stats.html (unlinked, noindex)
+(ROOT / "stats.html").write_text("""<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>trez63 — visits</title>
+<style>
+body{margin:0;background:#eff1f5;color:#17212d;font:14px/1.6 Arial,Helvetica,sans-serif}
+main{max-width:720px;margin:0 auto;padding:36px 18px}
+h1{font-size:28px;letter-spacing:-1px;margin:0 0 4px} p{color:#677180;margin:0 0 18px}
+.wrap{overflow-x:auto;background:#fff;border:1px solid #dce1e9;border-radius:12px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{padding:11px 14px;text-align:right;border-bottom:1px solid #dce1e9;white-space:nowrap}
+th:first-child,td:first-child{text-align:left} tr:last-child td{border-bottom:0}
+th{font:11px "Courier New",monospace;letter-spacing:.6px;color:#677180;text-transform:uppercase}
+td.w{color:#b8bfca}
+</style></head><body><main>
+<h1>Visits</h1>
+<p id="s">Loading the last 7 days…</p>
+<div class="wrap"><table><thead><tr><th>Day (Pacific)</th><th>Visitors</th><th>From Reddit</th><th>Page views</th><th>App opens</th></tr></thead><tbody id="t"></tbody></table></div>
+<p style="margin-top:14px;font-size:12px">Visitors = browsers seen that day. Counting started Nov 14, 2026 mid-afternoon. Your own visits count unless you open <a href="./?notrack=1">trez63.com/?notrack=1</a> once in each browser you use.</p>
+</main><script>
+(async()=>{
+  const A='https://abacus.jasoncameron.dev/get/trez63.com/stat-', t=document.getElementById('t'), s=document.getElementById('s');
+  const fmt=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles'});
+  const get=async k=>{ for(let i=0;i<3;i++){ try{ const r=await fetch(A+k); if(r.status===404) return 0; if(r.ok) return +(await r.json()).value||0; }catch(e){} await new Promise(r=>setTimeout(r,4000)); } return null; };
+  for(let d=0;d<7;d++){
+    const iso=fmt.format(new Date(Date.now()-d*864e5)), day=iso.replace(/-/g,'');
+    const tr=t.insertRow(); tr.insertCell().textContent=iso+(d?'':' (today)');
+    for(const k of ['u','r','v','o']){ const c=tr.insertCell(); c.textContent='…'; c.className='w';
+      const n=await get(k+'-'+day); c.textContent=n===null?'?':n.toLocaleString(); if(n) c.className='';
+      await new Promise(r=>setTimeout(r,350)); }
+  }
+  s.textContent='Last 7 days. Reload for fresh numbers.';
+})();
+</script></body></html>
 """)
 
 # ------------------------------------------------------------------ feed.xml

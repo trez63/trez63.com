@@ -40,3 +40,8 @@ The index groups apps under the day they were first published and shows 24 at a 
 ## Editor's choice
 
 `publish.py --picks FILE` reads a plain text file kept outside the repo: one app per line (title, slug or file name; `#` starts a comment). The file is the whole truth: an app is `featured` in `catalog.json` only while a line names it. Featured apps get a row at the top of the index (newest eight), a tag on their card and a filter. With no featured apps none of that is rendered.
+
+## Visit counts
+
+No analytics vendor and no cookies. Each page adds one to a few anonymous counters on the same counter service the like buttons use (keys `stat-v-DAY` page views, `stat-u-DAY` browsers seen that day, `stat-r-DAY` of those arriving from Reddit, `stat-o-DAY` app pages opened, `stat-open-<slug>` opens per app; days are Pacific time). `stats.html` (generated, unlinked, noindex) shows the last 7 days. Opening any page once with `?notrack=1` stops that browser being counted.
+

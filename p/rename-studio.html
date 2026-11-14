@@ -116,6 +116,19 @@ button.like.on i{color:var(--acc)}
   window.trezLikes={ loadAll(){ btns.forEach(b=>want(b,false)); changed(); } };
 })();
 
+(()=>{ try{
+  const P=new URLSearchParams(location.search);
+  if(P.has('notrack')) localStorage.setItem('notrack',P.get('notrack')==='0'?'':'1');
+  if(localStorage.getItem('notrack')) return;
+  const day=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles'}).format(new Date()).replace(/-/g,'');
+  const hit=k=>fetch('https://abacus.jasoncameron.dev/hit/trez63.com/'+k,{keepalive:true}).catch(()=>{});
+  const slug=(location.pathname.match(/\/p\/([^/]+)\.html$/)||[])[1];
+  hit('stat-v-'+day);
+  if(slug){ hit('stat-o-'+day); hit('stat-open-'+slug); }
+  if(localStorage.getItem('seen')!==day){ localStorage.setItem('seen',day); hit('stat-u-'+day);
+    if(/reddit\.com|redd\.it/i.test(document.referrer)) hit('stat-r-'+day); }
+}catch(e){} })();
+
 document.getElementById('lucky').addEventListener('click',async e=>{ e.preventDefault();
   try{ const all=Object.keys((await (await fetch('../catalog.json')).json()).apps).filter(s=>s!=='rename-studio');
     location.href=all[Math.floor(Math.random()*all.length)]+'.html'; }catch(x){ location.href='../'; } });

@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Daily Build 2026-11-14 — Trill</title>
+<style>
+:root{
+  --bg:#f4f1ea; --panel:#ffffff; --ink:#1d1b17; --muted:#6b665c; --line:#dcd7cc;
+  --accent:#c2410c; --accent-ink:#fff; --ok:#15803d; --bad:#b91c1c; --soft:#efe9dd;
+  --lane0:#f4f1ea; --lane1:#f59e0b; --lane2:#7c2d12; --hot:#06b6d4;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+:root[data-theme="dark"]{
+  --bg:#0f1115; --panel:#171a21; --ink:#ebe8e1; --muted:#9a968c; --line:#2a2f3a;
+  --accent:#f97316; --accent-ink:#1a0a00; --ok:#4ade80; --bad:#f87171; --soft:#1f2430;
+  --lane0:#171a21; --lane1:#f97316; --lane2:#fde68a; --hot:#22d3ee;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-text-size-adjust:100%}
+body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);overflow-x:hidden}
+header{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line)}
+@media (max-width:520px){.tag{display:none}header button{padding:0 10px}}
+h1{font-size:22px;margin:0;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
+.tag{margin-right:auto}
+@media (max-width:520px){h1{margin-right:auto}}
+h1 .mark{display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px var(--soft)}
+.tag{color:var(--muted);font-size:13px;margin-right:auto}
+button,select,textarea,input{font:inherit;color:inherit}
+button{min-height:44px;min-width:44px;padding:0 14px;border:1px solid var(--line);background:var(--panel);border-radius:10px;cursor:pointer;touch-action:manipulation}
+button:active{transform:translateY(1px)}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent;font-weight:600}
+button.live{background:var(--ok);color:#fff;border-color:transparent;font-weight:600}
+button:disabled{opacity:.45;cursor:default}
+main{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px;max-width:1100px;margin:0 auto;align-items:start}
+@media (max-width:820px){main{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card h2{margin:0;font-size:15px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+textarea{width:100%;min-height:96px;resize:vertical;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-size:16px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row .grow{flex:1}
+select{min-height:44px;padding:0 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.hint{color:var(--muted);font-size:13px}
+canvas{display:block;width:100%;border-radius:10px;background:var(--lane0);border:1px solid var(--line)}
+#bars{height:46px;image-rendering:pixelated}
+#falls{height:170px;image-rendering:pixelated;touch-action:none}
+.status{font-family:var(--mono);font-size:14px;padding:10px 12px;border-radius:10px;background:var(--soft);min-height:44px;display:flex;align-items:center;gap:8px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--muted);flex:none}
+.dot.on{background:var(--ok);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.35}}
+#inbox{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+#inbox li{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center}
+#inbox .txt{word-break:break-word;font-size:17px}
+#inbox .txt a{color:var(--accent)}
+#inbox .meta{color:var(--muted);font-size:12px;font-family:var(--mono)}
+#inbox .bad .txt{color:var(--bad)}
+#inbox li:empty{display:none}
+.empty{color:var(--muted);font-size:14px;text-align:center;padding:12px;border:1px dashed var(--line);border-radius:10px}
+#help{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:9}
+#help.open{display:flex}
+#help .box{background:var(--panel);border-radius:14px;max-width:560px;width:100%;max-height:90vh;overflow:auto;padding:20px}
+#help h3{margin:0 0 8px}
+#help kbd{font-family:var(--mono);font-size:13px;background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:2px 6px}
+#help dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:10px 0}
+#help dd{margin:0}
+#help p{margin:8px 0}
+.sr{position:absolute;left:-9999px}
+</style>
+</head>
+<body>
+<header>
+  <h1><span class="mark"></span>Trill</h1>
+  <span class="tag">text over sound · no network</span>
+  <button id="saveBtn" title="Save (Ctrl/Cmd+S)">Save</button>
+  <button id="openBtn" title="Open (Ctrl/Cmd+O)">Open</button>
+  <button id="themeBtn" title="Theme (D)">Dark</button>
+  <button id="helpBtn" title="Help (Ctrl/Cmd+/)">?</button>
+  <input id="file" type="file" accept=".json,application/json" class="sr">
+</header>
+
+<main>
+  <section class="card">
+    <h2>Send</h2>
+    <textarea id="msg" maxlength="160" placeholder="Type a message…">Meet at the north gate at 7. Map: https://example.com/m</textarea>
+    <div class="row">
+      <select id="speed" aria-label="Speed">
+        <option value="60">Fast · 60 ms</option>
+        <option value="90" selected>Normal · 90 ms</option>
+        <option value="140">Robust · 140 ms</option>
+      </select>
+      <span class="hint grow" id="info"></span>
+    </div>
+    <div class="row">
+      <button id="testBtn" title="Self-test (T)">Self-test</button>
+      <button id="sendBtn" class="primary grow" title="Send (Ctrl/Cmd+Enter)">▶ Send</button>
+    </div>
+    <canvas id="bars"></canvas>
+    <div class="hint">Each stripe is one 4-bit tone. Two phones: one taps <b>Listen</b>, the other taps <b>Send</b>. One phone: tap Listen, then Send — it hears itself.</div>
+  </section>
+
+  <section class="card">
+    <h2>Receive</h2>
+    <div class="row">
+      <button id="listenBtn" class="primary grow" title="Listen (L)">● Listen</button>
+      <button id="clearBtn" title="Clear inbox">Clear</button>
+    </div>
+    <canvas id="falls"></canvas>
+    <div class="status"><span class="dot" id="dot"></span><span id="status">Idle — tap Listen</span></div>
+    <ul id="inbox"></ul>
+    <div class="empty" id="emptyNote">Nothing received yet. Try Self-test to watch a message travel through the decoder.</div>
+  </section>
+</main>
+
+<div id="help" role="dialog" aria-modal="true">
+  <div class="box">
+    <h3>Trill — a modem made of birdsong</h3>
+    <p>Trill turns text into a short melody of 32 pure tones (1500–3438 Hz) and decodes it again from any microphone. Nothing leaves the page: no network, no server, no library. Each 4-bit nibble is one tone; consecutive symbols alternate between two interleaved tone banks so every boundary is audible to the decoder, which uses Hann-windowed Goertzel filters and run-length symbol clocking, locks on a 4-tone preamble (and reads the speed from it), then checks a CRC-8.</p>
+    <p><b>Phone tips:</b> raise the volume and turn the ringer on. Hold devices within a metre. Microphone access needs a secure page (https) or a desktop file; iPhone Chrome asks once.</p>
+    <dl>
+      <dt><kbd>Ctrl/Cmd</kbd>+<kbd>Enter</kbd></dt><dd>Send (works inside the text box)</dd>
+      <dt><kbd>L</kbd></dt><dd>Start / stop listening</dd>
+      <dt><kbd>T</kbd></dt><dd>Self-test: route the message through the decoder with simulated room noise</dd>
+      <dt><kbd>D</kbd></dt><dd>Dark / light theme</dd>
+      <dt><kbd>Ctrl/Cmd</kbd>+<kbd>S</kbd></dt><dd>Save draft, speed, theme and inbox as JSON (downloads directly from the standalone file; inside the claude.ai viewer it asks you to confirm the save)</dd>
+      <dt><kbd>Ctrl/Cmd</kbd>+<kbd>O</kbd></dt><dd>Open a saved Trill JSON</dd>
+      <dt><kbd>Ctrl/Cmd</kbd>+<kbd>/</kbd></dt><dd>This help</dd>
+      <dt><kbd>Esc</kbd></dt><dd>Close help</dd>
+    </dl>
+    <button id="closeHelp" class="primary">Close</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+// @@core — pure codec: no DOM, runs in node for tests
+const F0 = 1500, DF = 62.5, NT = 32;              // 32 tones, 62.5 Hz apart
+const PRE = [15, 0, 15, 0];                        // preamble nibbles (bank A,B,A,B)
+const toneOf = (nib, bank) => nib * 2 + bank;      // interleaved banks share speaker response
+const freqOf = t => F0 + t * DF;
+function crc8(bytes){ let c = 0; for (const b of bytes){ c ^= b; for (let i = 0; i < 8; i++) c = c & 0x80 ? ((c << 1) ^ 0x07) & 0xff : (c << 1) & 0xff; } return c; }
+function frameNibbles(text){
+  const bytes = new TextEncoder().encode(text);
+  if (!bytes.length || bytes.length > 160) return null;
+  const all = [bytes.length, ...bytes, crc8(bytes)];
+  const nibs = PRE.slice();
+  for (const b of all) nibs.push(b >> 4, b & 15);
+  return nibs;
+}
+function toneSequence(nibs){ return nibs.map((n, i) => toneOf(n, i & 1)); }
+function encode(text, sr, symMs){
+  const nibs = frameNibbles(text); if (!nibs) return null;
+  const tones = toneSequence(nibs), L = Math.round(sr * symMs / 1000), ramp = Math.round(sr * 0.004);
+  const lead = Math.round(sr * 0.15), out = new Float32Array(lead + tones.length * L + Math.round(sr * 0.1));
+  tones.forEach((t, k) => {
+    const w = 2 * Math.PI * freqOf(t) / sr, o = lead + k * L;
+    for (let n = 0; n < L; n++){
+      const e = n < ramp ? n / ramp : n >= L - ramp ? (L - n) / ramp : 1;   // soft edges, no clicks
+      out[o + n] = 0.8 * e * Math.sin(w * n);
+    }
+  });
+  return out;
+}
+// Decoder: Hann-windowed Goertzel on every hop, run-length symbol clock, preamble lock, CRC.
+class Demod{
+  constructor(sr, onFrame, onEvent){
+    this.sr = sr; this.onFrame = onFrame; this.onEvent = onEvent;
+    this.W = 1536; this.hop = 512;                      // 32 ms window, 10.7 ms hop @48 kHz
+    this.buf = new Float32Array(this.W); this.fill = 0; this.since = 0;
+    this.win = Float32Array.from({ length: this.W }, (_, n) => 0.5 - 0.5 * Math.cos(2 * Math.PI * n / this.W));
+    this.coef = Float32Array.from({ length: NT }, (_, t) => 2 * Math.cos(2 * Math.PI * freqOf(t) / sr));
+    this.cur = -1; this.len = 0; this.gap = 0; this.pending = null; this.runs = [];
+    this.reset('idle');
+  }
+  reset(why){ this.state = 'idle'; this.nibs = []; this.symHops = 0; this.need = 0; if (why && why !== 'idle') this.onEvent({ type: 'status', text: why }); }
+  push(samples){                                        // any chunk size, any time
+    for (let i = 0; i < samples.length; i++){
+      if (this.fill < this.W) this.buf[this.fill++] = samples[i];
+      else { this.buf.copyWithin(0, 1); this.buf[this.W - 1] = samples[i]; }
+      if (this.fill === this.W && ++this.since >= this.hop){ this.since = 0; this.analyze(); }
+    }
+  }
+  analyze(){
+    const W = this.W, x = this.buf, win = this.win, E = new Float32Array(NT);
+    for (let t = 0; t < NT; t++){
+      let s0 = 0, s1 = 0, s2 = 0; const c = this.coef[t];
+      for (let n = 0; n < W; n++){ s0 = x[n] * win[n] + c * s1 - s2; s2 = s1; s1 = s0; }
+      E[t] = s1 * s1 + s2 * s2 - c * s1 * s2;
+    }
+    let peak = 0, pi = -1, sum = 0;
+    for (let t = 0; t < NT; t++){ sum += E[t]; if (E[t] > peak){ peak = E[t]; pi = t; } }
+    const rest = (sum - peak) / (NT - 1);
+    const dom = peak > 1e-9 && peak > 8 * rest ? pi : -1;   // a tone must stand 8x above the band average (noise rarely does)
+    this.onFrame(E, dom, peak);
+    this.clock(dom);
+  }
+  clock(dom){                                           // group hops into runs of one dominant tone
+    if (dom !== -1 && dom === this.cur) this.len++;
+    else { if (this.cur !== -1) this.endRun(); this.cur = dom; this.len = dom === -1 ? 0 : 1; }
+    this.gap++;                                         // hops since the pending run last grew
+    if (this.pending && this.gap > Math.max(4, this.symHops * 0.8)) this.flush();
+    if (this.state !== 'idle' && this.gap > 300) this.reset('Lost signal');
+  }
+  endRun(){
+    const tone = this.cur, len = this.len; this.cur = -1; this.len = 0;
+    if (len < Math.max(2, this.symHops * 0.35)) return;  // glitch: too short to be a symbol, keep the pending one alive
+    this.gap = 0;
+    if (this.pending && this.pending.tone === tone){ this.pending.len += len; return; }   // rejoin a split run
+    this.flush(); this.pending = { tone, len };
+  }
+  flush(){ if (!this.pending) return; const r = this.pending; this.pending = null; this.symbol(r); }
+  symbol(r){
+    this.runs.push(r); if (this.runs.length > 4) this.runs.shift();
+    if (this.state === 'idle'){
+      const p = toneSequence(PRE);
+      if (this.runs.length === 4 && this.runs.every((q, i) => q.tone === p[i])){
+        this.symHops = this.runs.reduce((a, q) => a + q.len, 0) / 4;
+        this.state = 'len'; this.nibs = []; this.need = 2; this.parity = 0; this.lastTone = this.runs[3].tone;
+        this.onEvent({ type: 'status', text: `Locked · ${Math.round(this.symHops * this.hop / this.sr * 1000)} ms symbols` });
+      }
+      return;
+    }
+    if (r.len < this.symHops * 0.4 || r.tone === this.lastTone) return;   // boundary glitch, or the tail of a split symbol
+    if ((r.tone & 1) !== this.parity) return this.reset('Lost sync');
+    this.parity ^= 1; this.lastTone = r.tone; this.nibs.push(r.tone >> 1);
+    if (this.nibs.length < this.need) { if (this.state === 'data') this.onEvent({ type: 'progress', have: this.nibs.length / 2, total: this.need / 2 }); return; }
+    if (this.state === 'len'){
+      const n = (this.nibs[0] << 4) | this.nibs[1];
+      if (n < 1 || n > 160) return this.reset('Bad header');
+      this.state = 'data'; this.nibs = []; this.need = n * 2 + 2; this.onEvent({ type: 'progress', have: 0, total: n });
+    } else {
+      const bytes = []; for (let i = 0; i < this.nibs.length; i += 2) bytes.push((this.nibs[i] << 4) | this.nibs[i + 1]);
+      const crc = bytes.pop(), ok = crc8(bytes) === crc;
+      let text; try { text = new TextDecoder('utf-8', { fatal: true }).decode(new Uint8Array(bytes)); } catch { text = String.fromCharCode(...bytes); }
+      this.onEvent({ type: 'message', text, ok }); this.reset('idle');
+    }
+  }
+}
+// @@endcore
+if (typeof module !== 'undefined') module.exports = { encode, Demod, crc8, frameNibbles, toneSequence, NT };
+</script>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const APP = 'trill', VERSION = 1;
+const state = { messages: [], listening: false, playing: false };
+let ctx = null, micStream = null, micNode = null, demod = null, rows = [], simTimer = null;
+
+// ---------- theme ----------
+const root = document.documentElement;
+const setTheme = t => { root.dataset.theme = t; $('themeBtn').textContent = t === 'dark' ? 'Light' : 'Dark'; drawBars(); };
+setTheme(matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+$('themeBtn').onclick = () => setTheme(root.dataset.theme === 'dark' ? 'light' : 'dark');
+
+// ---------- audio plumbing ----------
+function ensureCtx(){ if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)(); if (ctx.state === 'suspended') ctx.resume(); return ctx; }
+function css(name){ return getComputedStyle(root).getPropertyValue(name).trim(); }
+
+// ---------- send ----------
+const msg = $('msg'), speed = $('speed');
+function symMs(){ return +speed.value; }
+function updateInfo(){
+  const bytes = new TextEncoder().encode(msg.value).length, nibs = frameNibbles(msg.value);
+  $('info').textContent = nibs ? `${bytes} B · ${nibs.length} tones · ${(nibs.length * symMs() / 1000 + 0.25).toFixed(1)} s` : (bytes ? 'Too long (160 bytes max)' : 'Type something');
+  $('sendBtn').disabled = $('testBtn').disabled = !nibs;
+  drawBars();
+}
+msg.addEventListener('input', updateInfo); speed.addEventListener('change', updateInfo);
+
+function drawBars(cursor = -1){
+  const c = $('bars'), nibs = frameNibbles($('msg').value) || [];
+  const dpr = devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight;
+  if (c.width !== w * dpr) { c.width = w * dpr; c.height = h * dpr; }
+  const g = c.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.fillStyle = css('--lane0'); g.fillRect(0, 0, w, h);
+  if (!nibs.length) return;
+  const tones = toneSequence(nibs), sw = w / tones.length;
+  tones.forEach((t, i) => { g.fillStyle = `hsl(${20 + t * 9} 80% ${root.dataset.theme === 'dark' ? 60 : 45}%)`; g.fillRect(i * sw, h - (t + 1) / NT * h, Math.max(1, sw - 1), (t + 1) / NT * h); });
+  if (cursor >= 0){ g.fillStyle = css('--hot'); g.fillRect(cursor * sw - 1, 0, 3, h); }
+}
+
+async function send(){
+  const nibs = frameNibbles(msg.value); if (!nibs || state.playing) return;
+  const ac = ensureCtx(), pcm = encode(msg.value, ac.sampleRate, symMs());
+  const buf = ac.createBuffer(1, pcm.length, ac.sampleRate); buf.copyToChannel(pcm, 0);
+  const src = ac.createBufferSource(); src.buffer = buf; src.connect(ac.destination);
+  state.playing = true; $('sendBtn').textContent = '♪ Sending…'; $('sendBtn').disabled = true;
+  const t0 = ac.currentTime + 0.05, L = symMs() / 1000; src.start(t0);
+  const tick = () => { if (!state.playing) return; const k = Math.floor((ac.currentTime - t0 - 0.15) / L); drawBars(k >= 0 && k < nibs.length ? k : -1); requestAnimationFrame(tick); };
+  tick();
+  src.onended = () => { state.playing = false; $('sendBtn').textContent = '▶ Send'; updateInfo(); };
+}
+$('sendBtn').onclick = send;
+
+// ---------- receive ----------
+const falls = $('falls'), FW = NT * 6, FH = 170;
+falls.width = FW; falls.height = FH;
+const fg = falls.getContext('2d');
+function clearFalls(){ fg.fillStyle = css('--lane0'); fg.fillRect(0, 0, FW, FH); }
+clearFalls();
+function lerp(a, b, t){ return a.map((v, i) => Math.round(v + (b[i] - v) * t)); }
+function rgb(hex){ const n = parseInt(hex.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+let ref = 0;                                               // slow-decaying level reference so silence stays dark
+function drawRows(){
+  if (rows.length){
+    const n = Math.min(rows.length, 6), c0 = rgb(css('--lane0')), c1 = rgb(css('--lane1')), c2 = rgb(css('--lane2'));
+    fg.drawImage(falls, 0, -n);
+    for (let r = 0; r < n; r++){
+      const { E, dom, peak } = rows[r], y = FH - n + r;
+      ref = Math.max(peak, ref * 0.97, 1e-9);
+      for (let t = 0; t < NT; t++){
+        const v = Math.max(0, Math.min(1, (Math.log10(E[t] / ref + 1e-4) + 4) / 4));
+        const col = v < 0.6 ? lerp(c0, c1, v / 0.6) : lerp(c1, c2, (v - 0.6) / 0.4);
+        fg.fillStyle = t === dom ? css('--hot') : `rgb(${col})`; fg.fillRect(t * 6, y, 6, 1);
+      }
+    }
+    rows = [];
+  }
+  requestAnimationFrame(drawRows);
+}
+drawRows();
+
+function setStatus(text, live){ $('status').textContent = text; $('dot').className = 'dot' + (live ? ' on' : ''); }
+function onEvent(e){
+  if (e.type === 'status') setStatus(e.text, state.listening);
+  else if (e.type === 'progress') setStatus(`Receiving ${Math.floor(e.have)}/${e.total} bytes`, state.listening);
+  else if (e.type === 'message') addMessage(e.text, e.ok, e.via || 'mic');
+}
+function makeDemod(sr, via){ return new Demod(sr, (E, dom, peak) => rows.push({ E, dom, peak }), e => onEvent(e.type === 'message' ? { ...e, via } : e)); }
+
+async function toggleListen(){
+  if (state.listening) return stopListen();
+  if (!navigator.mediaDevices?.getUserMedia) return setStatus('No microphone API here (needs https or a local file on desktop)', false);
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+  } catch (err) { return setStatus('Microphone blocked: ' + err.message, false); }
+  const ac = ensureCtx(); demod = makeDemod(ac.sampleRate, 'mic');
+  const src = ac.createMediaStreamSource(micStream);
+  micNode = ac.createScriptProcessor(1024, 1, 1);         // deprecated but universal, incl. iOS
+  micNode.onaudioprocess = ev => demod.push(ev.inputBuffer.getChannelData(0));
+  const mute = ac.createGain(); mute.gain.value = 0;
+  src.connect(micNode); micNode.connect(mute); mute.connect(ac.destination);
+  state.listening = true; $('listenBtn').textContent = '■ Stop'; $('listenBtn').className = 'live grow';
+  setStatus(`Listening @ ${ac.sampleRate} Hz…`, true);
+}
+function stopListen(){
+  micStream?.getTracks().forEach(t => t.stop()); micNode?.disconnect(); micStream = micNode = null;
+  state.listening = false; $('listenBtn').textContent = '● Listen'; $('listenBtn').className = 'primary grow';
+  setStatus('Idle — tap Listen', false);
+}
+$('listenBtn').onclick = toggleListen;
+
+// Self-test: encode, add room noise, feed the decoder in real time so the waterfall shows the journey.
+function selfTest(){
+  if (simTimer) return;
+  const sr = 48000, pcm = encode(msg.value, sr, symMs()); if (!pcm) return;
+  for (let i = 0; i < pcm.length; i++) pcm[i] = pcm[i] * 0.5 + (Math.random() - 0.5) * 0.3;   // SNR ≈ 2.4 dB, deliberately harsh
+  const before = state.messages.length, d = makeDemod(sr, 'self-test'); let pos = 0, t0 = performance.now();
+  setStatus('Self-test: decoding synthetic signal…', true);
+  simTimer = setInterval(() => {
+    const target = Math.min(pcm.length, Math.floor((performance.now() - t0) / 1000 * sr));
+    if (target > pos) d.push(pcm.subarray(pos, target)); pos = target;
+    if (pos >= pcm.length){ d.push(new Float32Array(sr / 2)); clearInterval(simTimer); simTimer = null; if (state.messages.length === before) setStatus('Self-test: nothing decoded', state.listening); }
+  }, 40);
+}
+$('testBtn').onclick = selfTest;
+
+// ---------- inbox ----------
+const linkify = s => s.split(/(https?:\/\/\S+)/g).map(p => /^https?:\/\//.test(p) ? `<a href="${p.replace(/"/g, '')}" target="_blank" rel="noopener">${p}</a>` : p.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))).join('');
+function addMessage(text, ok, via, when = new Date().toISOString()){
+  state.messages.unshift({ text, ok, via, when }); renderInbox();
+  setStatus(ok ? `Received ✓ ${text.length} chars via ${via}` : 'Checksum failed — shown in red', state.listening);
+  if (navigator.vibrate) navigator.vibrate(ok ? 40 : [40, 60, 40]);
+}
+function renderInbox(){
+  const ul = $('inbox'); ul.innerHTML = '';
+  $('emptyNote').style.display = state.messages.length ? 'none' : '';
+  for (const m of state.messages){
+    const li = document.createElement('li'); li.className = m.ok ? '' : 'bad';
+    li.innerHTML = `<div class="txt">${linkify(m.text)}</div><button class="copy" aria-label="Copy">⧉</button><div class="meta">${new Date(m.when).toLocaleTimeString()} · ${m.via} · ${m.ok ? 'crc ok' : 'crc FAILED'}</div>`;
+    li.querySelector('.copy').onclick = async b => { try { await navigator.clipboard.writeText(m.text); b.target.textContent = '✓'; setTimeout(() => b.target.textContent = '⧉', 900); } catch { msg.value = m.text; updateInfo(); } };
+    ul.appendChild(li);
+  }
+}
+$('clearBtn').onclick = () => { state.messages = []; renderInbox(); };
+
+// ---------- save / open ----------
+async function save(){
+  const data = { app: APP, version: VERSION, draft: msg.value, speed: symMs(), theme: root.dataset.theme, messages: state.messages };
+  const name = `trill-${new Date().toISOString().slice(0, 10)}.json`, json = JSON.stringify(data, null, 2);
+  const dl = window.claude?.use ? await window.claude.use('downloads').catch(() => null) : null;   // inside the claude.ai viewer, saves go through its download prompt
+  if (dl){ try { await dl.save({ filename: name, data: json }); } catch (err) { if (err?.code !== 'cancelled' && err?.code !== 'viewer_declined') setStatus('Save failed: ' + (err?.code || err), state.listening); } return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+  a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+function restore(obj){
+  if (!obj || obj.app !== APP || typeof obj.version !== 'number') throw new Error('Not a Trill file (expected {"app":"trill"})');
+  if (obj.version > VERSION) throw new Error(`Saved by a newer Trill (v${obj.version})`);
+  msg.value = String(obj.draft ?? ''); speed.value = String(obj.speed ?? 90); if (obj.theme) setTheme(obj.theme);
+  state.messages = Array.isArray(obj.messages) ? obj.messages.filter(m => typeof m.text === 'string').map(m => ({ text: m.text, ok: !!m.ok, via: String(m.via || 'file'), when: m.when || new Date().toISOString() })) : [];
+  renderInbox(); updateInfo(); setStatus(`Opened: ${state.messages.length} messages restored`, state.listening);
+}
+$('saveBtn').onclick = save;
+$('openBtn').onclick = () => $('file').click();
+$('file').onchange = async ev => {
+  const f = ev.target.files[0]; ev.target.value = ''; if (!f) return;
+  try { restore(JSON.parse(await f.text())); } catch (err) { setStatus('Open failed: ' + err.message, state.listening); }
+};
+
+// ---------- help & keys ----------
+const help = $('help');
+const toggleHelp = open => help.classList.toggle('open', open ?? !help.classList.contains('open'));
+$('helpBtn').onclick = () => toggleHelp(); $('closeHelp').onclick = () => toggleHelp(false);
+help.addEventListener('click', e => { if (e.target === help) toggleHelp(false); });
+addEventListener('keydown', e => {
+  const mod = e.ctrlKey || e.metaKey, typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable;
+  if (mod && e.key === '/') { e.preventDefault(); return toggleHelp(); }
+  if (e.key === 'Escape') return toggleHelp(false);
+  if (mod && e.key === 'Enter') { e.preventDefault(); return send(); }
+  if (mod && e.key.toLowerCase() === 's') { e.preventDefault(); return save(); }
+  if (mod && e.key.toLowerCase() === 'o') { e.preventDefault(); return $('file').click(); }
+  if (typing || mod || e.altKey) return;
+  if (e.key === 'l' || e.key === 'L') toggleListen();
+  else if (e.key === 't' || e.key === 'T') selfTest();
+  else if (e.key === 'd' || e.key === 'D') $('themeBtn').click();
+});
+addEventListener('resize', () => drawBars());
+updateInfo(); renderInbox();
+</script>
+</body>
+</html>

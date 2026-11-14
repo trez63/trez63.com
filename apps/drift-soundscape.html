@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DRIFT — Ambient Soundscape Mixer</title>
+<style>
+/* ===== 1. Palette & base ===== */
+:root{
+  --bg:#0c1713; --panel:#12241d; --panel2:#0f1d17;
+  --line:#22402f; --ink:#eef3ec; --muted:#9db3a4;
+  --ember:#e07840; --gold:#e8c85a; --moss:#7fb069;
+  --rain:#6fa8dc; --ocean:#4fa3a5; --wind:#a8b8a0; --fire:#e07840; --birds:#e8c85a;
+  --radius:16px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  line-height:1.5; padding:0 0 48px;
+}
+main{max-width:640px;margin:0 auto;padding:20px 16px 0}
+
+/* ===== 2. Header ===== */
+header{text-align:center;margin:6px 0 18px}
+h1{font-size:34px;letter-spacing:.35em;margin:0 0 2px;font-weight:800}
+h1 span{color:var(--ember)}
+.tagline{color:var(--muted);margin:0;font-size:15px}
+.status{
+  margin:12px auto 0; min-height:22px; font-size:14px; color:var(--gold);
+}
+.status.err{color:#ff9d8a}
+
+/* ===== 3. Transport (play + master) ===== */
+.transport{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:18px; display:flex; flex-direction:column; gap:14px;
+}
+.playrow{display:flex;align-items:center;gap:14px}
+#playBtn{
+  flex:0 0 auto; width:76px; height:76px; border-radius:50%;
+  border:none; background:var(--ember); color:#fff; font-size:15px; font-weight:700;
+  cursor:pointer; touch-action:manipulation;
+}
+#playBtn[aria-pressed="true"]{background:var(--moss)}
+#playBtn:active{transform:scale(.96)}
+.playstate{min-width:0}
+.playstate b{display:block;font-size:18px}
+.playstate span{color:var(--muted);font-size:14px}
+label.rowlabel{font-size:13px;color:var(--muted);display:flex;justify-content:space-between}
+label.rowlabel output{color:var(--ink);font-weight:700}
+
+/* ===== 4. Sliders (shared) ===== */
+input[type="range"]{
+  -webkit-appearance:none; appearance:none; width:100%; height:44px;
+  background:transparent; cursor:pointer; margin:0; touch-action:pan-x;
+}
+input[type="range"]::-webkit-slider-runnable-track{height:8px;border-radius:4px;background:#2a4636}
+input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none; appearance:none; width:30px; height:30px; margin-top:-11px;
+  border-radius:50%; background:var(--ink); border:3px solid var(--ember);
+}
+input[type="range"]::-moz-range-track{height:8px;border-radius:4px;background:#2a4636}
+input[type="range"]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--ink);border:3px solid var(--ember)}
+
+/* ===== 5. Presets ===== */
+.presets{margin:18px 0 4px}
+.presets h2,.sounds h2,.foot h2{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{
+  min-height:48px; padding:10px 18px; border-radius:999px; cursor:pointer;
+  border:1px solid var(--line); background:var(--panel); color:var(--ink);
+  font-size:15px; touch-action:manipulation;
+}
+.chip[aria-pressed="true"]{background:var(--ember);border-color:var(--ember);color:#fff;font-weight:700}
+
+/* ===== 6. Sound cards ===== */
+.sounds{margin-top:18px}
+.card{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:16px; margin-bottom:12px;
+}
+.card.off{opacity:.55}
+.cardhead{display:flex;align-items:center;gap:12px}
+.dot{width:14px;height:14px;border-radius:50%;flex:0 0 auto;background:var(--c,#888)}
+.cardhead .name{font-size:18px;font-weight:700}
+.cardhead .desc{color:var(--muted);font-size:13px;margin-left:auto;text-align:right}
+.toggle{
+  min-width:76px; min-height:48px; border-radius:12px; cursor:pointer;
+  border:1px solid var(--line); background:var(--panel2); color:var(--ink);
+  font-size:15px; font-weight:600; touch-action:manipulation;
+}
+.toggle[aria-pressed="true"]{background:var(--c,#888);border-color:var(--c,#888);color:#10160f}
+.card label.rowlabel{margin-top:10px}
+.mixline{font-size:14px;color:var(--muted);margin:2px 2px 0}
+.mixline b{color:var(--ink)}
+
+/* ===== 7. Visualizer ===== */
+canvas#viz{
+  display:block;width:100%;height:96px;margin-top:18px;border-radius:var(--radius);
+  background:var(--panel2);border:1px solid var(--line);
+}
+
+/* ===== 8. Timer & file buttons ===== */
+.foot{margin-top:18px}
+.timerrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.timerrow select{
+  min-height:48px;font-size:16px;padding:0 12px;border-radius:12px;
+  background:var(--panel);color:var(--ink);border:1px solid var(--line);
+}
+#timerLeft{color:var(--gold);font-size:15px;font-weight:700}
+.filebtns{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.filebtns button{
+  flex:1 1 140px; min-height:52px; border-radius:12px; cursor:pointer;
+  border:1px solid var(--line); background:var(--panel); color:var(--ink);
+  font-size:16px; font-weight:600; touch-action:manipulation;
+}
+.keys{margin-top:18px;color:var(--muted);font-size:13px}
+.keys kbd{
+  background:#1c332a;border:1px solid var(--line);border-radius:6px;
+  padding:1px 7px;font-family:inherit;color:var(--ink);
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>DR<span>I</span>FT</h1>
+    <p class="tagline">Mix your own weather. Rain, ocean, wind, fire &amp; birdsong — made live, offline, no recordings.</p>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+  </header>
+
+  <!-- Transport -->
+  <section class="transport" aria-label="Playback">
+    <div class="playrow">
+      <button id="playBtn" type="button" aria-pressed="false">Play</button>
+      <div class="playstate">
+        <b id="playState">Paused</b>
+        <span id="mixSummary">Rainy Night preset loaded — press Play to hear it.</span>
+      </div>
+    </div>
+    <div>
+      <label class="rowlabel" for="master">Master volume <output id="masterOut">80%</output></label>
+      <input type="range" id="master" min="0" max="100" value="80" step="1" aria-label="Master volume">
+    </div>
+  </section>
+
+  <!-- Visualizer -->
+  <canvas id="viz" width="640" height="96" aria-label="Sound wave display" role="img"></canvas>
+
+  <!-- Presets -->
+  <section class="presets" aria-label="Presets">
+    <h2>Presets</h2>
+    <div class="chips" id="presetChips"></div>
+  </section>
+
+  <!-- Sound cards -->
+  <section class="sounds" aria-label="Sounds">
+    <h2>Your mix</h2>
+    <div id="cards"></div>
+    <p class="mixline" id="mixLine"></p>
+  </section>
+
+  <!-- Timer & files -->
+  <section class="foot" aria-label="Timer and file">
+    <h2>Sleep timer</h2>
+    <div class="timerrow">
+      <select id="timerSel" aria-label="Sleep timer">
+        <option value="0">Off</option>
+        <option value="15">15 minutes</option>
+        <option value="30">30 minutes</option>
+        <option value="60">60 minutes</option>
+      </select>
+      <span id="timerLeft"></span>
+    </div>
+    <div class="filebtns">
+      <button id="saveBtn" type="button">Save mix (S)</button>
+      <button id="openBtn" type="button">Open mix (O)</button>
+      <input type="file" id="fileInput" accept=".json,application/json" hidden>
+    </div>
+    <p class="keys">
+      Keys: <kbd>1</kbd>–<kbd>5</kbd> toggle Rain, Ocean, Wind, Fire, Birds &nbsp;·&nbsp;
+      <kbd>Space</kbd> play / pause &nbsp;·&nbsp; <kbd>S</kbd> save &nbsp;·&nbsp; <kbd>O</kbd> open
+    </p>
+  </section>
+</main>
+
+<script>
+'use strict';
+/* ============================================================
+   DRIFT — ambient soundscape mixer
+   All sound is synthesised live with the Web Audio API:
+   filtered noise buffers, LFOs, scheduled crackles & chirps.
+   No audio files, no network, nothing leaves the machine.
+   ============================================================ */
+
+/* ===== 1. Catalog: sounds & presets ===== */
+var SOUNDS = [
+  { id:'rain',  name:'Rain',      color:'#6fa8dc', desc:'Steady rain on leaves' },
+  { id:'ocean', name:'Ocean',     color:'#4fa3a5', desc:'Slow rolling waves' },
+  { id:'wind',  name:'Wind',      color:'#a8b8a0', desc:'Wind through pines' },
+  { id:'fire',  name:'Fireplace', color:'#e07840', desc:'Crackling fire' },
+  { id:'birds', name:'Dawn birds',color:'#e8c85a', desc:'Morning birdsong' }
+];
+var PRESETS = {
+  'Rainy Night': { rain:70, ocean:0,  wind:0,  fire:45, birds:0 },
+  'Forest Dawn': { rain:15, ocean:0,  wind:40, fire:0,  birds:60 },
+  'Ocean Calm':  { rain:0,  ocean:75, wind:35, fire:0,  birds:0 },
+  'Focus Flow':  { rain:30, ocean:0,  wind:25, fire:0,  birds:0 },
+  'Silence':     { rain:0,  ocean:0,  wind:0,  fire:0,  birds:0 }
+};
+var TIMER_CHOICES = [0, 15, 30, 60];
+var SAVE_KEY = 'drift-soundscape-v1';
+var REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ===== 2. State ===== */
+var state = {
+  playing:false,
+  master:80,
+  levels:{ rain:70, ocean:0, wind:0, fire:45, birds:0 },
+  enabled:{ rain:true, ocean:false, wind:false, fire:true, birds:false },
+  preset:'Rainy Night',
+  timerMinutes:0,
+  timerLeft:0            /* seconds remaining, 0 = off */
+};
+
+/* ===== 3. Audio engine (lazy — created on first gesture) ===== */
+var AC = null;            /* AudioContext */
+var masterGain = null, analyser = null, noiseBuf = null;
+var chains = {};          /* id -> {gain, ...} for continuous sounds */
+var schedTimer = null;    /* interval for crackles & chirps */
+var timerTick = null;     /* 1s interval for the sleep timer */
+
+function ensureAudio(){
+  if (AC) return;
+  var Ctx = window.AudioContext || window.webkitAudioContext;
+  AC = new Ctx();
+  masterGain = AC.createGain();
+  masterGain.gain.value = state.master / 100;
+  analyser = AC.createAnalyser();
+  analyser.fftSize = 512;
+  masterGain.connect(analyser);
+  analyser.connect(AC.destination);
+  /* 2 seconds of white noise, reused by every continuous sound */
+  noiseBuf = AC.createBuffer(1, AC.sampleRate * 2, AC.sampleRate);
+  var d = noiseBuf.getChannelData(0);
+  for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  buildChain('rain',  'bandpass',  900, 0.6, 0.55);
+  buildChain('ocean', 'lowpass',   420, 0.7, 0.60);
+  buildChain('wind',  'bandpass',  480, 1.0, 0.50);
+  buildChain('fire',  'bandpass', 1900, 2.0, 0.10);
+  addSwell('ocean', 0.08, 0.30);          /* slow wave swell */
+  addSweep('wind', 0.05, 240, 720);        /* wind gusts sweep the filter */
+  applyAllLevels();
+}
+function buildChain(id, type, freq, q, base){
+  var src = AC.createBufferSource();
+  src.buffer = noiseBuf; src.loop = true;
+  var flt = AC.createBiquadFilter();
+  flt.type = type; flt.frequency.value = freq; flt.Q.value = q;
+  var g = AC.createGain(); g.gain.value = 0;
+  src.connect(flt); flt.connect(g); g.connect(masterGain);
+  src.start();
+  chains[id] = { gain:g, filter:flt, base:base };
+}
+function addSwell(id, hz, depth){
+  var lfo = AC.createOscillator(); lfo.frequency.value = hz;
+  var lg = AC.createGain(); lg.gain.value = depth;
+  lfo.connect(lg); lg.connect(chains[id].gain.gain); lfo.start();
+}
+function addSweep(id, hz, lo, hi){
+  var lfo = AC.createOscillator(); lfo.frequency.value = hz;
+  var lg = AC.createGain(); lg.gain.value = (hi - lo) / 2;
+  chains[id].filter.frequency.value = (hi + lo) / 2;
+  lfo.connect(lg); lg.connect(chains[id].filter.frequency); lfo.start();
+}
+function levelGain(id){
+  if (!state.enabled[id]) return 0;
+  return (state.levels[id] / 100) * chains[id].base;
+}
+function applyAllLevels(){
+  if (!AC) return;
+  SOUNDS.forEach(function(s){
+    if (s.id === 'birds') return;               /* birds are scheduled chirps */
+    chains[s.id].gain.gain.setTargetAtTime(levelGain(s.id), AC.currentTime, 0.08);
+  });
+}
+function setMaster(){
+  if (AC) masterGain.gain.setTargetAtTime(state.master / 100, AC.currentTime, 0.05);
+}
+
+/* --- scheduled events: fire crackles & bird chirps --- */
+function firePop(){
+  if (!AC || !state.playing || !state.enabled.fire || state.levels.fire < 5) return;
+  var t = AC.currentTime;
+  var src = AC.createBufferSource();
+  src.buffer = noiseBuf;
+  src.playbackRate.value = 0.8 + Math.random() * 0.6;
+  var flt = AC.createBiquadFilter();
+  flt.type = 'bandpass'; flt.frequency.value = 1200 + Math.random() * 2400; flt.Q.value = 3;
+  var g = AC.createGain();
+  var peak = 0.25 * (state.levels.fire / 100);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(peak, t + 0.008);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05 + Math.random() * 0.06);
+  src.connect(flt); flt.connect(g); g.connect(masterGain);
+  src.start(t, Math.random() * 1.5, 0.15);
+  src.stop(t + 0.2);
+}
+function birdChirp(){
+  if (!AC || !state.playing || !state.enabled.birds || state.levels.birds < 5) return;
+  var t = AC.currentTime + 0.02;
+  var vol = 0.22 * (state.levels.birds / 100);
+  var syllables = 2 + Math.floor(Math.random() * 3);
+  for (var k = 0; k < syllables; k++){
+    var o = AC.createOscillator(); o.type = 'sine';
+    var f0 = 2200 + Math.random() * 1400;
+    var t0 = t + k * 0.14;
+    o.frequency.setValueAtTime(f0, t0);
+    o.frequency.exponentialRampToValueAtTime(f0 * 1.35, t0 + 0.07);
+    o.frequency.exponentialRampToValueAtTime(f0 * 0.9, t0 + 0.12);
+    var g = AC.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(vol, t0 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.12);
+    o.connect(g); g.connect(masterGain);
+    o.start(t0); o.stop(t0 + 0.14);
+  }
+}
+function startScheduler(){
+  stopScheduler();
+  schedTimer = setInterval(function(){
+    if (Math.random() < 0.4) firePop();
+    if (Math.random() < 0.22) birdChirp();
+  }, 150);
+}
+function stopScheduler(){ if (schedTimer){ clearInterval(schedTimer); schedTimer = null; } }
+
+/* ===== 4. Play / pause & sleep timer ===== */
+function setPlaying(on){
+  ensureAudio();
+  if (AC.state === 'suspended') AC.resume();
+  state.playing = on;
+  if (on){ startScheduler(); startViz(); }
+  else { stopScheduler(); stopViz(); drawVizIdle(); }
+  if (on && state.timerMinutes > 0 && state.timerLeft <= 0) state.timerLeft = state.timerMinutes * 60;
+  renderTransport(); renderTimer(); autosave();
+}
+function startTimerCountdown(){
+  stopTimerCountdown();
+  timerTick = setInterval(function(){
+    if (!state.playing || state.timerLeft <= 0){ stopTimerCountdown(); return; }
+    state.timerLeft--;
+    if (state.timerLeft <= 0){
+      setPlaying(false);
+      setStatus('Sleep timer finished — mix faded out.');
+      state.timerMinutes = 0;
+      document.getElementById('timerSel').value = '0';
+    }
+    renderTimer();
+  }, 1000);
+}
+function stopTimerCountdown(){ if (timerTick){ clearInterval(timerTick); timerTick = null; } }
+
+/* ===== 5. UI: build cards & presets ===== */
+var cardsEl = document.getElementById('cards');
+var sliders = {}, toggles = {};
+
+SOUNDS.forEach(function(s){
+  var card = document.createElement('div');
+  card.className = 'card'; card.id = 'card-' + s.id;
+  card.style.setProperty('--c', s.color);
+  card.innerHTML =
+    '<div class="cardhead">' +
+      '<span class="dot" style="background:' + s.color + '"></span>' +
+      '<span class="name">' + s.name + '</span>' +
+      '<span class="desc">' + s.desc + '</span>' +
+      '<button type="button" class="toggle" aria-pressed="false">Off</button>' +
+    '</div>' +
+    '<label class="rowlabel">' + s.name + ' level <output>0%</output></label>' +
+    '<input type="range" min="0" max="100" step="1" value="0" aria-label="' + s.name + ' level">';
+  cardsEl.appendChild(card);
+  var slider = card.querySelector('input[type="range"]');
+  var toggle = card.querySelector('.toggle');
+  var out = card.querySelector('output');
+  sliders[s.id] = { slider:slider, out:out, card:card };
+  toggles[s.id] = toggle;
+  slider.addEventListener('input', function(){
+    state.levels[s.id] = +slider.value;
+    if (+slider.value > 0 && !state.enabled[s.id]) setEnabled(s.id, true);
+    if (+slider.value === 0) setEnabled(s.id, false);
+    state.preset = null;
+    renderSound(s.id); renderMixLine(); renderPresets(); autosave();
+    if (state.playing) applyAllLevels();
+  });
+  toggle.addEventListener('click', function(){ setEnabled(s.id, !state.enabled[s.id]); });
+});
+
+var chipsEl = document.getElementById('presetChips');
+Object.keys(PRESETS).forEach(function(name){
+  var b = document.createElement('button');
+  b.type = 'button'; b.className = 'chip'; b.textContent = name;
+  b.setAttribute('aria-pressed', 'false');
+  b.addEventListener('click', function(){ applyPreset(name); });
+  chipsEl.appendChild(b);
+});
+
+function setEnabled(id, on){
+  state.enabled[id] = on;
+  if (on && state.levels[id] === 0) state.levels[id] = 50;
+  if (!on && id === 'birds'){ /* chirps stop on their own */ }
+  state.preset = null;
+  renderSound(id); renderMixLine(); renderPresets(); autosave();
+  if (state.playing) applyAllLevels();
+}
+function applyPreset(name){
+  var p = PRESETS[name];
+  if (!p) return;
+  SOUNDS.forEach(function(s){
+    state.levels[s.id] = p[s.id];
+    state.enabled[s.id] = p[s.id] > 0;
+    renderSound(s.id);
+  });
+  state.preset = name;
+  renderMixLine(); renderPresets(); autosave();
+  if (state.playing) applyAllLevels();
+  setStatus(name + ' preset loaded.');
+}
+
+/* ===== 6. Rendering ===== */
+function renderSound(id){
+  var r = sliders[id], on = state.enabled[id];
+  r.slider.value = state.levels[id];
+  r.out.textContent = state.levels[id] + '%';
+  r.card.classList.toggle('off', !on);
+  var t = toggles[id];
+  t.textContent = on ? 'On' : 'Off';
+  t.setAttribute('aria-pressed', String(on));
+}
+function renderAllSounds(){ SOUNDS.forEach(function(s){ renderSound(s.id); }); }
+function renderPresets(){
+  chipsEl.querySelectorAll('.chip').forEach(function(c){
+    c.setAttribute('aria-pressed', String(state.preset === c.textContent));
+  });
+}
+function renderMixLine(){
+  var parts = SOUNDS.filter(function(s){ return state.enabled[s.id] && state.levels[s.id] > 0; })
+    .map(function(s){ return s.name + ' ' + state.levels[s.id] + '%'; });
+  var el = document.getElementById('mixLine');
+  el.innerHTML = parts.length
+    ? '<b>' + parts.length + ' sound' + (parts.length > 1 ? 's' : '') + ' in the mix:</b> ' + parts.join(' · ')
+    : 'Nothing in the mix yet — raise a slider or pick a preset.';
+  document.getElementById('mixSummary').textContent =
+    state.playing
+      ? (parts.length ? 'Playing: ' + parts.join(' · ') : 'Playing — add a sound below.')
+      : (state.preset ? state.preset + ' preset loaded — press Play to hear it.'
+                      : 'Your mix is ready — press Play to hear it.');
+}
+function renderTransport(){
+  var b = document.getElementById('playBtn');
+  b.textContent = state.playing ? 'Pause' : 'Play';
+  b.setAttribute('aria-pressed', String(state.playing));
+  document.getElementById('playState').textContent = state.playing ? 'Playing' : 'Paused';
+  renderMixLine();
+}
+function renderTimer(){
+  var el = document.getElementById('timerLeft');
+  if (state.timerMinutes > 0 && state.timerLeft > 0){
+    var m = Math.floor(state.timerLeft / 60), s = state.timerLeft % 60;
+    el.textContent = 'Stops in ' + m + ':' + (s < 10 ? '0' : '') + s;
+  } else el.textContent = '';
+}
+function setStatus(msg, isErr){
+  var el = document.getElementById('status');
+  el.textContent = msg || '';
+  el.classList.toggle('err', !!isErr);
+}
+
+/* ===== 7. Visualizer (real analyser waveform; static if reduced motion) ===== */
+var viz = document.getElementById('viz');
+var vctx = viz.getContext('2d');
+var rafId = null;
+function drawVizIdle(){
+  vctx.clearRect(0, 0, viz.width, viz.height);
+  vctx.strokeStyle = '#2a4636'; vctx.lineWidth = 2;
+  vctx.beginPath(); vctx.moveTo(0, viz.height / 2); vctx.lineTo(viz.width, viz.height / 2); vctx.stroke();
+  if (REDUCED){
+    /* static bars from current levels */
+    var x = 20;
+    SOUNDS.forEach(function(s){
+      if (!state.enabled[s.id]) return;
+      var h = (state.levels[s.id] / 100) * 70;
+      vctx.fillStyle = s.color;
+      vctx.fillRect(x, (viz.height - h) / 2, 34, h);
+      x += 52;
+    });
+  }
+}
+function vizFrame(){
+  rafId = requestAnimationFrame(vizFrame);
+  var data = new Uint8Array(analyser.fftSize);
+  analyser.getByteTimeDomainData(data);
+  vctx.clearRect(0, 0, viz.width, viz.height);
+  vctx.strokeStyle = '#7fb069'; vctx.lineWidth = 2; vctx.beginPath();
+  var step = viz.width / data.length;
+  for (var i = 0; i < data.length; i++){
+    var y = (data[i] / 255) * viz.height;
+    if (i === 0) vctx.moveTo(0, y); else vctx.lineTo(i * step, y);
+  }
+  vctx.stroke();
+}
+function startViz(){
+  if (REDUCED){ drawVizIdle(); return; }
+  if (!rafId) vizFrame();
+}
+function stopViz(){ if (rafId){ cancelAnimationFrame(rafId); rafId = null; } }
+
+/* ===== 8. Save / Open (JSON, fully validated) ===== */
+/* Pure validation — no DOM access, so it can be unit-tested standalone. */
+function validateSave(data){
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return 'Not a JSON object.';
+  if (data.app !== 'drift-soundscape') return 'Not a DRIFT mix file.';
+  if (data.version !== 1) return 'Unsupported file version.';
+  if (!data.levels || typeof data.levels !== 'object' || Array.isArray(data.levels)) return 'Missing sound levels.';
+  if (!data.enabled || typeof data.enabled !== 'object' || Array.isArray(data.enabled)) return 'Missing sound switches.';
+  for (var i = 0; i < SOUNDS.length; i++){
+    var id = SOUNDS[i].id;
+    var lv = data.levels[id];
+    if (typeof lv !== 'number' || !isFinite(lv) || lv < 0 || lv > 100) return 'Bad level for ' + id + '.';
+    if (typeof data.enabled[id] !== 'boolean') return 'Bad switch for ' + id + '.';
+  }
+  if (typeof data.master !== 'number' || !isFinite(data.master) || data.master < 0 || data.master > 100)
+    return 'Bad master volume.';
+  if (TIMER_CHOICES.indexOf(data.timerMinutes) === -1) return 'Bad sleep timer value.';
+  if (data.preset !== null && (typeof data.preset !== 'string' || !(data.preset in PRESETS)))
+    return 'Bad preset name.';
+  return null; /* null = valid */
+}
+function collectSave(){
+  return {
+    app:'drift-soundscape', version:1,
+    levels:Object.assign({}, state.levels),
+    enabled:Object.assign({}, state.enabled),
+    master:state.master,
+    preset:state.preset,
+    timerMinutes:state.timerMinutes
+  };
+}
+function applySave(data){
+  state.levels = Object.assign({}, data.levels);
+  state.enabled = Object.assign({}, data.enabled);
+  state.master = data.master;
+  state.preset = data.preset;
+  state.timerMinutes = data.timerMinutes;
+  state.timerLeft = 0;
+  document.getElementById('master').value = state.master;
+  document.getElementById('masterOut').textContent = state.master + '%';
+  document.getElementById('timerSel').value = String(state.timerMinutes);
+  renderAllSounds(); renderPresets(); renderMixLine(); renderTimer();
+  setMaster(); applyAllLevels(); autosave();
+}
+function doSave(){
+  var blob = new Blob([JSON.stringify(collectSave(), null, 2)], { type:'application/json' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'drift-mix.json';
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  setStatus('Mix saved as drift-mix.json.');
+}
+function doOpenFile(file){
+  var reader = new FileReader();
+  reader.onload = function(){
+    var data;
+    try { data = JSON.parse(reader.result); }
+    catch (e){ setStatus('That file is not valid JSON — current mix kept.', true); return; }
+    var err = validateSave(data);
+    if (err){ setStatus('Could not open that file: ' + err + ' Current mix kept.', true); return; }
+    applySave(data);
+    setStatus('Mix loaded' + (data.preset ? ' (' + data.preset + ').' : '.'));
+  };
+  reader.onerror = function(){ setStatus('Could not read that file — current mix kept.', true); };
+  reader.readAsText(file);
+}
+
+/* ===== 9. Autosave (browser storage) ===== */
+var saveTimer = null;
+function autosave(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(function(){
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(collectSave())); } catch (e){ /* storage full/blocked: ignore */ }
+  }, 300);
+}
+function restoreAutosave(){
+  var raw;
+  try { raw = localStorage.getItem(SAVE_KEY); } catch (e){ return; }
+  if (!raw) return;
+  var data;
+  try { data = JSON.parse(raw); } catch (e){ return; }
+  if (validateSave(data) === null) applySave(data);
+}
+
+/* ===== 10. Wiring: transport, master, timer, files, keys ===== */
+document.getElementById('playBtn').addEventListener('click', function(){ setPlaying(!state.playing); });
+var masterEl = document.getElementById('master');
+masterEl.addEventListener('input', function(){
+  state.master = +masterEl.value;
+  document.getElementById('masterOut').textContent = state.master + '%';
+  setMaster(); autosave();
+});
+document.getElementById('timerSel').addEventListener('change', function(e){
+  state.timerMinutes = +e.target.value;
+  state.timerLeft = state.playing ? state.timerMinutes * 60 : 0;
+  if (state.playing) startTimerCountdown();
+  renderTimer(); autosave();
+});
+document.getElementById('saveBtn').addEventListener('click', doSave);
+document.getElementById('openBtn').addEventListener('click', function(){
+  document.getElementById('fileInput').click();
+});
+document.getElementById('fileInput').addEventListener('change', function(e){
+  if (e.target.files && e.target.files[0]) doOpenFile(e.target.files[0]);
+  e.target.value = '';
+});
+/* Keyboard: each key does exactly one thing. */
+document.addEventListener('keydown', function(e){
+  if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA')) return;
+  var k = e.key;
+  if (k >= '1' && k <= '5'){
+    var s = SOUNDS[+k - 1];
+    if (s){ setEnabled(s.id, !state.enabled[s.id]); e.preventDefault(); }
+  } else if (k === ' '){
+    setPlaying(!state.playing); e.preventDefault();
+  } else if (k === 's' || k === 'S'){
+    doSave(); e.preventDefault();
+  } else if (k === 'o' || k === 'O'){
+    document.getElementById('fileInput').click(); e.preventDefault();
+  }
+});
+
+/* ===== 11. Init ===== */
+restoreAutosave();
+renderAllSounds(); renderPresets(); renderTransport(); renderTimer();
+drawVizIdle();
+if (state.playing){ /* never auto-play on load: browsers require a gesture */ state.playing = false; renderTransport(); }
+</script>
+</body>
+</html>

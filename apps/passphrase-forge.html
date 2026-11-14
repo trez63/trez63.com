@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Passphrase Forge — passwords worth remembering</title>
+<style>
+/* ============ 1. Palette & base ============ */
+:root{
+  --paper:#f6f1e7;        /* warm cream paper */
+  --card:#fffdf7;         /* card cream */
+  --ink:#26221b;          /* charcoal ink */
+  --ink-soft:#5c5546;     /* muted brown-grey */
+  --line:#ddd3bd;         /* hairline */
+  --ember:#d95d1e;        /* molten amber-orange */
+  --ember-deep:#a83f0e;
+  --gold:#e9a13b;
+  --forge:#1e1a14;        /* dark forge panel */
+  --forge-ink:#ffd9a8;    /* glowing amber text */
+  --ok:#2e7d4f;
+  --warn:#b07d10;
+  --bad:#b3362b;
+  --radius:14px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:17px; line-height:1.5;
+}
+.wrap{max-width:640px; margin:0 auto; padding:20px 16px 48px}
+
+/* ============ 2. Header ============ */
+header{text-align:center; margin:6px 0 18px}
+h1{margin:0; font-size:30px; letter-spacing:.5px}
+h1 .flame{color:var(--ember)}
+.sub{margin:6px 0 0; color:var(--ink-soft); font-size:15px}
+
+/* ============ 3. Cards & mode tabs ============ */
+.card{
+  background:var(--card); border:1px solid var(--line);
+  border-radius:var(--radius); padding:16px; margin-bottom:14px;
+}
+.tabs{display:flex; gap:8px; margin-bottom:14px}
+.tab{
+  flex:1; min-height:48px; border-radius:10px; border:2px solid var(--line);
+  background:var(--card); color:var(--ink); font-size:16px; font-weight:700;
+  cursor:pointer;
+}
+.tab[aria-pressed="true"]{border-color:var(--ember); background:#fdeee2; color:var(--ember-deep)}
+.tab small{display:block; font-weight:400; font-size:12px; color:var(--ink-soft)}
+
+/* ============ 4. Forge output panel ============ */
+.forge{
+  background:var(--forge); color:var(--forge-ink);
+  border-radius:var(--radius); padding:18px 16px; margin-bottom:14px;
+  border:1px solid #3a3126;
+}
+.forge-label{font-size:12px; letter-spacing:2px; text-transform:uppercase; color:#b99a6b; margin:0 0 8px}
+.output{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:22px; line-height:1.35; word-break:break-all; overflow-wrap:anywhere;
+  margin:0; min-height:60px;
+}
+.output .sep{color:#8a6f45}
+.meter-row{display:flex; align-items:center; gap:10px; margin-top:14px}
+.meter{flex:1; height:10px; border-radius:6px; background:#3a3126; overflow:hidden}
+.meter > div{height:100%; width:0%; background:var(--gold); border-radius:6px; transition:width .25s}
+.grade{
+  font-weight:800; font-size:14px; padding:4px 10px; border-radius:20px;
+  background:#3a3126; color:var(--forge-ink); white-space:nowrap;
+}
+.stats{display:grid; grid-template-columns:1fr 1fr; gap:8px 16px; margin-top:12px; font-size:14px}
+.stats b{color:#fff3df; font-weight:700}
+.stats span{color:#cbb28a}
+.note{font-size:13px; color:#b99a6b; margin:10px 0 0}
+
+/* ============ 5. Controls ============ */
+fieldset{border:0; padding:0; margin:0 0 6px}
+legend{font-weight:800; font-size:15px; margin-bottom:8px}
+.row{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 0; border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}
+.row label{font-size:16px}
+.row .val{font-weight:800; color:var(--ember-deep); min-width:34px; text-align:right; font-variant-numeric:tabular-nums}
+input[type="range"]{width:100%; accent-color:var(--ember); height:32px; margin:2px 0 4px}
+input[type="checkbox"]{width:26px; height:26px; accent-color:var(--ember); flex:none; cursor:pointer}
+.chips{display:flex; flex-wrap:wrap; gap:8px}
+.chip{
+  min-height:44px; min-width:52px; padding:8px 14px; border-radius:22px;
+  border:2px solid var(--line); background:var(--card); font-size:16px; cursor:pointer;
+}
+.chip[aria-pressed="true"]{border-color:var(--ember); background:#fdeee2; color:var(--ember-deep); font-weight:700}
+
+/* ============ 6. Buttons ============ */
+.btn{
+  display:block; width:100%; min-height:54px; border:0; border-radius:12px;
+  font-size:18px; font-weight:800; cursor:pointer; margin-bottom:10px;
+}
+.btn-primary{background:var(--ember); color:#fff}
+.btn-primary:active{background:var(--ember-deep)}
+.btn-ghost{background:var(--card); color:var(--ink); border:2px solid var(--line); font-size:16px; min-height:48px}
+.btn-row{display:flex; gap:10px}
+.btn-row .btn{margin-bottom:0}
+.kbd-hint{font-size:13px; color:var(--ink-soft); text-align:center; margin:10px 0 0}
+kbd{
+  font-family:inherit; background:#efe8d6; border:1px solid var(--line);
+  border-bottom-width:2px; border-radius:5px; padding:1px 6px; font-size:12px;
+}
+
+/* ============ 7. History ============ */
+.hist-list{list-style:none; margin:0; padding:0}
+.hist-list li{border-top:1px solid var(--line); padding:10px 0}
+.hist-list li:first-child{border-top:0}
+.hist-item{
+  display:flex; justify-content:space-between; align-items:center; gap:10px;
+  width:100%; background:none; border:0; padding:4px 0; cursor:pointer; text-align:left;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:15px; color:var(--ink);
+}
+.hist-item .bits{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; font-size:13px; color:var(--ink-soft); white-space:nowrap}
+.empty{color:var(--ink-soft); font-size:15px; margin:4px 0}
+.linklike{background:none; border:0; color:var(--ember-deep); font-size:15px; font-weight:700; cursor:pointer; padding:8px 0}
+
+/* ============ 8. Status & footer ============ */
+#status{font-size:14px; min-height:20px; margin:2px 0 10px; text-align:center}
+#status.err{color:var(--bad); font-weight:700}
+#status.ok{color:var(--ok); font-weight:700}
+footer{font-size:13px; color:var(--ink-soft); text-align:center; margin-top:18px}
+footer p{margin:4px 0}
+.hidden{display:none !important}
+
+/* ============ 9. Small screens & motion ============ */
+@media (max-width:420px){
+  .output{font-size:19px}
+  h1{font-size:26px}
+  .stats{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  .meter > div{transition:none}
+}
+button:focus-visible, input:focus-visible{outline:3px solid var(--gold); outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ Header ============ -->
+  <header>
+    <h1><span class="flame">&#9876;</span> Passphrase Forge</h1>
+    <p class="sub">Strong passwords, made memorable. One tap, honest math, nothing leaves your device.</p>
+  </header>
+
+  <!-- ============ Mode tabs ============ -->
+  <div class="tabs" role="group" aria-label="Generation mode">
+    <button class="tab" id="tab-phrase" aria-pressed="true">Passphrase<small>words you can remember</small></button>
+    <button class="tab" id="tab-pass" aria-pressed="false">Password<small>random characters</small></button>
+  </div>
+
+  <!-- ============ Forge output ============ -->
+  <section class="forge" aria-live="polite">
+    <p class="forge-label">Fresh from the forge</p>
+    <p class="output" id="output" tabindex="0"></p>
+    <div class="meter-row">
+      <div class="meter" aria-hidden="true"><div id="meter-fill"></div></div>
+      <span class="grade" id="grade">—</span>
+    </div>
+    <div class="stats">
+      <span>Entropy <b id="stat-bits">—</b></span>
+      <span>Offline crack time <b id="stat-offline">—</b></span>
+      <span>Online crack time <b id="stat-online">—</b></span>
+      <span>Guesses needed <b id="stat-guesses">—</b></span>
+    </div>
+    <p class="note">Entropy is the honest number: how many guesses an attacker needs on average. Crack times assume 10 billion guesses/sec offline, 100/sec online.</p>
+  </section>
+
+  <button class="btn btn-primary" id="btn-generate">&#9876; Forge a new one</button>
+  <button class="btn btn-ghost" id="btn-copy">Copy to clipboard</button>
+  <p class="kbd-hint"><kbd>G</kbd> forge &nbsp; <kbd>C</kbd> copy &nbsp; <kbd>S</kbd> save &nbsp; <kbd>O</kbd> open</p>
+  <p id="status" role="status"></p>
+
+  <!-- ============ Passphrase controls ============ -->
+  <section class="card" id="panel-phrase">
+    <fieldset>
+      <legend>Passphrase settings</legend>
+      <label for="words">Words: <span class="val" id="words-val">5</span></label>
+      <input type="range" id="words" min="3" max="8" step="1" value="5" aria-label="Number of words">
+      <div class="row"><span>Separator</span>
+        <span class="chips" id="sep-chips" role="group" aria-label="Word separator">
+          <button class="chip" data-sep=" " aria-pressed="true">space</button>
+          <button class="chip" data-sep="-" aria-pressed="false">-</button>
+          <button class="chip" data-sep="_" aria-pressed="false">_</button>
+          <button class="chip" data-sep="." aria-pressed="false">.</button>
+        </span>
+      </div>
+      <div class="row"><label for="opt-cap">Capitalize each word</label><input type="checkbox" id="opt-cap" checked></div>
+      <div class="row"><label for="opt-num">Add a number at the end</label><input type="checkbox" id="opt-num" checked></div>
+      <div class="row"><label for="opt-sym">Add a symbol at the end</label><input type="checkbox" id="opt-sym"></div>
+    </fieldset>
+  </section>
+
+  <!-- ============ Password controls ============ -->
+  <section class="card hidden" id="panel-pass">
+    <fieldset>
+      <legend>Password settings</legend>
+      <label for="length">Length: <span class="val" id="length-val">16</span></label>
+      <input type="range" id="length" min="8" max="64" step="1" value="16" aria-label="Password length">
+      <div class="row"><label for="opt-lower">Lowercase a–z</label><input type="checkbox" id="opt-lower" checked></div>
+      <div class="row"><label for="opt-upper">Uppercase A–Z</label><input type="checkbox" id="opt-upper" checked></div>
+      <div class="row"><label for="opt-digits">Digits 0–9</label><input type="checkbox" id="opt-digits" checked></div>
+      <div class="row"><label for="opt-symbols">Symbols !@#$…</label><input type="checkbox" id="opt-symbols" checked></div>
+      <div class="row"><label for="opt-noamb">Skip look-alikes (1 l I 0 O)</label><input type="checkbox" id="opt-noamb"></div>
+    </fieldset>
+  </section>
+
+  <!-- ============ History ============ -->
+  <section class="card">
+    <h2 style="font-weight:800; font-size:15px; margin:0 0 4px">Recent forges</h2>
+    <p class="empty" id="hist-empty">Nothing forged yet this session — your last 8 appear here. Tap one to copy it.</p>
+    <ul class="hist-list" id="hist-list"></ul>
+    <button class="linklike hidden" id="btn-clear-hist">Clear history</button>
+  </section>
+
+  <!-- ============ Save / Open ============ -->
+  <div class="btn-row">
+    <button class="btn btn-ghost" id="btn-save">Save JSON</button>
+    <button class="btn btn-ghost" id="btn-open">Open JSON</button>
+  </div>
+  <input type="file" id="file-input" accept=".json,application/json" class="hidden" aria-label="Open a saved JSON file">
+
+  <footer>
+    <p>Generated with your device's secure random source — never Math.random, never sent anywhere.</p>
+    <p>Works fully offline. Settings and history autosave in this browser.</p>
+  </footer>
+</div>
+
+<script>
+"use strict";
+/* ================================================================
+   PASSPHRASE FORGE — one self-contained file, no network, no libs.
+   Sections: 1 Wordlist · 2 Secure random · 3 Entropy & crack time
+   4 Generation · 5 State & persistence · 6 Save/Open validation
+   7 Rendering · 8 Wiring & keyboard · 9 Init
+   Pure helpers (sections 2–4, 6) run without a DOM so they can be
+   unit-checked in node; DOM work is guarded at the bottom.
+   ================================================================ */
+
+/* ---------- 1. Wordlist ---------- */
+/* Plain everyday words, 3–9 letters. Deduplicated at load; entropy is
+   computed from the real deduped size, so the math stays honest. */
+var WORDS = (
+"apple apricot banana berry cherry lemon mango melon orange peach pear plum grape fig kiwi lime " +
+"olive onion garlic ginger pepper potato tomato carrot celery cabbage lettuce pumpkin squash cucumber radish turnip yam bean pea corn wheat oats rice barley rye honey sugar salt basil mint thyme sage clove nutmeg cinnamon vanilla cocoa coffee tea milk cream butter cheese bread flour " +
+"dog cat bird fish horse cow pig sheep goat deer fox wolf bear lion tiger eagle owl hawk crow raven duck goose swan heron falcon shark whale dolphin seal otter beaver badger mole mouse rat rabbit squirrel raccoon skunk coyote bison moose elk zebra giraffe hippo rhino monkey gorilla panda koala kangaroo penguin turtle frog toad snake lizard gecko spider ant bee wasp moth butterfly beetle cricket dragonfly snail worm salmon trout bass pike " +
+"sun moon star comet meteor planet galaxy nebula cosmos orbit eclipse aurora rainbow thunder lightning storm rain snow hail sleet frost dew mist fog cloud breeze wind gale river stream creek brook pond lake ocean sea wave tide surf sand beach shore coast cliff crag peak ridge valley canyon gorge meadow prairie field forest grove jungle desert oasis island harbor bay cove lagoon spring delta glacier tundra volcano ember flame blaze ash smoke spark glow shadow dawn dusk noon night morning evening spring summer autumn winter " +
+"table chair lamp candle mirror clock watch key lock door gate fence bridge tower castle cabin cottage barn forge anvil hammer nail screw wrench pliers saw drill ladder rope chain hook anchor sail ship boat canoe kayak raft oar paddle wheel cart wagon sled kite balloon rocket compass map globe lens brush pen pencil paper book page letter stamp coin gem pearl ruby topaz jade opal marble granite slate velvet silk linen cotton wool leather iron steel brass pewter " +
+"run jump swim climb dance sing play read write draw paint build craft weld sew knit weave spin sail row paddle hike camp travel wander roam explore discover invent create design plan dream think wonder laugh smile whisper shout listen watch learn teach grow bloom harvest gather hunt fish cook bake brew pour stir taste smell touch feel rest sleep wake rise fall float drift glide soar dive " +
+"red blue green gold silver amber copper bronze crimson scarlet azure violet indigo coral ivory ebony bright soft swift calm brave bold kind warm cool fresh crisp clear pure true free wild gentle quiet proud happy merry keen sharp quick slow deep high low wide long tall short grand tiny huge giant noble loyal honest eager clever witty jolly " +
+"king queen knight bard mage scout ranger pilot sailor farmer baker smith weaver hunter fisher miner mason tailor clerk mayor elder friend cousin sister brother mother father uncle aunt hero sage poet artist writer teacher doctor lawyer judge chief captain guard soldier shepherd miller carter porter jester monk friar duke earl lord lady squire page herald envoy merchant trader banker brewer butcher cobbler potter glazier tinker peddler prince princess north south east west"
+).split(/\s+/).filter(function (w, i, a) { return w && a.indexOf(w) === i; });
+
+/* ---------- 2. Secure random ---------- */
+function secureInt(n) {
+  /* Uniform integer in [0, n) from the platform CSPRNG. Falls back to
+     Math.random only where no crypto source exists (never in browsers). */
+  if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+    var buf = new Uint32Array(1), max = Math.floor(4294967296 / n) * n, v;
+    do { crypto.getRandomValues(buf); v = buf[0]; } while (v >= max);
+    return v % n;
+  }
+  return Math.floor(Math.random() * n);
+}
+function pick(arr) { return arr[secureInt(arr.length)]; }
+
+/* ---------- 3. Entropy & crack time ---------- */
+var SYMBOLS = "!@#$%^&*";
+function log2(x) { return Math.log(x) / Math.log(2); }
+
+function phraseEntropy(s) {
+  var bits = s.words * log2(WORDS.length);
+  if (s.cap) bits += s.words * 1;          /* each word capitalized or not */
+  if (s.num) bits += log2(10);             /* one digit, fixed position */
+  if (s.sym) bits += log2(SYMBOLS.length); /* one symbol, fixed position */
+  return bits;
+}
+function passwordEntropy(s) {
+  var size = 0;
+  if (s.lower) size += 26;
+  if (s.upper) size += 26;
+  if (s.digits) size += 10;
+  if (s.symbols) size += 32;
+  if (size === 0) return 0;
+  return s.length * log2(size);
+}
+function gradeFor(bits) {
+  if (bits < 28) return ["Weak", "#e0533d"];
+  if (bits < 45) return ["Fair", "#e9a13b"];
+  if (bits < 60) return ["Good", "#8fb14a"];
+  if (bits < 80) return ["Strong", "#4da167"];
+  return ["Excellent", "#2e7d4f"];
+}
+function formatDuration(seconds) {
+  if (!isFinite(seconds)) return "effectively never";
+  if (seconds < 1) return "under a second";
+  if (seconds < 60) return Math.round(seconds) + " sec";
+  var m = seconds / 60;
+  if (m < 60) return Math.round(m) + " min";
+  var h = m / 60;
+  if (h < 24) return Math.round(h) + " hours";
+  var d = h / 24;
+  if (d < 365) return Math.round(d) + " days";
+  var y = d / 365.25;
+  if (y < 1000) return Math.round(y) + " years";
+  if (y < 1e6) return Math.round(y / 1000) + " thousand years";
+  if (y < 1e9) return (y / 1e6).toFixed(1) + " million years";
+  return (y / 1e9).toFixed(1) + " billion years";
+}
+function crackTimes(bits) {
+  var guesses = Math.pow(2, bits);
+  return {
+    guesses: guesses,
+    offline: formatDuration(guesses / 1e10), /* 10B guesses/sec, stolen hash */
+    online: formatDuration(guesses / 100)     /* 100 guesses/sec, rate-limited */
+  };
+}
+function formatGuesses(g) {
+  if (g < 1e3) return String(Math.round(g));
+  var exp = Math.floor(log2(g));
+  return "about 2^" + exp;
+}
+
+/* ---------- 4. Generation ---------- */
+function capWord(w) { return w.charAt(0).toUpperCase() + w.slice(1); }
+function generatePhrase(s) {
+  var words = [], i;
+  for (i = 0; i < s.words; i++) {
+    var w = pick(WORDS);
+    words.push(s.cap ? capWord(w) : w);
+  }
+  var out = words.join(s.sep);
+  if (s.num) out += String(secureInt(10));
+  if (s.sym) out += pick(SYMBOLS.split(""));
+  return out;
+}
+function generatePassword(s) {
+  var pool = "", out = "", i;
+  var lower = "abcdefghijklmnopqrstuvwxyz", upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+      digits = "0123456789", symbols = "!@#$%^&*()-_=+[]{};:,.<>?/~";
+  if (s.noamb) {
+    lower = lower.replace(/[l]/g, ""); upper = upper.replace(/[IO]/g, "");
+    digits = digits.replace(/[01]/g, ""); symbols = symbols.replace(/[|]/g, "");
+  }
+  if (s.lower) pool += lower;
+  if (s.upper) pool += upper;
+  if (s.digits) pool += digits;
+  if (s.symbols) pool += symbols;
+  if (!pool) pool = lower; /* at least one set: never generate nothing */
+  for (i = 0; i < s.length; i++) out += pool.charAt(secureInt(pool.length));
+  return out;
+}
+function generate(s) {
+  return s.mode === "passphrase" ? generatePhrase(s) : generatePassword(s);
+}
+function entropyOf(s) {
+  return s.mode === "passphrase" ? phraseEntropy(s) : passwordEntropy(s);
+}
+
+/* ---------- 5. State & persistence ---------- */
+var LS_KEY = "passphrase-forge-v1";
+var DEFAULTS = {
+  mode: "passphrase",
+  words: 5, sep: " ", cap: true, num: true, sym: false,
+  length: 16, lower: true, upper: true, digits: true, symbols: true, noamb: false,
+  history: [] /* [{text, bits, mode}] newest first, max 8 */
+};
+var state = JSON.parse(JSON.stringify(DEFAULTS));
+
+function saveLocal() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) { /* private mode: fine */ }
+}
+function loadLocal() {
+  try {
+    var raw = localStorage.getItem(LS_KEY);
+    if (!raw) return;
+    var data = JSON.parse(raw);
+    var v = validateSave({ app: "passphrase-forge", version: 1, settings: data, history: data.history || [] });
+    if (v.ok) applySettings(data);
+  } catch (e) { /* corrupted local copy: keep defaults */ }
+}
+
+/* ---------- 6. Save/Open validation ---------- */
+/* Pure: takes parsed JSON, returns {ok, reason}. Never mutates state,
+   so a bad file can never wipe the current work. */
+function isBool(x) { return typeof x === "boolean"; }
+function isIntIn(x, lo, hi) { return Number.isInteger(x) && x >= lo && x <= hi; }
+function validateSave(data) {
+  if (!data || typeof data !== "object" || Array.isArray(data)) return { ok: false, reason: "Not a JSON object." };
+  if (data.app !== "passphrase-forge") return { ok: false, reason: "Not a Passphrase Forge file." };
+  if (typeof data.version !== "number") return { ok: false, reason: "Missing version number." };
+  var s = data.settings;
+  if (!s || typeof s !== "object") return { ok: false, reason: "Missing settings." };
+  if (s.mode !== "passphrase" && s.mode !== "password") return { ok: false, reason: "Unknown mode." };
+  if (!isIntIn(s.words, 3, 8)) return { ok: false, reason: "Word count out of range (3–8)." };
+  if ([" ", "-", "_", "."].indexOf(s.sep) < 0) return { ok: false, reason: "Unknown separator." };
+  if (!isBool(s.cap) || !isBool(s.num) || !isBool(s.sym)) return { ok: false, reason: "Bad passphrase toggles." };
+  if (!isIntIn(s.length, 8, 64)) return { ok: false, reason: "Password length out of range (8–64)." };
+  if (!isBool(s.lower) || !isBool(s.upper) || !isBool(s.digits) || !isBool(s.symbols) || !isBool(s.noamb))
+    return { ok: false, reason: "Bad password toggles." };
+  var h = data.history;
+  if (h !== undefined) {
+    if (!Array.isArray(h) || h.length > 50) return { ok: false, reason: "Bad history list." };
+    for (var i = 0; i < h.length; i++) {
+      var item = h[i];
+      if (!item || typeof item.text !== "string" || item.text.length > 200 ||
+          typeof item.bits !== "number" || (item.mode !== "passphrase" && item.mode !== "password"))
+        return { ok: false, reason: "Bad history entry #" + (i + 1) + "." };
+    }
+  }
+  return { ok: true };
+}
+function applySettings(s) {
+  ["mode", "words", "sep", "cap", "num", "sym",
+   "length", "lower", "upper", "digits", "symbols", "noamb"].forEach(function (k) {
+    if (s[k] !== undefined) state[k] = s[k];
+  });
+  if (Array.isArray(s.history)) state.history = s.history.slice(0, 8);
+}
+function exportJSON() {
+  return JSON.stringify({ app: "passphrase-forge", version: 1, settings: state, history: state.history }, null, 2);
+}
+
+/* ---------- 7. Rendering (DOM) ---------- */
+var el = {};
+function $(id) { return document.getElementById(id); }
+function showStatus(msg, kind) {
+  el.status.textContent = msg;
+  el.status.className = kind || "";
+}
+function renderOutput(text, bits) {
+  /* Highlight separators faintly so word boundaries stay readable. */
+  var html = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  if (state.mode === "passphrase") {
+    var sep = state.sep;
+    var esc = sep.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    html = html.replace(new RegExp(esc, "g"), '<span class="sep">' + (sep === " " ? "·" : sep) + "</span>");
+  }
+  el.output.innerHTML = html;
+  var t = crackTimes(bits);
+  var g = gradeFor(bits);
+  el.grade.textContent = g[0] + " · " + Math.round(bits) + " bits";
+  el.grade.style.background = g[1];
+  el.grade.style.color = "#fff";
+  el.meterFill.style.width = Math.min(100, bits) + "%";
+  el.meterFill.style.background = g[1];
+  el.statBits.textContent = Math.round(bits) + " bits";
+  el.statOffline.textContent = t.offline;
+  el.statOnline.textContent = t.online;
+  el.statGuesses.textContent = formatGuesses(t.guesses);
+}
+function renderHistory() {
+  el.histList.innerHTML = "";
+  el.histEmpty.classList.toggle("hidden", state.history.length > 0);
+  el.btnClearHist.classList.toggle("hidden", state.history.length === 0);
+  state.history.forEach(function (item) {
+    var li = document.createElement("li");
+    var b = document.createElement("button");
+    b.className = "hist-item";
+    b.type = "button";
+    var span = document.createElement("span");
+    span.textContent = item.text;
+    var bits = document.createElement("span");
+    bits.className = "bits";
+    bits.textContent = Math.round(item.bits) + " bits · tap to copy";
+    b.appendChild(span); b.appendChild(bits);
+    b.addEventListener("click", function () { copyText(item.text); });
+    li.appendChild(b);
+    el.histList.appendChild(li);
+  });
+}
+function renderControls() {
+  el.tabPhrase.setAttribute("aria-pressed", state.mode === "passphrase");
+  el.tabPass.setAttribute("aria-pressed", state.mode === "password");
+  el.panelPhrase.classList.toggle("hidden", state.mode !== "passphrase");
+  el.panelPass.classList.toggle("hidden", state.mode !== "password");
+  el.words.value = state.words; el.wordsVal.textContent = state.words;
+  el.lengthEl.value = state.length; el.lengthVal.textContent = state.length;
+  el.optCap.checked = state.cap; el.optNum.checked = state.num; el.optSym.checked = state.sym;
+  el.optLower.checked = state.lower; el.optUpper.checked = state.upper;
+  el.optDigits.checked = state.digits; el.optSymbols.checked = state.symbols;
+  el.optNoamb.checked = state.noamb;
+  Array.prototype.forEach.call(el.sepChips.querySelectorAll(".chip"), function (c) {
+    c.setAttribute("aria-pressed", c.getAttribute("data-sep") === state.sep);
+  });
+}
+
+/* ---------- Forge, copy, save/open ---------- */
+var current = ""; /* last generated string, verbatim (rendered output swaps in dots) */
+function forge() {
+  var text = generate(state);
+  var bits = entropyOf(state);
+  current = text;
+  renderOutput(text, bits);
+  state.history.unshift({ text: text, bits: bits, mode: state.mode });
+  if (state.history.length > 8) state.history.length = 8;
+  renderHistory();
+  saveLocal();
+  return text;
+}
+function currentText() { return current; }
+function copyText(text) {
+  var done = function () { showStatus("Copied to clipboard.", "ok"); };
+  var fail = function () { showStatus("Copy failed — select the text and copy it manually.", "err"); };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text, done, fail); });
+  } else fallbackCopy(text, done, fail);
+}
+function fallbackCopy(text, done, fail) {
+  try {
+    var ta = document.createElement("textarea");
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    var ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    ok ? done() : fail();
+  } catch (e) { fail(); }
+}
+function saveFile() {
+  var blob = new Blob([exportJSON()], { type: "application/json" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "passphrase-forge.json";
+  document.body.appendChild(a); a.click();
+  setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  showStatus("Saved passphrase-forge.json — settings and history.", "ok");
+}
+function openFile(file) {
+  var reader = new FileReader();
+  reader.onload = function () {
+    var data;
+    try { data = JSON.parse(reader.result); }
+    catch (e) { showStatus("That file is not valid JSON — nothing changed.", "err"); return; }
+    var v = validateSave(data);
+    if (!v.ok) { showStatus("Rejected: " + v.reason + " Nothing changed.", "err"); return; }
+    applySettings(data.settings);
+    if (Array.isArray(data.history)) state.history = data.history.slice(0, 8);
+    renderControls(); renderHistory(); saveLocal();
+    forge();
+    showStatus("Loaded — settings and history restored.", "ok");
+  };
+  reader.onerror = function () { showStatus("Could not read that file — nothing changed.", "err"); };
+  reader.readAsText(file);
+}
+
+/* ---------- 8. Wiring & keyboard ---------- */
+function readControls() {
+  state.words = parseInt(el.words.value, 10);
+  state.length = parseInt(el.lengthEl.value, 10);
+  state.cap = el.optCap.checked; state.num = el.optNum.checked; state.sym = el.optSym.checked;
+  state.lower = el.optLower.checked; state.upper = el.optUpper.checked;
+  state.digits = el.optDigits.checked; state.symbols = el.optSymbols.checked;
+  state.noamb = el.optNoamb.checked;
+  el.wordsVal.textContent = state.words;
+  el.lengthVal.textContent = state.length;
+}
+function wire() {
+  ["output", "grade", "meter-fill", "stat-bits", "stat-offline", "stat-online",
+   "stat-guesses", "status", "hist-list", "hist-empty", "btn-clear-hist",
+   "tab-phrase", "tab-pass", "panel-phrase", "panel-pass",
+   "words", "words-val", "length", "length-val",
+   "opt-cap", "opt-num", "opt-sym", "opt-lower", "opt-upper",
+   "opt-digits", "opt-symbols", "opt-noamb", "sep-chips",
+   "btn-generate", "btn-copy", "btn-save", "btn-open", "file-input"].forEach(function (id) {
+    var key = id.replace(/-([a-z])/g, function (_, c) { return c.toUpperCase(); });
+    el[key] = $(id);
+  });
+  el.lengthEl = el.length; /* alias: avoids confusion with window.length */
+
+  el.tabPhrase.addEventListener("click", function () { state.mode = "passphrase"; renderControls(); forge(); saveLocal(); });
+  el.tabPass.addEventListener("click", function () { state.mode = "password"; renderControls(); forge(); saveLocal(); });
+
+  el.btnGenerate.addEventListener("click", function () { forge(); showStatus("", ""); });
+  el.btnCopy.addEventListener("click", function () { copyText(currentText()); });
+  el.btnSave.addEventListener("click", saveFile);
+  el.btnOpen.addEventListener("click", function () { el.fileInput.click(); });
+  el.fileInput.addEventListener("change", function () {
+    if (el.fileInput.files.length) openFile(el.fileInput.files[0]);
+    el.fileInput.value = "";
+  });
+  el.btnClearHist.addEventListener("click", function () {
+    state.history = []; renderHistory(); saveLocal(); showStatus("History cleared.", "ok");
+  });
+  Array.prototype.forEach.call(el.sepChips.querySelectorAll(".chip"), function (c) {
+    c.addEventListener("click", function () {
+      state.sep = c.getAttribute("data-sep"); renderControls(); forge(); saveLocal();
+    });
+  });
+  ["words", "length", "optCap", "optNum", "optSym",
+   "optLower", "optUpper", "optDigits", "optSymbols", "optNoamb"].forEach(function (k) {
+    el[k].addEventListener("input", function () { readControls(); forge(); saveLocal(); });
+    el[k].addEventListener("change", function () { readControls(); forge(); saveLocal(); });
+  });
+
+  /* Keyboard: one key = one function. Ignored while typing in a field. */
+  document.addEventListener("keydown", function (e) {
+    var t = e.target;
+    if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT")) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var k = e.key.toLowerCase();
+    if (k === "g") { e.preventDefault(); forge(); }
+    else if (k === "c") { e.preventDefault(); copyText(currentText()); }
+    else if (k === "s") { e.preventDefault(); saveFile(); }
+    else if (k === "o") { e.preventDefault(); el.fileInput.click(); }
+  });
+}
+
+/* ---------- 9. Init ---------- */
+if (typeof document !== "undefined" && document.getElementById) {
+  loadLocal();
+  wire();
+  renderControls();
+  renderHistory();
+  forge(); /* a finished result on load — never a blank screen */
+}
+
+/* Node-check hooks: pure helpers are reachable for testing. */
+if (typeof module !== "undefined") {
+  module.exports = { WORDS: WORDS, validateSave: validateSave, phraseEntropy: phraseEntropy,
+    passwordEntropy: passwordEntropy, crackTimes: crackTimes, gradeFor: gradeFor,
+    generatePhrase: generatePhrase, generatePassword: generatePassword, DEFAULTS: DEFAULTS };
+}
+</script>
+</body>
+</html>

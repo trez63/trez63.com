@@ -1,0 +1,779 @@
+<!doctype html>
+<!-- Belfry | 2026-11-12 | A six-bell change-ringing studio. Swap adjacent positions, trace a bell through a braided score, then play or export the peal. A midnight-blue bell chamber and ivory notation desk frame a musical permutation instrument distinct from Stillpoint's ambient garden and Paper Cinema's optical film. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#152e37">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data: blob:; media-src data: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Belfry · Change-ringing studio</title>
+<style>
+:root{color-scheme:light;--ink:#172d33;--muted:#546368;--surface:#faf8f1;--paper:#f3f1e7;--line:#c9c9b9;--teal:#27564e;--gold:#debb70;--display:"Baskervville",Georgia,"Times New Roman",serif;--body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;font-family:var(--body);color:var(--ink);background:var(--paper)}
+*,*::before,*::after{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 60% 10%,#fbfaf3 0,transparent 64%),var(--paper)}
+[hidden]{display:none!important}button,select,input,textarea{font:inherit}button,select{touch-action:manipulation}button{display:inline-flex;align-items:center;justify-content:center;gap:.48em;min-height:44px;padding:8px 15px;line-height:1.2;background:var(--surface);border:1px solid #bcbfb1;color:var(--ink);border-radius:8px;font-weight:630;cursor:pointer}button:disabled{cursor:default;opacity:.46}button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid #bd571b;outline-offset:3px}button svg.icon,svg.icon{display:block;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.55;stroke-linecap:round;stroke-linejoin:round;flex:none}button svg path{vector-effect:non-scaling-stroke}h1,h2,h3,p{margin:0}select,input[type=text],textarea{min-width:0;max-width:100%;color:var(--ink);background:var(--surface);border:1px solid #b6bcae;border-radius:7px;font-size:16px;min-height:44px}input[type=text],textarea{padding:9px 11px}select{padding:8px 25px 8px 10px}textarea{width:100%;resize:vertical;font-family:var(--mono);line-height:1.45}label .fieldname,.fieldname{display:block;font-weight:670;font-size:.82rem;letter-spacing:.018em;margin-bottom:5px}
+.wrapper{max-width:1232px;margin:0 auto;padding:22px 40px 48px;padding-left:max(40px,env(safe-area-inset-left));padding-right:max(40px,env(safe-area-inset-right));padding-bottom:max(48px,env(safe-area-inset-bottom))}
+.mast{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:19px}.identity{display:flex;gap:13px;align-items:center}.mark{width:54px;height:59px;flex:none;color:#264d49}.mast h1{font:500 clamp(2.75rem,5vw,4.25rem)/.93 var(--display);letter-spacing:-.066em}.tagline{font-size:.92rem;margin-top:7px;color:#445a5b;letter-spacing:.015em}.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.primary{background:var(--teal);color:#fffdf2;border-color:var(--teal)}.guide-button{background:transparent;border-color:transparent}.guide-button svg{color:var(--teal)}
+.chamber{position:relative;isolation:isolate;overflow:hidden;border:1px solid #192e33;border-radius:17px;background:radial-gradient(ellipse at 50% 100%,#31535a 0,#1f3b45 50%,#152b36 85%);color:#f9f6df;box-shadow:0 5px 18px #182f2e19}.chamber::before{content:"";position:absolute;pointer-events:none;z-index:-1;inset:0;background:repeating-linear-gradient(90deg,transparent 0,transparent calc(100% / 12 - 1px),#b9d7cc09 calc(100% / 12))}.stagebar{display:flex;justify-content:space-between;gap:12px;align-items:baseline;padding:18px 26px 8px}.stagebar h2{font:500 1.35rem/1.05 var(--display);letter-spacing:-.025em;color:#fbefcd}.stagebar p{font-size:.85rem;color:#d9e1d7}.bell-rack{position:relative;padding:0 24px 8px}.bell-rack::before{content:"";position:absolute;top:14px;left:0;right:0;height:9px;border-top:1px solid #91a69a70;border-bottom:1px solid #101f29;box-shadow:0 3px 7px #07141e55;background:linear-gradient(#738077,#5c685d 30%,#41554c 55%,#404f45)}
+#bells{position:relative;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:clamp(1px,1.4vw,18px);max-width:1030px;margin:0 auto}.bell-key{isolation:isolate;flex-direction:column;gap:0;position:relative;padding:0 1px 7px;border:1px solid transparent;background:transparent;color:#f5dfad;min-width:0;border-radius:10px;font-family:var(--mono);font-weight:550;line-height:1.12;text-align:center}.bell-key svg{display:block;width:100%;height:clamp(87px,12vw,144px);overflow:visible}.bell-key:focus-visible{outline-color:#ffde97;outline-offset:0}.bell-key.sounding,.bell-key[aria-pressed=true]{background:radial-gradient(ellipse at center,#d7a95a35 0,transparent 73%);color:white;border-color:#e6c4787a}.bell-key .bell-label{font-size:.86rem;line-height:1.4}.bell-key.sounding svg{filter:drop-shadow(0 2px 5px #e2b55c68)}
+.transport{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;background:#112832eb;padding:13px 25px;border-top:1px solid #adc3b829}.transport button{color:#fff3d8;background:#1c3740;border-color:#6a7a78}.transport .play{background:#eacc8c;color:#182d30;border-color:#eacc8c;min-width:122px}.transport button:focus-visible,.transport select:focus-visible,.transport input:focus-visible{outline-color:#ffd981}.transport-actions,.sound-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.sound-controls{gap:22px}.inline-control{display:flex;gap:7px;align-items:center;font-size:.86rem;color:#f1f2e2}.inline-control select{color:#fff4d6;border-color:#647778;background:#1d3741;min-height:44px}.tempo{display:grid;grid-template-columns:auto auto;gap:0 9px;align-items:center}.tempo>span{font-size:.77rem;color:#dfebdf}.tempo output{font:.8rem/1 var(--mono);color:#f7dab0;text-align:right}.tempo input{margin:0;min-height:27px;width:140px;grid-column:1/-1;accent-color:#e4c384;cursor:pointer}#status{font-size:.9rem;font-weight:560;line-height:1.42;color:#27564e;overflow-wrap:anywhere}#status:not(:empty){margin:11px 2px}
+.bench{display:grid;grid-template-columns:minmax(0,1.48fr) minmax(280px,1fr);gap:20px;align-items:start;margin-top:20px}.sheet,.editor{min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:13px;box-shadow:0 3px 11px #243a3008}.sheet{overflow:hidden}.sheet-head,.edit-head{padding:20px 22px 15px;border-bottom:1px solid var(--line)}.sheet-title,.edit-title,.change-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.sheet-title h2,.edit-title h2{font:500 1.82rem/1.12 var(--display);letter-spacing:-.047em}.sheet-title p,.edit-title p{font:.82rem/1.5 var(--mono);color:var(--muted)}.setup{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.8fr);gap:12px;margin-top:15px}.setup input,.setup select{width:100%}.paper{padding:12px 18px 3px;background:linear-gradient(90deg,#d4c8a50a,transparent 70%,#d4c8a50a)}#score{width:100%;max-width:100%;min-width:0}#score>svg{display:block;width:100%;height:auto}#score [data-row]{cursor:pointer}.sheet-foot{border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 21px;flex-wrap:wrap}.sheet-foot label{display:flex;align-items:center;gap:8px;font-size:.84rem;font-weight:650}.sheet-foot p{font-size:.82rem;color:var(--muted)}.editor{background:#f8f7ed}.edit-head{background:#f0f0e4;border-radius:13px 13px 0 0}.row-navigator{display:flex;gap:6px}.square{width:44px;padding:8px;flex:none;color:var(--teal)}.row-state{padding:16px 21px 17px}#selectedLabel{font-weight:650;color:var(--teal)}#order{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;margin:9px 0 17px}#order>span{display:grid;place-items:center;min-width:0;min-height:39px;border:1px solid #c8c9b6;border-radius:8px;background:#fffdf6;font:500 1.4rem/1 var(--display)}.change-head h3{font-size:1rem;letter-spacing:-.02em}.change-head button{border-color:transparent;padding-inline:6px;background:transparent;color:var(--teal);font-size:.86rem}.hint{color:var(--muted);font-size:.87rem;line-height:1.45;margin:0 0 9px}.pair-buttons{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}.pair-buttons button{padding:6px 1px;min-width:0;min-height:45px;background:#fffdf6;font-family:var(--mono);font-size:.87rem;line-height:1.3;white-space:normal}.pair-buttons button[aria-pressed=true]{color:#fffaeb;background:var(--teal);border-color:var(--teal);box-shadow:inset 0 -3px #aec1a783}.edit-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:15px}.edit-actions button{font-size:.9rem;padding-inline:11px}.end-tools{padding:13px 21px;border-top:1px dashed #b9beae;display:flex;justify-content:space-between;gap:11px;align-items:center;flex-wrap:wrap}.end-tools p{font-size:.85rem;color:var(--muted);line-height:1.4}.end-tools button{border-color:#8aa398;color:var(--teal);background:#eef1e6;font-size:.9rem}.export{padding:13px 21px;border-top:1px solid var(--line)}.export button{width:100%;background:#e6e9db;color:var(--ink);border-color:#c1c8b8}
+dialog{color:var(--ink);background:var(--surface);border:1px solid #89978b;border-radius:16px;width:min(440px,calc(100% - 28px));max-height:calc(100vh - 30px);max-height:calc(100dvh - 30px);overflow:auto;overscroll-behavior:contain;padding:24px;box-shadow:0 22px 80px #11233144}dialog::backdrop{background:#0b2129a3}dialog h2{font:500 1.8rem/1.12 var(--display);letter-spacing:-.035em;margin-bottom:12px}dialog p,dialog li{font-size:.94rem;line-height:1.52}dialog p+p{margin-top:.7em}dialog ol{padding-left:1.3rem}dialog li+li{margin-top:.5em}.dialog-actions{margin-top:15px;display:flex;gap:7px;flex-wrap:wrap}.file-copy{margin-top:12px}.file-copy button{margin-top:5px}
+@media(hover:hover){button:enabled:hover{filter:brightness(.96)}.bell-key:enabled:hover{filter:none;border-color:#d4b17165;background:#dfc07e0a}}
+@media(max-width:860px){.wrapper{padding-inline:max(21px,env(safe-area-inset-left)) max(21px,env(safe-area-inset-right))}.bench{grid-template-columns:minmax(0,1.25fr) minmax(264px,1fr);gap:12px}.stagebar{padding:16px 19px 7px}.transport{padding-inline:17px;gap:10px}.sound-controls{gap:11px}.sheet-head,.edit-head,.row-state{padding-inline:15px}.sheet-foot,.end-tools,.export{padding-inline:15px}.paper{padding-inline:8px}}
+@media(max-width:690px){.wrapper{padding:14px max(14px,env(safe-area-inset-right)) max(28px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}.mast{gap:9px;margin-bottom:14px;flex-wrap:wrap}.identity{gap:8px}.mark{width:39px;height:48px}.mast h1{font-size:2.8rem}.tagline{font-size:.8rem;margin-top:4px}.mast .actions{gap:4px}.mast .actions button{padding-inline:11px}.guide-button svg{display:none}.stagebar{align-items:start;padding:15px 13px 6px;flex-direction:column;gap:4px}.stagebar p{font-size:.8rem}.bell-rack{padding-inline:5px}.bell-rack::before{top:10px;height:7px}#bells{gap:1px}.bell-key{padding-bottom:4px}.bell-key svg{height:clamp(65px,14vw,95px)}.bell-key .bell-label{font-size:.75rem}.chamber{border-radius:12px}.transport{padding:10px 12px;gap:9px;align-items:stretch}.transport-actions,.sound-controls{flex:1 1 220px}.sound-controls{justify-content:space-between}.tempo{flex:1}.tempo input{width:100%;min-height:34px}.inline-control select{max-width:116px}.bench{display:flex;flex-direction:column;gap:12px;margin-top:14px}.sheet,.editor{width:100%}.sheet{display:contents}.sheet-head,.paper,.sheet-foot{width:100%;background:var(--surface);border:1px solid var(--line)}.sheet-head{order:0;border-radius:12px}.editor{order:1}.paper{order:2;padding:12px 7px 0;border-bottom:0;border-radius:12px 12px 0 0}.sheet-foot{order:3;margin-top:-12px;border-radius:0 0 12px 12px}.sheet-title h2,.edit-title h2{font-size:1.6rem}.sheet-head,.edit-head{padding-block:13px 11px}.setup{margin-top:10px}.row-state{padding-block:12px}.end-tools,.export{padding-block:9px}}
+@media(max-width:420px){.mast .actions{width:100%}.guide-button{margin-left:auto}.setup{gap:8px}.pair-buttons{gap:4px}.edit-actions{gap:4px}.sheet-foot label{flex-wrap:wrap}.end-tools{gap:5px}}
+@media(max-width:345px){.wrapper{padding-inline:max(8px,env(safe-area-inset-left)) max(8px,env(safe-area-inset-right))}.setup{grid-template-columns:1fr}.transport-actions button{font-size:.9rem;padding-inline:9px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+.stage-info{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}.stage-info #liveRow{min-height:1.3em;font:.78rem/1.3 var(--mono);color:#f1d49b}.bell-label{display:inline-flex;align-items:baseline;justify-content:center;gap:.42em}.bell-label b{font-size:1.15em;font-weight:650}.bell-label small{font-size:.85em;color:#cbd4c6}#order>span{color:var(--ink);border-top:2px solid var(--ink)}
+.wrapper{padding-top:max(22px,env(safe-area-inset-top))}.tempo input{min-height:44px}.paper{padding-bottom:15px}.paper-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin:0 2px 12px}.paper-toolbar label{display:flex;align-items:center;gap:7px;font-weight:650;font-size:.84rem}.paper-toolbar p{font-size:.82rem;color:var(--muted)}#score{max-width:520px;margin-inline:auto}
+@media(max-width:690px){.wrapper{padding-top:max(14px,env(safe-area-inset-top))}.paper{border:1px solid var(--line);border-radius:12px}.paper-toolbar{padding-inline:5px}}
+</style>
+</head>
+<body>
+<svg aria-hidden="true" focusable="false" width="0" height="0" style="position:absolute"><defs>
+<symbol id="i-save" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4"/></symbol>
+<symbol id="i-open" viewBox="0 0 24 24"><path d="M3 17V6h6l2 2h8v3M3 18l3-7h15l-3 8H3z"/></symbol>
+<symbol id="i-guide" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.2 9.2a2.9 2.9 0 0 1 5.6.9c0 2-2.8 2.1-2.8 4m0 2.3v.2"/></symbol>
+<symbol id="i-left" viewBox="0 0 24 24"><path d="m14 6-6 6 6 6"/></symbol><symbol id="i-right" viewBox="0 0 24 24"><path d="m10 6 6 6-6 6"/></symbol>
+<symbol id="i-wave" viewBox="0 0 24 24"><path d="M2 12h3m2-5v10m3-14v18m4-15v12m3-9v6m3-3h2"/></symbol>
+</defs></svg>
+<main class="wrapper">
+<header class="mast">
+ <div class="identity">
+  <svg class="mark" viewBox="0 0 52 62" aria-hidden="true" focusable="false" fill="none" stroke="currentColor">
+   <path d="M5 57V24Q8 10 26 4q18 6 21 20v33" stroke-width="2.1"/><path d="M11 56V25q2-10 15-16 13 6 15 16v31M3 57h46M1 61h50" stroke-width="1.2"/>
+   <path d="M16 39q3-3 3.8-11 .9-6 6.2-6t6.2 6q.8 8 3.8 11l1.5 2h-23z" fill="currentColor" stroke-width="1.5"/><path d="M24 44q2 5 4 0m-2-28v5" stroke-width="2.2"/>
+  </svg>
+  <div><h1>Belfry</h1><p class="tagline">Change-ringing studio</p></div>
+ </div>
+ <nav class="actions" aria-label="Score files and guide">
+  <button id="open" type="button"><svg class="icon" aria-hidden="true"><use href="#i-open"/></svg>Open</button>
+  <button id="save" type="button" class="primary"><svg class="icon" aria-hidden="true"><use href="#i-save"/></svg>Save</button>
+  <button id="help" type="button" class="guide-button" aria-haspopup="dialog"><svg class="icon" aria-hidden="true"><use href="#i-guide"/></svg>Guide</button>
+ </nav>
+ <input type="file" id="file" accept=".json,application/json" hidden>
+</header>
+<section class="chamber" aria-labelledby="chamber-title">
+ <div class="stagebar"><h2 id="chamber-title">The bell chamber</h2><div class="stage-info"><span id="liveRow" aria-hidden="true"></span><p>Tap a bell to hear its voice.</p></div></div>
+ <div class="bell-rack"><div id="bells" role="group" aria-label="Six playable bells"></div></div>
+ <div class="transport">
+  <div class="transport-actions"><button id="play" type="button" class="play">Play score</button><button id="audition" type="button">Hear this row</button></div>
+  <div class="sound-controls">
+   <label class="tempo" for="bpm"><span>Strikes per minute</span><output id="bpmText" for="bpm">240</output><input type="range" id="bpm" min="100" max="360" value="240" step="1"></label>
+   <label class="inline-control" for="voice">Voice <select id="voice"><option value="bronze">Bronze</option><option value="glass">Glass</option></select></label>
+  </div>
+ </div>
+</section>
+<p id="status" role="status" aria-live="polite" aria-atomic="true"></p>
+<div class="bench">
+ <section class="sheet" aria-labelledby="score-title">
+  <div class="sheet-head"><div class="sheet-title"><h2 id="score-title">Ringing score</h2><p id="scoreLabel"></p></div>
+   <div class="setup"><label for="title"><span class="fieldname">Score title</span><input id="title" type="text" maxlength="80" placeholder="Untitled score" autocomplete="off"></label>
+    <label for="preset"><span class="fieldname">Starting pattern</span><select id="preset"></select></label>
+   </div>
+  </div>
+  <div class="paper"><div class="paper-toolbar"><label for="trace">Trace <select id="trace"></select></label><p>Read from the top down.</p></div><div id="score" aria-label="Diagram of bell paths"></div></div>
+ </section>
+ <section class="editor" aria-labelledby="editor-title">
+  <div class="edit-head"><div class="edit-title"><h2 id="editor-title">Row editor</h2><div class="row-navigator" role="group" aria-label="Select row">
+   <button id="prev" type="button" class="square" aria-label="Previous row" title="Previous row"><svg class="icon" aria-hidden="true"><use href="#i-left"/></svg></button>
+   <button id="next" type="button" class="square" aria-label="Next row" title="Next row"><svg class="icon" aria-hidden="true"><use href="#i-right"/></svg></button>
+  </div></div></div>
+  <div class="row-state"><p id="selectedLabel"></p><div id="order" aria-label="Current ringing order"></div>
+   <div class="change-head"><h3>Swap neighbors</h3><button id="undo" type="button">Undo</button></div>
+   <p id="hint" class="hint">Choose which neighboring positions exchange bells on this row.</p>
+   <div id="pairs" class="pair-buttons" role="group" aria-label="Swap neighboring positions"></div>
+   <div class="edit-actions"><button id="add" type="button">Add a row</button><button id="remove" type="button">Remove row</button></div>
+  </div>
+  <div class="end-tools"><p id="lastRow"></p><button id="home" type="button">Return to rounds</button></div>
+  <div class="export"><button id="exportWave" type="button"><svg class="icon" aria-hidden="true"><use href="#i-wave"/></svg>Export WAV</button></div>
+ </section>
+</div>
+</main>
+<dialog id="guideDialog" aria-labelledby="guide-title">
+ <h2 id="guide-title">How to ring a change</h2>
+ <p>A row is one strike from each of the six bells. Bell 1 is the highest. The opening order, 1 through 6, is called <strong>rounds</strong>.</p>
+ <ol><li>Press <strong>Play score</strong> to hear the pattern. Choose a bell under <strong>Trace</strong> to follow its path through the score.</li>
+ <li>Select a row in the diagram or use the row arrows. Each swap exchanges two neighboring positions from the previous row. Tapping a pair again clears it.</li>
+ <li>Build your own pattern with <strong>Add a row</strong>. <strong>Return to rounds</strong> adds changes that bring every bell home.</li></ol>
+ <p><strong>Save</strong> keeps the editable score as a local JSON file. <strong>Export WAV</strong> records the performance as audio.</p>
+ <div class="dialog-actions"><button type="button" data-close class="primary">Back to the bells</button></div>
+</dialog>
+<dialog id="fileDialog" aria-labelledby="fileHeading">
+ <h2 id="fileHeading">Save your file</h2><p id="fileInfo"></p>
+ <div class="dialog-actions"><button type="button" id="share">Share or save to Files</button><button type="button" id="again">Download again</button></div>
+ <div id="manual" class="file-copy" hidden><label for="fileText"><span class="fieldname">Score JSON</span></label><textarea id="fileText" rows="4" readonly spellcheck="false"></textarea><button id="selectText" type="button">Select text</button></div>
+ <div class="dialog-actions"><button type="button" data-close class="primary">Done</button></div>
+</dialog>
+<dialog id="confirmDialog" aria-labelledby="confirm-title">
+ <h2 id="confirm-title">Replace this score?</h2><p id="confText"></p>
+ <div class="dialog-actions"><button type="button" id="keep" class="primary" autofocus>Keep editing</button><button type="button" id="replace">Replace score</button></div>
+</dialog>
+<script>
+(() => { 'use strict';
+const BELL_COUNT = 6;
+const MAX_CHANGES = 20;
+const FILE_LIMIT = 64000;
+
+function bellRounds() {
+  return [1, 2, 3, 4, 5, 6];
+}
+
+function isBellMask(mask) {
+  return Number.isInteger(mask) && mask >= 0 && mask <= 31 && (mask & (mask << 1)) === 0;
+}
+
+function applyBellMask(order, mask) {
+  const next = order.slice();
+  for (let gap = 0; gap < BELL_COUNT - 1; gap++) {
+    if (mask & (1 << gap)) {
+      next[gap] = order[gap + 1];
+      next[gap + 1] = order[gap];
+    }
+  }
+  return next;
+}
+
+function rowsFor(changes) {
+  const rows = [bellRounds()];
+  for (const mask of changes) {
+    if (!isBellMask(mask)) throw new Error("A row contains overlapping or invalid exchanges.");
+    rows.push(applyBellMask(rows[rows.length - 1], mask));
+  }
+  return rows;
+}
+
+function togglePair(mask, gap) {
+  if (!isBellMask(mask) || !Number.isInteger(gap) || gap < 0 || gap >= BELL_COUNT - 1) {
+    throw new Error("Choose a pair of neighboring bells.");
+  }
+  const bit = 1 << gap;
+  if (mask & bit) return mask & ~bit;
+  return (mask & ~((bit << 1) | (bit >> 1))) | bit;
+}
+
+function homeChanges(order) {
+  if (!Array.isArray(order) || order.length !== BELL_COUNT ||
+      new Set(order).size !== BELL_COUNT ||
+      !Array.from(order).every(bell => Number.isInteger(bell) && bell >= 1 && bell <= BELL_COUNT)) {
+    throw new Error("A bell row must contain each of the six bells once.");
+  }
+  let row = order.slice();
+  const changes = [];
+  for (;;) {
+    let mask = 0;
+    for (let gap = 0; gap < BELL_COUNT - 1; gap++) {
+      if (row[gap] > row[gap + 1]) {
+        mask |= 1 << gap;
+        gap++;
+      }
+    }
+    if (mask === 0) return changes;
+    changes.push(mask);
+    row = applyBellMask(row, mask);
+  }
+}
+
+function presets() {
+  return [
+    {id: "hunt", name: "Plain Hunt"},
+    {id: "lantern", name: "Lantern Walk"},
+    {id: "blank", name: "Blank score"}
+  ];
+}
+
+function makePreset(id = "hunt") {
+  const preset = presets().find(item => item.id === id);
+  if (!preset) throw new Error("Unknown bell score.");
+  const state = {title: preset.name, changes: [], selected: 0, trace: 0, bpm: 240, voice: "bronze"};
+  if (id === "hunt") {
+    state.changes = Array.from({length: 12}, (_, i) => i % 2 === 0 ? 21 : 10);
+    state.selected = 1;
+    state.trace = 1;
+  } else if (id === "lantern") {
+    state.changes = [17, 10, 4, 17, 10];
+    state.selected = 1;
+    state.trace = 6;
+    state.bpm = 216;
+    state.voice = "glass";
+  } else {
+    state.title = "Untitled score";
+  }
+  return state;
+}
+
+function bellFields(value, keys) {
+  return value !== null && typeof value === "object" && !Array.isArray(value) &&
+    Object.keys(value).length === keys.length &&
+    keys.every(key => Object.prototype.hasOwnProperty.call(value, key));
+}
+
+function validateState(state) {
+  if (!bellFields(state, ["title", "changes", "selected", "trace", "bpm", "voice"])) {
+    throw new Error("This score has missing or unexpected fields.");
+  }
+  if (typeof state.title !== "string" || state.title.length > 80 || /[\u0000-\u001f\u007f]/.test(state.title)) {
+    throw new Error("The score title must be one line of up to 80 characters.");
+  }
+  if (!Array.isArray(state.changes) || state.changes.length > MAX_CHANGES ||
+      !Array.from(state.changes).every(isBellMask)) {
+    throw new Error("The score contains too many changes or an invalid exchange.");
+  }
+  if (!Number.isInteger(state.selected) || state.selected < 0 || state.selected > state.changes.length ||
+      !Number.isInteger(state.trace) || state.trace < 0 || state.trace > BELL_COUNT ||
+      !Number.isInteger(state.bpm) || state.bpm < 100 || state.bpm > 360 ||
+      !["bronze", "glass"].includes(state.voice)) {
+    throw new Error("This score contains an invalid row, bell, tempo, or voice.");
+  }
+  return state;
+}
+
+function serializeSession(state) {
+  return JSON.stringify({app: "belfry", version: 1, workspace: validateState(state)}, null, 2) + "\n";
+}
+
+function readSession(text) {
+  if (typeof text !== "string" || text.length > FILE_LIMIT || new Blob([text]).size > FILE_LIMIT) {
+    throw new Error("Choose a Belfry JSON file of 64 KB or less.");
+  }
+  let doc;
+  try {
+    doc = JSON.parse(text.replace(/^\uFEFF/, ""));
+  } catch {
+    throw new Error("This file contains invalid JSON.");
+  }
+  if (!bellFields(doc, ["app", "version", "workspace"]) || doc.app !== "belfry" || doc.version !== 1) {
+    throw new Error("Choose a version 1 Belfry score.");
+  }
+  return validateState(doc.workspace);
+}
+
+// Cache one bank per voice. Bell 1 is D5; bell 6 is F sharp 4.
+// A live source plays tones[bell - 1] as a mono buffer at the bank's sample rate.
+function makeTones(voice, sampleRate = 22050) {
+  if (!Number.isInteger(sampleRate) || sampleRate < 8000 || sampleRate > 96000)
+    throw new RangeError("Use a sample rate from 8000 to 96000 Hz.");
+  if (voice !== "bronze" && voice !== "glass") throw new RangeError("Unknown bell voice.");
+  // Each mode is [frequency ratio, strike strength, decay time in seconds].
+  // Bronze has a low hum, a tierce and a slightly split nominal. Glass has a
+  // clear fundamental and much more widely spaced, quickly fading upper modes.
+  const bronze = [
+    [0.5, 0.15, 0.52], [1, 0.54, 0.43], [1.197, 0.15, 0.24],
+    [2, 0.21, 0.27], [2.008, 0.075, 0.26], [2.39, 0.09, 0.17],
+    [3.17, 0.11, 0.10], [4.18, 0.05, 0.043], [5.36, 0.035, 0.024]
+  ];
+  const glass = [
+    [1, 0.72, 0.36], [1.0035, 0.10, 0.26], [2.74, 0.19, 0.21],
+    [5.41, 0.095, 0.11], [8.93, 0.065, 0.075], [12.6, 0.035, 0.032]
+  ];
+  const modes = voice === "bronze" ? bronze : glass;
+  const frames = Math.ceil(sampleRate * (voice === "bronze" ? 1.95 : 1.48));
+  const pitches = [74, 73, 71, 69, 67, 66];
+  // Bound all overlapping decays even at the closest possible sample-rounded
+  // spacing at 360 bpm. The same gain applies during playback and WAV export.
+  const minGap = Math.floor(sampleRate / 6) / sampleRate;
+  const envelopeBound = modes.reduce((sum, [, strength, decay]) =>
+    sum + strength / (1 - Math.exp(-minGap / decay)), 0);
+  const gain = 0.90 / envelopeBound;
+  const attack = Math.round(sampleRate * (voice === "bronze" ? 0.0028 : 0.0017));
+  const release = Math.round(sampleRate * 0.06);
+  return pitches.map((midi, bellIndex) => {
+    const frequency = 440 * 2 ** ((midi - 69) / 12);
+    const sample = new Float32Array(frames);
+    for (const [ratio, strength, decay] of modes) {
+      const partial = ratio * frequency;
+      if (partial >= sampleRate * 0.46) continue;
+      const phaseStep = 2 * Math.PI * partial / sampleRate;
+      const rotation = 2 * Math.cos(phaseStep);
+      const damping = Math.exp(-1 / (sampleRate * decay * (0.90 + 0.02 * bellIndex)));
+      let amplitude = gain * strength;
+      // A sine recurrence keeps per-frame work to additions and multiplications.
+      let previous = -Math.sin(phaseStep);
+      let current = 0;
+      for (let i = 0; i < frames; i++) {
+        sample[i] += amplitude * current;
+        const next = rotation * current - previous;
+        previous = current;
+        current = next;
+        amplitude *= damping;
+      }
+    }
+    for (let i = 0; i < attack; i++)
+      sample[i] *= 0.5 - 0.5 * Math.cos(Math.PI * i / attack);
+    for (let i = 0; i < release; i++)
+      sample[frames - 1 - i] *= 0.5 - 0.5 * Math.cos(Math.PI * i / release);
+    return sample;
+  });
+}
+
+// Render each row exactly once. Row values are 1-based bell numbers. The last
+// sample includes the complete ring-out. The returned bytes are ready for a Blob.
+function renderWave(rows, bpm, tones, sampleRate = 22050) {
+  if (!Number.isInteger(sampleRate) || sampleRate < 8000 || sampleRate > 96000)
+    throw new RangeError("Use a sample rate from 8000 to 96000 Hz.");
+  if (!Number.isFinite(bpm) || bpm < 100 || bpm > 360)
+    throw new RangeError("Use a tempo from 100 to 360 bpm.");
+  if (!Array.isArray(rows) || rows.length === 0 || rows.length > 256)
+    throw new RangeError("Choose between 1 and 256 rows.");
+  if (!Array.isArray(tones) || tones.length !== 6 || !Array.from(tones).every(tone =>
+    tone instanceof Float32Array && tone.length && tone.length <= 3 * sampleRate))
+    throw new TypeError("A bank of six bell samples is required.");
+  const framesPerBeat = sampleRate * 60 / bpm;
+  const strikes = [];
+  let frameCount = 0;
+  for (const row of rows) {
+    if (!Array.isArray(row) || row.length !== 6 ||
+      !Array.from(row).every(bell => Number.isInteger(bell) && bell >= 1 && bell <= 6) ||
+      new Set(row).size !== 6) throw new TypeError("Each row must contain all six bells.");
+    for (const bell of row) {
+      const start = Math.round(strikes.length * framesPerBeat);
+      const sample = tones[bell - 1];
+      frameCount = Math.max(frameCount, start + sample.length);
+      strikes.push({ start, sample });
+    }
+  }
+  if (frameCount > 8000000) throw new RangeError("This touch is too long to export at this sample rate.");
+  const mix = new Float32Array(frameCount);
+  for (const { start, sample } of strikes) {
+    for (let i = 0; i < sample.length; i++) mix[start + i] += sample[i];
+  }
+  const bytes = new Uint8Array(44 + frameCount * 2);
+  const file = new DataView(bytes.buffer);
+  function writeTag(offset, tag) {
+    for (let i = 0; i < tag.length; i++) bytes[offset + i] = tag.charCodeAt(i);
+  }
+  writeTag(0, "RIFF");
+  file.setUint32(4, bytes.length - 8, true);
+  writeTag(8, "WAVE");
+  writeTag(12, "fmt ");
+  file.setUint32(16, 16, true);
+  file.setUint16(20, 1, true);
+  file.setUint16(22, 1, true);
+  file.setUint32(24, sampleRate, true);
+  file.setUint32(28, sampleRate * 2, true);
+  file.setUint16(32, 2, true);
+  file.setUint16(34, 16, true);
+  writeTag(36, "data");
+  file.setUint32(40, frameCount * 2, true);
+  for (let i = 0; i < frameCount; i++) {
+    const value = Math.max(-1, Math.min(1, mix[i]));
+    file.setInt16(44 + i * 2, Math.round(value * (value < 0 ? 32768 : 32767)), true);
+  }
+  return bytes;
+}
+
+const noteNames = ['D5','C♯5','B4','A4','G4','F♯4'];
+const threads = ['#ab442d','#346981','#5b7040','#884c6c','#836324','#476a67'];
+
+function bellPicture(number) {
+  // Every bell hangs from the same yoke. Increasing bell mass widens the skirt.
+  const size = (0.69 + number * 0.045).toFixed(3);
+  const id = 'metal-' + number;
+  return `<svg viewBox="0 0 108 129" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="${id}" x1="0" y1=".35" x2="1" y2=".55" gradientUnits="objectBoundingBox">
+        <stop stop-color="#79502c"/><stop offset=".15" stop-color="#bc894a"/><stop offset=".29" stop-color="#f1c987"/>
+        <stop offset=".43" stop-color="#c69659"/><stop offset=".63" stop-color="#9c6a3c"/><stop offset=".86" stop-color="#63432d"/><stop offset="1" stop-color="#be8d50"/>
+      </linearGradient>
+    </defs>
+    <path d="M54 0V23" stroke="#8c7457" stroke-width="4"/><path d="M53 0V23" stroke="#dbc394" stroke-width="1"/>
+    <path d="M48 21h12v4H48z" fill="#a5804e"/><path d="M51 25v7q3 4 6 0v-7" fill="none" stroke="#d9b474" stroke-width="2.5"/>
+    <g transform="translate(54 31) scale(${size})">
+      <path d="M-12 11Q-12 -2 -6 2L0 9L6 2Q12 -2 12 11" fill="none" stroke="#d6ae70" stroke-width="3"/>
+      <path d="M-19 16Q-17 10 -8 9Q0 6 8 9Q17 10 19 16C25 26 22 44 31 60Q34 65 41 69L42 74Q3 86 -42 74L-41 69Q-34 65 -31 60C-22 44 -25 26 -19 16Z"
+        fill="url(#${id})" stroke="#5f4029" stroke-width="1.4"/>
+      <path d="M-18 15Q0 21 18 15M-20 19Q0 25 20 19M-31 60Q0 70 31 60M-36 65Q0 76 36 65" fill="none" stroke="#765031" stroke-width="1.1"/>
+      <path d="M-18 17Q0 23 18 17M-32 62Q0 72 32 62" fill="none" stroke="#f1d299" stroke-width="1"/>
+      <path d="M-15 25Q-18 31 -19 40M-20 44L-21 47" fill="none" stroke="#ffe2a4" stroke-width="1.6" stroke-linecap="round" opacity=".75"/>
+      <ellipse cy="73" rx="42" ry="6.4" fill="#64432e" stroke="#e2b679" stroke-width="1.6"/>
+      <ellipse cy="73" rx="34" ry="3.5" fill="#3a3029"/>
+      <path d="M-2 70L-1 78Q-6 82 -3 86Q0 89 4 85Q6 81 2 78L2 70Z" fill="#a97f4e" stroke="#4d3929"/>
+    </g>
+  </svg>`;
+}
+
+// All SVG geometry and text below come from bounded numeric score data.
+function scorePicture(rows, selected, trace) {
+  const x = place => 88 + place * 63;
+  const y = row => 37 + row * 34;
+  const height = y(rows.length - 1) + 22;
+  const pieces = [`<svg viewBox="0 0 450 ${height}" role="img" aria-label="Bell paths, ${rows.length} rows. Selected row ${selected+1}.">
+    <style>.rn{font:11px ui-monospace,monospace;fill:#615c51}.bn{font:bold 12px ui-sans-serif,system-ui;dominant-baseline:central;text-anchor:middle}</style>
+    <rect x="5" y="${y(selected)-15}" width="440" height="30" rx="6" fill="#efe0ba"/>
+    <g fill="none" stroke="#d4c8ac" stroke-width=".8" stroke-dasharray="2 4">`];
+  for (let col = 0; col < BELL_COUNT; col++) pieces.push(`<path d="M${x(col)} 18V${height-12}"/>`);
+  pieces.push('</g>');
+  const drawOrder = bellRounds().filter(b => b !== trace);
+  if (trace) drawOrder.push(trace);
+  for (const bell of drawOrder) {
+    let oldX = x(rows[0].indexOf(bell));
+    let path = 'M' + oldX + ' ' + y(0);
+    for (let r = 1; r < rows.length; r++) {
+      const newX = x(rows[r].indexOf(bell));
+      const halfway = (y(r-1)+y(r))/2;
+      path += ` C${oldX} ${halfway} ${newX} ${halfway} ${newX} ${y(r)}`;
+      oldX = newX;
+    }
+    const active = !trace || trace === bell;
+    pieces.push(`<path d="${path}" fill="none" stroke="${threads[bell-1]}" opacity="${active?1:.32}" stroke-width="${bell===trace?3.6:2}"/>`);
+  }
+  for (let r = 0; r < rows.length; r++) {
+    const showNumbers = r === selected || r === 0 || r === rows.length-1;
+    pieces.push(`<g data-row="${r}" style="cursor:pointer"><rect x="0" y="${y(r)-17}" width="450" height="34" fill="transparent"/><text class="rn" x="14" y="${y(r)+4}">${r===0?'Start':String(r).padStart(2,'0')}</text>`);
+    for (let col = 0; col < BELL_COUNT; col++) {
+      const b = rows[r][col], active = b === trace;
+      if (showNumbers || active || !trace) {
+        pieces.push(`<circle cx="${x(col)}" cy="${y(r)}" r="${active?10:8.5}" fill="${active?threads[b-1]:'#fbf7eb'}" stroke="${threads[b-1]}" stroke-width="1.3"/><text class="bn" x="${x(col)}" y="${y(r)}" fill="${active?'#fff':'#36342e'}">${b}</text>`);
+      } else pieces.push(`<circle cx="${x(col)}" cy="${y(r)}" r="2.7" fill="${threads[b-1]}" opacity=".75"/>`);
+    }
+    pieces.push('</g>');
+  }
+  pieces.push('<g data-strike="cursor" display="none" pointer-events="none"><circle r="14" fill="none" stroke="#fff8e9" stroke-width="5"/><circle r="14" fill="none" stroke="#192f32" stroke-width="2.2"/></g></svg>');
+  return pieces.join('');
+}
+
+const get = id => document.getElementById(id);
+let state = makePreset('hunt');
+let baseline = JSON.stringify(state);
+let pending = null, reading = false, prepared = null;
+const history = [], tones = new Map(), audioBanks = new Map(), bellKeys = [], pairKeys = [];
+let context = null, run = null;
+const say = message => { get('status').textContent = message; };
+const rowName = index => index ? 'Change '+index : 'Opening rounds';
+const labelTitle = () => state.title.trim() || 'Untitled score';
+function option(control, value, name) {
+  const item = document.createElement('option');
+  item.value = String(value); item.textContent = name; control.append(item);
+}
+function getTones(voice) {
+  if (!tones.has(voice)) tones.set(voice, makeTones(voice));
+  return tones.get(voice);
+}
+function getBuffers(voice) {
+  if (!audioBanks.has(voice)) {
+    audioBanks.set(voice, getTones(voice).map(samples => {
+      const buffer = context.createBuffer(1, samples.length, 22050);
+      buffer.getChannelData(0).set(samples);
+      return buffer;
+    }));
+  }
+  return audioBanks.get(voice);
+}
+function illuminate(bell) {
+  bellKeys.forEach((key,index) => key.classList.toggle('sounding',index+1===bell));
+}
+function strikeMark(row, place) {
+  const marker = get('score').querySelector('[data-strike]');
+  if (!marker) return;
+  if (row === null) { marker.setAttribute('display','none'); return; }
+  marker.setAttribute('transform','translate('+(88+place*63)+' '+(37+row*34)+')');
+  marker.setAttribute('display','inline');
+}
+function stopRinging() {
+  if (run) {
+    run.timers.forEach(clearTimeout);
+    for (const source of run.sources) {
+      try { source.stop(); source.disconnect(); } catch { /* A finished strike is already silent. */ }
+    }
+  }
+  run = null; illuminate(0); strikeMark(null);
+  get('play').textContent = 'Play score'; get('play').setAttribute('aria-pressed','false');
+  get('audition').textContent = 'Hear row'; get('audition').setAttribute('aria-pressed','false');
+  get('liveRow').textContent = '';
+}
+async function ring(notes, mode) {
+  stopRinging();
+  const active = {mode,timers:[],sources:[]}; run = active;
+  const interval = 60 / state.bpm, voice = state.voice;
+  const button = mode === 'full' ? get('play') : mode === 'row' ? get('audition') : null;
+  if (button) { button.textContent = 'Stop'; button.setAttribute('aria-pressed','true'); }
+  let audio = false, lead = .04;
+  try {
+    const Engine = window.AudioContext || window.webkitAudioContext;
+    if (Engine) {
+      if (!context || context.state === 'closed') { context = new Engine(); audioBanks.clear(); }
+      if (context.state !== 'running') await context.resume();
+      if (run !== active) return;
+      if (context.state === 'running') {
+        const bank = getBuffers(voice), start = context.currentTime + lead;
+        notes.forEach((note,index) => {
+          const source = context.createBufferSource();
+          active.sources.push(source); source.buffer = bank[note-1];
+          source.connect(context.destination); source.start(start+index*interval);
+        });
+        audio = true;
+      }
+    }
+  } catch { // A denied or unavailable speaker still permits the visual score and WAV export.
+    if (run !== active) return;
+    for (const source of active.sources) { try { source.stop(); source.disconnect(); } catch {} }
+    active.sources.length=0;
+  }
+  if (run !== active) return;
+  function after(ms, fn) { active.timers.push(setTimeout(()=>{ if (run===active) fn(); },ms)); }
+  if (!audio) lead = 0;
+  const title = mode==='full' ? labelTitle() : mode==='row' ? rowName(state.selected) : 'Bell '+notes[0]+' · '+noteNames[notes[0]-1];
+  say(audio ? title+'.' : 'Visual playback. Export WAV to hear this score in an audio player.');
+  notes.forEach((bell,i) => after(1000*(lead+i*interval),()=>{
+    illuminate(bell);
+    if (mode!=='bell') strikeMark(mode==='full'?Math.floor(i/6):state.selected,i%6);
+    if (mode==='full') get('liveRow').textContent = rowName(Math.floor(i/6))+' · Bell '+bell;
+    else get('liveRow').textContent = 'Bell '+bell+' · '+noteNames[bell-1];
+  }));
+  const tail = audio ? (voice==='bronze'?1.95:1.48) : .45;
+  after(1000*(lead+(notes.length-1)*interval+tail),()=>{
+    stopRinging(); if (audio && mode==='full') say('Finished '+title+'.');
+  });
+}
+
+option(get('preset'),'','Choose a score…');
+presets().forEach(p=>option(get('preset'),p.id,p.name));
+option(get('trace'),0,'All six bells');
+bellRounds().forEach(bell=>{
+  option(get('trace'),bell,'Bell '+bell+' · '+noteNames[bell-1]);
+  const key = document.createElement('button');
+  key.type = 'button'; key.className = 'bell-key';
+  key.setAttribute('aria-label','Ring bell '+bell+', '+noteNames[bell-1]);
+  key.innerHTML = bellPicture(bell)+'<span class="bell-label"><b>'+bell+'</b> <small>'+noteNames[bell-1]+'</small></span>';
+  key.addEventListener('click',()=>ring([bell],'bell')); 
+  get('bells').append(key); bellKeys.push(key);
+});
+for (let gap=0; gap<5; gap++) {
+  const key = document.createElement('button');
+  key.type = 'button'; key.textContent = (gap+1)+' ↔ '+(gap+2);
+  key.setAttribute('aria-label','Swap positions '+(gap+1)+' and '+(gap+2));
+  key.addEventListener('click',()=>{
+    if (!state.selected) return;
+    const changes = state.changes.slice(), index = state.selected-1;
+    changes[index] = togglePair(changes[index],gap);
+    edit(changes,state.selected);
+    say(rowName(state.selected)+' now rings '+rowsFor(changes)[state.selected].join(', ')+'.');
+  });
+  get('pairs').append(key); pairKeys.push(key);
+}
+function paint() {
+  const rows = rowsFor(state.changes), last = rows[rows.length-1];
+  const back = homeChanges(last), chosen = rows[state.selected];
+  get('score').innerHTML = scorePicture(rows,state.selected,state.trace);
+  get('scoreLabel').textContent = rows.length+' '+(rows.length===1?'row':'rows')+' · '+(rows.length*6)+' strikes';
+  get('selectedLabel').textContent = rowName(state.selected);
+  get('lastRow').textContent = back.length ? 'Ends '+last.join(' ') : (rows.length===1?'Starts in rounds':'Returns to rounds');
+  get('order').setAttribute('aria-label','Strike order '+chosen.join(', '));
+  get('order').innerHTML = chosen.map(b=>'<span style="--ink:'+threads[b-1]+'">'+b+'</span>').join('');
+  get('hint').textContent = state.selected ? 'Swap neighboring positions entering this row. Later rows follow the edit.' : 'All scores start in rounds. Add a change or select a later row to edit the swaps.';
+  pairKeys.forEach((key,gap)=>{
+    key.disabled = state.selected===0;
+    key.setAttribute('aria-pressed',String(!!(state.changes[state.selected-1] & (1<<gap))));
+  });
+  get('prev').disabled = state.selected===0; get('next').disabled = state.selected===rows.length-1;
+  get('remove').disabled = !state.selected; get('add').disabled = state.changes.length>=MAX_CHANGES;
+  get('undo').disabled = !history.length;
+  get('home').disabled = !back.length || back.length+state.changes.length>MAX_CHANGES;
+  get('home').textContent = 'Return to rounds'+(back.length?' (+'+back.length+')':'');
+  if (back.length+state.changes.length>MAX_CHANGES) get('lastRow').textContent+=' · Remove changes to fit the return.';
+  get('trace').value = String(state.trace); get('voice').value = state.voice;
+  get('bpm').value = String(state.bpm); get('bpmText').textContent = state.bpm+' / min';
+  if (get('title').value!==state.title) get('title').value = state.title;
+}
+function remember(snapshot) {
+  history.push(snapshot); if (history.length>50) history.shift();
+}
+function edit(changes, selected) {
+  stopRinging(); remember({changes:state.changes,selected:state.selected});
+  state = {...state,changes,selected}; paint();
+}
+function selectRow(index) {
+  if (!Number.isInteger(index) || index<0 || index>state.changes.length) return;
+  stopRinging(); state = {...state,selected:index}; paint();
+  say(rowName(index)+'. Strike order '+rowsFor(state.changes)[index].join(', ')+'.');
+}
+get('score').addEventListener('click',event=>{
+  const row = event.target.closest?.('[data-row]');
+  if (row) selectRow(Number(row.getAttribute('data-row')));
+});
+get('prev').addEventListener('click',()=>selectRow(state.selected-1));
+get('next').addEventListener('click',()=>selectRow(state.selected+1));
+get('add').addEventListener('click',()=>{
+  if (state.changes.length>=MAX_CHANGES) return;
+  const changes = state.changes.slice(); changes.splice(state.selected,0,0);
+  edit(changes,state.selected+1); say(rowName(state.selected)+' added. Choose a pair to exchange.');
+});
+get('remove').addEventListener('click',()=>{
+  if (!state.selected) return;
+  const changes = state.changes.slice(); changes.splice(state.selected-1,1);
+  edit(changes,Math.min(state.selected,changes.length)); say('Change removed. Undo can bring it back.');
+});
+get('home').addEventListener('click',()=>{
+  const rows = rowsFor(state.changes), back = homeChanges(rows[rows.length-1]);
+  const changes = state.changes.concat(back);
+  if (!back.length || changes.length>MAX_CHANGES) return;
+  edit(changes,changes.length); say('Added '+back.length+' changes. The last row is back in rounds.');
+});
+get('undo').addEventListener('click',()=>{
+  const previous = history.pop(); if (!previous) return;
+  stopRinging();
+  if (previous.workspace) { state = previous.workspace; baseline = previous.baseline; }
+  else state = {...state,...previous};
+  paint(); say('Previous score restored.');
+});
+get('title').addEventListener('input',()=>{
+  const next = {...state,title:get('title').value};
+  try { validateState(next); state=next; }
+  catch(error) {get('title').value=state.title; say(error.message);}
+});
+get('bpm').addEventListener('input',()=>{
+  const bpm = Number(get('bpm').value);
+  if (!Number.isInteger(bpm) || bpm<100 || bpm>360) return;
+  stopRinging(); state = {...state,bpm}; get('bpmText').textContent = bpm+' / min';
+});
+get('trace').addEventListener('change',()=>{
+  const trace=Number(get('trace').value);
+  if (Number.isInteger(trace) && trace>=0 && trace<=6) { state={...state,trace}; paint(); }
+});
+get('voice').addEventListener('change',()=>{
+  const voice=get('voice').value;
+  if (['bronze','glass'].includes(voice)) { stopRinging(); state={...state,voice}; }
+});
+get('play').addEventListener('click',()=>run?.mode==='full'?stopRinging():ring(rowsFor(state.changes).flat(),'full'));
+get('audition').addEventListener('click',()=>run?.mode==='row'?stopRinging():ring(rowsFor(state.changes)[state.selected],'row'));
+document.addEventListener('visibilitychange',()=>{ if (document.hidden) stopRinging(); });
+
+const dialogOrigins = new Map();
+function showDialog(id,origin) {
+  const dialog = get(id); dialogOrigins.set(id,origin);
+  if (!dialog.open) dialog.showModal();
+}
+for (const dialog of document.querySelectorAll('dialog')) {
+  dialog.addEventListener('close',()=>{
+    if (dialog.id==='confirmDialog') pending=null;
+    if (dialog.id==='fileDialog') { prepared=null; get('fileText').value=''; }
+    const origin=get(dialogOrigins.get(dialog.id));
+    if (origin && !origin.disabled) origin.focus();
+  });
+}
+for (const button of document.querySelectorAll('[data-close]')) {
+  button.addEventListener('click',()=>button.closest('dialog').close());
+}
+get('help').addEventListener('click',()=>{stopRinging();showDialog('guideDialog','help');});
+function replaceScore(next) {
+  remember({workspace:state,baseline});
+  state=next; baseline=JSON.stringify(next); stopRinging(); paint();
+  say('Opened '+labelTitle()+'.');
+}
+function offerReplacement(next,origin) {
+  if (JSON.stringify(state)===baseline) {replaceScore(next);return;}
+  pending=next;
+  get('confText').textContent='Open “'+(next.title.trim()||'Untitled score')+'” in place of the current score? Choose Keep to save your changes first.';
+  showDialog('confirmDialog',origin); get('keep').focus();
+}
+get('keep').addEventListener('click',()=>{
+  pending=null; get('confirmDialog').close(); say('Current score kept.');
+});
+get('replace').addEventListener('click',()=>{
+  const next=pending; pending=null; get('confirmDialog').close();
+  if (next) replaceScore(next);
+});
+get('confirmDialog').addEventListener('cancel',()=>{pending=null;});
+get('preset').addEventListener('change',()=>{
+  const id=get('preset').value; get('preset').value='';
+  if (presets().some(p=>p.id===id)) {stopRinging();offerReplacement(makePreset(id),'preset');}
+});
+function readFileText(file) {
+  if (typeof file.text==='function') return file.text();
+  if (typeof FileReader==='undefined') throw Error('This browser could not read the local file.');
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(reader.result);
+    reader.onabort=reader.onerror=()=>reject(Error('The file could not be read.'));
+    reader.readAsText(file);
+  });
+}
+get('open').addEventListener('click',()=>{
+  if (reading) return;
+  stopRinging(); get('file').value='';
+  try { get('file').click(); } catch { say('The browser could not open its file picker.'); }
+});
+get('file').addEventListener('cancel',()=>say('Open canceled. Current score kept.'));
+get('file').addEventListener('change',async()=>{
+  const file=get('file').files?.[0];
+  if (!file || reading) return;
+  reading=true; get('open').disabled=true;
+  try {
+    if (file.size>FILE_LIMIT) throw Error('Choose a Belfry JSON file of 64 KB or less.');
+    const next=readSession(await readFileText(file));
+    if (['confirmDialog','guideDialog','fileDialog'].some(id=>get(id).open))
+      throw Error('Finish the open dialog and choose the file again.');
+    stopRinging(); offerReplacement(next,'open');
+  } catch (error) { say(error.message+' Current score kept.'); }
+  finally {reading=false;get('open').disabled=false;get('file').value='';}
+});
+function fallbackURL(data) {
+  if (typeof data.content==='string') return 'data:application/json;charset=utf-8,'+encodeURIComponent(data.content);
+  const chunks=[];
+  for (let pos=0;pos<data.content.length;pos+=16384) {
+    chunks.push(String.fromCharCode(...data.content.subarray(pos,pos+16384)));
+  }
+  return 'data:audio/wav;base64,'+btoa(chunks.join(''));
+}
+function downloadFile() {
+  const data=prepared;
+  if (!data) return;
+  let url;
+  try { if (data.blob) url=URL.createObjectURL(data.blob); } catch {}
+  const a=document.createElement('a');
+  try {
+    a.href=url || fallbackURL(data); a.download=data.name;
+    document.body.append(a); a.click();
+  } finally {
+    a.remove();
+    if (url) setTimeout(()=>URL.revokeObjectURL(url),60000);
+  }
+}
+function offerDownload() {
+  try {
+    downloadFile();
+    get('fileInfo').textContent='Download requested for '+prepared.name+'.'+(prepared.shareFile?' On iPhone, you can also choose Share, then Save to Files.':'');
+  } catch {
+    get('fileInfo').textContent=prepared.type==='application/json'?'Select and copy the score text below, then save it as '+prepared.name+'.':'This browser could not start the WAV download. Try the download button again'+(prepared.shareFile?' or use Share.':'.');
+  }
+}
+function prepareFile(wave) {
+  stopRinging();
+  try {
+    const content=wave?renderWave(rowsFor(state.changes),state.bpm,getTones(state.voice)):serializeSession(state);
+    const type=wave?'audio/wav':'application/json';
+    const stem=labelTitle().toLowerCase().replace(/[^a-z0-9_-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,64)||'score';
+    const name=stem+'-belfry.'+(wave?'wav':'json');
+    prepared={content,type,name,blob:null,shareFile:null};
+    try {
+      prepared.blob=new Blob([content],{type});
+      const f=new File([prepared.blob],name,{type});
+      if (navigator.share && navigator.canShare?.({files:[f]})) prepared.shareFile=f;
+    } catch {}
+    get('share').hidden=!prepared.shareFile; get('manual').hidden=wave;
+    get('fileText').value=wave?'':content;
+    get('fileHeading').textContent=wave?'Export performance':'Save score';
+    offerDownload(); showDialog('fileDialog',wave?'exportWave':'save');
+  } catch (error) { say('Could not prepare the file. '+error.message); }
+}
+get('save').addEventListener('click',()=>prepareFile(false));
+get('exportWave').addEventListener('click',()=>prepareFile(true));
+get('again').addEventListener('click',()=>{if (prepared) offerDownload();});
+get('selectText').addEventListener('click',()=>{get('fileText').focus();get('fileText').select();});
+get('share').addEventListener('click',async()=>{
+  const data=prepared;
+  if (!data?.shareFile) return;
+  try {
+    await navigator.share({files:[data.shareFile]});
+    if (data.type==='application/json' && serializeSession(state)===data.content) baseline=JSON.stringify(state);
+    if (prepared===data) get('fileInfo').textContent='Share sheet completed for '+data.name+'.';
+  } catch (error) {
+    if (prepared===data) get('fileInfo').textContent=error.name==='AbortError'?'Sharing canceled. Your score is still open.':'Sharing is unavailable. Use Download again.';
+  }
+});
+stopRinging(); paint();
+
+})();
+</script>
+</body>
+</html>

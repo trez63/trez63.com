@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Daily Build 2026-11-13 — Lathe</title>
+<style>
+:root{--bg:#efe9df;--fg:#221d18;--mut:#75695c;--panel:#faf6ee;--line:#d9d0c1;--acc:#b5532c;--wheel:#4a423a;--shadow:0 10px 36px rgba(40,25,0,.18)}
+:root[data-theme=dark]{--bg:#15171b;--fg:#ece7df;--mut:#928a7e;--panel:#1d2026;--line:#2d3139;--acc:#e8865c;--wheel:#2a2d33;--shadow:0 10px 36px rgba(0,0,0,.6)}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{display:grid;grid-template-rows:auto 1fr auto;height:100dvh;background:var(--bg);color:var(--fg);font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden;padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left)}
+header,footer{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:8px 12px;background:var(--panel)}
+header{border-bottom:1px solid var(--line)}
+footer{border-top:1px solid var(--line);padding-bottom:calc(8px + env(safe-area-inset-bottom))}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:18px;letter-spacing:.02em}
+.brand i{width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#f3b07a,var(--acc) 70%)}
+.brand small{font-weight:400;color:var(--mut);font-size:12px}
+.bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-left:auto}
+#helpbtn{order:3}
+.sep{width:1px;height:24px;background:var(--line);margin:0 2px}
+button{font:inherit;font-size:14px;color:var(--fg);background:transparent;border:1px solid var(--line);border-radius:9px;padding:0 12px;min-height:44px;min-width:44px;cursor:pointer;line-height:1.2;touch-action:manipulation}
+@media (hover:hover){button:hover{border-color:var(--mut)}}
+button.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+button.prime{border-color:var(--acc);color:var(--acc)}
+.rng{display:flex;align-items:center;gap:6px;color:var(--mut);font-size:12px;min-height:44px}
+.rng input{width:90px;height:44px;margin:0;accent-color:var(--acc)}
+input[type=color]{width:44px;height:44px;border:1px solid var(--line);border-radius:9px;padding:3px;background:transparent;cursor:pointer}
+main{position:relative;overflow:hidden}
+canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
+#stat{margin-left:auto;font-size:12px;color:var(--mut);font-variant-numeric:tabular-nums;white-space:nowrap}
+#toast{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);max-width:92%;padding:10px 14px;border-radius:10px;background:var(--fg);color:var(--bg);font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none}
+#toast.show{opacity:.95}
+.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);z-index:10;padding:16px}
+.overlay[hidden]{display:none}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;max-width:560px;width:100%;max-height:88dvh;overflow:auto;box-shadow:var(--shadow)}
+.card h2{margin:0 0 6px;font-size:18px}.card p{margin:6px 0;color:var(--mut)}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;margin:14px 0 4px}
+kbd{font:12px ui-monospace,Menlo,Consolas,monospace;background:var(--bg);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 6px;white-space:nowrap}
+.card button{margin-top:14px;width:100%}
+@media (max-width:640px){header,footer{padding-left:8px;padding-right:8px}.brand{flex:1}#helpbtn{order:0}.bar{margin-left:0;width:100%}.bar button{flex:1 1 auto}#stat{display:none}.rng input{width:72px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><i></i>Lathe <small>pottery wheel</small></div>
+  <button data-act="help" id="helpbtn" title="Help (Ctrl+/)">?</button>
+  <div class="bar">
+    <button data-act="open" title="Open a saved pot (O)">Open</button>
+    <button data-act="save" title="Save pot as JSON (Ctrl+S)">Save</button>
+    <button data-act="obj" class="prime" title="Export printable 3D model (E)">OBJ</button>
+    <span class="sep"></span>
+    <button data-act="undo" title="Undo (Ctrl+Z)">Undo</button>
+    <button data-act="reset" title="Reset (Home)">Reset</button>
+    <button data-act="theme" title="Light / dark (T)">Theme</button>
+  </div>
+</header>
+<main><canvas id="cv"></canvas><div id="toast"></div></main>
+<footer>
+  <button data-tool="pull" title="Pull the clay (P)">Pull</button>
+  <button data-tool="smooth" title="Smooth the wall (M)">Smooth</button>
+  <label class="rng">Brush <input type="range" id="brush" min="1" max="10" value="4"></label>
+  <label class="rng">Height <input type="range" id="height" min="30" max="200" value="140"></label>
+  <span class="sep"></span>
+  <button data-act="spin" title="Spin the wheel (Space)">Spin</button>
+  <button data-act="wire" title="Wireframe (W)">Wire</button>
+  <button data-act="tilt" title="Camera tilt (V)">Tilt</button>
+  <span class="sep"></span>
+  <input type="color" id="gout" value="#b2563a" title="Outside glaze">
+  <input type="color" id="gin" value="#e9dcc6" title="Inside glaze">
+  <span class="sep"></span>
+  <button data-preset="vase" title="1">Vase</button>
+  <button data-preset="bowl" title="2">Bowl</button>
+  <button data-preset="bottle" title="3">Bottle</button>
+  <button data-preset="cup" title="4">Cup</button>
+  <button data-preset="plate" title="5">Plate</button>
+  <span id="stat"></span>
+</footer>
+<input type="file" id="file" accept=".json,application/json" hidden>
+<div id="help" class="overlay" hidden><div class="card">
+  <h2>Lathe</h2>
+  <p>A pottery wheel in one file. The pot is a solid of revolution rendered in software on a 2D canvas — no WebGL, no libraries. Touch the clay: drag on the pot to <b>pull</b> the wall out or push it in; where your finger is becomes the wall. <b>Smooth</b> evens out lumps. Finished pots export as a watertight <b>OBJ</b> with real wall thickness, ready for a 3D printer.</p>
+  <div class="keys">
+    <kbd>Drag</kbd><span>Shape the wall at that height (Pull) or smooth it</span>
+    <kbd>P</kbd><span>Pull tool</span>
+    <kbd>M</kbd><span>Smooth tool</span>
+    <kbd>[ ]</kbd><span>Brush narrower / wider</span>
+    <kbd>↑ ↓</kbd><span>Pot taller / shorter</span>
+    <kbd>1 – 5</kbd><span>Presets: Vase, Bowl, Bottle, Cup, Plate</span>
+    <kbd>Space</kbd><span>Spin the wheel</span>
+    <kbd>W</kbd><span>Wireframe</span>
+    <kbd>V</kbd><span>Camera tilt</span>
+    <kbd>Ctrl Z</kbd><span>Undo</span>
+    <kbd>Home</kbd><span>Reset to the vase</span>
+    <kbd>Ctrl S</kbd><span>Save pot (JSON)</span>
+    <kbd>O</kbd><span>Open a saved pot</span>
+    <kbd>E</kbd><span>Export OBJ</span>
+    <kbd>T</kbd><span>Light / dark</span>
+    <kbd>Ctrl /</kbd><span>This help (Esc closes)</span>
+  </div>
+  <p>Save and OBJ download files when this page is opened directly from the .html file; some embedded viewers block downloads.</p>
+  <button data-act="help">Close</button>
+</div></div>
+<script>
+'use strict';
+const $=s=>document.querySelector(s), cv=$('#cv'), ctx=cv.getContext('2d');
+const RINGS=40, SEG=48, THICK=0.06, TAU=Math.PI*2;
+const PRESETS={ // [t, radius] key points up the wall: t=0 is the foot, t=1 the lip
+  vase:  {h:1.4,k:[[0,.42],[.12,.62],[.35,.92],[.62,.58],[.8,.3],[.92,.3],[1,.44]]},
+  bowl:  {h:.75,k:[[0,.32],[.15,.55],[.5,.88],[1,1.05]]},
+  bottle:{h:1.9,k:[[0,.4],[.2,.58],[.55,.58],[.7,.3],[.78,.16],[1,.18]]},
+  cup:   {h:1.0,k:[[0,.46],[.5,.54],[1,.64]]},
+  plate: {h:.28,k:[[0,.45],[.3,.5],[.55,.9],[1,1.15]]},
+};
+
+/* ===== PURE ===== profile maths, mesh and file format — no DOM, unit-tested with node */
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+// Run a Catmull-Rom spline through the key points: one radius per ring, smooth through every key.
+function fromKeys(keys,n=RINGS){
+  const out=new Float64Array(n), m=keys.length;
+  for(let i=0;i<n;i++){
+    const t=i/(n-1); let k=0; while(k<m-2&&t>keys[k+1][0])k++;
+    const a=keys[k], b=keys[k+1], u=b[0]===a[0]?0:clamp((t-a[0])/(b[0]-a[0]),0,1);
+    const p0=(keys[k-1]||a)[1], p1=a[1], p2=b[1], p3=(keys[k+2]||b)[1];
+    out[i]=0.5*(2*p1+(-p0+p2)*u+(2*p0-5*p1+4*p2-p3)*u*u+(-p0+3*p1-3*p2+p3)*u*u*u);
+  }
+  return out;
+}
+// Pull the wall at ring f to radius r; neighbouring rings follow with a gaussian falloff of width sigma.
+function pull(prof,f,r,sigma){
+  for(let k=0;k<prof.length;k++){const w=Math.exp(-(((k-f)/sigma)**2));prof[k]=clamp(prof[k]+(r-prof[k])*w,0.05,1.25);}
+}
+function smooth(prof,f,sigma){
+  const src=prof.slice();
+  for(let k=1;k<prof.length-1;k++){const w=Math.exp(-(((k-f)/sigma)**2))*0.5;prof[k]+=((src[k-1]+src[k+1])/2-src[k])*w;}
+}
+function resample(arr,n=RINGS){
+  const out=new Float64Array(n);
+  for(let i=0;i<n;i++){const t=i/(n-1)*(arr.length-1), j=Math.min(arr.length-2,Math.floor(t)), u=t-j;out[i]=arr[j]*(1-u)+arr[j+1]*u;}
+  return out;
+}
+// A closed, watertight solid of revolution with wall thickness: outer wall, rim, inner wall, floor, base.
+// Faces are index lists wound counter-clockwise seen from outside, tagged with the surface they belong to.
+function buildMesh(prof,height,angle=0,thick=THICK){
+  const n=prof.length, V=[], F=[], K=[], TX=[];
+  const radAt=y=>{const t=clamp(y/height,0,1)*(n-1), i=Math.floor(t), u=t-i;return i>=n-1?prof[n-1]:prof[i]*(1-u)+prof[i+1]*u;};
+  const ring=(r,y)=>{const b=V.length;for(let j=0;j<SEG;j++){const a=angle+j*TAU/SEG;V.push([r*Math.cos(a),y,r*Math.sin(a)]);}return b;};
+  const O=[], I=[], y0=Math.min(thick,height/2);
+  for(let i=0;i<n;i++)O.push(ring(prof[i],height*i/(n-1)));
+  for(let i=0;i<n;i++){const y=y0+(height-y0)*i/(n-1);I.push(ring(Math.max(0.02,radAt(y)-thick),y));}
+  const cB=V.push([0,0,0])-1, cF=V.push([0,y0,0])-1;
+  const face=(idx,k,i,j)=>{F.push(idx);K.push(k);TX.push(tex(i,j));};
+  for(let j=0;j<SEG;j++){
+    const j1=(j+1)%SEG;
+    for(let i=0;i<n-1;i++){
+      face([O[i]+j,O[i+1]+j,O[i+1]+j1,O[i]+j1],'out',i,j);
+      face([I[i]+j,I[i]+j1,I[i+1]+j1,I[i+1]+j],'in',i,j);
+    }
+    face([O[n-1]+j,I[n-1]+j,I[n-1]+j1,O[n-1]+j1],'rim',n,j);
+    face([cB,O[0]+j,O[0]+j1],'out',0,j);
+    face([cF,I[0]+j1,I[0]+j],'in',0,j);
+  }
+  return {V,F,K,TX};
+}
+// Deterministic speckle so the glaze has grain and the spin is visible.
+function tex(i,j){let h=(i*73856093^j*19349663)>>>0;h=Math.imul(h^(h>>>13),1274126177)>>>0;return ((h>>>8)&255)/255;}
+function toOBJ(mesh){
+  const L=['# Lathe — solid of revolution with wall thickness','o pot'];
+  for(const v of mesh.V)L.push('v '+v.map(c=>c.toFixed(4)).join(' '));
+  for(const f of mesh.F)L.push('f '+f.map(i=>i+1).join(' '));
+  return L.join('\n')+'\n';
+}
+const HEX=/^#[0-9a-f]{6}$/i;
+function serialize(S){
+  return {app:'Lathe',version:1,profile:Array.from(S.prof,v=>+v.toFixed(4)),height:+S.height.toFixed(3),
+    glaze:{...S.glaze},tilt:S.tilt,spin:S.spin,wire:S.wire,tool:S.tool,brush:S.brush};
+}
+function parseSave(text){
+  let d; try{d=JSON.parse(text);}catch(e){throw new Error('That file is not JSON.');}
+  if(!d||d.app!=='Lathe')throw new Error('Not a Lathe file: missing app:"Lathe".');
+  if(d.version!==1)throw new Error(`Unsupported Lathe file version ${d.version} (expected 1).`);
+  if(!Array.isArray(d.profile)||d.profile.length<2||!d.profile.every(v=>Number.isFinite(v)))throw new Error('Lathe file has no valid profile.');
+  const g=d.glaze||{};
+  return {prof:resample(d.profile.map(v=>clamp(v,0.05,1.25))),height:clamp(+d.height||1.4,0.3,2),
+    glaze:{out:HEX.test(g.out)?g.out:'#b2563a',in:HEX.test(g.in)?g.in:'#e9dcc6'},
+    tilt:[12,24,40].includes(d.tilt)?d.tilt:24,spin:d.spin!==false,wire:!!d.wire,
+    tool:d.tool==='smooth'?'smooth':'pull',brush:clamp(Math.round(+d.brush)||4,1,10)};
+}
+/* ===== END PURE ===== */
+
+const S={prof:fromKeys(PRESETS.vase.k),height:1.4,glaze:{out:'#b2563a',in:'#e9dcc6'},tilt:24,spin:true,wire:false,
+  tool:'pull',brush:4,angle:0,undo:[],lastGesture:0,morph:null,fps:0,faces:0};
+const cam={s:1,cx:0,cy:0,cT:1,sT:0};
+
+/* ---------- rendering: build the mesh, tilt it toward the camera, sort faces back to front, shade ---------- */
+const hex2rgb=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+const LIGHT=(()=>{const l=[-0.45,0.7,0.6], m=Math.hypot(...l);return l.map(v=>v/m);})();
+const HALF=(()=>{const h=[LIGHT[0],LIGHT[1],LIGHT[2]+1], m=Math.hypot(...h);return h.map(v=>v/m);})();
+
+function fitCamera(){
+  const W=cv.width, H=cv.height, T=S.tilt*Math.PI/180, pad=18*dpr(), rB=1.3, hB=2.0;
+  cam.cT=Math.cos(T); cam.sT=Math.sin(T);
+  cam.s=Math.min((W-2*pad)/(2*rB),(H-2*pad)/(hB*cam.cT+2*rB*cam.sT));
+  cam.cx=W/2; cam.cy=H/2+cam.s*hB*cam.cT/2;
+}
+const dpr=()=>Math.min(devicePixelRatio||1,3);
+
+function render(){
+  const W=cv.width, H=cv.height, {s,cx,cy,cT,sT}=cam;
+  ctx.clearRect(0,0,W,H);
+  const mesh=buildMesh(S.prof,S.height,S.angle), P=new Array(mesh.V.length);
+  for(let i=0;i<P.length;i++){const [x,y,z]=mesh.V[i];P[i]=[x,y*cT-z*sT,y*sT+z*cT];}   // camera space: y up, z toward viewer
+  const px=p=>cx+s*p[0], py=p=>cy-s*p[1];
+
+  // the wheel head and the pot's shadow
+  let maxR=0; for(const r of S.prof)if(r>maxR)maxR=r;
+  const wheel=getComputedStyle(document.documentElement).getPropertyValue('--wheel').trim();
+  ctx.fillStyle=wheel; ctx.beginPath(); ctx.ellipse(cx,cy+s*0.02*cT,s*1.32,s*1.32*sT,0,0,TAU); ctx.fill();
+  ctx.fillStyle='rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(cx+s*0.12,cy,s*maxR*1.08,s*maxR*1.08*sT,0,0,TAU); ctx.fill();
+
+  const out=hex2rgb(S.glaze.out), inn=hex2rgb(S.glaze.in), order=[];
+  const N=mesh.F.length, depth=new Float64Array(N), nz=new Float64Array(N), lam=new Float64Array(N), spec=new Float64Array(N);
+  for(let f=0;f<N;f++){
+    const idx=mesh.F[f], a=P[idx[0]], b=P[idx[1]], c=P[idx[idx.length-1]];
+    const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2], vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2];
+    let nx=uy*vz-uz*vy, ny=uz*vx-ux*vz, nzz=ux*vy-uy*vx;
+    if(nzz<=0)continue;                                  // back face: the mesh is closed, so it is hidden
+    const m=Math.hypot(nx,ny,nzz)||1; nx/=m;ny/=m;nzz/=m;
+    let d=0; for(const i of idx)d+=P[i][2]; depth[f]=d/idx.length; nz[f]=nzz;
+    lam[f]=Math.max(0,nx*LIGHT[0]+ny*LIGHT[1]+nzz*LIGHT[2]);
+    spec[f]=Math.pow(Math.max(0,nx*HALF[0]+ny*HALF[1]+nzz*HALF[2]),28)*0.45;
+    order.push(f);
+  }
+  order.sort((a,b)=>depth[a]-depth[b]);
+  S.faces=order.length;
+  ctx.lineWidth=S.wire?Math.max(1,dpr()*0.8):0.6; ctx.lineJoin='round';
+  const wireCol=getComputedStyle(document.documentElement).getPropertyValue('--acc').trim();
+  for(const f of order){
+    const idx=mesh.F[f], k=mesh.K[f], base=k==='in'?inn:out;
+    const grain=1+(mesh.TX[f]-0.5)*(k==='rim'?0:0.1), light=(k==='in'?0.22:0.34)+0.7*lam[f];
+    const r=clamp(base[0]*light*grain+255*spec[f],0,255)|0, g=clamp(base[1]*light*grain+255*spec[f],0,255)|0, b=clamp(base[2]*light*grain+255*spec[f],0,255)|0;
+    ctx.beginPath(); ctx.moveTo(px(P[idx[0]]),py(P[idx[0]]));
+    for(let i=1;i<idx.length;i++)ctx.lineTo(px(P[idx[i]]),py(P[idx[i]]));
+    ctx.closePath();
+    if(S.wire){ctx.strokeStyle=wireCol;ctx.globalAlpha=0.25+0.75*nz[f];ctx.stroke();ctx.globalAlpha=1;}
+    else{ctx.fillStyle=ctx.strokeStyle=`rgb(${r},${g},${b})`;ctx.fill();ctx.stroke();}
+  }
+}
+
+/* ---------- main loop ---------- */
+let last=performance.now(), frames=0, fpsT=last;
+function loop(now){
+  const dt=Math.min(0.05,(now-last)/1000); last=now;
+  if(S.spin)S.angle=(S.angle+dt*0.9)%TAU;
+  if(S.morph){const u=clamp((now-S.morph.t0)/S.morph.dur,0,1), e=u<.5?2*u*u:1-(-2*u+2)**2/2;
+    for(let i=0;i<RINGS;i++)S.prof[i]=S.morph.from[i]+(S.morph.to[i]-S.morph.from[i])*e;
+    if(u>=1)S.morph=null;}
+  render();
+  if(++frames&&now-fpsT>500){S.fps=Math.round(frames*1000/(now-fpsT));frames=0;fpsT=now;status();}
+  requestAnimationFrame(loop);
+}
+function status(){
+  let maxR=0; for(const r of S.prof)if(r>maxR)maxR=r;
+  $('#stat').textContent=`Ø ${(2*maxR).toFixed(2)} · h ${S.height.toFixed(2)} · ${S.faces} faces · ${S.fps} fps`;
+  for(const b of document.querySelectorAll('[data-tool]'))b.classList.toggle('on',b.dataset.tool===S.tool);
+  for(const k of ['spin','wire'])$(`[data-act=${k}]`).classList.toggle('on',S[k]);
+  $('#brush').value=S.brush; $('#height').value=Math.round(S.height*100);
+  $('#gout').value=S.glaze.out; $('#gin').value=S.glaze.in;
+}
+function toast(msg,ms=2800){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),ms);}
+
+/* ---------- sculpting: the finger's height picks the ring, its distance from the axis sets the radius ---------- */
+let drag=false;
+function sculpt(e){
+  const r=cv.getBoundingClientRect(), x=(e.clientX-r.left)*cv.width/r.width, y=(e.clientY-r.top)*cv.height/r.height;
+  const wy=(cam.cy-y)/(cam.s*cam.cT), rad=Math.abs(x-cam.cx)/cam.s, f=clamp(wy/S.height,0,1)*(RINGS-1);
+  S.morph=null;
+  if(S.tool==='pull')pull(S.prof,f,rad,S.brush); else smooth(S.prof,f,S.brush);
+}
+cv.addEventListener('pointerdown',e=>{e.preventDefault();try{cv.setPointerCapture(e.pointerId);}catch(_){}gesture();drag=true;sculpt(e);});
+cv.addEventListener('pointermove',e=>{if(drag)sculpt(e);});
+for(const ev of ['pointerup','pointercancel'])cv.addEventListener(ev,()=>{drag=false;status();});
+
+/* ---------- state changes ---------- */
+function pushUndo(){S.undo.push({prof:S.prof.slice(),height:S.height});if(S.undo.length>30)S.undo.shift();}
+function gesture(){const t=performance.now();if(t-S.lastGesture>800)pushUndo();S.lastGesture=t;}
+function undo(){const u=S.undo.pop();if(!u)return toast('Nothing to undo');S.morph=null;S.prof=u.prof;S.height=u.height;status();}
+function preset(name){const p=PRESETS[name];if(!p)return;gesture();S.morph={from:S.prof.slice(),to:fromKeys(p.k),t0:performance.now(),dur:700};S.height=p.h;status();}
+function reset(){S.undo=[];S.lastGesture=0;S.angle=0;S.prof=new Float64Array(RINGS).fill(0.5);S.height=1.4;
+  S.morph={from:S.prof.slice(),to:fromKeys(PRESETS.vase.k),t0:performance.now()+300,dur:1600};status();}
+function setTool(t){S.tool=t;status();}
+function setBrush(v){S.brush=clamp(v,1,10);status();}
+function setHeight(h){gesture();S.height=clamp(+h.toFixed(2),0.3,2);status();}
+function toggle(k){S[k]=!S[k];status();}
+function cycleTilt(){const t=[12,24,40];S.tilt=t[(t.indexOf(S.tilt)+1)%t.length];fitCamera();}
+function setTheme(t){document.documentElement.dataset.theme=t;try{localStorage.setItem('lathe-theme',t);}catch(e){}}
+const toggleTheme=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+const toggleHelp=()=>$('#help').hidden=!$('#help').hidden;
+
+/* ---------- files ---------- */
+const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
+function download(name,content,type){
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([content],{type})); a.download=name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+}
+function save(){download(`lathe-${today()}.json`,JSON.stringify(serialize(S),null,1),'application/json');toast('Saved lathe-'+today()+'.json');}
+function exportOBJ(){const m=buildMesh(S.prof,S.height,0);download(`lathe-${today()}.obj`,toOBJ(m),'text/plain');toast(`Exported OBJ: ${m.V.length} vertices, ${m.F.length} faces, watertight`);}
+function applyState(st){S.morph=null;S.prof=st.prof;S.height=st.height;S.glaze=st.glaze;S.tilt=st.tilt;S.spin=st.spin;S.wire=st.wire;S.tool=st.tool;S.brush=st.brush;fitCamera();status();}
+function openFile(file){
+  if(!file)return;
+  const rd=new FileReader();
+  rd.onload=()=>{try{pushUndo();applyState(parseSave(rd.result));toast('Opened '+file.name);}catch(err){S.undo.pop();toast('Could not open: '+err.message,5000);}};
+  rd.readAsText(file);
+}
+
+/* ---------- toolbar, inputs, keys ---------- */
+const acts={open:()=>$('#file').click(),save,obj:exportOBJ,undo,reset,theme:toggleTheme,help:toggleHelp,spin:()=>toggle('spin'),wire:()=>toggle('wire'),tilt:cycleTilt};
+document.body.addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  if(b.dataset.tool)setTool(b.dataset.tool); else if(b.dataset.preset)preset(b.dataset.preset); else if(b.dataset.act in acts)acts[b.dataset.act]();
+});
+$('#brush').addEventListener('input',e=>setBrush(+e.target.value));
+$('#height').addEventListener('input',e=>setHeight(e.target.value/100));
+$('#gout').addEventListener('input',e=>S.glaze.out=e.target.value);
+$('#gin').addEventListener('input',e=>S.glaze.in=e.target.value);
+$('#file').addEventListener('change',e=>{openFile(e.target.files[0]);e.target.value='';});
+$('#help').addEventListener('click',e=>{if(e.target===e.currentTarget)toggleHelp();});
+
+addEventListener('keydown',e=>{
+  const mod=e.ctrlKey||e.metaKey, k=e.key;
+  if(mod&&k==='/'){e.preventDefault();return toggleHelp();}
+  if(k==='Escape'){$('#help').hidden=true;return;}
+  if(e.target.closest('input,textarea,select,[contenteditable]'))return;
+  if(mod&&k.toLowerCase()==='z'){e.preventDefault();return undo();}
+  if(mod&&k.toLowerCase()==='s'){e.preventDefault();return save();}
+  if(mod||e.altKey)return;
+  const names=Object.keys(PRESETS);
+  if(k>='1'&&k<='5')return preset(names[k-1]);
+  switch(k.length===1?k.toLowerCase():k){
+    case 'p':return setTool('pull');
+    case 'm':return setTool('smooth');
+    case '[':return setBrush(S.brush-1);
+    case ']':return setBrush(S.brush+1);
+    case 'ArrowUp':e.preventDefault();return setHeight(S.height+0.05);
+    case 'ArrowDown':e.preventDefault();return setHeight(S.height-0.05);
+    case ' ':e.preventDefault();return toggle('spin');
+    case 'w':return toggle('wire');
+    case 'v':return cycleTilt();
+    case 't':return toggleTheme();
+    case 'o':return acts.open();
+    case 'e':return exportOBJ();
+    case '?':return toggleHelp();
+    case 'Home':return reset();
+  }
+});
+
+/* ---------- size & start ---------- */
+function resize(){
+  const m=document.querySelector('main'), d=dpr();
+  cv.width=Math.max(1,Math.round(m.clientWidth*d)); cv.height=Math.max(1,Math.round(m.clientHeight*d)); fitCamera();
+}
+new ResizeObserver(resize).observe(document.querySelector('main'));
+(function init(){
+  let t=null; try{t=localStorage.getItem('lathe-theme');}catch(e){}
+  setTheme(t||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'));
+  resize(); reset(); requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

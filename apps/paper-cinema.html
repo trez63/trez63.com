@@ -1,0 +1,884 @@
+<!doctype html>
+<!--
+App: Paper Cinema | Created: 2026-11-11 (America/Los_Angeles)
+Purpose: Draw a looping four-frame animation and turn it into a printable barrier-grid toy.
+Main interaction: Ink or erase a frame, play the drawings, then advance the striped shutter
+one step at a time to recover those same drawings from a single interlaced plate.
+Visual approach: A butter-paper projection booth with aubergine film stock, punched
+perforations, vermilion controls, an illustrated screen and a compact drawing bench.
+Distinct from earlier entries through Tideglass: the drawings become a physical animation
+when a matching transparent shutter passes across their printed stripes.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#332637">
+  <title>Paper Cinema · Barrier-grid animation studio</title>
+  <style>
+    :root {
+      color-scheme:light;
+      --ink:#332637; --dark:#201a24; --red:#b33b29; --deep-red:#8d2a20;
+      --butter:#f5e1a1; --sheet:#faf2da; --white:#fff9e9; --line:#bdb09a;
+      --muted:#61554e; --pencil:#807369; --sun:#f0ba4e;
+      --sans:"Work Sans","Aptos",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      --display:"Archivo Black","Arial Black","Aptos Display",var(--sans);
+      --mono:"IBM Plex Mono","Cascadia Mono","SFMono-Regular",Consolas,monospace;
+      color:var(--ink); background:var(--sheet); font-family:var(--sans);
+      -webkit-text-size-adjust:100%;
+    }
+    *,*::before,*::after { box-sizing:border-box; }
+    [hidden] { display:none !important; }
+    body { margin:0; min-width:0; }
+    h1,h2,h3,p,figure { margin:0; }
+    button,input,select,textarea { color:inherit; font:inherit; }
+    button,select { cursor:pointer; touch-action:manipulation; }
+    button {
+      min-width:44px; min-height:44px; padding:.55rem .92rem; font-weight:650; line-height:1.2;
+      background:var(--white); border:1px solid var(--ink); border-radius:5px;
+    }
+    button:disabled { opacity:.47; cursor:default; }
+    input[type=text],select,textarea { font-size:16px; }
+    input[type=text],select { min-height:44px; }
+    select { max-width:100%; border:1px solid var(--pencil); border-radius:4px; padding:.48rem .52rem; background:var(--white); }
+    .primary { color:var(--white); background:var(--red); border-color:var(--deep-red); }
+    @media (hover:hover) {
+      button:hover:enabled { background:#eee1bd; }
+      .primary:hover:enabled { background:var(--deep-red); }
+    }
+    :where(button,input,select,textarea,a,summary,[tabindex]):focus-visible {
+      outline:3px solid var(--red); outline-offset:3px;
+    }
+    .mast :focus-visible { outline-color:#fff18c; }
+    a { color:inherit; }
+    .skip { position:absolute; top:-300px; left:1rem; z-index:3; padding:.8rem; color:var(--ink); background:var(--white); }
+    .skip:focus { top:.7rem; }
+    .wrap {
+      width:min(100%,1320px); margin-inline:auto;
+      padding-left:max(clamp(1rem,4.4vw,4rem),env(safe-area-inset-left));
+      padding-right:max(clamp(1rem,4.4vw,4rem),env(safe-area-inset-right));
+    }
+    .mast {
+      background:var(--ink); color:var(--butter); padding-top:max(0px,env(safe-area-inset-top));
+      border-bottom:5px solid var(--red);
+    }
+    .mast-inner { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.9rem 1.3rem; padding-block:clamp(1rem,2.9vw,2.3rem); }
+    .wordmark { display:flex; align-items:center; gap:clamp(.65rem,1.6vw,1.3rem); }
+    .shutter-mark {
+      width:clamp(41px,5.4vw,66px); aspect-ratio:1; border-radius:50%;
+      position:relative; overflow:hidden; background:var(--butter); flex:none;
+    }
+    .shutter-mark::after {
+      content:""; position:absolute; inset:-15%;
+      background:repeating-linear-gradient(90deg,transparent 0 5px,var(--ink) 5px 9px);
+      transform:rotate(-24deg) translateX(13%);
+    }
+    h1 { font:900 clamp(2.55rem,5.55vw,5.15rem)/.88 var(--display); letter-spacing:-.083em; }
+    h1 i { color:#f5b273; font:italic 630 1.04em/.88 Georgia,"Times New Roman",serif; letter-spacing:-.075em; }
+    .mast-caption { font-size:.94rem; line-height:1.35; color:#e8dfce; margin-top:.65rem; }
+    .file-actions,.actions { display:flex; align-items:center; flex-wrap:wrap; gap:.45rem; }
+    .mast button { color:var(--sheet); background:transparent; border-color:#948080; }
+    .mast .primary { color:var(--ink); background:var(--butter); border-color:var(--butter); }
+    @media (hover:hover) {
+      .mast button:hover:enabled { background:#514050; }
+      .mast .primary:hover:enabled { background:#ffebac; }
+    }
+    main.wrap { padding-bottom:max(2.2rem,env(safe-area-inset-bottom)); }
+    .film-meta { display:grid; grid-template-columns:minmax(0,1fr) minmax(12rem,16rem); align-items:end; gap:1rem; padding:clamp(1.1rem,2.5vw,2rem) 0 1.2rem; }
+    .field { display:grid; min-width:0; gap:.24rem; }
+    .eyebrow,.field>label,.phase-read,.pos,.mini-label {
+      font:650 .74rem/1.35 var(--mono); text-transform:uppercase; letter-spacing:.07em;
+    }
+    .field>label,.mini-label { color:var(--muted); }
+    #title {
+      width:min(100%,39rem); min-width:0; padding:.07rem 0 .22rem; background:transparent; border:0;
+      border-bottom:1px solid var(--pencil); border-radius:0;
+      font:750 clamp(1.6rem,3.2vw,2.45rem)/1.12 var(--sans); letter-spacing:-.05em;
+    }
+    #title::placeholder { color:#74665d; }
+    .studio { display:grid; grid-template-columns:minmax(0,1.58fr) minmax(310px,1fr); gap:clamp(1.2rem,3.5vw,3.1rem); align-items:start; }
+    .screening,.workbench { min-width:0; }
+    .section-head { display:flex; justify-content:space-between; align-items:center; gap:.55rem 1rem; flex-wrap:wrap; margin-bottom:.65rem; }
+    h2 { font:760 clamp(1.28rem,2.2vw,1.8rem)/1.12 var(--sans); letter-spacing:-.05em; }
+    .inline-control { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }
+    .inline-control label { font:600 .8rem/1.35 var(--mono); color:var(--muted); }
+    .projector { background:transparent; filter:drop-shadow(0 2px 0 #30233228); }
+    .perforations {
+      height:clamp(18px,2.1vw,26px); border-inline:8px solid var(--ink);
+      background:
+        linear-gradient(var(--ink),var(--ink)) top/100% 30% no-repeat,
+        linear-gradient(var(--ink),var(--ink)) bottom/100% 30% no-repeat,
+        repeating-linear-gradient(90deg,var(--ink) 0 8px,transparent 8px 23px,var(--ink) 23px 32px) center/100% 42% no-repeat;
+    }
+    .perforations:first-child { border-radius:7px 7px 0 0; }
+    .perforations:last-child { border-radius:0 0 7px 7px; }
+    .gate { border-inline:8px solid var(--ink); background:var(--butter); }
+    #stage,#editor { width:100%; aspect-ratio:40/24; display:block; line-height:0; }
+    #stage svg,#editor svg,.thumb svg,svg.thumb { display:block; width:100%; height:100%; }
+    #stage { overflow:hidden; }
+    #stage[data-view="shutter"] { cursor:ew-resize; touch-action:pan-y; user-select:none; -webkit-user-select:none; }
+    #modeNote { color:var(--muted); font-size:.91rem; line-height:1.42; min-height:1.35em; margin:.65rem 0 .72rem; overflow-wrap:anywhere; }
+    .transport { border-block:1px solid var(--line); padding:.85rem 0; }
+    .transport-main { display:flex; align-items:center; flex-wrap:wrap; justify-content:space-between; gap:.6rem; }
+    .step { font-size:1.1rem; min-width:44px; padding:.45rem .7rem; }
+    #play { min-width:6.3rem; }
+    .scrub-head { display:flex; gap:.5rem; justify-content:space-between; align-items:baseline; margin-top:.75rem; }
+    .scrub-head label { color:var(--muted); font:600 .8rem var(--mono); }
+    .phase-read,.pos { letter-spacing:.025em; text-transform:none; color:var(--ink); }
+    #phase { display:block; width:100%; min-height:44px; margin:0; accent-color:var(--red); cursor:pointer; }
+    .export-row { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.65rem; padding:.75rem 0; }
+    #exportKit { background:var(--ink); color:var(--white); }
+    #exportKit:hover:enabled { background:#49394b; }
+    #status { font-size:.9rem; color:var(--muted); line-height:1.44; overflow-wrap:anywhere; }
+    .workbench { padding:clamp(.85rem,1.8vw,1.35rem); border:1px solid #c5b795; border-top:4px solid var(--ink); background:#f6e9bd; }
+    .workbench .section-head { min-height:44px; }
+    #frames { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.38rem; }
+    #frames button {
+      display:grid; justify-items:stretch; align-content:start; min-width:0; min-height:44px;
+      padding:.2rem; font:650 .78rem/1.45 var(--mono); color:var(--ink); background:var(--white);
+      border:1px solid var(--pencil); overflow:hidden;
+    }
+    #frames button[aria-pressed=true],#frames button[aria-current=true],#frames button.active,#frames button.selected {
+      border-color:var(--red); box-shadow:inset 0 0 0 2px var(--red); background:#ffe7bc;
+    }
+    .thumb { display:block; width:100%; aspect-ratio:40/24; overflow:hidden; }
+    .edit-hint { font-size:.92rem; color:var(--muted); line-height:1.4; margin:.8rem 0 .45rem; }
+    .draw-window { border:2px solid var(--ink); background:var(--white); }
+    #editor { touch-action:none; -webkit-user-select:none; user-select:none; cursor:crosshair; }
+    .brush { display:flex; justify-content:space-between; flex-wrap:wrap; align-items:center; gap:.45rem .8rem; margin-top:.6rem; }
+    .nudge-tools { display:flex; align-items:center; flex-wrap:wrap; gap:.4rem 1rem; margin-top:.5rem; }
+    .dpad { display:grid; flex:none; grid-template-columns:repeat(3,44px); grid-template-rows:repeat(2,44px); gap:2px; }
+    .dpad button { padding:0; font:650 1.1rem/1 var(--sans); }
+    #north { grid-row:1;grid-column:2; } #west { grid-row:2;grid-column:1; } #south { grid-row:2;grid-column:2; } #east { grid-row:2;grid-column:3; }
+    .stamp { display:grid; align-content:center; gap:.38rem; }
+    .edit-actions { display:flex; align-items:center; flex-wrap:wrap; gap:.4rem; margin-top:.65rem; padding-top:.65rem; border-top:1px solid #c6b58f; }
+    .edit-actions button { font-size:.9rem; }
+    dialog {
+      position:fixed; width:min(34rem,calc(100% - max(.8rem,env(safe-area-inset-left)) - max(.8rem,env(safe-area-inset-right))));
+      max-height:calc(100vh - 2rem);
+      max-height:calc(100dvh - max(1rem,env(safe-area-inset-top)) - max(1rem,env(safe-area-inset-bottom)));
+      border:1px solid var(--ink); border-top:6px solid var(--red); border-radius:6px;
+      padding:clamp(1rem,3vw,1.6rem); margin:auto; color:var(--ink); background:var(--white);
+      box-shadow:0 15px 50px #291e3840; overflow:auto; overscroll-behavior:contain;
+    }
+    dialog::backdrop { background:#2d21388c; }
+    .dialog-head { display:flex; justify-content:space-between; align-items:center; gap:.7rem; margin-bottom:.65rem; }
+    dialog .close { border-color:transparent; background:transparent; font-size:1.5rem; padding:0; }
+    dialog p,dialog ol { font-size:1rem; line-height:1.48; margin:.55rem 0 .8rem; overflow-wrap:anywhere; }
+    dialog ol { padding-left:1.2rem; }
+    dialog li+li { margin-top:.55rem; }
+    dialog summary { min-height:44px; cursor:pointer; padding:.65rem 0; margin-top:.6rem; }
+    dialog label { display:block; font-weight:650; margin:.5rem 0 .3rem; }
+    dialog textarea { width:100%; min-height:6rem; display:block; padding:.6rem; font:16px/1.4 var(--mono); border:1px solid var(--pencil); background:white; resize:vertical; border-radius:3px; }
+    #selectText { margin-top:.45rem; }
+    @media(max-width:850px) {
+      .studio { grid-template-columns:minmax(0,1fr); gap:1rem; }
+      .workbench { padding:1rem; }
+      .edit-area { display:grid; grid-template-columns:minmax(0,1.3fr) minmax(180px,.7fr); gap:.85rem; align-items:start; }
+      .brush { margin-top:0; }
+    }
+    @media(max-width:590px) {
+      .mast-inner { align-items:flex-start; }
+      .mast-caption { font-size:.87rem; margin-top:.42rem; }
+      .film-meta { grid-template-columns:minmax(0,1fr); gap:.6rem; }
+      .film-meta .field:last-child { display:flex; align-items:center; gap:.7rem; }
+      .film-meta select { flex:1; min-width:0; }
+      .edit-area { display:block; }
+      .brush { margin-top:.65rem; }
+      .workbench { padding:.75rem; }
+      .gate,.perforations { border-inline-width:5px; }
+    }
+    @media(max-width:400px) {
+      .screening>.section-head { align-items:flex-start; }
+      .inline-control { gap:.3rem; }
+      .wrap { padding-left:max(.78rem,env(safe-area-inset-left)); padding-right:max(.78rem,env(safe-area-inset-right)); }
+      button { padding:.5rem .68rem; }
+      .transport-main { gap:.35rem; }
+    }
+    @media(max-height:500px) and (orientation:landscape) {
+      .mast-inner { padding-block:.7rem; }
+      dialog { max-height:calc(100dvh - max(.4rem,env(safe-area-inset-top)) - max(.4rem,env(safe-area-inset-bottom))); }
+    }
+    @media(prefers-reduced-motion:reduce) { html {scroll-behavior:auto;} }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#screening">Skip to player</a>
+  <header class="mast">
+    <div class="wrap mast-inner">
+      <div class="wordmark"><span class="shutter-mark" aria-hidden="true"></span><div><h1>Paper <i>Cinema</i></h1><p class="mast-caption">Draw four frames. Slide a shutter to bring them to life.</p></div></div>
+      <div class="file-actions" aria-label="Film controls"><button type="button" id="save" class="primary">Save</button><button type="button" id="open">Open</button><button type="button" id="help">Guide</button></div>
+    </div>
+  </header>
+  <main class="wrap">
+    <div class="film-meta">
+      <div class="field"><label for="title">Film title</label><input id="title" type="text" maxlength="80" autocomplete="off" placeholder="Untitled film"></div>
+      <div class="field"><label for="preset">Starting film</label><select id="preset"></select></div>
+    </div>
+    <div class="studio">
+      <section class="screening" id="screening" tabindex="-1" aria-labelledby="playerTitle">
+        <div class="section-head"><h2 id="playerTitle">Screening room</h2><div class="inline-control"><label for="view">View</label><select id="view"><option value="film">Animation</option><option value="shutter">Shutter</option><option value="plate">Interlaced plate</option></select></div></div>
+        <figure class="projector" aria-label="Film preview"><div class="perforations" aria-hidden="true"></div><div class="gate"><div id="stage"></div></div><div class="perforations" aria-hidden="true"></div></figure>
+        <p id="modeNote"></p>
+        <div class="transport">
+          <div class="transport-main"><div class="actions">
+            <button type="button" id="play" class="primary">Play</button>
+            <button type="button" id="prev" class="step" aria-label="Previous frame" title="Previous frame">←</button><button type="button" id="next" class="step" aria-label="Next frame" title="Next frame">→</button>
+          </div><div class="inline-control"><label for="fps">Frames/s</label><select id="fps"></select></div></div>
+          <div class="scrub-head"><label for="phase">Frame position</label><span id="phaseLabel" class="phase-read"></span></div>
+          <input id="phase" type="range" min="0" max="3" step="1" value="0" aria-controls="stage">
+        </div>
+        <div class="export-row"><button type="button" id="exportKit">Export print kit</button></div><p id="status" role="status"></p>
+      </section>
+      <section class="workbench" aria-labelledby="editorTitle">
+        <div class="section-head"><h2 id="editorTitle">Drawing bench</h2></div>
+        <div id="frames" role="group" aria-label="Choose a frame to edit"></div>
+        <p class="edit-hint">Choose a frame, then tap or drag on the grid to draw.</p>
+        <div class="edit-area"><div class="draw-window"><div id="editor" role="group" aria-label="Pixel drawing grid"></div></div>
+          <div class="edit-tools"><div class="brush"><div class="inline-control"><label for="tool">Tool</label><select id="tool"><option value="ink">Ink</option><option value="erase">Erase</option></select></div><span id="pos" class="pos"></span></div>
+            <div class="nudge-tools"><div class="dpad" role="group" aria-label="Move drawing cursor"><button type="button" id="north" aria-label="Move cursor up">↑</button><button type="button" id="west" aria-label="Move cursor left">←</button><button type="button" id="south" aria-label="Move cursor down">↓</button><button type="button" id="east" aria-label="Move cursor right">→</button></div><button type="button" id="mark">Apply tool</button></div>
+            <div class="edit-actions"><button type="button" id="undo">Undo</button><button type="button" id="copyPrev">Copy previous frame</button></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <input type="file" hidden accept=".json,application/json" id="file">
+  <dialog id="guideDialog" aria-labelledby="guideTitle"><div class="dialog-head"><h2 id="guideTitle">How Paper Cinema works</h2><button type="button" data-close class="close" aria-label="Close guide">×</button></div>
+    <ol><li>Choose a starting film and press <strong>Play</strong>. Switch between the four pictures using the thumbnails, arrow buttons or frame slider.</li>
+    <li>Select <strong>Ink</strong> or <strong>Erase</strong>. Touch or drag on the grid, or use its direction buttons and apply the tool to one cell.</li>
+    <li>The interlaced plate holds narrow vertical strips from all four drawings. The shutter has one clear slit for every four strips. Each 1 mm step to the right exposes the next drawing.</li>
+    <li><strong>Export print kit</strong> gives you the plate and shutter. Print at actual size. Use paper for the plate and printer-compatible clear film for the shutter, or cut out the clear slots. Align the left registration marks and slide the shutter horizontally.</li>
+    <li><strong>Save</strong> downloads the editable film and its settings. <strong>Open</strong> restores a saved JSON film.</li></ol>
+  </dialog>
+  <dialog id="fileDialog" aria-labelledby="fileHeading"><div class="dialog-head"><h2 id="fileHeading">File options</h2><button type="button" data-close class="close" aria-label="Close file options">×</button></div>
+    <p id="fileInfo" role="status"></p><p>On iPhone, choose Share file and then Save to Files when available.</p>
+    <div class="actions"><button type="button" class="primary" id="again">Download again</button><button type="button" hidden id="share">Share file</button></div>
+    <details><summary>Manual file contents</summary><label for="fileText">Complete contents</label><textarea id="fileText" rows="6" readonly spellcheck="false"></textarea><button type="button" id="selectText">Select contents</button></details>
+  </dialog>
+  <dialog id="confirmDialog" aria-labelledby="confirmTitle"><div class="dialog-head"><h2 id="confirmTitle">Confirm change</h2></div><p id="confText"></p><div class="actions"><button type="button" id="keep">Keep current work</button><button type="button" id="replace" class="primary">Replace</button></div></dialog>
+  <script>
+(() => { 'use strict';
+/* CORE_START */
+const W = 40;
+const H = 24;
+const N = 4;
+const SESSION_BYTES = 64000;
+const EMPTY_FRAME = '0'.repeat(W * H);
+
+function integerIn(value, low, high) {
+  return Number.isInteger(value) && value >= low && value <= high;
+}
+function framePixel(frame, x, y) {
+  if (!integerIn(frame, 0, N - 1) || !integerIn(x, 0, W - 1) || !integerIn(y, 0, H - 1)) {
+    throw Error('Choose a pixel inside one of the four frames.');
+  }
+  return y * W + x;
+}
+function inked(state, frame, x, y) {
+  return state.frames[frame][framePixel(frame, x, y)] === '1';
+}
+function setPixel(state, frame, x, y, on) {
+  const index = framePixel(frame, x, y);
+  if (typeof on !== 'boolean') throw Error('Choose Ink or Erase.');
+  const value = on ? '1' : '0';
+  const previous = state.frames[frame];
+  if (previous[index] === value) return state;
+  const frames = state.frames.slice();
+  frames[frame] = previous.slice(0, index) + value + previous.slice(index + 1);
+  return { ...state, frames };
+}
+function fieldsAre(value, keys) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value) &&
+    Object.keys(value).length === keys.length &&
+    keys.every(key => Object.prototype.hasOwnProperty.call(value, key));
+}
+function validateState(state) {
+  if (!fieldsAre(state, ['title','frames','phase','fps','view','tool','x','y'])) {
+    throw Error('The film has missing or unexpected fields.');
+  }
+  if (typeof state.title !== 'string' || state.title.length > 80 ||
+      /[\u0000-\u001f\u007f\u0085\u2028\u2029]/.test(state.title)) {
+    throw Error('Use a single-line film title of up to 80 characters.');
+  }
+  if (!Array.isArray(state.frames) || state.frames.length !== N) throw Error('A film needs four frames.');
+  for (const frame of state.frames) {
+    if (typeof frame !== 'string' || frame.length !== W * H || /[^01]/.test(frame)) {
+      throw Error('Each frame needs a 40 × 24 grid of paper and ink pixels.');
+    }
+  }
+  if (!integerIn(state.phase, 0, N - 1)) throw Error('The selected frame must be 1–4.');
+  if (!integerIn(state.fps, 1, 10)) throw Error('Choose a playback speed of 1–10 frames per second.');
+  if (!['film','shutter','plate'].includes(state.view)) throw Error('The selected view is unknown.');
+  if (!['ink','erase'].includes(state.tool)) throw Error('The drawing tool is unknown.');
+  if (!integerIn(state.x, 0, W - 1) || !integerIn(state.y, 0, H - 1)) throw Error('The cursor is outside the drawing.');
+  return state;
+}
+function readSession(text) {
+  if (typeof text !== 'string') throw Error('Choose a Paper Cinema JSON file.');
+  if (text.length > SESSION_BYTES || new TextEncoder().encode(text).byteLength > SESSION_BYTES) {
+    throw Error('Choose a file of 64 KB or less.');
+  }
+  let file;
+  try { file = JSON.parse(text.replace(/^\uFEFF/, '')); }
+  catch { throw Error('This file could not be read as JSON.'); }
+  if (!fieldsAre(file, ['app','version','workspace']) || file.app !== 'paper-cinema') throw Error('Choose a film saved by Paper Cinema.');
+  if (file.version !== 1) throw Error('This film uses an unsupported file version.');
+  return validateState(file.workspace);
+}
+function serializeSession(state) {
+  validateState(state);
+  return JSON.stringify({ app:'paper-cinema', version:1, workspace:state }) + '\n';
+}
+
+// Original, hand-built pixel artwork. Coordinates are pixel centers in the 40 × 24 film.
+function pixelPaper() {
+  const pixels = new Uint8Array(W * H);
+  function dot(x, y, color = 1) {
+    x = Math.round(x); y = Math.round(y);
+    if (x >= 0 && x < W && y >= 0 && y < H) pixels[y * W + x] = color;
+  }
+  function oval(cx, cy, rx, ry, color = 1) {
+    for (let y = Math.ceil(cy - ry); y <= cy + ry; y++) {
+      for (let x = Math.ceil(cx - rx); x <= cx + rx; x++) {
+        if (((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1) dot(x,y,color);
+      }
+    }
+  }
+  function stroke(points, color = 1) {
+    for (let i = 1; i < points.length; i++) {
+      const [ax,ay] = points[i-1], [bx,by] = points[i];
+      const steps = Math.max(1,Math.ceil(Math.max(Math.abs(bx-ax),Math.abs(by-ay))));
+      for (let k = 0; k <= steps; k++) dot(ax + (bx-ax)*k/steps, ay + (by-ay)*k/steps, color);
+    }
+  }
+  function polygon(points, color = 1) {
+    // Use half-open scan lines, then ink the contour to retain one-pixel tips.
+    for (let y = 0; y < H; y++) {
+      const hits = [];
+      for (let i = 0; i < points.length; i++) {
+        const [ax,ay] = points[i], [bx,by] = points[(i+1)%points.length];
+        if ((ay > y) !== (by > y)) hits.push(ax + (bx-ax)*(y-ay)/(by-ay));
+      }
+      hits.sort((a,b) => a-b);
+      for (let i = 0; i+1 < hits.length; i+=2) {
+        for (let x = Math.ceil(hits[i]); x <= hits[i+1]; x++) dot(x,y,color);
+      }
+    }
+    stroke([...points, points[0]], color);
+  }
+  return {dot,oval,stroke,polygon,finish:() => pixels.join('')};
+}
+
+// Moon Hare. Each silhouette has its own rear-leg and foreleg gesture.
+// Local coordinates put the eye at the same point on the head in all four poses.
+function drawHare(phase) {
+  const p = pixelPaper();
+  p.oval(5,4,3.4,3.4);
+  p.oval(6.6,2.7,2.9,3.2,0);
+  p.dot(13,3); p.dot(34,2); p.dot(37,8);
+  p.stroke([[2,22],[6,22]]); p.stroke([[9,21],[13,21]]); p.stroke([[25,22],[31,22]]);
+  p.stroke([[35,21],[37,20],[38,20]]);
+  const poses = [
+    {dx:0,dy:0, hip:[16,13], chest:[22,12], head:[27,8],
+      ears:[[[24,7],[17,2],[17,1],[21,2],[26,6]],[[26,6],[23,1],[24,1],[28,5],[28,7]]],
+      rear:[[15,12],[17,14],[12,17],[4,18],[5,17],[10,15],[12,12]],
+      near:[[15,14],[17,15],[14,18],[10,19],[9,19],[11,17]],
+      front:[[23,11],[25,12],[28,14],[34,13],[35,13],[33,15],[27,16],[22,13]]},
+    {dx:1,dy:2, hip:[15,11], chest:[21,12], head:[25,9],
+      ears:[[[24,8],[16,4],[15,2],[19,3],[25,6]],[[25,7],[21,2],[21,1],[25,3],[27,7]]],
+      rear:[[14,10],[17,12],[12,14],[5,12],[4,10],[11,12]],
+      near:[[15,11],[18,13],[15,15],[11,15],[10,14]],
+      front:[[21,12],[23,12],[26,16],[30,17],[30,18],[25,18],[21,14]]},
+    {dx:0,dy:4, hip:[17,11], chest:[22,11], head:[26,8],
+      ears:[[[24,7],[20,0],[20,-1],[23,1],[26,6]],[[26,6],[26,0],[27,-2],[28,1],[28,6]]],
+      rear:[[16,11],[19,12],[15,14],[17,15],[23,15],[23,16],[16,16],[13,14]],
+      near:[[15,12],[17,14],[14,16],[12,16]],
+      front:[[22,11],[25,12],[25,15],[29,15],[29,16],[23,16],[22,14]]},
+    {dx:-1,dy:1, hip:[16,14], chest:[22,11], head:[27,7],
+      ears:[[[24,6],[19,0],[18,0],[20,4],[24,8]],[[26,6],[23,0],[24,-1],[27,2],[28,5]]],
+      rear:[[14,13],[18,13],[16,16],[12,19],[9,20],[8,20],[11,18],[13,15]],
+      near:[[17,14],[19,14],[18,16],[14,19],[12,19]],
+      front:[[22,10],[25,11],[25,13],[29,13],[29,14],[24,15],[22,13]]}
+  ];
+  const pose = poses[phase];
+  const points = vertices => vertices.map(([x,y]) => [x+pose.dx,y+pose.dy]);
+  const poly = vertices => p.polygon(points(vertices));
+  const ellipse = (center,rx,ry) => p.oval(center[0]+pose.dx,center[1]+pose.dy,rx,ry);
+  const [hx,hy] = pose.head;
+  poly(pose.rear); poly(pose.near); poly(pose.front);
+  ellipse(pose.hip,5.3,3.5);
+  poly([[pose.hip[0],pose.hip[1]-3],[pose.chest[0],pose.chest[1]-2],
+    [hx-2,hy],[hx+1,hy+2],[pose.chest[0]+1,pose.chest[1]+2],[pose.hip[0],pose.hip[1]+3]]);
+  ellipse([pose.hip[0]-6,pose.hip[1]-2.4],2.3,2);
+  for (const ear of pose.ears) poly(ear);
+  ellipse(pose.head,3.1,2.3);
+  poly([[hx+2,hy-1],[hx+4,hy+1],[hx+2,hy+2],[hx,hy+2]]);
+  p.dot(hx+1+pose.dx,hy+pose.dy,0);
+  const [hipX,hipY] = pose.hip;
+  p.stroke(points([[hipX+1,hipY-1],[hipX+2,hipY],[hipX+2,hipY+1],[hipX+1,hipY+2]]),0);
+  return p.finish();
+}
+
+// Hummingbird. The long bill stays level beside the flower as the wings reverse.
+function drawBird(phase) {
+  const p = pixelPaper();
+  p.stroke([[33,22],[32,19],[32,15],[33,12],[34,9]]);
+  p.polygon([[32,19],[28,16],[28,15],[31,16],[32,18]]);
+  p.polygon([[32,16],[34,13],[38,12],[37,14],[34,16]]);
+  p.oval(32,6,2.1,2.6); p.oval(36,6,2.1,2.5);
+  p.oval(37,9,2.1,1.7); p.oval(34,10,1.6,2.1); p.oval(31,9,2.4,1.4);
+  p.dot(34,8,0); p.dot(35,8,0);
+  const lift = [0,-1,0,1][phase];
+  const move = a => a.map(([x,y]) => [x,y+lift]);
+  const wings = [
+    [[15,12],[8,7],[3,1],[4,0],[12,3],[18,8],[19,12]],
+    [[15,12],[8,11],[2,7],[3,6],[12,7],[19,10],[20,13]],
+    [[15,12],[14,15],[8,18],[3,20],[5,16],[13,10],[19,10]],
+    [[15,12],[10,9],[10,6],[12,3],[14,3],[16,8],[20,11]]
+  ];
+  p.polygon(move([[14,13],[13,16],[6,20],[4,20],[8,16],[5,17],[8,14]]));
+  p.polygon(move([[10,14],[15,10],[18,8],[20,7],[23,7],[24,9],[22,11],[21,14],[16,16],[12,16]]));
+  p.polygon(move(wings[phase]));
+  p.stroke(move([[23,8],[31,7]]));
+  p.dot(22,8+lift,0);
+  p.stroke(move([[19,12],[17,13],[16,13]]),0);
+  return p.finish();
+}
+
+// Windmill Hill. Four asymmetric, open-frame sails advance by one sixteenth turn.
+function drawMill(phase) {
+  const p = pixelPaper();
+  p.stroke([[0,20],[4,18],[9,18],[14,20],[22,21],[27,19],[33,17],[39,18]]);
+  p.polygon([[16,20],[17,12],[19,9],[21,9],[23,12],[24,21]]);
+  p.polygon([[16,12],[18,9],[20,8],[23,10],[25,12]]);
+  p.oval(20,19,1.3,2.3,0); p.dot(20,15,0);
+  p.stroke([[2,22],[5,22]]); p.stroke([[26,23],[30,23]]);
+  const turn = Math.PI * phase / 8;
+  for (let arm = 0; arm < 4; arm++) {
+    const theta = turn + arm*Math.PI/2 - Math.PI/8;
+    const cos = Math.cos(theta), sin = Math.sin(theta);
+    const point = ([r,w]) => [19+r*cos-w*sin,10+r*sin+w*cos];
+    p.stroke([[0,0],[9.7,0]].map(point));
+    p.polygon([[3.2,0],[9.7,0],[9.7,2.6],[3.9,2.6]].map(point));
+    p.dot(...point([5.4,1.3]),0);
+    p.dot(...point([8.1,1.3]),0);
+  }
+  p.oval(19,10,1.7,1.7); p.dot(19,10,0);
+  return p.finish();
+}
+
+function presets() {
+  return [
+    {id:'hare', name:'Moon Hare'}, {id:'wing', name:'Hummingbird'},
+    {id:'mill', name:'Windmill Hill'}, {id:'blank', name:'Blank film'}
+  ];
+}
+function makePreset(id) {
+  const sample = presets().find(preset => preset.id === id);
+  if (!sample) throw Error('Choose one of the available films.');
+  const draw = {hare:drawHare, wing:drawBird, mill:drawMill, blank:() => EMPTY_FRAME}[id];
+  return {title:sample.name, frames:Array.from({length:N}, (_,i) => draw(i)),
+    phase:0, fps:4, view:'film', tool:'ink', x:19, y:11};
+}
+/* CORE_END */
+
+/* A frame cell is 4 mm square on paper. Its four vertical 1 mm slots hold
+   one sample each, in frame order. The sliding shutter exposes one slot. */
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const SCREEN_INK = '#382b40', SCREEN_PAPER = '#ffecb4';
+function rowRuns(width, sample) {
+  const parts = [];
+  for (let y = 0; y < H; y++) {
+    let x = 0;
+    while (x < width) {
+      if (!sample(x,y)) { x++; continue; }
+      const start = x++;
+      while (x < width && sample(x,y)) x++;
+      const length = x - start;
+      parts.push('M'+start+' '+y+'h'+length+'v1h-'+length+'Z');
+    }
+  }
+  return parts.join('');
+}
+function runsPath(frame) {
+  return rowRuns(W,(x,y) => frame[y*W+x] === '1');
+}
+function platePath(frames) {
+  return rowRuns(W*N,(slot,y) => frames[slot%N][y*W+Math.floor(slot/N)] === '1');
+}
+function maskPath() {
+  const parts = [];
+  for (let col=-1; col<=W; col++) {
+    parts.push('M'+(col*N+1)+' 0h'+(N-1)+'v'+H+'h-'+(N-1)+'Z');
+  }
+  return parts.join('');
+}
+function svgNode(tag,attrs = {}) {
+  const n = document.createElementNS(SVG_NS,tag);
+  for (const [key,value] of Object.entries(attrs)) n.setAttribute(key,String(value));
+  return n;
+}
+function xml(value) {
+  return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
+}
+function printKit(state) {
+  const title = state.title.trim() || 'Untitled loop';
+  const ink = '#19151d';
+  const text = (x,y,size,content,attrs='') => '<text x="'+x+'" y="'+y+'" font-size="'+size+'" '+attrs+'>'+xml(content)+'</text>';
+  const line = (x1,y1,x2,y2,attrs='') => '<path d="M'+x1+' '+y1+'L'+x2+' '+y2+'" fill="none" stroke="'+ink+'" stroke-width=".35" '+attrs+'/>';
+  const artX=25, artY=47, maskY=175;
+  const height=H*N, width=W*N, trimX=artX-N, trimWidth=width+2*N;
+  const marks=[];
+  for(let k=0;k<N;k++) marks.push(line(trimX+k,artY-6.4,trimX+k,artY-4,k===0?'stroke-linecap="square"':''));
+  const titleAttr = Array.from(title).length>27 ? 'textLength="178" lengthAdjust="spacingAndGlyphs"' : '';
+  return [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<svg xmlns="'+SVG_NS+'" width="210mm" height="297mm" viewBox="0 0 210 297" role="img">',
+    '<title>'+xml(title)+' — Paper Cinema optical kit</title>',
+    '<desc>Four-frame interlaced picture and sliding shutter. Print both parts at actual size. Each 1 mm move reveals the next frame.</desc>',
+    '<g fill="'+ink+'" font-family="Arial, sans-serif">',
+    text(14,11,3.6,'PAPER CINEMA   /   OPTICAL PRINT KIT','font-weight="bold" letter-spacing=".45"'),
+    text(14,22,6.3,title,titleAttr),
+    text(14,29,3,'Print at 100% on A4. Check the 20 mm gauge below before cutting.'),
+    text(14,37,3.5,'01   PICTURE PLATE  /  PAPER','font-weight="bold"'),
+    text(trimX-2,artY-7.5,2.5,'0'), text(trimX+3,artY-7.5,2.5,'3'),
+    ...marks,line(14,artY-4,trimX-1,artY-4),line(artX+width+N+1,artY-4,196,artY-4),
+    '<g transform="translate('+artX+' '+artY+')"><rect width="'+width+'" height="'+height+'" fill="white"/>',
+    '<path id="picture" transform="scale(1 '+N+')" d="'+platePath(state.frames)+'" fill="#000" shape-rendering="crispEdges"/></g>',
+    text(14,152,3,'Lay the shutter flat on the plate. Align its top edge with the horizontal marks and its left edge with tick 0.'),
+    text(14,157,3,'Keep the edges parallel. Slide right from 0 to 3, one millimetre per frame, then slide back or repeat.'),
+    text(14,167,3.5,'02   SLIDING SHUTTER  /  TRANSPARENCY','font-weight="bold"'),
+    '<g transform="translate('+artX+' '+maskY+')">',
+    '<path id="bars" transform="scale(1 '+N+')" d="'+maskPath()+'" fill="#000" shape-rendering="crispEdges"/>',
+    '<path d="M-'+N+' -4h'+trimWidth+'v4h-'+trimWidth+'ZM-'+N+' '+height+'h'+trimWidth+'v4h-'+trimWidth+'Z" fill="#000"/>',
+    '<rect x="-'+N+'" y="-4" width="'+trimWidth+'" height="'+(height+8)+'" fill="none" stroke="#222" stroke-width=".18" stroke-dasharray=".7 .7"/></g>',
+    text(14,282,3,'Print the shutter on compatible clear film and trim its outline. For opaque paper, cut out the narrow slots.'),
+    line(14,290,34,290),line(14,288.6,14,291.4),line(34,288.6,34,291.4),text(37,291,3,'20 mm calibration gauge'),
+    '</g></svg>',''
+  ].join('\n');
+}
+
+const get = id => document.getElementById(id);
+let state = makePreset('hare');
+let baseline = JSON.stringify(state);
+let timer = null, playing = false, stroke = null, pending = null, fileData = null, reading = false;
+let shutterDrag = null;
+const undoStack = [], dialogFocus = new Map(), thumbs = [];
+const filmCache = Array(N).fill(null);
+let lastPlateFrames = null, encodedPlate = '';
+const screen = svgNode('svg',{viewBox:'0 0 160 96',role:'img','shape-rendering':'crispEdges'});
+const screenArt = svgNode('path',{fill:SCREEN_INK});
+const shutter = svgNode('path',{d:maskPath(),fill:SCREEN_INK});
+screen.append(svgNode('rect',{width:160,height:96,fill:SCREEN_PAPER}),screenArt,shutter);
+get('stage').append(screen);
+
+const drawing = svgNode('svg',{viewBox:'0 0 40 24',role:'img','aria-label':'Pixel drawing grid'});
+const drawingArt = svgNode('path',{fill:SCREEN_INK,'shape-rendering':'crispEdges'});
+const outline = svgNode('rect',{width:1,height:1,fill:'none',stroke:'#fff5d9','stroke-width':.29});
+const cursor = svgNode('rect',{width:1,height:1,fill:'none',stroke:'#b93325','stroke-width':.15});
+let grid='';
+for(let x=1;x<W;x++) grid+='M'+x+' 0v'+H;
+for(let y=1;y<H;y++) grid+='M0 '+y+'h'+W;
+drawing.append(svgNode('rect',{width:W,height:H,fill:'#fff9e9'}),drawingArt,
+  svgNode('path',{d:grid,fill:'none',stroke:'#a89a91','stroke-width':.048}),outline,cursor);
+get('editor').append(drawing);
+function option(id,value,label) {
+  const item=document.createElement('option'); item.value=String(value); item.textContent=label; get(id).append(item);
+}
+option('preset','','Choose a film…');
+for(const sample of presets()) option('preset',sample.id,sample.name);
+if(!get('fps').querySelector('option')) for(let fps=1;fps<=10;fps++) option('fps',fps,fps+' fps');
+
+for(let i=0;i<N;i++) {
+  const button=document.createElement('button'); button.type='button'; button.id='frame-'+i; button.className='frame-choice';
+  button.setAttribute('aria-label','Edit frame '+(i+1));
+  const image=svgNode('svg',{viewBox:'0 0 40 24',class:'thumb','aria-hidden':'true','shape-rendering':'crispEdges'});
+  const path=svgNode('path',{fill:SCREEN_INK});
+  image.append(svgNode('rect',{width:W,height:H,fill:SCREEN_PAPER}),path);
+  const caption=document.createElement('span'); caption.textContent='Frame '+(i+1);
+  button.append(image,caption);
+  button.addEventListener('click',()=>selectFrame(i));
+  get('frames').append(button); thumbs.push({button,path});
+}
+function announce(value) { get('status').textContent=value; }
+function focus(id) { const item=get(id); if(item?.isConnected && !item.disabled && !item.hidden) item.focus(); }
+function show(id,from) { dialogFocus.set(id,from||document.activeElement?.id||''); get(id).showModal(); }
+function close(id) { get(id).close(); focus(dialogFocus.get(id)); }
+document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>close(b.closest('dialog').id)));
+function stop() {
+  playing=false; if(timer!==null) clearTimeout(timer); timer=null;
+  get('play').textContent='Play'; get('play').setAttribute('aria-pressed','false');
+}
+function remember(entry) { undoStack.push(entry); if(undoStack.length>40) undoStack.shift(); }
+function paint() {
+  for(let i=0;i<N;i++) {
+    if(filmCache[i]?.frame!==state.frames[i]) {
+      filmCache[i]={frame:state.frames[i],d:runsPath(state.frames[i])};
+      thumbs[i].path.setAttribute('d',filmCache[i].d);
+    }
+    thumbs[i].button.setAttribute('aria-pressed',String(i===state.phase));
+  }
+  const optical=state.view!=='film';
+  if(optical && lastPlateFrames!==state.frames) {
+    encodedPlate=platePath(state.frames); lastPlateFrames=state.frames;
+  }
+  screenArt.setAttribute('d',optical ? encodedPlate : filmCache[state.phase].d);
+  screenArt.setAttribute('transform',optical ? 'scale(1 4)' : 'scale(4)');
+  shutter.setAttribute('display',state.view==='shutter'?'inline':'none');
+  shutter.setAttribute('transform','translate('+(shutterDrag?.offset ?? state.phase)+' 0) scale(1 4)');
+  get('stage').setAttribute('data-view',state.view);
+  screen.setAttribute('aria-label',state.view==='plate'?'Interlaced picture plate':(state.title||'Untitled film')+', frame '+(state.phase+1));
+  drawingArt.setAttribute('d',filmCache[state.phase].d);
+  for(const mark of [outline,cursor]) { mark.setAttribute('x',state.x); mark.setAttribute('y',state.y); }
+  get('phaseLabel').textContent='Frame '+(state.phase+1)+' of 4';
+  get('phase').value=String(state.phase);
+  get('phase').setAttribute('aria-valuetext','Frame '+(state.phase+1)+', shutter offset '+state.phase+' millimetres');
+  get('fps').value=String(state.fps); get('view').value=state.view; get('tool').value=state.tool;
+  if(get('title').value!==state.title) get('title').value=state.title;
+  get('modeNote').textContent=({
+    film:'Play the loop, or step through the four drawings.',
+    shutter:'Slide across the picture to move the shutter, or step forward exactly 1 mm.',
+    plate:'All four drawings share this plate. Press Play to see the shutter reveal them.'
+  })[state.view];
+  const cellState=inked(state,state.phase,state.x,state.y)?'ink':'paper';
+  get('pos').textContent='Column '+(state.x+1)+' · Row '+(state.y+1)+' · '+cellState;
+  get('mark').textContent=state.tool==='ink'?'Ink cell':'Erase cell';
+  get('north').disabled=state.y===0; get('south').disabled=state.y===H-1;
+  get('west').disabled=state.x===0; get('east').disabled=state.x===W-1;
+  get('undo').disabled=!undoStack.length;
+}
+function finishStroke() {
+  if(!stroke) return;
+  if(stroke.before!==state.frames) remember({frames:stroke.before,phase:stroke.phase});
+  stroke=null; get('undo').disabled=!undoStack.length;
+}
+function settleShutter() {
+  if(!shutterDrag) return;
+  shutterDrag=null;
+  shutter.setAttribute('transform','translate('+state.phase+' 0) scale(1 4)');
+}
+function pauseEditing() { finishStroke(); settleShutter(); stop(); }
+function selectFrame(index) {
+  if(!integerIn(index,0,N-1)) return;
+  pauseEditing(); state={...state,phase:index}; paint();
+}
+function tick() {
+  if(!playing) return;
+  timer=setTimeout(()=>{
+    if(!playing) return;
+    state={...state,phase:(state.phase+1)%N}; paint(); tick();
+  },1000/state.fps);
+}
+get('play').addEventListener('click',()=>{
+  if(playing) { stop(); announce('Paused on frame '+(state.phase+1)+'.'); return; }
+  finishStroke(); settleShutter(); if(state.view==='plate') state={...state,view:'shutter'};
+  playing=true; get('play').textContent='Pause'; get('play').setAttribute('aria-pressed','true');
+  paint(); tick();
+});
+document.addEventListener('visibilitychange',()=>{ if(document.hidden) pauseEditing(); });
+get('prev').addEventListener('click',()=>selectFrame((state.phase+N-1)%N));
+get('next').addEventListener('click',()=>selectFrame((state.phase+1)%N));
+get('phase').addEventListener('input',()=>selectFrame(Number(get('phase').value)));
+get('fps').addEventListener('change',()=>{
+  const fps=Number(get('fps').value); if(!integerIn(fps,1,10)) return;
+  pauseEditing(); state={...state,fps}; paint();
+});
+for(const [key,values] of [['tool',['ink','erase']],['view',['film','shutter','plate']]]) {
+  get(key).addEventListener('change',()=>{
+    const value=get(key).value; if(!values.includes(value)) return;
+    pauseEditing(); state={...state,[key]:value}; paint();
+  });
+}
+get('title').addEventListener('input',()=>{
+  pauseEditing();
+  const next={...state,title:get('title').value};
+  try { validateState(next); state=next; }
+  catch(error) { get('title').value=state.title; announce(error.message); }
+});
+for(const [id,dx,dy,opposite] of [['north',0,-1,'south'],['south',0,1,'north'],['west',-1,0,'east'],['east',1,0,'west']]) {
+  get(id).addEventListener('click',()=>{
+    pauseEditing();
+    const x=state.x+dx,y=state.y+dy;
+    if(!integerIn(x,0,W-1)||!integerIn(y,0,H-1))return;
+    state={...state,x,y}; paint();
+    if(get(id).disabled) focus(opposite);
+  });
+}
+get('mark').addEventListener('click',()=>{
+  pauseEditing();
+  const before=state.frames;
+  state=setPixel(state,state.phase,state.x,state.y,state.tool==='ink');
+  if(state.frames!==before) remember({frames:before,phase:state.phase});
+  paint(); announce(get('pos').textContent+'.');
+});
+function editorCell(event) {
+  const r=drawing.getBoundingClientRect();
+  if(!r.width||!r.height||!Number.isFinite(event.clientX)||!Number.isFinite(event.clientY)) return null;
+  const x=Math.floor((event.clientX-r.left)*W/r.width), y=Math.floor((event.clientY-r.top)*H/r.height);
+  return integerIn(x,0,W-1)&&integerIn(y,0,H-1)?{x,y}:null;
+}
+function drawTo(point) {
+  if(!point) { stroke.last=null; return; }
+  const start=stroke.last||point;
+  const dx=point.x-start.x,dy=point.y-start.y,steps=Math.max(Math.abs(dx),Math.abs(dy),1);
+  // Fill cells between delivered pointer samples as one undoable stroke.
+  for(let i=0;i<=steps;i++) {
+    const x=start.x+Math.round(dx*i/steps),y=start.y+Math.round(dy*i/steps);
+    state=setPixel(state,stroke.phase,x,y,stroke.ink);
+  }
+  state={...state,x:point.x,y:point.y}; stroke.last=point; paint();
+}
+function startStroke(event) {
+  const p=editorCell(event); if(!p) return false;
+  pauseEditing();
+  stroke={before:state.frames,phase:state.phase,ink:state.tool==='ink',id:event.pointerId,last:null};
+  drawTo(p); return true;
+}
+const editor=get('editor');
+const stage=get('stage');
+function slideAt(event) {
+  const r=stage.getBoundingClientRect();
+  if(!r.width || !Number.isFinite(event.clientX)) return;
+  const offset=Math.max(0,Math.min(N-1,(event.clientX-r.left)/r.width*(N-1)));
+  shutterDrag.offset=offset;
+  const phase=Math.round(offset);
+  if(state.phase!==phase) { state={...state,phase}; paint(); }
+  else shutter.setAttribute('transform','translate('+offset+' 0) scale(1 4)');
+}
+if('PointerEvent' in window) {
+  stage.addEventListener('pointerdown',event=>{
+    if(state.view!=='shutter' || shutterDrag || event.isPrimary===false || event.button!==0) return;
+    pauseEditing(); shutterDrag={id:event.pointerId,offset:state.phase}; slideAt(event);
+    try { stage.setPointerCapture(event.pointerId); } catch { /* Taps also work without capture. */ }
+  });
+  stage.addEventListener('pointermove',event=>{ if(shutterDrag && shutterDrag.id===event.pointerId) slideAt(event); });
+  stage.addEventListener('pointerup',event=>{
+    if(!shutterDrag || shutterDrag.id!==event.pointerId) return;
+    slideAt(event); settleShutter();
+  });
+  for(const type of ['pointercancel','lostpointercapture']) stage.addEventListener(type,event=>{
+    if(shutterDrag && shutterDrag.id===event.pointerId) settleShutter();
+  });
+  editor.addEventListener('pointerdown',event=>{
+    if(stroke || event.isPrimary===false || event.button!==0 || !startStroke(event)) return;
+    try { editor.setPointerCapture(event.pointerId); } catch { /* Pointer release still ends the stroke. */ }
+  });
+  editor.addEventListener('pointermove',event=>{ if(stroke && stroke.id===event.pointerId) drawTo(editorCell(event)); });
+  editor.addEventListener('pointerup',event=>{
+    if(!stroke||stroke.id!==event.pointerId) return;
+    drawTo(editorCell(event)); finishStroke();
+  });
+  for(const type of ['pointercancel','lostpointercapture']) editor.addEventListener(type,event=>{
+    if(stroke && stroke.id===event.pointerId) finishStroke();
+  });
+} else {
+  stage.addEventListener('click',event=>{
+    if(state.view!=='shutter') return;
+    pauseEditing(); shutterDrag={offset:state.phase}; slideAt(event); settleShutter();
+  });
+  editor.addEventListener('click',event=>{ if(startStroke(event)) finishStroke(); });
+}
+function requestReplacement(action,message,from) {
+  pending=action; get('confText').textContent=message; show('confirmDialog',from); get('keep').focus();
+}
+get('keep').addEventListener('click',()=>{ pending=null; close('confirmDialog'); announce('Current film kept.'); });
+get('confirmDialog').addEventListener('cancel',()=>{pending=null;});
+get('replace').addEventListener('click',()=>{
+  const apply=pending; pending=null; close('confirmDialog'); if(apply) apply();
+});
+function loadFilm(next) {
+  remember({workspace:state}); state=next; baseline=JSON.stringify(next); paint();
+  announce('Opened '+(state.title||'untitled film')+'. Undo restores the previous film.');
+}
+get('preset').addEventListener('change',()=>{
+  const id=get('preset').value; get('preset').value='';
+  if(!presets().some(p=>p.id===id)) return;
+  pauseEditing(); const next=makePreset(id);
+  if(JSON.stringify(state)===baseline) loadFilm(next);
+  else requestReplacement(()=>loadFilm(next),'Load '+next.title+' in place of this film? Keep your film to save it first.','preset');
+});
+get('copyPrev').addEventListener('click',()=>{
+  pauseEditing();
+  const prev=(state.phase+N-1)%N;
+  if(state.frames[prev]===state.frames[state.phase]) { announce('These two drawings already match.'); return; }
+  const copy=()=>{
+    remember({frames:state.frames,phase:state.phase});
+    const frames=state.frames.slice(); frames[state.phase]=frames[prev]; state={...state,frames}; paint();
+    announce('Copied frame '+(prev+1)+' into frame '+(state.phase+1)+'.');
+  };
+  if(state.frames[state.phase]===EMPTY_FRAME) copy();
+  else requestReplacement(copy,'Copy frame '+(prev+1)+' over the drawing in frame '+(state.phase+1)+'? Undo can restore it.','copyPrev');
+});
+get('undo').addEventListener('click',()=>{
+  pauseEditing(); const entry=undoStack.pop(); if(!entry) return;
+  state=entry.workspace||{...state,frames:entry.frames,phase:entry.phase}; paint();
+  announce(entry.workspace?'Previous film restored.':'Drawing restored in frame '+(state.phase+1)+'.');
+  if(!undoStack.length) focus('mark');
+});
+get('help').addEventListener('click',()=>{pauseEditing(); show('guideDialog','help');});
+function downloadPrepared() {
+  if(!fileData?.blob || typeof URL==='undefined' || typeof URL.createObjectURL!=='function') throw Error('Use the complete file text.');
+  const url=URL.createObjectURL(fileData.blob), a=document.createElement('a');
+  try { a.href=url; a.download=fileData.name; document.body.append(a); a.click(); }
+  finally { a.remove(); setTimeout(()=>URL.revokeObjectURL(url),60000); }
+}
+function prepareFile(kit) {
+  pauseEditing();
+  const text=kit?printKit(state):serializeSession(state), type=kit?'image/svg+xml':'application/json';
+  const stem=state.title.trim().toLowerCase().replace(/[^a-z0-9_-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,64)||'film';
+  const name=stem+(kit?'-print-kit.svg':'-paper-cinema.json');
+  fileData={name,type,blob:null}; get('fileText').value=text; get('share').hidden=true;
+  get('fileHeading').textContent=kit?'Export print kit':'Save film';
+  try {
+    fileData.blob=new Blob([text],{type});
+    const f=new File([fileData.blob],name,{type});
+    get('share').hidden=!(navigator.share&&navigator.canShare?.({files:[f]}));
+  } catch { /* File download and manual text are independent of native sharing. */ }
+  try { downloadPrepared(); get('fileInfo').textContent='Download requested for '+name+'.'; }
+  catch { get('fileInfo').textContent='Copy the complete file text and save it as '+name+'.'; }
+  show('fileDialog',kit?'exportKit':'save');
+}
+get('save').addEventListener('click',()=>prepareFile(false));
+get('exportKit').addEventListener('click',()=>prepareFile(true));
+get('again').addEventListener('click',()=>{
+  try { downloadPrepared(); get('fileInfo').textContent='Download requested for '+fileData.name+'.'; }
+  catch { get('fileInfo').textContent='Save the complete file text as '+fileData.name+'.'; }
+});
+get('selectText').addEventListener('click',()=>{get('fileText').focus();get('fileText').select();});
+get('share').addEventListener('click',async()=>{
+  try {
+    const f=new File([fileData.blob],fileData.name,{type:fileData.type});
+    await navigator.share({files:[f]}); get('fileInfo').textContent='Share sheet completed.';
+  } catch(error) {get('fileInfo').textContent=error.name==='AbortError'?'Sharing canceled.':'Use the download or save the complete file text.';}
+});
+function readLocalText(file) {
+  if(typeof file.text==='function') return file.text();
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader(); reader.onload=()=>resolve(reader.result);
+    reader.onabort=reader.onerror=()=>reject(Error('The file could not be read.')); reader.readAsText(file);
+  });
+}
+get('open').addEventListener('click',()=>{
+  if(reading) return; pauseEditing(); get('file').value=''; get('file').click();
+});
+get('file').addEventListener('cancel',()=>announce('Open canceled. Current film kept.'));
+get('file').addEventListener('change',async()=>{
+  const file=get('file').files?.[0]; if(!file||reading) return;
+  reading=true; get('open').disabled=true;
+  try {
+    if(file.size>SESSION_BYTES) throw Error('Choose a Paper Cinema JSON film of 64 KB or less.');
+    const next=readSession(await readLocalText(file));
+    if(document.querySelector('dialog[open]')) throw Error('Finish the current dialog and choose the file again.');
+    pauseEditing();
+    requestReplacement(()=>loadFilm(next),'Open “'+file.name+'” in place of this film? Choose Keep to save your work first.','open');
+  } catch(error) {announce(error.message+' Current film kept.');}
+  finally {reading=false;get('open').disabled=false;get('file').value='';}
+});
+stop(); paint();
+
+})();
+</script>
+</body>
+</html>

@@ -3,7 +3,77 @@
   <title>trez63 — one small app a day</title>
   <link>https://trez63.com/</link>
   <description>Every day ChatGPT, Claude, Gemini, Grok and Muse each build a single-page app from the same one-line prompt. Play them all.</description>
-  <lastBuildDate>Wed, 11 Nov 2026 12:00:00 +0000</lastBuildDate>
+  <lastBuildDate>Sat, 14 Nov 2026 12:00:00 +0000</lastBuildDate>
+  <item>
+    <title>Ebru (Claude)</title>
+    <link>https://trez63.com/p/ebru.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/ebru.html</guid>
+    <pubDate>Sat, 14 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A paper-marbling bath. Tap to float ink drops that push the earlier ones aside, then drag a rake, comb, wave or swirl through them; every gesture is an exact closed-form deformation, so pictures replay perfectly from the saved gesture list, and you can start from stone, gelgit, nonpareil, bouquet, peacock or vortex presets, switch palettes and paper, undo, and export a 2000-px PNG.</description>
+  </item>
+  <item>
+    <title>Nash (Claude)</title>
+    <link>https://trez63.com/p/nash.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/nash.html</guid>
+    <pubDate>Sat, 14 Nov 2026 12:00:00 +0000</pubDate>
+    <description>Hex against a computer opponent you can watch think. You connect left to right, Nash connects top to bottom, and while it searches the board glows with where its Monte-Carlo tree search is spending attention; pick a 7, 9 or 11 board, quick to deep thinking time, ask for a hint, undo, and save or open games as JSON.</description>
+  </item>
+  <item>
+    <title>Belfry (ChatGPT)</title>
+    <link>https://trez63.com/p/belfry.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/belfry.html</guid>
+    <pubDate>Sat, 14 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A change-ringing studio for six synthesised bells. Tap a bell to hear it, play a score row by row at a chosen strikes-per-minute, follow one bell’s path through the diagram, edit which neighbouring positions swap on each row or build your own method and return it to rounds, choose a bronze or glass voice, and save the score as JSON or export the performance as a WAV.</description>
+  </item>
+  <item>
+    <title>Drift (Muse)</title>
+    <link>https://trez63.com/p/drift-soundscape.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/drift-soundscape.html</guid>
+    <pubDate>Sat, 14 Nov 2026 12:00:00 +0000</pubDate>
+    <description>An ambient soundscape mixer. Rain, ocean, wind, fire and birdsong are synthesised live from filtered noise and scheduled chirps and crackles, with no recordings; blend them with sliders, start from presets like Rainy Night or Forest Dawn, set a sleep timer, and save or open a mix as JSON.</description>
+  </item>
+  <item>
+    <title>Dropzone (Muse)</title>
+    <link>https://trez63.com/p/dropzone.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/dropzone.html</guid>
+    <pubDate>Sat, 14 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A Galton board. Tap along the top to drop a ball, or release ten, a hundred or a steady rain, and watch them bounce through 5 to 12 rows of pegs into bins while a histogram fills in against the ideal binomial curve; live stats show the count, mean, spread and bell match, and results save and reopen as JSON.</description>
+  </item>
+  <item>
+    <title>Lathe (Claude)</title>
+    <link>https://trez63.com/p/lathe.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/lathe.html</guid>
+    <pubDate>Sat, 14 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A pottery wheel in one file. The pot is a solid of revolution rendered in software on a 2D canvas; drag on the wall to pull it out or push it in, smooth out lumps, set brush width and height, start from vase, bowl, bottle, cup or plate presets, pick glazes and camera tilt, then save the pot as JSON or export a watertight OBJ with real wall thickness for 3D printing.</description>
+  </item>
+  <item>
+    <title>Paper Cinema (ChatGPT)</title>
+    <link>https://trez63.com/p/paper-cinema.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/paper-cinema.html</guid>
+    <pubDate>Sat, 14 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A barrier-grid animation studio. Draw four 40×24 pixel frames with ink and erase tools, play them back or scrub a virtual shutter across the interlaced plate, and export a print kit with the plate and the slitted shutter at actual size so the animation works on paper; films save and reopen as JSON.</description>
+  </item>
+  <item>
+    <title>Passphrase Forge (Muse)</title>
+    <link>https://trez63.com/p/passphrase-forge.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/passphrase-forge.html</guid>
+    <pubDate>Sat, 14 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A password and passphrase generator. Forge a memorable multi-word passphrase or a random character password from the browser’s secure random source, tune words, separators, capitals, length and character sets, and see the entropy in bits with estimated offline and online crack times; recent results are kept for copying and settings save as JSON.</description>
+  </item>
+  <item>
+    <title>Swiftread (Muse)</title>
+    <link>https://trez63.com/p/swiftread.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/swiftread.html</guid>
+    <pubDate>Sat, 14 Nov 2026 12:00:00 +0000</pubDate>
+    <description>An RSVP speed reader. Paste any text and press play to see it one word (or two or three) at a time with the focal letter highlighted so your eyes stay still; set the words per minute live, skip or jump along the progress bar, and save or open your text and position as JSON.</description>
+  </item>
+  <item>
+    <title>Trill (Claude)</title>
+    <link>https://trez63.com/p/trill.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/trill.html</guid>
+    <pubDate>Sat, 14 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A modem made of birdsong. Type a message and it plays as a short melody of 32 pure tones that another phone (or the same one) decodes from its microphone, with a live waterfall of what the decoder hears; a self-test routes a message through simulated room noise so you can watch it lock on, and drafts and the inbox save as JSON.</description>
+  </item>
   <item>
     <title>Umbra (Claude)</title>
     <link>https://trez63.com/p/umbra.html</link>
@@ -283,75 +353,5 @@
     <guid isPermaLink="true">https://trez63.com/p/tidytext.html</guid>
     <pubDate>Mon, 26 Oct 2026 12:00:00 +0000</pubDate>
     <description>Paste messy copied text and clean copy appears beside it. Toggle the rules: join wrapped lines, collapse blanks, fix double spaces, straighten quotes. Copy or download the result.</description>
-  </item>
-  <item>
-    <title>TurtleLoom (Grok)</title>
-    <link>https://trez63.com/p/turtleloom.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/turtleloom.html</guid>
-    <pubDate>Mon, 26 Oct 2026 12:00:00 +0000</pubDate>
-    <description>Turtle graphics with live sliders. Drag repeats, sides, turn step and hue and the pattern redraws as you go; edit the generated commands to go further, then save a PNG.</description>
-  </item>
-  <item>
-    <title>Backplan (ChatGPT)</title>
-    <link>https://trez63.com/p/backplan.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/backplan.html</guid>
-    <pubDate>Mon, 26 Oct 2026 12:00:00 +0000</pubDate>
-    <description>Plan backward from a deadline. Set the finish time, list the steps with their minutes and prerequisites, and it works out the latest you can start and which steps have no slack.</description>
-  </item>
-  <item>
-    <title>Carve (Claude)</title>
-    <link>https://trez63.com/p/carve.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/carve.html</guid>
-    <pubDate>Sun, 25 Oct 2026 12:00:00 +0000</pubDate>
-    <description>Content-aware image resizing. Drag an edge and the picture shrinks by removing its least interesting paths, so subjects stay intact. Paint over an object and delete it.</description>
-  </item>
-  <item>
-    <title>Budget (Muse)</title>
-    <link>https://trez63.com/p/budget.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/budget.html</guid>
-    <pubDate>Sun, 25 Oct 2026 12:00:00 +0000</pubDate>
-    <description>Projected income and expenses on one page, offline. Enter anything weekly, monthly or yearly and it normalizes to a monthly view.</description>
-  </item>
-  <item>
-    <title>Hilbert (Claude)</title>
-    <link>https://trez63.com/p/hilbert.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/hilbert.html</guid>
-    <pubDate>Sun, 25 Oct 2026 12:00:00 +0000</pubDate>
-    <description>See the shape of any file. Every byte is laid along a Hilbert curve, so headers, text, compressed streams and padding each get their own texture.</description>
-  </item>
-  <item>
-    <title>Tessera (Claude)</title>
-    <link>https://trez63.com/p/tessera.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/tessera.html</guid>
-    <pubDate>Sun, 25 Oct 2026 12:00:00 +0000</pubDate>
-    <description>An Escher-style tiling editor. Shape one tile and the plane re-tiles itself with no gaps or overlaps.</description>
-  </item>
-  <item>
-    <title>Chroma Desk (ChatGPT)</title>
-    <link>https://trez63.com/p/chroma-desk.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/chroma-desk.html</guid>
-    <pubDate>Sun, 25 Oct 2026 12:00:00 +0000</pubDate>
-    <description>A small studio for everyday color. Drop a photo, pull a palette out of it, then edit and export the swatches.</description>
-  </item>
-  <item>
-    <title>Dayblock (Muse)</title>
-    <link>https://trez63.com/p/dayblock.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/dayblock.html</guid>
-    <pubDate>Sun, 25 Oct 2026 12:00:00 +0000</pubDate>
-    <description>A time-block day planner. Drag on the timeline to carve out your day; overlaps are allowed and the totals just add up.</description>
-  </item>
-  <item>
-    <title>Pantry Clock (Muse)</title>
-    <link>https://trez63.com/p/pantry-clock.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/pantry-clock.html</guid>
-    <pubDate>Sun, 25 Oct 2026 12:00:00 +0000</pubDate>
-    <description>What&#x27;s expiring first? Track what&#x27;s in the fridge, freezer and pantry and tap an item to use it up before it becomes waste.</description>
-  </item>
-  <item>
-    <title>Aether (Grok)</title>
-    <link>https://trez63.com/p/aether.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/aether.html</guid>
-    <pubDate>Sun, 25 Oct 2026 12:00:00 +0000</pubDate>
-    <description>A cosmic particle weaver. Move the mouse to weave, click to plant a star, scroll to change the force; attract, orbit, chaos and paint modes.</description>
   </item>
 </channel></rss>

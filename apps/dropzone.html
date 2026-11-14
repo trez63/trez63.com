@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DROPZONE — a Galton board probability playground</title>
+<style>
+/* ============ 1. Theme: retro carnival poster ============ */
+:root{
+  --paper:#FFF3DC; --card:#FFFDF6; --ink:#2B2118; --ink-soft:#6B5D4F;
+  --vermilion:#E4572E; --amber:#FFB703; --sky:#2E86AB; --plum:#7B2D5B;
+  --leaf:#588157; --line:#E8D9BE; --good:#2F7D4F;
+  --radius:16px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0; padding:0;}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:17px; line-height:1.45; padding:14px 14px 40px;
+}
+main{max-width:560px; margin:0 auto;}
+h1{font-size:30px; line-height:1.1; margin:6px 0 2px; letter-spacing:.5px;}
+h1 .dot{color:var(--vermilion);}
+.sub{margin:0 0 14px; color:var(--ink-soft); font-size:15px;}
+.card{
+  background:var(--card); border:2px solid var(--line); border-radius:var(--radius);
+  padding:14px; margin:0 0 14px; box-shadow:0 2px 0 var(--line);
+}
+h2{font-size:13px; text-transform:uppercase; letter-spacing:1.5px; color:var(--ink-soft);
+   margin:0 0 10px;}
+/* ============ 2. Board ============ */
+#boardWrap{padding:10px 10px 6px;}
+#board{display:block; width:100%; height:auto; touch-action:manipulation; cursor:pointer;
+  border-radius:12px; background:#FDEFCF;}
+.hint{margin:8px 2px 2px; font-size:14px; color:var(--ink-soft); text-align:center;}
+.hint b{color:var(--vermilion);}
+/* ============ 3. Controls ============ */
+.row{display:flex; flex-wrap:wrap; gap:10px; align-items:center;}
+.row + .row{margin-top:12px;}
+button{
+  font:inherit; font-weight:700; color:var(--ink); background:#fff;
+  border:2px solid var(--ink); border-radius:12px; min-height:48px; padding:10px 16px;
+  cursor:pointer; box-shadow:0 3px 0 var(--ink);
+}
+button:active{transform:translateY(2px); box-shadow:0 1px 0 var(--ink);}
+button.primary{background:var(--vermilion); color:#fff; border-color:#B23A17; box-shadow:0 3px 0 #B23A17;}
+button.primary:active{box-shadow:0 1px 0 #B23A17;}
+button.amber{background:var(--amber); border-color:#C78D00; box-shadow:0 3px 0 #C78D00;}
+button.amber:active{box-shadow:0 1px 0 #C78D00;}
+button.ghost{border-color:var(--line); box-shadow:0 3px 0 var(--line); color:var(--ink-soft);}
+button[aria-pressed="true"]{background:var(--sky); color:#fff; border-color:#1F5E7A; box-shadow:0 3px 0 #1F5E7A;}
+button:disabled{opacity:.45; cursor:default; transform:none;}
+.grow{flex:1 1 auto;}
+label.sliderLab{flex:1 1 100%; font-weight:700; font-size:15px; display:flex; justify-content:space-between;}
+input[type="range"]{flex:1 1 100%; width:100%; height:36px; accent-color:var(--vermilion); margin:0;}
+/* ============ 4. Stats ============ */
+.stats{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; text-align:center;}
+.stat b{display:block; font-size:24px; line-height:1.1;}
+.stat span{font-size:12px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.6px;}
+/* ============ 5. Histogram ============ */
+#hist{display:flex; align-items:flex-end; gap:4px; height:150px; padding:6px 2px 0;
+  border-bottom:3px solid var(--ink);}
+.histCol{flex:1; display:flex; flex-direction:column; align-items:center;
+  height:100%; min-width:0;}
+.histTrack{position:relative; width:100%; height:118px; display:flex;
+  justify-content:center; align-items:flex-end;}
+.histBar{width:78%; max-width:44px; border-radius:6px 6px 0 0; background:var(--sky);
+  min-height:0; transition:height .25s ease;}
+.histCol.hot .histBar{background:var(--vermilion);}
+.histTarget{position:absolute; left:11%; width:78%; height:0;
+  border-top:3px dashed var(--plum);}
+.histCount{font-size:12px; font-weight:700; margin-top:4px; white-space:nowrap;}
+.histLabels{display:flex; gap:4px; margin-top:4px;}
+.histLabels span{flex:1; text-align:center; font-size:12px; color:var(--ink-soft);}
+.histNote{font-size:13px; color:var(--ink-soft); margin:8px 0 0;}
+.histNote i{color:var(--plum); font-style:normal; font-weight:700;}
+/* ============ 6. Files & footer ============ */
+.status{font-size:14px; color:var(--ink-soft); margin:10px 2px 0; min-height:20px;}
+.status.ok{color:var(--good);}
+.status.err{color:var(--vermilion); font-weight:700;}
+kbd{font-family:inherit; font-size:12px; background:#fff; border:1px solid var(--line);
+  border-bottom-width:2px; border-radius:5px; padding:1px 6px;}
+footer{font-size:13px; color:var(--ink-soft); text-align:center; margin-top:6px;}
+@media (prefers-reduced-motion: reduce){
+  .histBar{transition:none;}
+  button:active{transform:none;}
+}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>DROP<span class="dot">ZONE</span></h1>
+    <p class="sub">A Galton board in your pocket. Drop balls through the pegs and watch the
+      bell curve build itself — one bounce at a time.</p>
+  </header>
+
+  <!-- Board: tap the top to aim a drop -->
+  <section class="card" id="boardWrap">
+    <canvas id="board" width="560" height="600" aria-label="Pegboard. Tap the top of the board to drop a ball at that position."></canvas>
+    <p class="hint">Tap anywhere along the <b>top of the board</b> to drop a ball there &mdash;
+      or just press <b>Drop a ball</b> below.</p>
+  </section>
+
+  <!-- Controls -->
+  <section class="card" aria-label="Controls">
+    <h2>Controls</h2>
+    <div class="row">
+      <button class="primary grow" id="drop1" type="button">Drop a ball</button>
+      <button class="amber" id="drop10" type="button">Drop 10</button>
+      <button class="amber" id="drop100" type="button">Drop 100</button>
+    </div>
+    <div class="row">
+      <button class="grow" id="rainBtn" type="button" aria-pressed="false">Rain: off</button>
+      <button class="ghost" id="clearBtn" type="button">Clear</button>
+    </div>
+    <div class="row">
+      <label class="sliderLab" for="rowsRange"><span>Peg rows</span><span id="rowsVal">9 rows</span></label>
+      <input type="range" id="rowsRange" min="5" max="12" step="1" value="9">
+    </div>
+    <p class="status" id="ctrlStatus" role="status"></p>
+  </section>
+
+  <!-- Live stats -->
+  <section class="card" aria-label="Statistics">
+    <h2>Live statistics</h2>
+    <div class="stats">
+      <div class="stat"><b id="stTotal">&mdash;</b><span>Balls</span></div>
+      <div class="stat"><b id="stMean">&mdash;</b><span>Mean bin</span></div>
+      <div class="stat"><b id="stStd">&mdash;</b><span>Spread</span></div>
+      <div class="stat"><b id="stBell">&mdash;</b><span>Bell match</span></div>
+    </div>
+  </section>
+
+  <!-- Histogram with the ideal curve as ghost markers -->
+  <section class="card" aria-label="Histogram">
+    <h2>Where they land &mdash; bars vs. the ideal bell curve</h2>
+    <div id="hist"></div>
+    <div class="histLabels" id="histLabels"></div>
+    <p class="histNote">Dashed <i>plum lines</i> show where the balls <i>should</i> land if the
+      board were perfectly fair (the binomial curve). The more balls you drop, the closer
+      the bars hug the lines.</p>
+  </section>
+
+  <!-- Save / Open / Copy -->
+  <section class="card" aria-label="Save and share">
+    <h2>Keep your results</h2>
+    <div class="row">
+      <button class="grow" id="saveBtn" type="button">Save JSON</button>
+      <button class="grow" id="openBtn" type="button">Open JSON</button>
+      <button class="grow" id="copyBtn" type="button">Copy summary</button>
+    </div>
+    <p class="status" id="fileStatus" role="status"></p>
+  </section>
+
+  <footer>
+    Keys: <kbd>Space</kbd> drop a ball &nbsp; <kbd>D</kbd> drop 10 &nbsp;
+    <kbd>R</kbd> rain on/off &nbsp; <kbd>C</kbd> clear &nbsp;
+    <kbd>S</kbd> save &nbsp; <kbd>O</kbd> open.<br>
+    Your board autosaves in this browser. No data ever leaves your device.
+  </footer>
+</main>
+<input type="file" id="fileInput" accept=".json,application/json" hidden>
+
+<script>
+"use strict";
+/* ================================================================
+   DROPZONE — Galton board probability playground
+   Sections: 1 state · 2 geometry · 3 physics · 4 rendering ·
+   5 controls · 6 persistence · 7 boot & test hooks
+   ================================================================ */
+
+/* ---------- 1. State ---------- */
+const BALL_COLORS = ["#E4572E","#FFB703","#2E86AB","#7B2D5B","#588157"];
+const MAX_LIVE_BALLS = 80;
+const GRAVITY = 1500;          // px / s^2, in board (CSS-pixel) units
+const BALL_R = 7, PEG_R = 4.5;
+const LS_KEY = "dropzone-v1";
+
+const state = {
+  rows: 9,                      // peg rows, 5..12
+  bins: [],                     // counts per bin, length rows+1
+  total: 0,
+  balls: [],                    // live balls {x,y,vx,vy,color,captured}
+  pops: [],                     // landing ring animations {x,y,r,a}
+  pending: 0,                   // queued drops (Drop 10 / Drop 100)
+  rain: false,
+  reducedMotion: false,
+  spawnTimer: 0,
+};
+let W = 560, H = 600;           // board size in CSS pixels
+let pegs = [];                  // {x,y} per peg
+let binTop = 0, binW = 0, lastPegY = 0, floorY = 0;
+let rainTimer = null, saveTimer = null;
+
+/* ---------- DOM refs ---------- */
+const $ = id => document.getElementById(id);
+const canvas = $("board"), ctx = canvas.getContext("2d");
+const histEl = $("hist"), histLabelsEl = $("histLabels");
+
+/* ---------- 2. Geometry ---------- */
+function layout(){
+  const cw = canvas.clientWidth || 560;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  W = cw; H = Math.round(cw * 1.07);
+  canvas.width = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
+  canvas.style.height = H + "px";
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const top = 66, bottom = 74;
+  const dy = (H - top - bottom) / state.rows;
+  pegs = [];
+  const dx = W / (state.rows + 1.4);
+  for(let r = 0; r < state.rows; r++){
+    const y = top + r * dy + dy / 2;
+    for(let i = 0; i <= r; i++){
+      pegs.push({ x: W / 2 + (i - r / 2) * dx, y });
+    }
+  }
+  lastPegY = top + (state.rows - 1) * dy + dy / 2;
+  binTop = lastPegY + dy * 0.62;
+  binW = W / (state.rows + 1);
+  floorY = H - 14;
+}
+function binCenter(i){ return (i + 0.5) * binW; }
+function binIndex(x){ return Math.max(0, Math.min(state.rows, Math.floor(x / binW))); }
+
+/* ---------- 3. Physics ---------- */
+function dropBall(x){
+  if(state.balls.length >= MAX_LIVE_BALLS){ state.pending++; return false; }
+  const sx = (x === undefined)
+    ? W / 2 + (Math.random() - 0.5) * 40
+    : Math.max(BALL_R + 2, Math.min(W - BALL_R - 2, x));
+  state.balls.push({
+    x: sx, y: 14, vx: (Math.random() - 0.5) * 30, vy: 0,
+    color: BALL_COLORS[(Math.random() * BALL_COLORS.length) | 0],
+    captured: -1,
+  });
+  return true;
+}
+function stepPhysics(dt){
+  // Split into two sub-steps for stability at low frame rates.
+  for(let s = 0; s < 2; s++){
+    const h = dt / 2;
+    for(const b of state.balls){
+      b.vy += GRAVITY * h;
+      b.x += b.vx * h; b.y += b.vy * h;
+      if(b.captured < 0){
+        // Peg collisions.
+        for(const p of pegs){
+          const dx = b.x - p.x, dy = b.y - p.y;
+          const d2 = dx * dx + dy * dy, rr = BALL_R + PEG_R;
+          if(d2 < rr * rr && d2 > 0.0001){
+            const d = Math.sqrt(d2), nx = dx / d, ny = dy / d;
+            b.x = p.x + nx * rr; b.y = p.y + ny * rr;
+            const vn = b.vx * nx + b.vy * ny;
+            if(vn < 0){
+              const e = 0.55;
+              b.vx -= (1 + e) * vn * nx;
+              b.vy -= (1 + e) * vn * ny;
+              // A whisper of randomness keeps the board honest.
+              b.vx += (Math.random() - 0.5) * 46;
+              b.vy *= 0.985;
+              if(Math.abs(b.vx) < 12 && Math.abs(b.vy) < 60){
+                b.vx += (Math.random() < 0.5 ? -1 : 1) * 40;
+              }
+            }
+          }
+        }
+        // Side walls.
+        if(b.x < BALL_R){ b.x = BALL_R; b.vx = Math.abs(b.vx) * 0.6; }
+        if(b.x > W - BALL_R){ b.x = W - BALL_R; b.vx = -Math.abs(b.vx) * 0.6; }
+        if(b.y < BALL_R){ b.y = BALL_R; b.vy = Math.abs(b.vy) * 0.5; }
+        // Entering the bin area: claim a bin.
+        if(b.y > binTop) b.captured = binIndex(b.x);
+      } else {
+        // Guided fall inside the claimed bin.
+        const cx = binCenter(b.captured);
+        b.vx += (cx - b.x) * 6 * h;
+        b.vx *= 0.92;
+        const left = b.captured * binW + BALL_R, right = (b.captured + 1) * binW - BALL_R;
+        if(b.x < left){ b.x = left; b.vx = Math.abs(b.vx) * 0.4; }
+        if(b.x > right){ b.x = right; b.vx = -Math.abs(b.vx) * 0.4; }
+      }
+    }
+    // Gentle ball-ball repulsion so drops don't stack into one blob.
+    const bs = state.balls;
+    for(let i = 0; i < bs.length; i++){
+      for(let j = i + 1; j < bs.length; j++){
+        const a = bs[i], c = bs[j];
+        const dx = c.x - a.x, dy = c.y - a.y, rr = BALL_R * 2;
+        const d2 = dx * dx + dy * dy;
+        if(d2 < rr * rr && d2 > 0.0001){
+          const d = Math.sqrt(d2), push = (rr - d) / 2;
+          const nx = dx / d, ny = dy / d;
+          a.x -= nx * push; a.y -= ny * push;
+          c.x += nx * push; c.y += ny * push;
+        }
+      }
+    }
+  }
+  // Landings.
+  for(let i = state.balls.length - 1; i >= 0; i--){
+    const b = state.balls[i];
+    if(b.captured >= 0 && b.y >= floorY - BALL_R){
+      state.bins[b.captured]++;
+      state.total++;
+      if(!state.reducedMotion) state.pops.push({ x: b.x, y: floorY - 8, r: 4, a: 0.9 });
+      state.balls.splice(i, 1);
+      renderStats(); renderHist(); scheduleAutosave();
+    }
+  }
+  // Pop rings fade.
+  for(let i = state.pops.length - 1; i >= 0; i--){
+    const p = state.pops[i];
+    p.r += 90 * dt; p.a -= 1.6 * dt;
+    if(p.a <= 0) state.pops.splice(i, 1);
+  }
+  // Drip-feed queued drops so a Drop-100 is a cascade, not a blob.
+  state.spawnTimer -= dt;
+  if(state.pending > 0 && state.spawnTimer <= 0){
+    state.spawnTimer = 0.045;
+    if(dropBall()) state.pending--;
+    else state.spawnTimer = 0.2; // board full: wait for room
+  }
+}
+
+/* ---------- 4. Rendering ---------- */
+function draw(){
+  ctx.clearRect(0, 0, W, H);
+  // Drop-zone band.
+  ctx.fillStyle = "rgba(228,87,46,0.08)";
+  ctx.fillRect(0, 0, W, 44);
+  ctx.setLineDash([6, 5]);
+  ctx.strokeStyle = "rgba(228,87,46,0.55)";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(0, 44.5); ctx.lineTo(W, 44.5); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = "#B23A17";
+  ctx.font = "700 12px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("D R O P   Z O N E  —  TAP TO AIM", W / 2, 28);
+  // Pegs.
+  ctx.fillStyle = "#2B2118";
+  for(const p of pegs){
+    ctx.beginPath(); ctx.arc(p.x, p.y, PEG_R, 0, Math.PI * 2); ctx.fill();
+  }
+  // Bin dividers.
+  ctx.strokeStyle = "#2B2118"; ctx.lineWidth = 3; ctx.lineCap = "round";
+  for(let i = 0; i <= state.rows + 1; i++){
+    const x = i * binW;
+    ctx.beginPath(); ctx.moveTo(x, binTop); ctx.lineTo(x, floorY); ctx.stroke();
+  }
+  // Floor.
+  ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(0, floorY + 4); ctx.lineTo(W, floorY + 4); ctx.stroke();
+  // Landing pops.
+  for(const p of state.pops){
+    ctx.globalAlpha = Math.max(0, p.a);
+    ctx.strokeStyle = "#E4572E"; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  // Balls.
+  for(const b of state.balls){
+    ctx.fillStyle = b.color;
+    ctx.beginPath(); ctx.arc(b.x, b.y, BALL_R, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,0.55)";
+    ctx.beginPath(); ctx.arc(b.x - 2.5, b.y - 2.5, 2.2, 0, Math.PI * 2); ctx.fill();
+  }
+  // Queued count.
+  if(state.pending > 0){
+    ctx.fillStyle = "#2B2118";
+    ctx.font = "700 13px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText(state.pending + " more on the way…", 10, H - 2);
+  }
+}
+
+/* Binomial: the ideal share of balls for bin i with R rows. */
+function binomCoeff(n, k){
+  let r = 1;
+  for(let i = 0; i < k; i++) r = r * (n - i) / (i + 1);
+  return r;
+}
+function expectedProbs(){
+  const out = [];
+  for(let i = 0; i <= state.rows; i++) out.push(binomCoeff(state.rows, i) / Math.pow(2, state.rows));
+  return out;
+}
+function computeStats(){
+  const total = state.total;
+  if(total === 0) return null;
+  let mean = 0;
+  for(let i = 0; i < state.bins.length; i++) mean += i * state.bins[i];
+  mean /= total;
+  let varSum = 0;
+  for(let i = 0; i < state.bins.length; i++) varSum += state.bins[i] * (i - mean) * (i - mean);
+  const std = Math.sqrt(varSum / total);
+  const exp = expectedProbs();
+  let tvd = 0;
+  for(let i = 0; i < state.bins.length; i++) tvd += Math.abs(state.bins[i] / total - exp[i]);
+  const bell = Math.max(0, Math.min(100, Math.round(100 * (1 - tvd / 2))));
+  return { total, mean, std, bell };
+}
+function renderStats(){
+  const s = computeStats();
+  $("stTotal").textContent = s ? String(s.total) : "—";
+  $("stMean").textContent = s ? s.mean.toFixed(1) : "—";
+  $("stStd").textContent = s ? s.std.toFixed(2) : "—";
+  $("stBell").textContent = s ? s.bell + "%" : "—";
+}
+function buildHist(){
+  histEl.innerHTML = ""; histLabelsEl.innerHTML = "";
+  const exp = expectedProbs();
+  const maxExp = Math.max.apply(null, exp);
+  for(let i = 0; i <= state.rows; i++){
+    const col = document.createElement("div");
+    col.className = "histCol"; col.id = "hc" + i;
+    const track = document.createElement("div");
+    track.className = "histTrack";
+    const target = document.createElement("div");
+    target.className = "histTarget";
+    target.style.bottom = (exp[i] / maxExp * 118) + "px";
+    const bar = document.createElement("div");
+    bar.className = "histBar"; bar.style.height = "0px";
+    const cnt = document.createElement("div");
+    cnt.className = "histCount"; cnt.textContent = "0";
+    track.appendChild(target); track.appendChild(bar);
+    col.appendChild(track); col.appendChild(cnt);
+    histEl.appendChild(col);
+    const lab = document.createElement("span");
+    lab.textContent = String(i);
+    histLabelsEl.appendChild(lab);
+  }
+}
+function renderHist(){
+  const maxCount = Math.max.apply(null, state.bins.concat([1]));
+  const hottest = state.bins.indexOf(maxCount);
+  for(let i = 0; i <= state.rows; i++){
+    const col = $("hc" + i);
+    if(!col) continue;
+    const bar = col.querySelector(".histBar");
+    const cnt = col.querySelector(".histCount");
+    bar.style.height = (state.bins[i] / maxCount * 118) + "px";
+    cnt.textContent = String(state.bins[i]);
+    col.classList.toggle("hot", state.total > 0 && i === hottest);
+  }
+}
+function setStatus(el, msg, kind){
+  el.textContent = msg;
+  el.className = "status" + (kind ? " " + kind : "");
+}
+
+/* ---------- 5. Controls ---------- */
+function setRain(on){
+  state.rain = on;
+  const btn = $("rainBtn");
+  btn.setAttribute("aria-pressed", on ? "true" : "false");
+  btn.textContent = on ? "Rain: on" : "Rain: off";
+  if(on){
+    rainTimer = setInterval(() => { state.pending++; }, 110);
+  } else if(rainTimer){
+    clearInterval(rainTimer); rainTimer = null;
+  }
+}
+function clearBoard(){
+  state.bins = new Array(state.rows + 1).fill(0);
+  state.total = 0; state.balls = []; state.pops = []; state.pending = 0;
+  renderStats(); renderHist(); scheduleAutosave();
+  setStatus($("ctrlStatus"), "Board cleared — fresh bell curve waiting.", "");
+}
+function rebuildBoard(keepData){
+  if(!keepData){
+    state.bins = new Array(state.rows + 1).fill(0);
+    state.total = 0;
+  }
+  state.balls = []; state.pops = []; state.pending = 0;
+  layout(); buildHist(); renderStats(); renderHist();
+}
+function bindControls(){
+  canvas.addEventListener("pointerdown", ev => {
+    const rect = canvas.getBoundingClientRect();
+    dropBall(ev.clientX - rect.left);
+    canvas.blur && canvas.blur();
+  });
+  $("drop1").addEventListener("click", ev => { dropBall(); ev.currentTarget.blur(); });
+  $("drop10").addEventListener("click", ev => { state.pending += 10; ev.currentTarget.blur(); });
+  $("drop100").addEventListener("click", ev => { state.pending += 100; ev.currentTarget.blur(); });
+  $("rainBtn").addEventListener("click", ev => { setRain(!state.rain); ev.currentTarget.blur(); });
+  $("clearBtn").addEventListener("click", ev => { clearBoard(); ev.currentTarget.blur(); });
+  $("rowsRange").addEventListener("input", ev => {
+    state.rows = parseInt(ev.target.value, 10);
+    $("rowsVal").textContent = state.rows + " rows";
+    rebuildBoard(false);
+    scheduleAutosave();
+    setStatus($("ctrlStatus"),
+      "Rows changed to " + state.rows + " — counts reset for the new board.", "");
+  });
+  $("saveBtn").addEventListener("click", ev => { saveFile(); ev.currentTarget.blur(); });
+  $("openBtn").addEventListener("click", ev => { $("fileInput").click(); ev.currentTarget.blur(); });
+  $("copyBtn").addEventListener("click", ev => { copySummary(); ev.currentTarget.blur(); });
+  $("fileInput").addEventListener("change", ev => {
+    const f = ev.target.files && ev.target.files[0];
+    if(f) openFile(f);
+    ev.target.value = "";
+  });
+  window.addEventListener("resize", () => {
+    const oldW = W, oldH = H;
+    layout();
+    for(const b of state.balls){ b.x *= W / oldW; b.y *= H / oldH; }
+  });
+  // Keyboard: each key does exactly one thing.
+  document.addEventListener("keydown", ev => {
+    const t = ev.target;
+    if(t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT")) return;
+    if(ev.metaKey || ev.ctrlKey || ev.altKey) return;
+    const k = ev.key.toLowerCase();
+    if(k === " "){ ev.preventDefault(); dropBall(); }
+    else if(k === "d"){ state.pending += 10; }
+    else if(k === "r"){ setRain(!state.rain); }
+    else if(k === "c"){ clearBoard(); }
+    else if(k === "s"){ ev.preventDefault(); saveFile(); }
+    else if(k === "o"){ ev.preventDefault(); $("fileInput").click(); }
+  });
+}
+
+/* ---------- 6. Persistence ---------- */
+function snapshot(){
+  return { app: "dropzone", version: 1, rows: state.rows, bins: state.bins.slice(), total: state.total };
+}
+function validateSaveData(d){
+  if(!d || typeof d !== "object" || Array.isArray(d)) return "not an object";
+  if(d.app !== "dropzone") return "not a DROPZONE file";
+  if(d.version !== 1) return "unsupported version";
+  if(!Number.isInteger(d.rows) || d.rows < 5 || d.rows > 12) return "rows out of range (5–12)";
+  if(!Array.isArray(d.bins) || d.bins.length !== d.rows + 1) return "bins length does not match rows";
+  for(const b of d.bins){
+    if(!Number.isInteger(b) || b < 0 || b > 1000000) return "bad bin count";
+  }
+  if(!Number.isInteger(d.total) || d.total < 0) return "bad total";
+  if(d.bins.reduce((a, b) => a + b, 0) !== d.total) return "total does not match bins";
+  return null;
+}
+function applySaveData(d){
+  const err = validateSaveData(d);
+  if(err) return err;
+  state.rows = d.rows;
+  $("rowsRange").value = String(d.rows);
+  $("rowsVal").textContent = d.rows + " rows";
+  state.bins = d.bins.slice();
+  state.total = d.total;
+  state.balls = []; state.pops = []; state.pending = 0;
+  layout(); buildHist(); renderStats(); renderHist();
+  scheduleAutosave();
+  return null;
+}
+function scheduleAutosave(){
+  if(saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try{ localStorage.setItem(LS_KEY, JSON.stringify(snapshot())); }catch(e){ /* storage full/blocked: ignore */ }
+  }, 300);
+}
+function restoreAutosave(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return false;
+    const err = applySaveData(JSON.parse(raw));
+    return err === null;
+  }catch(e){ return false; }
+}
+function saveFile(){
+  const blob = new Blob([JSON.stringify(snapshot(), null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "dropzone-" + state.rows + "-rows-" + state.total + "-balls.json";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  setStatus($("fileStatus"), "Saved " + state.total + " balls across " + state.bins.length + " bins.", "ok");
+}
+function openFile(file){
+  const reader = new FileReader();
+  reader.onload = () => {
+    let data;
+    try{ data = JSON.parse(reader.result); }
+    catch(e){
+      setStatus($("fileStatus"), "That file is not valid JSON — your current board is untouched.", "err");
+      return;
+    }
+    const err = applySaveData(data);
+    if(err){
+      setStatus($("fileStatus"), "Rejected: " + err + " — your current board is untouched.", "err");
+    } else {
+      setStatus($("fileStatus"),
+        "Loaded: " + state.total + " balls, " + state.rows + " rows.", "ok");
+    }
+  };
+  reader.onerror = () => setStatus($("fileStatus"), "Could not read that file — board untouched.", "err");
+  reader.readAsText(file);
+}
+function copySummary(){
+  const s = computeStats();
+  const text = s
+    ? "DROPZONE — " + s.total + " balls over " + state.rows + " rows. Mean bin " +
+      s.mean.toFixed(1) + ", spread " + s.std.toFixed(2) + ", bell-curve match " +
+      s.bell + "%. Bins: " + state.bins.join(", ") + "."
+    : "DROPZONE — no balls dropped yet. " + state.rows + " rows, " +
+      (state.rows + 1) + " bins waiting.";
+  const done = () => setStatus($("fileStatus"), "Summary copied.", "ok");
+  const fail = () => setStatus($("fileStatus"), "Copy failed — select the stats above instead.", "err");
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done, fail);
+  } else {
+    const ta = document.createElement("textarea");
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand("copy"); done(); }catch(e){ fail(); }
+    ta.remove();
+  }
+}
+
+/* ---------- 7. Boot & test hooks ---------- */
+function boot(){
+  state.reducedMotion = window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  state.bins = new Array(state.rows + 1).fill(0);
+  layout(); buildHist(); bindControls();
+  const restored = restoreAutosave();
+  renderStats(); renderHist();
+  // A few balls on load so the board is alive immediately.
+  const demo = state.reducedMotion ? 3 : 8;
+  for(let i = 0; i < demo; i++){
+    setTimeout(() => dropBall(), 350 + i * 160);
+  }
+  if(restored) setStatus($("fileStatus"), "Restored your last board from this browser.", "ok");
+  // Main loop.
+  let last = performance.now();
+  function frame(now){
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    stepPhysics(dt);
+    draw();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+// Exposed for automated smoke-testing; harmless in the browser.
+window.Dropzone = {
+  state, dropBall, stepPhysics, validateSaveData, applySaveData,
+  computeStats, expectedProbs, rebuildBoard, layout, snapshot,
+};
+boot();
+</script>
+</body>
+</html>

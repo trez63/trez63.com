@@ -1608,7 +1608,235 @@
         }
       ],
       "category": "sim"
+    },
+    "ebru": {
+      "title": "Ebru",
+      "engine": "Claude",
+      "description": "A paper-marbling bath. Tap to float ink drops that push the earlier ones aside, then drag a rake, comb, wave or swirl through them; every gesture is an exact closed-form deformation, so pictures replay perfectly from the saved gesture list, and you can start from stone, gelgit, nonpareil, bouquet, peacock or vortex presets, switch palettes and paper, undo, and export a 2000-px PNG.",
+      "source_file": "Ebru - Claude.html",
+      "first_published": "2026-11-14",
+      "last_updated": "2026-11-14",
+      "version": 1,
+      "sha": "09f75853b123",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-14",
+          "sha": "09f75853b123"
+        }
+      ],
+      "category": "art"
+    },
+    "nash": {
+      "title": "Nash",
+      "engine": "Claude",
+      "description": "Hex against a computer opponent you can watch think. You connect left to right, Nash connects top to bottom, and while it searches the board glows with where its Monte-Carlo tree search is spending attention; pick a 7, 9 or 11 board, quick to deep thinking time, ask for a hint, undo, and save or open games as JSON.",
+      "source_file": "Nash - Claude.html",
+      "first_published": "2026-11-14",
+      "last_updated": "2026-11-14",
+      "version": 1,
+      "sha": "6a3386c55d38",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-14",
+          "sha": "6a3386c55d38"
+        }
+      ],
+      "category": "game"
+    },
+    "belfry": {
+      "title": "Belfry",
+      "engine": "ChatGPT",
+      "description": "A change-ringing studio for six synthesised bells. Tap a bell to hear it, play a score row by row at a chosen strikes-per-minute, follow one bell’s path through the diagram, edit which neighbouring positions swap on each row or build your own method and return it to rounds, choose a bronze or glass voice, and save the score as JSON or export the performance as a WAV.",
+      "source_file": "belfry - codex.html",
+      "first_published": "2026-11-14",
+      "last_updated": "2026-11-14",
+      "version": 1,
+      "sha": "48439be42dca",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-14",
+          "sha": "48439be42dca"
+        }
+      ],
+      "category": "audio"
+    },
+    "drift-soundscape": {
+      "title": "Drift",
+      "engine": "Muse",
+      "description": "An ambient soundscape mixer. Rain, ocean, wind, fire and birdsong are synthesised live from filtered noise and scheduled chirps and crackles, with no recordings; blend them with sliders, start from presets like Rainy Night or Forest Dawn, set a sleep timer, and save or open a mix as JSON.",
+      "source_file": "drift-soundscape - muse.html",
+      "first_published": "2026-11-14",
+      "last_updated": "2026-11-14",
+      "version": 1,
+      "sha": "23b526ac081d",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-14",
+          "sha": "23b526ac081d"
+        }
+      ],
+      "category": "audio",
+      "thumb": {
+        "actions": [
+          {
+            "wait": 1200
+          },
+          {
+            "selector_click": "#playBtn"
+          },
+          {
+            "wait": 2500
+          }
+        ]
+      }
+    },
+    "dropzone": {
+      "title": "Dropzone",
+      "engine": "Muse",
+      "description": "A Galton board. Tap along the top to drop a ball, or release ten, a hundred or a steady rain, and watch them bounce through 5 to 12 rows of pegs into bins while a histogram fills in against the ideal binomial curve; live stats show the count, mean, spread and bell match, and results save and reopen as JSON.",
+      "source_file": "dropzone - muse.html",
+      "first_published": "2026-11-14",
+      "last_updated": "2026-11-14",
+      "version": 1,
+      "sha": "b14138abd9db",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-14",
+          "sha": "b14138abd9db"
+        }
+      ],
+      "category": "sim"
+    },
+    "lathe": {
+      "title": "Lathe",
+      "engine": "Claude",
+      "description": "A pottery wheel in one file. The pot is a solid of revolution rendered in software on a 2D canvas; drag on the wall to pull it out or push it in, smooth out lumps, set brush width and height, start from vase, bowl, bottle, cup or plate presets, pick glazes and camera tilt, then save the pot as JSON or export a watertight OBJ with real wall thickness for 3D printing.",
+      "source_file": "lathe - Claude.html",
+      "first_published": "2026-11-14",
+      "last_updated": "2026-11-14",
+      "version": 1,
+      "sha": "2c3faff2927a",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-14",
+          "sha": "2c3faff2927a"
+        }
+      ],
+      "category": "art"
+    },
+    "paper-cinema": {
+      "title": "Paper Cinema",
+      "engine": "ChatGPT",
+      "description": "A barrier-grid animation studio. Draw four 40×24 pixel frames with ink and erase tools, play them back or scrub a virtual shutter across the interlaced plate, and export a print kit with the plate and the slitted shutter at actual size so the animation works on paper; films save and reopen as JSON.",
+      "source_file": "paper-cinema - codex.html",
+      "first_published": "2026-11-14",
+      "last_updated": "2026-11-14",
+      "version": 1,
+      "sha": "06667f5fb17d",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-14",
+          "sha": "06667f5fb17d"
+        }
+      ],
+      "category": "art"
+    },
+    "passphrase-forge": {
+      "title": "Passphrase Forge",
+      "engine": "Muse",
+      "description": "A password and passphrase generator. Forge a memorable multi-word passphrase or a random character password from the browser’s secure random source, tune words, separators, capitals, length and character sets, and see the entropy in bits with estimated offline and online crack times; recent results are kept for copying and settings save as JSON.",
+      "source_file": "passphrase-forge - muse.html",
+      "first_published": "2026-11-14",
+      "last_updated": "2026-11-14",
+      "version": 1,
+      "sha": "486f221555c3",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-14",
+          "sha": "486f221555c3"
+        }
+      ],
+      "category": "tool",
+      "thumb": {
+        "actions": [
+          {
+            "wait": 1200
+          },
+          {
+            "selector_click": "#btn-generate"
+          },
+          {
+            "wait": 800
+          }
+        ]
+      }
+    },
+    "swiftread": {
+      "title": "Swiftread",
+      "engine": "Muse",
+      "description": "An RSVP speed reader. Paste any text and press play to see it one word (or two or three) at a time with the focal letter highlighted so your eyes stay still; set the words per minute live, skip or jump along the progress bar, and save or open your text and position as JSON.",
+      "source_file": "swiftread - muse.html",
+      "first_published": "2026-11-14",
+      "last_updated": "2026-11-14",
+      "version": 1,
+      "sha": "71ed7eeb8059",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-14",
+          "sha": "71ed7eeb8059"
+        }
+      ],
+      "category": "text",
+      "thumb": {
+        "actions": [
+          {
+            "wait": 1200
+          },
+          {
+            "selector_click": "#btn-sample"
+          },
+          {
+            "selector_click": "#btn-play"
+          },
+          {
+            "wait": 1500
+          },
+          {
+            "eval": "window.scrollTo(0,0)"
+          },
+          {
+            "wait": 400
+          }
+        ]
+      }
+    },
+    "trill": {
+      "title": "Trill",
+      "engine": "Claude",
+      "description": "A modem made of birdsong. Type a message and it plays as a short melody of 32 pure tones that another phone (or the same one) decodes from its microphone, with a live waterfall of what the decoder hears; a self-test routes a message through simulated room noise so you can watch it lock on, and drafts and the inbox save as JSON.",
+      "source_file": "trill - Claude.html",
+      "first_published": "2026-11-14",
+      "last_updated": "2026-11-14",
+      "version": 1,
+      "sha": "4359716b6cbe",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-14",
+          "sha": "4359716b6cbe"
+        }
+      ],
+      "category": "audio"
     }
   },
-  "generated": "2026-11-11"
+  "generated": "2026-11-14"
 }

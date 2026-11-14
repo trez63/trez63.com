@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SWIFTREAD — Speed Reader</title>
+<style>
+  /* ---------- 1. Palette & base ---------- */
+  :root{
+    --ink:#0a2e2b;        /* deep teal-ink page */
+    --panel:#103b36;      /* raised panel */
+    --panel2:#0d332f;     /* sunken panel */
+    --cream:#f2efe6;      /* main text */
+    --dim:#a8c4b8;        /* secondary text */
+    --gold:#ffc53d;       /* accent: focal letter, play */
+    --mint:#7fd8be;       /* secondary accent */
+    --line:#1f4d46;       /* hairlines */
+    --danger:#ff8a7a;
+    --radius:14px;
+  }
+  *{ box-sizing:border-box; }
+  html{ -webkit-text-size-adjust:100%; }
+  body{
+    margin:0; background:var(--ink); color:var(--cream);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.5; min-height:100vh;
+  }
+  .wrap{ max-width:860px; margin:0 auto; padding:20px 16px 40px; }
+
+  /* ---------- 2. Header ---------- */
+  header{ text-align:center; margin-bottom:18px; }
+  h1{ margin:0; font-size:clamp(28px,7vw,44px); letter-spacing:.14em; }
+  h1 span{ color:var(--gold); }
+  .tag{ margin:6px 0 0; color:var(--dim); font-size:15px; }
+
+  /* ---------- 3. Reader stage ---------- */
+  .stage{
+    background:var(--panel); border:1px solid var(--line);
+    border-radius:var(--radius); padding:28px 16px 22px;
+    text-align:center; position:relative;
+  }
+  .wordbox{
+    min-height:120px; display:flex; align-items:center; justify-content:center;
+    gap:.6em; flex-wrap:wrap; padding:8px 0 4px;
+  }
+  .word{
+    display:inline-grid; grid-template-columns:1fr auto 1fr;
+    font-size:clamp(34px,9vw,64px); font-weight:700; line-height:1.15;
+    font-family:Georgia,"Times New Roman",serif;
+  }
+  .word .pre{ text-align:right; white-space:pre; }
+  .word .focal{ color:var(--gold); }
+  .word .post{ text-align:left; white-space:pre; }
+  .wordbox.multi .word{ font-size:clamp(26px,6.5vw,44px); }
+  .placeholder{ color:var(--dim); font-size:clamp(18px,4.5vw,24px); font-weight:400; }
+  .phase{ color:var(--mint); font-size:13px; letter-spacing:.18em; text-transform:uppercase; min-height:18px; }
+  .progress{
+    height:14px; background:var(--panel2); border-radius:99px;
+    margin:14px 0 4px; cursor:pointer; border:1px solid var(--line);
+    touch-action:manipulation;
+  }
+  .progress .fill{
+    height:100%; width:0%; background:linear-gradient(90deg,var(--mint),var(--gold));
+    border-radius:99px;
+  }
+  .progress-hint{ font-size:12px; color:var(--dim); }
+
+  /* ---------- 4. Stats row ---------- */
+  .stats{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:16px 0;
+  }
+  .stat{
+    background:var(--panel); border:1px solid var(--line);
+    border-radius:var(--radius); padding:10px 6px; text-align:center;
+  }
+  .stat b{ display:block; font-size:20px; color:var(--gold); }
+  .stat span{ font-size:12px; color:var(--dim); letter-spacing:.06em; text-transform:uppercase; }
+
+  /* ---------- 5. Controls ---------- */
+  .controls{
+    background:var(--panel); border:1px solid var(--line);
+    border-radius:var(--radius); padding:16px;
+  }
+  .transport{ display:flex; gap:10px; margin-bottom:16px; }
+  button{
+    font:inherit; color:var(--cream); background:var(--panel2);
+    border:1px solid var(--line); border-radius:10px; cursor:pointer;
+    min-height:48px; padding:10px 16px; touch-action:manipulation;
+  }
+  button:active{ transform:scale(.97); }
+  .btn-play{
+    flex:1; background:var(--gold); color:#241a00; font-weight:800;
+    font-size:19px; border:none; min-height:56px;
+  }
+  .btn-play.playing{ background:var(--mint); color:#06231c; }
+  .row{ display:flex; align-items:center; gap:12px; margin:12px 0; flex-wrap:wrap; }
+  .row label{ font-size:14px; color:var(--dim); min-width:86px; }
+  .row output{ font-weight:700; color:var(--gold); min-width:74px; text-align:right; }
+  input[type="range"]{
+    flex:1; min-width:140px; accent-color:var(--gold); height:32px;
+  }
+  .seg{ display:flex; gap:8px; }
+  .seg button{ flex:1; min-width:56px; }
+  .seg button[aria-pressed="true"]{ background:var(--gold); color:#241a00; border-color:var(--gold); font-weight:700; }
+
+  /* ---------- 6. Text input ---------- */
+  .textblock{ margin-top:16px; }
+  .textblock h2{ font-size:16px; margin:0 0 8px; letter-spacing:.08em; text-transform:uppercase; color:var(--dim); }
+  textarea{
+    width:100%; min-height:150px; resize:vertical;
+    background:var(--panel2); color:var(--cream); border:1px solid var(--line);
+    border-radius:var(--radius); padding:12px; font:inherit; font-size:16px; line-height:1.6;
+  }
+  textarea:focus{ outline:2px solid var(--gold); outline-offset:1px; }
+  .text-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+  .text-actions button{ flex:1; min-width:120px; }
+  .count{ font-size:13px; color:var(--dim); margin-top:8px; }
+
+  /* ---------- 7. Save / Open & status ---------- */
+  .filebar{ display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
+  .filebar button{ flex:1; min-width:140px; }
+  .status{ margin-top:10px; font-size:14px; min-height:20px; color:var(--mint); }
+  .status.err{ color:var(--danger); }
+
+  footer{ margin-top:22px; text-align:center; color:var(--dim); font-size:13px; }
+  footer kbd{
+    background:var(--panel2); border:1px solid var(--line); border-radius:5px;
+    padding:1px 7px; font-family:inherit; color:var(--cream);
+  }
+
+  /* ---------- 8. Motion & small screens ---------- */
+  @media (prefers-reduced-motion: reduce){
+    *{ transition:none !important; animation:none !important; }
+  }
+  @media (max-width:480px){
+    .stats{ grid-template-columns:repeat(2,1fr); }
+    .row label{ min-width:70px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>SWIFT<span>READ</span></h1>
+    <p class="tag">Paste any text. Press play. Read at the speed of thought — one word at a time, eyes fixed.</p>
+  </header>
+
+  <!-- Reader stage -->
+  <section class="stage" aria-label="Reading display">
+    <div class="phase" id="phase">Ready</div>
+    <div class="wordbox" id="wordbox" aria-live="off">
+      <span class="placeholder">Press ▶ Play to start reading</span>
+    </div>
+    <div class="progress" id="progress" role="slider" tabindex="0"
+         aria-label="Reading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div class="fill" id="fill"></div>
+    </div>
+    <div class="progress-hint">Tap the bar to jump to any point · ← → skip 10 words</div>
+  </section>
+
+  <!-- Live stats -->
+  <section class="stats" aria-label="Reading stats">
+    <div class="stat"><b id="stat-wpm">300</b><span>WPM</span></div>
+    <div class="stat"><b id="stat-pos">0 / 0</b><span>Words read</span></div>
+    <div class="stat"><b id="stat-left">0:00</b><span>Time left</span></div>
+    <div class="stat"><b id="stat-pct">0%</b><span>Done</span></div>
+  </section>
+
+  <!-- Controls -->
+  <section class="controls" aria-label="Playback controls">
+    <div class="transport">
+      <button class="btn-play" id="btn-play" type="button">▶&nbsp; Play</button>
+      <button id="btn-restart" type="button" title="Restart from the first word (R)">↺ Restart</button>
+    </div>
+    <div class="row">
+      <label for="speed">Speed</label>
+      <input type="range" id="speed" min="100" max="1000" step="25" value="300">
+      <output id="speed-out" for="speed">300 wpm</output>
+    </div>
+    <div class="row">
+      <label>Words at once</label>
+      <div class="seg" role="group" aria-label="Words shown at once">
+        <button type="button" data-chunk="1" aria-pressed="true">1 word</button>
+        <button type="button" data-chunk="2" aria-pressed="false">2 words</button>
+        <button type="button" data-chunk="3" aria-pressed="false">3 words</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Text input -->
+  <section class="textblock">
+    <h2>Your text</h2>
+    <textarea id="text" spellcheck="false" aria-label="Text to read"></textarea>
+    <div class="text-actions">
+      <button id="btn-sample" type="button">Load sample text</button>
+      <button id="btn-clear" type="button">Clear</button>
+    </div>
+    <div class="count" id="count"></div>
+  </section>
+
+  <!-- Save / Open -->
+  <div class="filebar">
+    <button id="btn-save" type="button">💾 Save (S)</button>
+    <button id="btn-open" type="button">📂 Open (O)</button>
+    <input type="file" id="file-input" accept=".json,application/json" hidden>
+  </div>
+  <div class="status" id="status" role="status"></div>
+
+  <footer>
+    <kbd>Space</kbd> play / pause &nbsp;·&nbsp; <kbd>←</kbd><kbd>→</kbd> skip 10 words &nbsp;·&nbsp;
+    <kbd>R</kbd> restart &nbsp;·&nbsp; <kbd>S</kbd> save &nbsp;·&nbsp; <kbd>O</kbd> open<br>
+    The gold letter is the word's focal point — keep your eyes on it and let the words come to you.
+  </footer>
+</div>
+
+<script>
+"use strict";
+/* ============================================================
+   SWIFTREAD — RSVP speed reader
+   Sections: 1 State · 2 Sample text · 3 Word splitting & ORP
+   4 Playback engine · 5 Rendering & stats · 6 Controls
+   7 Save / Open (validated) · 8 Keyboard · 9 Boot
+   ============================================================ */
+
+/* ---------- 1. State ---------- */
+var LS_KEY = "swiftread-v1";
+var state = {
+  words: [],        // tokenised text
+  index: 0,         // index of first word of current chunk
+  wpm: 300,
+  chunk: 1,
+  playing: false,
+  timer: null,
+  done: false
+};
+
+/* ---------- 2. Sample text (original, written for this app) ---------- */
+var SAMPLE =
+  "Reading is not about moving your eyes across a page. It is about letting " +
+  "meaning arrive. Most of the time your eyes waste is spent hunting for the " +
+  "next word, jumping back to check a phrase, and drifting away from the line " +
+  "you were on. Speed reading with a fixed focal point removes all of that. " +
+  "One word appears where you are already looking, and the next replaces it " +
+  "before you have time to wander. The gold letter in the middle of each word " +
+  "is your anchor. Keep your gaze on it and let the words stream past. " +
+  "Start slow, around two hundred words per minute, and nudge the speed up " +
+  "only when the words feel effortless. Comprehension is the goal, not speed " +
+  "for its own sake. If a sentence slips past you, tap the progress bar to " +
+  "jump back and read it again. There is no penalty for re-reading, only for " +
+  "pretending you understood. Practice for five minutes a day and your " +
+  "comfortable speed will climb without you forcing it. Soon you will read " +
+  "a whole article in the time a coffee takes to cool, and remember more of " +
+  "it than you did at half the pace.";
+
+/* ---------- DOM handles ---------- */
+function $(id){ return document.getElementById(id); }
+var wordbox = $("wordbox"), phaseEl = $("phase"), fillEl = $("fill"),
+    progressEl = $("progress"), playBtn = $("btn-play"),
+    speedEl = $("speed"), speedOut = $("speed-out"),
+    textEl = $("text"), countEl = $("count"), statusEl = $("status");
+
+/* ---------- 3. Word splitting & ORP ---------- */
+/* Split on whitespace; keep punctuation attached to its word. */
+function tokenise(text){
+  return text.split(/\s+/).filter(function(w){ return w.length > 0; });
+}
+/* Optimal Recognition Point: roughly a third of the way into the word. */
+function orpIndex(word){
+  if (word.length <= 1) return 0;
+  return Math.min(word.length - 1, Math.floor((word.length - 1) / 3));
+}
+/* Render one word with its focal letter highlighted. */
+function wordHTML(word){
+  var i = orpIndex(word);
+  var esc = function(s){
+    return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  };
+  return '<span class="word"><span class="pre">' + esc(word.slice(0, i)) +
+         '</span><span class="focal">' + esc(word[i]) +
+         '</span><span class="post">' + esc(word.slice(i + 1)) + '</span></span>';
+}
+
+/* ---------- 4. Playback engine ---------- */
+function chunkMs(){
+  return 60000 / state.wpm;   /* ms per chunk shown */
+}
+function stopTimer(){
+  if (state.timer !== null){ clearTimeout(state.timer); state.timer = null; }
+}
+function scheduleNext(){
+  stopTimer();
+  if (!state.playing) return;
+  state.timer = setTimeout(function(){
+    state.index += state.chunk;
+    if (state.index >= state.words.length){
+      finishReading();
+      return;
+    }
+    renderWord();
+    scheduleNext();
+  }, chunkMs());
+}
+function startPlaying(){
+  if (state.words.length === 0){ setStatus("Paste some text first, then press Play.", true); return; }
+  if (state.done || state.index >= state.words.length){ state.index = 0; state.done = false; }
+  state.playing = true;
+  playBtn.textContent = "⏸  Pause";
+  playBtn.classList.add("playing");
+  phaseEl.textContent = "Reading";
+  renderWord();
+  scheduleNext();
+  saveLocal();
+}
+function pausePlaying(){
+  state.playing = false;
+  stopTimer();
+  playBtn.textContent = "▶  Play";
+  playBtn.classList.remove("playing");
+  phaseEl.textContent = state.done ? "Finished" : "Paused";
+  saveLocal();
+}
+function togglePlay(){
+  if (state.playing) pausePlaying(); else startPlaying();
+}
+function finishReading(){
+  state.playing = false;
+  state.done = true;
+  stopTimer();
+  state.index = state.words.length;
+  playBtn.textContent = "▶  Play again";
+  playBtn.classList.remove("playing");
+  phaseEl.textContent = "Finished — nice reading";
+  renderStats();
+  saveLocal();
+}
+function restart(){
+  pausePlaying();
+  state.index = 0;
+  state.done = false;
+  playBtn.textContent = "▶  Play";
+  renderWord();
+  renderStats();
+}
+function jumpTo(frac){
+  frac = Math.max(0, Math.min(1, frac));
+  pausePlaying();
+  state.index = Math.floor(frac * state.words.length);
+  state.done = false;
+  if (state.index >= state.words.length) state.index = Math.max(0, state.words.length - state.chunk);
+  renderWord();
+  renderStats();
+}
+function skipWords(delta){
+  pausePlaying();
+  state.index = Math.max(0, Math.min(state.words.length - 1, state.index + delta));
+  state.done = false;
+  renderWord();
+  renderStats();
+}
+
+/* ---------- 5. Rendering & stats ---------- */
+function renderWord(){
+  if (state.words.length === 0){
+    wordbox.innerHTML = '<span class="placeholder">Paste some text below and press Play</span>';
+    wordbox.classList.remove("multi");
+    return;
+  }
+  if (state.done || state.index >= state.words.length){
+    wordbox.innerHTML = '<span class="placeholder">Done — ' + state.words.length +
+      ' words. Press Restart or Play again.</span>';
+    wordbox.classList.remove("multi");
+    return;
+  }
+  var chunk = state.words.slice(state.index, state.index + state.chunk);
+  wordbox.classList.toggle("multi", chunk.length > 1);
+  wordbox.innerHTML = chunk.map(wordHTML).join("");
+  renderStats();
+}
+function fmtTime(seconds){
+  seconds = Math.max(0, Math.round(seconds));
+  return Math.floor(seconds / 60) + ":" + String(seconds % 60).padStart(2, "0");
+}
+function renderStats(){
+  var total = state.words.length;
+  var read = Math.min(state.index, total);
+  var remaining = Math.max(0, total - read);
+  var minsLeft = remaining / state.wpm;
+  $("stat-wpm").textContent = state.wpm;
+  $("stat-pos").textContent = read + " / " + total;
+  $("stat-left").textContent = fmtTime(minsLeft * 60);
+  var pct = total ? Math.round(read / total * 100) : 0;
+  $("stat-pct").textContent = pct + "%";
+  fillEl.style.width = pct + "%";
+  progressEl.setAttribute("aria-valuenow", String(pct));
+  countEl.textContent = total + " words · about " + fmtTime(total / state.wpm * 60) +
+    " at " + state.wpm + " wpm";
+}
+function setStatus(msg, isErr){
+  statusEl.textContent = msg;
+  statusEl.classList.toggle("err", !!isErr);
+}
+
+/* ---------- 6. Controls ---------- */
+playBtn.addEventListener("click", togglePlay);
+$("btn-restart").addEventListener("click", restart);
+
+speedEl.addEventListener("input", function(){
+  state.wpm = parseInt(speedEl.value, 10);
+  speedOut.textContent = state.wpm + " wpm";
+  renderStats();
+  if (state.playing) scheduleNext();   /* new speed applies live */
+  saveLocal();
+});
+
+document.querySelectorAll("[data-chunk]").forEach(function(btn){
+  btn.addEventListener("click", function(){
+    state.chunk = parseInt(btn.getAttribute("data-chunk"), 10);
+    document.querySelectorAll("[data-chunk]").forEach(function(b){
+      b.setAttribute("aria-pressed", String(b === btn));
+    });
+    renderWord();
+    saveLocal();
+  });
+});
+
+/* Click / tap the progress bar to jump. */
+progressEl.addEventListener("click", function(e){
+  var r = progressEl.getBoundingClientRect();
+  jumpTo((e.clientX - r.left) / r.width);
+});
+/* (Arrow keys work anywhere via the document-level handler below.) */
+
+/* Text input: re-tokenise live; keep position when possible. */
+textEl.addEventListener("input", function(){
+  var keep = state.index;
+  state.words = tokenise(textEl.value);
+  state.index = Math.min(keep, Math.max(0, state.words.length - 1));
+  state.done = false;
+  renderWord();
+  renderStats();
+  saveLocal();
+});
+$("btn-sample").addEventListener("click", function(){
+  textEl.value = SAMPLE;
+  state.words = tokenise(SAMPLE);
+  restart();
+  setStatus("Sample text loaded — press Play.");
+});
+$("btn-clear").addEventListener("click", function(){
+  pausePlaying();
+  textEl.value = "";
+  state.words = [];
+  state.index = 0;
+  state.done = false;
+  renderWord();
+  renderStats();
+  saveLocal();
+  setStatus("Cleared. Paste your own text to read it.");
+});
+
+/* ---------- 7. Save / Open (validated) ---------- */
+function currentData(){
+  return { app:"swiftread", version:1, text:textEl.value,
+           wpm:state.wpm, chunk:state.chunk, index:state.index };
+}
+/* Pure validation: returns true only for a well-formed save file.
+   A bad file must never wipe the current text or settings. */
+function validateSave(d){
+  if (!d || typeof d !== "object" || Array.isArray(d)) return false;
+  if (d.app !== "swiftread" || d.version !== 1) return false;
+  if (typeof d.text !== "string" || d.text.length > 200000) return false;
+  if (typeof d.wpm !== "number" || !isFinite(d.wpm) || d.wpm < 100 || d.wpm > 1000) return false;
+  if (d.chunk !== 1 && d.chunk !== 2 && d.chunk !== 3) return false;
+  if (d.index !== undefined &&
+      (typeof d.index !== "number" || !isFinite(d.index) || d.index < 0)) return false;
+  return true;
+}
+function applySave(d){
+  pausePlaying();
+  textEl.value = d.text;
+  state.words = tokenise(d.text);
+  state.wpm = d.wpm;
+  state.chunk = d.chunk;
+  speedEl.value = String(d.wpm);
+  speedOut.textContent = d.wpm + " wpm";
+  document.querySelectorAll("[data-chunk]").forEach(function(b){
+    b.setAttribute("aria-pressed", String(parseInt(b.getAttribute("data-chunk"), 10) === d.chunk));
+  });
+  state.index = Math.min(d.index || 0, Math.max(0, state.words.length - 1));
+  state.done = false;
+  renderWord();
+  renderStats();
+  saveLocal();
+}
+function saveFile(){
+  var blob = new Blob([JSON.stringify(currentData(), null, 2)], { type:"application/json" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "swiftread.json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+  setStatus("Saved swiftread.json — text, speed and chunk size included.");
+}
+function openFile(file){
+  var reader = new FileReader();
+  reader.onload = function(){
+    var parsed;
+    try { parsed = JSON.parse(reader.result); }
+    catch (err){ setStatus("That file is not valid JSON — current text kept.", true); return; }
+    if (!validateSave(parsed)){
+      setStatus("That file is not a SWIFTREAD save — current text kept.", true);
+      return;
+    }
+    applySave(parsed);
+    setStatus("Loaded " + parsed.text.split(/\s+/).filter(Boolean).length + " words from the file.");
+  };
+  reader.onerror = function(){ setStatus("Could not read that file — current text kept.", true); };
+  reader.readAsText(file);
+}
+$("btn-save").addEventListener("click", saveFile);
+$("btn-open").addEventListener("click", function(){ $("file-input").click(); });
+$("file-input").addEventListener("change", function(e){
+  if (e.target.files.length) openFile(e.target.files[0]);
+  e.target.value = "";
+});
+
+/* Browser autosave (best effort; file Save is the durable copy). */
+function saveLocal(){
+  try { localStorage.setItem(LS_KEY, JSON.stringify(currentData())); } catch (err) {}
+}
+function loadLocal(){
+  try {
+    var raw = localStorage.getItem(LS_KEY);
+    if (!raw) return false;
+    var d = JSON.parse(raw);
+    if (!validateSave(d)) return false;
+    applySave(d);
+    return true;
+  } catch (err) { return false; }
+}
+
+/* ---------- 8. Keyboard — each key does exactly one thing ---------- */
+document.addEventListener("keydown", function(e){
+  var tag = (e.target.tagName || "").toLowerCase();
+  /* Typing stays in fields; Space on a focused button is the button's
+     own native click, so it must not also reach the handler below. */
+  if (tag === "textarea" || tag === "input" || tag === "button") return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === " "){ e.preventDefault(); togglePlay(); }
+  else if (e.key === "ArrowLeft"){ e.preventDefault(); skipWords(-10); }
+  else if (e.key === "ArrowRight"){ e.preventDefault(); skipWords(10); }
+  else if (e.key === "r" || e.key === "R"){ restart(); }
+  else if (e.key === "s" || e.key === "S"){ saveFile(); }
+  else if (e.key === "o" || e.key === "O"){ $("file-input").click(); }
+});
+
+/* ---------- 9. Boot ---------- */
+(function boot(){
+  var restored = loadLocal();
+  if (!restored){
+    textEl.value = SAMPLE;
+    state.words = tokenise(SAMPLE);
+  }
+  speedEl.value = String(state.wpm);
+  speedOut.textContent = state.wpm + " wpm";
+  renderWord();
+  renderStats();
+  if (restored) setStatus("Restored your last session.");
+})();
+</script>
+</body>
+</html>

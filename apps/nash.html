@@ -1,0 +1,414 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Daily Build 2026-11-11 — Nash</title>
+<style>
+:root{
+  --bg:#0e1016; --panel:#171a23; --cell:#262b38; --line:#0e1016; --text:#e8eaf0; --muted:#8a90a3;
+  --blue:#4f8cff; --red:#ff5468; --accent:#ffd166; --btn:#222736; --btn2:#2d3344; --shadow:rgba(0,0,0,.5);
+}
+:root[data-theme="light"]{
+  --bg:#f3f1ea; --panel:#ffffff; --cell:#dcd8cc; --line:#f3f1ea; --text:#1d2130; --muted:#6b7084;
+  --blue:#2f6fe4; --red:#e23b50; --accent:#c98a00; --btn:#ebe8df; --btn2:#dcd8cc; --shadow:rgba(0,0,0,.15);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:12px;padding:10px 16px;flex-wrap:wrap}
+h1{font-size:22px;margin:0;letter-spacing:.5px}
+h1 small{color:var(--muted);font-weight:400;font-size:13px;margin-left:8px}
+.spacer{flex:1}
+button,select{min-height:44px;min-width:44px;border:0;border-radius:10px;background:var(--btn);color:var(--text);font:inherit;padding:0 14px;cursor:pointer}
+button:active{background:var(--btn2)}
+button.primary{background:var(--blue);color:#fff}
+button[aria-pressed="true"]{outline:2px solid var(--accent)}
+select{appearance:none;-webkit-appearance:none;padding-right:28px;background:var(--btn) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8'><path d='M1 1l5 5 5-5' fill='none' stroke='%238a90a3' stroke-width='2'/></svg>") no-repeat right 10px center}
+main{flex:1;display:grid;grid-template-columns:1fr 300px;gap:14px;padding:0 16px 16px;min-height:0}
+#boardwrap{position:relative;background:var(--panel);border-radius:16px;min-height:300px;overflow:hidden;box-shadow:0 10px 30px var(--shadow)}
+canvas{display:block;width:100%;height:100%;touch-action:none;cursor:pointer}
+aside{display:flex;flex-direction:column;gap:12px}
+.card{background:var(--panel);border-radius:14px;padding:14px}
+#status{font-size:18px;font-weight:600;min-height:26px}
+#sub{color:var(--muted);font-size:14px;margin-top:4px;min-height:20px}
+.bar{display:flex;height:10px;border-radius:5px;overflow:hidden;margin-top:12px;background:var(--cell)}
+.bar i{display:block;height:100%;transition:width .4s}
+.bar .b{background:var(--blue)} .bar .r{background:var(--red)}
+.legend{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-top:6px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row>*{flex:1}
+label.k{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px;text-transform:uppercase;letter-spacing:.08em}
+label.k:first-child{margin-top:0}
+.seg{display:flex;background:var(--btn);border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1;background:transparent;border-radius:8px;min-height:44px}
+.seg button[aria-pressed="true"]{background:var(--btn2);outline:0}
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:20px;z-index:9}
+#overlay[open]{display:flex}
+#help{background:var(--panel);border-radius:16px;padding:22px 24px;max-width:560px;max-height:90vh;overflow:auto}
+#help h2{margin:0 0 8px} #help p,#help li{color:var(--text);font-size:15px}
+#help kbd{background:var(--btn);border-radius:6px;padding:2px 7px;font-family:ui-monospace,Menlo,monospace;font-size:13px}
+#help table{width:100%;border-collapse:collapse;margin:8px 0} #help td{padding:5px 0;border-bottom:1px solid var(--cell)}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:12px 18px;border-radius:12px;opacity:0;transition:opacity .3s;pointer-events:none;max-width:90vw;z-index:10}
+#toast.show{opacity:1}
+@media (max-width:760px){
+  main{grid-template-columns:1fr;padding:0 12px 12px}
+  #boardwrap{aspect-ratio:1.45/1;min-height:0}
+  header{padding:8px 12px;gap:8px}
+  h1 small{display:none}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Nash<small>Hex against a search engine you can watch think</small></h1>
+  <span class="spacer"></span>
+  <button id="newBtn" title="New game (N)">New</button>
+  <button id="undoBtn" title="Undo (Z)">Undo</button>
+  <button id="hintBtn" title="Hint (H)">Hint</button>
+  <button id="saveBtn" title="Save game (S)">Save</button>
+  <button id="openBtn" title="Open game (O)">Open</button>
+  <button id="themeBtn" title="Theme (D)">Theme</button>
+  <button id="helpBtn" title="Help (Ctrl+/)">?</button>
+  <input id="file" type="file" accept=".json,application/json" hidden>
+</header>
+<main>
+  <div id="boardwrap"><canvas id="board"></canvas></div>
+  <aside>
+    <div class="card">
+      <div id="status">—</div>
+      <div id="sub"></div>
+      <div class="bar"><i class="b" id="barB"></i><i class="r" id="barR"></i></div>
+      <div class="legend"><span id="needB">You (blue) · left ↔ right</span><span id="needR">Nash (red) · top ↕ bottom</span></div>
+    </div>
+    <div class="card">
+      <label class="k">Thinking time</label>
+      <div class="seg" id="levels"><button data-l="0">Quick</button><button data-l="1">Steady</button><button data-l="2">Deep</button></div>
+      <label class="k">Board</label>
+      <div class="row">
+        <select id="size"><option value="7">7 × 7</option><option value="9">9 × 9</option><option value="11">11 × 11</option></select>
+        <select id="first"><option value="you">You first</option><option value="nash">Nash first</option></select>
+      </div>
+      <label class="k">Show</label>
+      <button id="thinkBtn" aria-pressed="true" style="width:100%">Nash's thoughts while it searches</button>
+    </div>
+  </aside>
+</main>
+<div id="overlay"><div id="help">
+  <h2>Nash</h2>
+  <p>Hex, invented by Piet Hein and independently by John Nash. You are <b style="color:var(--blue)">blue</b>: connect the left and right edges with an unbroken chain. Nash is <b style="color:var(--red)">red</b> and wants top to bottom. Hexes can never be blocked both ways, so one of you always wins — no draws.</p>
+  <p>Nash plays by Monte-Carlo tree search with RAVE: tens of thousands of random games per move, all in this page. While it thinks, the board glows: brighter red means more of its attention, and the outlined hex is its current favourite. <b>Hint</b> runs the same search for you.</p>
+  <table>
+    <tr><td>Tap a hex</td><td>Play there</td></tr>
+    <tr><td><kbd>N</kbd></td><td>New game</td></tr>
+    <tr><td><kbd>Z</kbd></td><td>Undo your last move</td></tr>
+    <tr><td><kbd>H</kbd></td><td>Hint (top three moves)</td></tr>
+    <tr><td><kbd>T</kbd></td><td>Toggle the thinking overlay</td></tr>
+    <tr><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></td><td>Thinking time: quick / steady / deep</td></tr>
+    <tr><td><kbd>S</kbd> / <kbd>O</kbd></td><td>Save / open a game (.json)</td></tr>
+    <tr><td><kbd>D</kbd></td><td>Dark / light theme</td></tr>
+    <tr><td><kbd>Ctrl</kbd>+<kbd>/</kbd> or <kbd>?</kbd></td><td>This help · <kbd>Esc</kbd> closes</td></tr>
+  </table>
+  <p>The bar shows how many empty hexes each side still needs to connect. Save downloads the position and settings as a JSON file (works when the file is opened directly; the artifact viewer blocks downloads); Open restores it exactly.</p>
+  <p style="text-align:right"><button id="closeHelp" class="primary">Play</button></p>
+</div></div>
+<div id="toast" role="status"></div>
+
+<script>
+'use strict';
+const BLUE = 1, RED = 2, HUMAN = BLUE, AI = RED;
+const LEVEL_MS = [600, 1500, 4000];
+const $ = s => document.querySelector(s);
+const cv = $('#board'), ctx = cv.getContext('2d');
+
+// ---------- game state ----------
+const G = { n: 9, first: 'nash', level: 1, moves: [], board: null, winner: 0, path: [], showThink: true,
+            think: null, hints: null, lastInfo: '' };
+let nbrs = [];                                   // nbrs[i] = neighbouring cell indices
+
+function setup(n) {
+  G.n = n; G.board = new Uint8Array(n * n); nbrs = [];
+  const d = [[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0]];
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+    const a = [];
+    for (const [dr, dc] of d) { const rr = r + dr, cc = c + dc; if (rr >= 0 && rr < n && cc >= 0 && cc < n) a.push(rr * n + cc); }
+    nbrs.push(a);
+  }
+}
+const toMove = () => (G.moves.length % 2 === 0) === (G.first === 'you') ? HUMAN : AI;
+const other = p => 3 - p;
+const name = i => String.fromCharCode(97 + i % G.n) + (Math.floor(i / G.n) + 1);
+
+// Does `p` connect its two edges? Returns the chain of cells if so, else null.
+function connection(board, n, p) {
+  const start = [], prev = new Int32Array(n * n).fill(-2);
+  for (let k = 0; k < n; k++) { const i = p === RED ? k : k * n; if (board[i] === p) { start.push(i); prev[i] = -1; } }
+  const q = start.slice();
+  while (q.length) {
+    const i = q.shift();
+    const atFar = p === RED ? Math.floor(i / n) === n - 1 : i % n === n - 1;
+    if (atFar) { const path = []; for (let j = i; j !== -1; j = prev[j]) path.push(j); return path; }
+    for (const j of nbrs[i]) if (board[j] === p && prev[j] === -2) { prev[j] = i; q.push(j); }
+  }
+  return null;
+}
+// Fewest empty hexes `p` still needs to connect (0-1 BFS; own stones free, enemy stones impassable).
+function need(board, n, p) {
+  const INF = 1e9, dist = new Int32Array(n * n).fill(INF), dq = [];
+  for (let k = 0; k < n; k++) {
+    const i = p === RED ? k : k * n;
+    if (board[i] === other(p)) continue;
+    dist[i] = board[i] === p ? 0 : 1; dist[i] ? dq.push(i) : dq.unshift(i);
+  }
+  let best = INF;
+  while (dq.length) {
+    const i = dq.shift();
+    if (p === RED ? Math.floor(i / n) === n - 1 : i % n === n - 1) best = Math.min(best, dist[i]);
+    for (const j of nbrs[i]) {
+      if (board[j] === other(p)) continue;
+      const w = board[j] === p ? 0 : 1;
+      if (dist[i] + w < dist[j]) { dist[j] = dist[i] + w; w ? dq.push(j) : dq.unshift(j); }
+    }
+  }
+  return best;
+}
+
+// ---------- Monte-Carlo tree search with RAVE ----------
+// Runs in time slices on the main thread so the board can show the search as it grows.
+function search(board, n, player, budgetMs, onProgress, onDone) {
+  const N = n * n, K = 1000, C = 0.45;
+  const mk = (m, p) => ({ m, p, v: 0, w: 0, kids: [], untried: null, rn: null, rw: null });
+  const expand = (node, b) => {
+    node.untried = []; for (let i = 0; i < N; i++) if (!b[i]) node.untried.push(i);
+    node.rn = new Int32Array(N); node.rw = new Int32Array(N);
+  };
+  const root = mk(-1, other(player)); const b0 = board.slice(); expand(root, b0);
+  const b = new Uint8Array(N), order = new Int32Array(N), stack = new Int32Array(N), seen = new Uint32Array(N);
+  let stamp = 0, iters = 0, cancelled = false;
+
+  function redConnects() {                      // flood fill from the top row over red stones
+    stamp++; let sp = 0;
+    for (let c = 0; c < n; c++) if (b[c] === RED) { stack[sp++] = c; seen[c] = stamp; }
+    while (sp) { const i = stack[--sp]; if (i >= N - n) return true;
+      for (const j of nbrs[i]) if (b[j] === RED && seen[j] !== stamp) { seen[j] = stamp; stack[sp++] = j; } }
+    return false;
+  }
+  function select(node) {
+    const beta = Math.sqrt(K / (3 * node.v + K)), lg = Math.log(node.v);
+    let best = null, bs = -1;
+    for (const k of node.kids) {
+      const q = k.w / k.v, rq = node.rn[k.m] ? node.rw[k.m] / node.rn[k.m] : 0.5;
+      const s = (1 - beta) * q + beta * rq + C * Math.sqrt(lg / k.v);
+      if (s > bs) { bs = s; best = k; }
+    }
+    return best;
+  }
+  function iterate() {
+    b.set(b0); let node = root, p = player, len = 0; const path = [root];
+    for (;;) {
+      if (!node.untried) { if (node.v === 0) break; expand(node, b); }   // a leaf is expanded on its second visit
+      if (node.untried.length) {                                          // expansion: one random untried move
+        const u = node.untried, i = Math.random() * u.length | 0, m = u[i]; u[i] = u[u.length - 1]; u.pop();
+        const kid = mk(m, p); node.kids.push(kid); node = kid; b[m] = p; order[len++] = m; p = other(p); path.push(kid); break;
+      }
+      if (!node.kids.length) break;                                       // board full
+      node = select(node); b[node.m] = p; order[len++] = node.m; p = other(p); path.push(node);   // selection
+    }
+    const start = len;                                           // playout: random fill of all empties
+    for (let i = 0; i < N; i++) if (!b[i]) order[len++] = i;
+    for (let i = len - 1; i > start; i--) { const j = start + Math.random() * (i - start + 1) | 0; const t = order[i]; order[i] = order[j]; order[j] = t; }
+    for (let i = start; i < len; i++) { b[order[i]] = p; p = other(p); }
+    const winner = redConnects() ? RED : BLUE;
+    for (let d = 0; d < path.length; d++) {                      // backpropagation + RAVE
+      const nd = path[d]; nd.v++; if (nd.p === winner) nd.w++;
+      if (!nd.rn) continue;
+      const mover = other(nd.p), won = mover === winner ? 1 : 0;
+      for (let i = d; i < len; i += 2) { nd.rn[order[i]]++; nd.rw[order[i]] += won; }
+    }
+    iters++;
+  }
+  const deadline = performance.now() + budgetMs;
+  function slice() {
+    if (cancelled) return;
+    const end = performance.now() + 14;
+    while (performance.now() < end) for (let k = 0; k < 40; k++) iterate();
+    onProgress(stats());
+    if (performance.now() < deadline) setTimeout(slice, 0); else onDone(stats());
+  }
+  function stats() {
+    const kids = root.kids.slice().sort((a, c) => c.v - a.v);
+    return { iters, kids: kids.map(k => ({ m: k.m, v: k.v, q: k.v ? k.w / k.v : 0 })), best: kids[0] ? kids[0].m : -1 };
+  }
+  setTimeout(slice, 0);
+  return { cancel() { cancelled = true; } };
+}
+
+// ---------- play ----------
+function play(i) {
+  const p = toMove(); G.board[i] = p; G.moves.push(i); G.hints = null;
+  const path = connection(G.board, G.n, p);
+  if (path) { G.winner = p; G.path = path; }
+  render(); update();
+  if (!G.winner && toMove() === AI) aiMove();
+}
+function aiMove() {
+  if (G.think) G.think.cancel();
+  if (!G.moves.length) { G.lastInfo = 'Nash opens in the centre, as every Hex player does'; return play((G.n * G.n) >> 1); }
+  const t0 = performance.now();
+  G.think = search(G.board, G.n, AI, LEVEL_MS[G.level], s => { G.think.stats = s; render(); }, s => {
+    G.think = null; const k = s.kids[0];
+    G.lastInfo = `Nash played ${name(k.m)} · ${(k.q * 100).toFixed(0)}% confident · ${s.iters.toLocaleString()} playouts in ${((performance.now() - t0) / 1000).toFixed(1)} s`;
+    play(k.m);
+  });
+  G.think.color = RED; update();
+}
+function hint() {
+  if (G.winner || toMove() !== HUMAN || G.think) return;
+  const t0 = performance.now();
+  G.think = search(G.board, G.n, HUMAN, LEVEL_MS[G.level], s => { G.think.stats = s; render(); }, s => {
+    G.think = null; G.hints = s.kids.slice(0, 3).map(k => k.m);
+    G.lastInfo = `Hint: ${G.hints.map(name).join(', ')} · ${(s.kids[0].q * 100).toFixed(0)}% for ${name(G.hints[0])} · ${s.iters.toLocaleString()} playouts in ${((performance.now() - t0) / 1000).toFixed(1)} s`;
+    render(); update();
+  });
+  G.think.color = BLUE; update();
+}
+function newGame(opening) {
+  if (G.think) { G.think.cancel(); G.think = null; }
+  setup(G.n); G.moves = []; G.winner = 0; G.path = []; G.hints = null; G.lastInfo = '';
+  if (opening) for (const m of opening) { G.board[m] = toMove(); G.moves.push(m); }
+  render(); update();
+  if (toMove() === AI) aiMove();
+}
+function undo() {
+  if (G.think) { G.think.cancel(); G.think = null; }
+  if (!G.moves.length) return;
+  let tookHuman = false;                         // pop until one of your stones is gone and it is your turn again
+  while (G.moves.length && !(tookHuman && toMove() === HUMAN)) { G.board[G.moves.pop()] = 0; if (toMove() === HUMAN) tookHuman = true; }
+  G.winner = 0; G.path = []; G.hints = null; G.lastInfo = 'Took back your last move'; render(); update();
+  if (toMove() === AI) aiMove();
+}
+
+// ---------- rendering ----------
+let geo = { R: 10, x0: 0, y0: 0 };
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+function center(i) { const r = Math.floor(i / G.n), c = i % G.n, w = Math.sqrt(3) * geo.R;
+  return [geo.x0 + (c + r * 0.5) * w + w / 2, geo.y0 + r * 1.5 * geo.R + geo.R]; }
+function hexPath(x, y, R) { ctx.beginPath(); for (let k = 0; k < 6; k++) { const a = (60 * k - 90) * Math.PI / 180; ctx.lineTo(x + R * Math.cos(a), y + R * Math.sin(a)); } ctx.closePath(); }
+function edge(x, y, R, k) { const a = (60 * k - 90) * Math.PI / 180, b = (60 * (k + 1) - 90) * Math.PI / 180;
+  ctx.moveTo(x + R * Math.cos(a), y + R * Math.sin(a)); ctx.lineTo(x + R * Math.cos(b), y + R * Math.sin(b)); }
+function resize() {
+  const w = cv.clientWidth, h = cv.clientHeight, dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const n = G.n, R = Math.min(w / ((n + (n - 1) / 2) * Math.sqrt(3)), h / ((n - 1) * 1.5 + 2)) * 0.9;
+  geo = { R, x0: (w - (n + (n - 1) / 2) * Math.sqrt(3) * R) / 2, y0: (h - ((n - 1) * 1.5 + 2) * R) / 2 };
+  render();
+}
+function render() {
+  const n = G.n, R = geo.R, N = n * n, blue = css('--blue'), red = css('--red'), cell = css('--cell'), accent = css('--accent');
+  ctx.clearRect(0, 0, cv.clientWidth, cv.clientHeight);
+  ctx.lineWidth = R * 0.5; ctx.lineCap = 'round';                   // coloured edges: who owns which side
+  for (const [color, test, edges] of [[red, i => i < n, [5, 0]], [red, i => i >= N - n, [2, 3]], [blue, i => i % n === 0, [3, 4]], [blue, i => i % n === n - 1, [0, 1]]]) {
+    ctx.strokeStyle = color; ctx.beginPath();
+    for (let i = 0; i < N; i++) if (test(i)) { const [x, y] = center(i); for (const k of edges) edge(x, y, R, k); }
+    ctx.stroke();
+  }
+  const st = G.think && G.showThink ? G.think.stats : null, maxV = st && st.kids.length ? st.kids[0].v : 1;
+  const heat = new Float32Array(N); if (st) for (const k of st.kids) heat[k.m] = k.v / maxV;
+  for (let i = 0; i < N; i++) {
+    const [x, y] = center(i); hexPath(x, y, R * 0.92);
+    ctx.fillStyle = G.board[i] === BLUE ? blue : G.board[i] === RED ? red : cell; ctx.fill();
+    if (heat[i]) { ctx.globalAlpha = 0.12 + 0.8 * heat[i]; ctx.fillStyle = G.think.color === RED ? red : blue; ctx.fill(); ctx.globalAlpha = 1; }
+  }
+  if (G.path.length) {                                                // winning chain
+    ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = R * 0.28; ctx.lineJoin = 'round'; ctx.beginPath();
+    G.path.forEach((i, k) => { const [x, y] = center(i); k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke();
+  }
+  const ring = (i, color, w) => { const [x, y] = center(i); hexPath(x, y, R * 0.7); ctx.strokeStyle = color; ctx.lineWidth = w; ctx.stroke(); };
+  if (st && st.best >= 0) ring(st.best, accent, R * 0.14);
+  if (G.hints) G.hints.forEach((i, k) => ring(i, accent, R * (0.16 - 0.04 * k)));
+  if (G.moves.length && !G.path.length) { const [x, y] = center(G.moves[G.moves.length - 1]);
+    ctx.fillStyle = 'rgba(255,255,255,.8)'; ctx.beginPath(); ctx.arc(x, y, R * 0.18, 0, 7); ctx.fill(); }
+}
+function update() {
+  const nb = need(G.board, G.n, BLUE), nr = need(G.board, G.n, RED);
+  $('#status').textContent = G.winner ? (G.winner === HUMAN ? 'You win — the chain is complete' : 'Nash wins this one')
+    : G.think ? (G.think.color === RED ? 'Nash is thinking…' : 'Searching for your best move…') : 'Your move';
+  $('#sub').textContent = G.lastInfo;
+  const tot = nb + nr || 1; $('#barB').style.width = (100 * nr / tot) + '%'; $('#barR').style.width = (100 * nb / tot) + '%';
+  $('#needB').textContent = `You need ${nb} more`; $('#needR').textContent = `Nash needs ${nr} more`;
+  $('#undoBtn').disabled = !G.moves.length; $('#hintBtn').disabled = !!G.winner || toMove() !== HUMAN || !!G.think;
+  document.querySelectorAll('#levels button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.l === G.level));
+  $('#size').value = G.n; $('#first').value = G.first; $('#thinkBtn').setAttribute('aria-pressed', G.showThink);
+}
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('show'), 3000); }
+
+// ---------- input ----------
+cv.addEventListener('pointerdown', e => {
+  if (G.winner || toMove() !== HUMAN || G.think) return;
+  const rect = cv.getBoundingClientRect(), x = e.clientX - rect.left, y = e.clientY - rect.top;
+  let best = -1, bd = geo.R * geo.R;
+  for (let i = 0; i < G.n * G.n; i++) { const [cx, cy] = center(i); const d = (cx - x) ** 2 + (cy - y) ** 2; if (d < bd) { bd = d; best = i; } }
+  if (best >= 0 && !G.board[best]) play(best);
+});
+$('#newBtn').onclick = () => newGame();
+$('#undoBtn').onclick = undo;
+$('#hintBtn').onclick = hint;
+$('#thinkBtn').onclick = () => { G.showThink = !G.showThink; render(); update(); };
+$('#themeBtn').onclick = () => { const l = document.documentElement.dataset.theme === 'light'; document.documentElement.dataset.theme = l ? 'dark' : 'light'; render(); };
+$('#helpBtn').onclick = () => $('#overlay').setAttribute('open', '');
+$('#closeHelp').onclick = () => $('#overlay').removeAttribute('open');
+$('#overlay').onclick = e => { if (e.target === $('#overlay')) $('#overlay').removeAttribute('open'); };
+$('#levels').onclick = e => { const b = e.target.closest('button'); if (b) { G.level = +b.dataset.l; update(); } };
+$('#size').onchange = e => { G.n = +e.target.value; setup(G.n); resize(); newGame(); };
+$('#first').onchange = e => { G.first = e.target.value; newGame(); };
+
+$('#saveBtn').onclick = () => {
+  const data = { app: 'nash', version: 1, size: G.n, first: G.first, level: G.level, showThink: G.showThink, moves: G.moves.slice() };
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' }));
+  a.download = `nash-${new Date().toISOString().slice(0, 10)}.json`; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast('Saved ' + a.download);
+};
+$('#openBtn').onclick = () => $('#file').click();
+$('#file').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const d = JSON.parse(await f.text());
+    if (d.app !== 'nash' || d.version !== 1) throw new Error('not a Nash save file');
+    if (![7, 9, 11].includes(d.size) || !Array.isArray(d.moves)) throw new Error('save file is damaged');
+    if (G.think) { G.think.cancel(); G.think = null; }
+    G.n = d.size; G.first = d.first === 'you' ? 'you' : 'nash'; G.level = [0, 1, 2].includes(d.level) ? d.level : 1; G.showThink = d.showThink !== false;
+    setup(G.n); G.moves = []; G.winner = 0; G.path = []; G.hints = null; G.lastInfo = `Opened ${f.name}`;
+    for (const m of d.moves) { if (!Number.isInteger(m) || m < 0 || m >= G.n * G.n || G.board[m]) throw new Error('save file has an illegal move'); G.board[m] = toMove(); G.moves.push(m); }
+    const w = connection(G.board, G.n, BLUE) || connection(G.board, G.n, RED); if (w) { G.winner = G.board[w[0]]; G.path = w; }
+    resize(); update(); toast('Game restored'); if (!G.winner && toMove() === AI) aiMove();
+  } catch (err) { toast('Could not open: ' + err.message); }
+};
+
+addEventListener('keydown', e => {
+  const t = e.target; if (t.matches && t.matches('input,textarea,select,[contenteditable]')) return;
+  if (e.key === '/' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); $('#overlay').toggleAttribute('open'); return; }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === 'escape') $('#overlay').removeAttribute('open');
+  else if (k === '?') $('#overlay').toggleAttribute('open');
+  else if (k === 'n') newGame();
+  else if (k === 'z') undo();
+  else if (k === 'h') hint();
+  else if (k === 't') $('#thinkBtn').click();
+  else if (k === 'd') $('#themeBtn').click();
+  else if (k === 's') $('#saveBtn').click();
+  else if (k === 'o') $('#openBtn').click();
+  else if (k === '1' || k === '2' || k === '3') { G.level = +k - 1; update(); }
+});
+new ResizeObserver(resize).observe($('#boardwrap'));
+
+// ---------- start: a short opening, then Nash thinks out loud ----------
+if (matchMedia('(prefers-color-scheme: light)').matches) document.documentElement.dataset.theme = 'light';
+setup(9); resize(); newGame([40, 31, 48, 23]);
+</script>
+</body>
+</html>
+
+</body></html>

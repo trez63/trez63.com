@@ -1,0 +1,396 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Daily Build 2026-11-12 — Ebru</title>
+<style>
+:root{
+  --bg:#f3efe6; --panel:#fbf9f4; --ink:#1d1a16; --muted:#6f685c; --line:#dcd4c4;
+  --btn:#ece6d9; --btn-hover:#e2dacb; --accent:#8b1e2d; --accent-ink:#fff; --shadow:0 10px 30px rgba(0,0,0,.15);
+}
+:root[data-theme="dark"]{
+  --bg:#13151a; --panel:#1b1e25; --ink:#ecebe6; --muted:#9a9890; --line:#2b2f39;
+  --btn:#262a34; --btn-hover:#30353f; --accent:#d9a441; --accent-ink:#1a1206; --shadow:0 10px 30px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  font:15px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg);
+  display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden;overflow-x:hidden;
+  -webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;
+}
+header,footer{flex:none;background:var(--panel);border-color:var(--line);padding:6px max(8px,env(safe-area-inset-right)) 6px max(8px,env(safe-area-inset-left))}
+header{border-bottom:1px solid var(--line);padding-top:calc(6px + env(safe-area-inset-top));display:flex;align-items:center;gap:4px}
+footer{border-top:1px solid var(--line);padding-bottom:calc(6px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:6px}
+h1{font-size:22px;margin:0 6px 0 4px;letter-spacing:.5px;font-weight:700}
+h1 small{display:block;white-space:nowrap;font-size:10px;font-weight:500;color:var(--muted);letter-spacing:.3px;margin-top:-2px}
+.spacer{flex:1}
+button,select{
+  font:inherit;color:var(--ink);background:var(--btn);border:1px solid transparent;border-radius:10px;
+  min-height:44px;min-width:44px;padding:0 8px;cursor:pointer;font-size:16px;
+}
+button{display:inline-flex;align-items:center;justify-content:center}
+button:hover{background:var(--btn-hover)}
+button.sm{font-size:12px;font-weight:600;padding:0 6px}
+button.on{background:var(--accent);color:var(--accent-ink)}
+select{appearance:auto;min-width:0;font-size:16px}
+.selects select{flex:1}
+.grow{flex:1;max-width:220px}
+.lbl{font-size:12px;color:var(--muted);font-weight:600;padding-left:4px}
+:root{color-scheme:light} :root[data-theme="dark"]{color-scheme:dark}
+main{flex:1;min-height:0;display:grid;place-items:center;padding:8px;overflow:hidden}
+canvas#paper{display:block;touch-action:none;border-radius:4px;box-shadow:var(--shadow);cursor:crosshair}
+.row{display:flex;gap:6px;align-items:center}
+.tools{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.tools button{display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;padding:4px 2px}
+.tools button span{font-size:10px;opacity:.7;font-weight:500}
+.tools button.on span{opacity:.9}
+input[type=range]{flex:1;min-width:60px;height:44px;margin:0;accent-color:var(--accent);font-size:16px}
+.swatches{display:flex;gap:4px}
+.sw{width:44px;height:44px;border-radius:50%;border:3px solid var(--panel);padding:0;min-width:44px;position:relative}
+.sw.on{outline:3px solid var(--accent);outline-offset:-1px}
+.sw.auto{background:conic-gradient(#8b1e2d,#d9a441,#2f5d50,#1f3a5f,#8b1e2d);font-weight:800;color:#fff;text-shadow:0 1px 2px #0008}
+#help{position:fixed;inset:0;background:rgba(0,0,0,.45);display:grid;place-items:center;padding:16px;z-index:10}
+#help[hidden]{display:none}
+#help article{background:var(--panel);color:var(--ink);border-radius:16px;max-width:560px;max-height:90vh;overflow:auto;padding:20px 22px;box-shadow:var(--shadow);user-select:text}
+#help h2{margin:0 0 6px;font-size:20px}
+#help p{margin:6px 0;color:var(--muted)}
+#help table{border-collapse:collapse;width:100%;margin:8px 0;font-size:14px}
+#help td{padding:4px 6px;border-top:1px solid var(--line);vertical-align:top}
+#help td:first-child{white-space:nowrap}
+kbd{font:12px ui-monospace,Menlo,Consolas,monospace;background:var(--btn);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 5px}
+#toast{position:fixed;left:50%;bottom:calc(140px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:20;max-width:90vw;text-align:center}
+#toast.show{opacity:1}
+@media (max-width:520px){ h1{font-size:19px} h1 small{display:none} .tools button{font-size:14px} select{padding:0 2px;font-size:16px} }
+</style>
+</head>
+<body>
+<header>
+  <h1>Ebru<small>paper marbling</small></h1>
+  <div class="spacer"></div>
+  <button class="sm" id="undo" title="Undo (Z)">Undo</button>
+  <button class="sm" id="clear" title="Clear paper (N)">Clear</button>
+  <button class="sm" id="png" title="Export PNG (E)">PNG</button>
+  <button class="sm" id="save" title="Save .json (S)">Save</button>
+  <button class="sm" id="open" title="Open .json (O)">Open</button>
+  <button id="theme" title="Dark / light (D)" aria-label="Toggle theme"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 2a8 8 0 0 1 0 16z" fill="currentColor"/></svg></button>
+  <button id="helpBtn" title="Help (Ctrl+/)" aria-label="Help">?</button>
+</header>
+<main id="stage"><canvas id="paper"></canvas></main>
+<footer>
+  <div class="tools" id="tools">
+    <button data-tool="drop">Drop<span>tap</span></button>
+    <button data-tool="rake">Rake<span>drag</span></button>
+    <button data-tool="comb">Comb<span>drag</span></button>
+    <button data-tool="wave">Wave<span>drag</span></button>
+    <button data-tool="swirl">Swirl<span>drag ↔</span></button>
+  </div>
+  <div class="row">
+    <label for="size" class="lbl">Size</label>
+    <input type="range" id="size" min="1" max="100" value="50" aria-label="Size">
+    <button class="sm" id="sprinkle" title="Sprinkle random drops (R)">Sprinkle</button>
+  </div>
+  <div class="row">
+    <div class="swatches" id="swatches"></div>
+    <select id="palette" aria-label="Palette" class="grow"></select>
+  </div>
+  <div class="row selects">
+    <select id="preset" aria-label="Pattern preset">
+      <option value="">Pattern…</option>
+      <option value="stone">Stone</option>
+      <option value="gelgit">Gelgit</option>
+      <option value="nonpareil">Nonpareil</option>
+      <option value="bouquet">Bouquet</option>
+      <option value="peacock">Peacock</option>
+      <option value="vortex">Vortex</option>
+    </select>
+    <select id="paper-size" aria-label="Paper shape">
+      <option value="square">Square</option>
+      <option value="phone">Phone</option>
+      <option value="wide">Wide</option>
+    </select>
+    <select id="bg" aria-label="Paper colour"></select>
+  </div>
+</footer>
+
+<div id="help" hidden>
+  <article>
+    <h2>Ebru — paper marbling</h2>
+    <p>Ink drops float on the surface; every new drop pushes the old ones aside, and every rake, comb, wave and swirl drags the whole picture with it. Nothing here is simulated fluid: each gesture is a closed-form deformation applied to every point of every drop, so it is exact, instant and perfectly reproducible from the saved gesture list.</p>
+    <table>
+      <tr><td><b>Drop</b></td><td>Tap to place a drop (size slider = radius). <b>Sprinkle</b> throws a handful.</td></tr>
+      <tr><td><b>Rake</b></td><td>Drag a single stylus through the ink; curved paths work.</td></tr>
+      <tr><td><b>Comb</b></td><td>Drag a comb whose teeth span the paper (size = tooth spacing). Pull down then up for chevrons.</td></tr>
+      <tr><td><b>Wave</b></td><td>A comb whose pull alternates along its length — bouquets and feathers.</td></tr>
+      <tr><td><b>Swirl</b></td><td>Press where the vortex should sit, drag left or right to spin it.</td></tr>
+    </table>
+    <table>
+      <tr><td><kbd>1</kbd>–<kbd>5</kbd></td><td>Select tool (Drop, Rake, Comb, Wave, Swirl)</td></tr>
+      <tr><td><kbd>Z</kbd> / <kbd>Ctrl</kbd><kbd>Z</kbd></td><td>Undo last gesture</td></tr>
+      <tr><td><kbd>N</kbd></td><td>Clear the paper</td></tr>
+      <tr><td><kbd>R</kbd></td><td>Sprinkle random drops</td></tr>
+      <tr><td><kbd>C</kbd></td><td>Next colour (auto = random per drop)</td></tr>
+      <tr><td><kbd>[</kbd> / <kbd>]</kbd></td><td>Smaller / larger size</td></tr>
+      <tr><td><kbd>S</kbd> / <kbd>O</kbd></td><td>Save / Open a .json of every gesture and setting</td></tr>
+      <tr><td><kbd>E</kbd></td><td>Export a 2000-px PNG</td></tr>
+      <tr><td><kbd>D</kbd></td><td>Dark / light interface</td></tr>
+      <tr><td><kbd>Ctrl</kbd><kbd>/</kbd> or <kbd>?</kbd></td><td>This help · <kbd>Esc</kbd> closes</td></tr>
+    </table>
+    <p>Save and PNG download files when the page is opened directly from the .html file (embedded previews block downloads). Open restores a saved picture exactly.</p>
+    <p style="text-align:right;margin-top:10px"><button id="helpClose">Close</button></p>
+  </article>
+</div>
+<div id="toast" role="status"></div>
+<input type="file" id="file" accept=".json,application/json" hidden>
+
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const W = 1000;                                  // paper is W units wide; height follows the shape
+const SHAPES = { square: 1000, phone: 2167, wide: 562 };
+const PAPERS = { cream:'#efe4cc', white:'#f6f5f0', clay:'#b8886a', slate:'#1d2129', night:'#0a0c12' };
+const PALETTES = {
+  ottoman: ['#8b1e2d','#1f3a5f','#d9a441','#e8dcc4','#2f5d50','#6b3a2e'],
+  pastel:  ['#f3a6b8','#a9cff0','#f9e79f','#bfe5b6','#dcc3f3','#ffd1a9'],
+  ink:     ['#141414','#3d3d3d','#767676','#b5b5b5','#ece8df','#2b3a67'],
+  neon:    ['#ff2975','#00e5ff','#f9f871','#8c1eff','#00ff9c','#ff8a00'],
+  sea:     ['#0b3954','#087e8b','#bfd7ea','#ff5a5f','#c81d25','#f2e9dc'],
+};
+
+// ---------- state ----------
+const state = { shape:'square', bg:'cream', palette:'ottoman', color:-1, size:50, tool:'drop', ops:[] };
+let drops = [];                                   // [{c:'#hex', p:Float64Array(xy...), n}]
+const paperH = () => SHAPES[state.shape];
+const P = size => ({ r: 15 + size*1.2, lam: 12 + size*0.6, sp: 30 + size*1.7, swl: 60 + size*3 });
+
+// ---------- the marbling maths (Lu, Jaffer et al. "Mathematical marbling") ----------
+function spread(x, y, r) {                        // a new drop pushes every existing point radially outward
+  const r2 = r*r;
+  for (const d of drops) { const p = d.p;
+    for (let i = 0; i < d.n*2; i += 2) {
+      const dx = p[i]-x, dy = p[i+1]-y, q = dx*dx + dy*dy;
+      if (q < 1e-9) { p[i] = x + r; continue; }
+      const k = Math.sqrt(1 + r2/q); p[i] = x + dx*k; p[i+1] = y + dy*k;
+    } }
+}
+function addDrop(x, y, r, c) {
+  spread(x, y, r);
+  const n = 96, p = new Float64Array(n*2);
+  for (let i = 0; i < n; i++) { const a = i/n*2*Math.PI; p[2*i] = x + r*Math.cos(a); p[2*i+1] = y + r*Math.sin(a); }
+  drops.push({ c, p, n });
+  resampleAll();
+}
+// A stylus moving by z along unit direction (mx,my) through (bx,by) drags points by z·2^(−dist/λ).
+// spacing>0 turns one tine into a comb of parallel tines; the ink a comb pulls forward must flow
+// back between the teeth (the bath is incompressible), so the mean pull over one period is removed.
+// wave>0 alternates the pull along the tine, which is how bouquets and feathers are combed.
+function tine(bx, by, mx, my, z, lam, spacing, wave) {
+  const nx = -my, ny = mx, inv = 1/lam, k = wave ? 2*Math.PI/wave : 0;
+  const mean = spacing ? (2*lam/(spacing*Math.LN2)) * (1 - Math.pow(2, -spacing/(2*lam))) : 0;
+  for (const d of drops) { const p = d.p;
+    for (let i = 0; i < d.n*2; i += 2) {
+      const px = p[i]-bx, py = p[i+1]-by;
+      let t = px*nx + py*ny;
+      if (spacing) t -= Math.round(t/spacing)*spacing;
+      else if (t*inv > 12 || -t*inv > 12) continue;     // a lone stylus does not reach this far
+      let f = z * (Math.pow(2, -Math.abs(t)*inv) - mean);
+      if (wave) f *= Math.sin((p[i]*mx + p[i+1]*my) * k);
+      p[i] += f*mx; p[i+1] += f*my;
+    } }
+}
+function swirl(cx, cy, ang, lam) {               // rotation that decays with radius; radii are preserved, so swirls compose
+  const inv = 1/lam;
+  for (const d of drops) { const p = d.p;
+    for (let i = 0; i < d.n*2; i += 2) {
+      const dx = p[i]-cx, dy = p[i+1]-cy, a = ang * Math.pow(2, -Math.hypot(dx, dy)*inv), c = Math.cos(a), s = Math.sin(a);
+      p[i] = cx + dx*c - dy*s; p[i+1] = cy + dx*s + dy*c;
+    } }
+}
+// Keep the polygon smooth as it stretches: split any edge longer than MAX units (capped per drop).
+function resample(d) {
+  const MAX = 6, CAP = 4000, p = d.p, n = d.n;
+  let add = 0;
+  for (let i = 0; i < n; i++) { const j = (i+1) % n;
+    const l = Math.hypot(p[2*j]-p[2*i], p[2*j+1]-p[2*i+1]);
+    if (l > MAX) add += Math.ceil(l/MAX) - 1; }
+  if (!add || n + add > CAP) return;
+  const q = new Float64Array((n+add)*2); let w = 0;
+  for (let i = 0; i < n; i++) { const j = (i+1) % n, x0 = p[2*i], y0 = p[2*i+1], x1 = p[2*j], y1 = p[2*j+1];
+    const l = Math.hypot(x1-x0, y1-y0), m = l > MAX ? Math.ceil(l/MAX) : 1;
+    for (let s = 0; s < m; s++) { q[w++] = x0 + (x1-x0)*s/m; q[w++] = y0 + (y1-y0)*s/m; } }
+  d.p = q; d.n = n + add;
+}
+const resampleAll = () => { for (const d of drops) resample(d); };
+
+// ---------- gestures as ops (replayable) ----------
+function segment(tool, a, b, size) {             // one small stylus step, used live and on replay
+  const dx = b[0]-a[0], dy = b[1]-a[1], z = Math.hypot(dx, dy); if (z < 1e-6) return;
+  const mx = dx/z, my = dy/z, bx = (a[0]+b[0])/2, by = (a[1]+b[1])/2, q = P(size);
+  if (tool === 'rake') tine(bx, by, mx, my, z, q.lam, 0, 0);          // ink on the stylus travels with it
+  else if (tool === 'comb') tine(bx, by, mx, my, z*0.6, q.sp/4, q.sp, 0);   // combs slip a little
+  else tine(bx, by, mx, my, z*0.6, q.sp/4, q.sp, q.sp*4);
+  resampleAll();
+}
+function applyOp(op) {
+  if (op.t === 'drops') for (const [x, y, r, c] of op.d) addDrop(x, y, r, c);
+  else if (op.t === 'swirl') swirl(op.c[0], op.c[1], op.a, P(op.s).swl);
+  else for (let i = 1; i < op.p.length; i++) segment(op.t, op.p[i-1], op.p[i], op.s);
+}
+let history = [];                                 // snapshots of the ink before recent gestures, for instant undo
+const snap = () => { history.push(drops.map(d => ({ c:d.c, p:d.p.slice(), n:d.n }))); if (history.length > 24) history.shift(); };
+function replay() { drops = []; history = []; for (const op of state.ops) applyOp(op); draw(); }
+function pushOp(op) { snap(); state.ops.push(op); applyOp(op); draw(); }
+
+// ---------- presets (seeded, so they look the same every time) ----------
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const line = (x0, y0, x1, y1, step = 12) => { const n = Math.max(1, Math.ceil(Math.hypot(x1-x0, y1-y0)/step)), p = [];
+  for (let i = 0; i <= n; i++) p.push([+(x0 + (x1-x0)*i/n).toFixed(1), +(y0 + (y1-y0)*i/n).toFixed(1)]); return p; };
+function grid(rand, pal, cols, rows, r, H) { const d = [];
+  for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++)
+    d.push([+(W*(i+.5)/cols + (rand()-.5)*30).toFixed(1), +(H*(j+.5)/rows + (rand()-.5)*30).toFixed(1), +(r*(0.8+rand()*.5)).toFixed(1), pal[(i + j*2 + Math.floor(rand()*2)) % pal.length]]);
+  return { t:'drops', d }; }
+const down = (x, H, s, len) => ({ t:'comb', s, p: line(x, H/2 - len/2, x, H/2 + len/2, 20) });
+const up   = (x, H, s, len) => ({ t:'comb', s, p: line(x, H/2 + len/2, x, H/2 - len/2, 20) });
+const PRESETS = {
+  stone(rand, pal, H) { const d = []; for (let i = 0; i < 70; i++) d.push([+(rand()*W).toFixed(1), +(rand()*H).toFixed(1), +(18 + rand()*rand()*110).toFixed(1), pal[Math.floor(rand()*pal.length)]]); return [{ t:'drops', d }]; },
+  gelgit(rand, pal, H) { const s = 44, sp = P(s).sp; return [grid(rand, pal, 6, Math.round(6*H/W), 80, H),
+    down(W/2, H, s, 300), up(W/2 + sp/2, H, s, 300),
+    { t:'comb', s, p: line(W/2 - 150, H/2, W/2 + 150, H/2, 20) }, { t:'comb', s, p: line(W/2 + 150, H/2 + sp/2, W/2 - 150, H/2 + sp/2, 20) }]; },
+  nonpareil(rand, pal, H) { return [...PRESETS.gelgit(rand, pal, H), down(W/2, H, 8, 160)]; },
+  bouquet(rand, pal, H) { return [...PRESETS.nonpareil(rand, pal, H), { t:'wave', s:30, p: line(W/2, H/2 - 120, W/2, H/2 + 120, 20) }]; },
+  peacock(rand, pal, H) { return [...PRESETS.nonpareil(rand, pal, H), { t:'wave', s:45, p: line(W/2 - 150, H/2, W/2 + 150, H/2, 20) }]; },
+  vortex(rand, pal, H) { return [...PRESETS.nonpareil(rand, pal, H), { t:'swirl', c:[W*.32, H*.3], a:2.6, s:70 }, { t:'swirl', c:[W*.7, H*.68], a:-2.6, s:70 }]; },
+};
+function loadPreset(name) { state.ops = PRESETS[name](rng(name.length*7919), PALETTES[state.palette], paperH()); replay(); }
+
+// ---------- canvas ----------
+const canvas = $('#paper'), ctx = canvas.getContext('2d'), stage = $('#stage');
+let scale = 1, dpr = 1, raf = 0;
+function fit() {
+  const H = paperH(), aw = stage.clientWidth - 16, ah = stage.clientHeight - 16;
+  const cw = Math.max(50, Math.min(aw, ah*W/H)), ch = cw*H/W;
+  dpr = Math.min(3, window.devicePixelRatio || 1); scale = cw/W;
+  canvas.style.width = cw + 'px'; canvas.style.height = ch + 'px';
+  canvas.width = Math.round(cw*dpr); canvas.height = Math.round(ch*dpr); draw();
+}
+function paint(c, k) {                            // render the drops with c at k px per paper unit
+  c.setTransform(k, 0, 0, k, 0, 0); c.fillStyle = PAPERS[state.bg]; c.fillRect(0, 0, W, paperH());
+  for (const d of drops) { const p = d.p; c.beginPath(); c.moveTo(p[0], p[1]);
+    for (let i = 2; i < d.n*2; i += 2) c.lineTo(p[i], p[i+1]);
+    c.closePath(); c.fillStyle = d.c; c.fill(); }
+}
+function draw() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; paint(ctx, scale*dpr); }); }
+new ResizeObserver(fit).observe(stage);
+
+// ---------- pointer gestures ----------
+let g = null;
+const toPaper = e => { const r = canvas.getBoundingClientRect(); return [+((e.clientX-r.left)/scale).toFixed(1), +((e.clientY-r.top)/scale).toFixed(1)]; };
+const pickColor = () => { const pal = PALETTES[state.palette]; return state.color < 0 ? pal[Math.floor(Math.random()*pal.length)] : pal[state.color]; };
+canvas.addEventListener('pointerdown', e => {
+  if (!e.isPrimary) return; e.preventDefault(); canvas.setPointerCapture(e.pointerId);
+  const pt = toPaper(e);
+  if (state.tool === 'drop') { pushOp({ t:'drops', d:[[pt[0], pt[1], +P(state.size).r.toFixed(1), pickColor()]] }); return; }
+  snap(); g = { tool: state.tool, start: pt, last: pt, path: [pt], ang: 0, lastX: e.clientX };
+});
+canvas.addEventListener('pointermove', e => {
+  if (!g || !e.isPrimary) return; const pt = toPaper(e);
+  if (g.tool === 'swirl') { const da = +((e.clientX - g.lastX) / scale / 150).toFixed(4); g.lastX = e.clientX;
+    if (da) { swirl(g.start[0], g.start[1], da, P(state.size).swl); g.ang = +(g.ang + da).toFixed(4); draw(); } return; }
+  if (Math.hypot(pt[0]-g.last[0], pt[1]-g.last[1]) < 4) return;
+  segment(g.tool, g.last, pt, state.size); g.path.push(pt); g.last = pt; draw();
+});
+function endGesture() {
+  if (!g) return; const o = g; g = null;
+  if (o.tool === 'swirl' && o.ang) state.ops.push({ t:'swirl', c:o.start, a:o.ang, s:state.size });
+  else if (o.tool !== 'swirl' && o.path.length > 1) state.ops.push({ t:o.tool, s:state.size, p:o.path });
+  else history.pop();                             // nothing happened; discard the snapshot
+}
+canvas.addEventListener('pointerup', endGesture); canvas.addEventListener('pointercancel', endGesture);
+
+// ---------- UI ----------
+const toastEl = $('#toast'); let toastT = 0;
+function toast(msg) { toastEl.textContent = msg; toastEl.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('show'), 2600); }
+function setTool(t) { state.tool = t; for (const b of $('#tools').children) b.classList.toggle('on', b.dataset.tool === t); }
+$('#tools').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setTool(b.dataset.tool); });
+function buildSwatches() {
+  const box = $('#swatches'); box.innerHTML = '';
+  const auto = document.createElement('button'); auto.className = 'sw auto' + (state.color < 0 ? ' on' : ''); auto.textContent = '?'; auto.title = 'Random colour per drop';
+  auto.onclick = () => { state.color = -1; buildSwatches(); }; box.appendChild(auto);
+  PALETTES[state.palette].forEach((c, i) => { const b = document.createElement('button'); b.className = 'sw' + (state.color === i ? ' on' : '');
+    b.style.background = c; b.title = c; b.setAttribute('aria-label', 'Colour ' + c); b.onclick = () => { state.color = i; buildSwatches(); }; box.appendChild(b); });
+}
+function fillSelect(id, obj, val) { const s = $(id); s.innerHTML = ''; for (const k in obj) { const o = document.createElement('option'); o.value = k; o.textContent = k[0].toUpperCase() + k.slice(1); s.appendChild(o); } s.value = val; }
+fillSelect('#palette', PALETTES, state.palette); fillSelect('#bg', PAPERS, state.bg); buildSwatches(); setTool('drop');
+$('#palette').onchange = e => { state.palette = e.target.value; state.color = Math.min(state.color, 5); buildSwatches(); };
+$('#bg').onchange = e => { state.bg = e.target.value; draw(); };
+$('#paper-size').onchange = e => { state.shape = e.target.value; fit(); };
+$('#preset').onchange = e => { if (e.target.value) loadPreset(e.target.value); e.target.value = ''; e.target.blur(); };
+$('#size').oninput = e => { state.size = +e.target.value; };
+function setSize(v) { state.size = Math.max(1, Math.min(100, v)); $('#size').value = state.size; }
+function undo() { if (!state.ops.length) return toast('Nothing to undo'); state.ops.pop();
+  if (history.length) { drops = history.pop(); draw(); } else replay(); }
+function clearPaper() { state.ops = []; replay(); }
+function sprinkle() { const H = paperH(), d = []; for (let i = 0; i < 10; i++) d.push([+(Math.random()*W).toFixed(1), +(Math.random()*H).toFixed(1), +(P(state.size).r*(0.5+Math.random())).toFixed(1), pickColor()]); pushOp({ t:'drops', d }); }
+$('#undo').onclick = undo; $('#clear').onclick = clearPaper; $('#sprinkle').onclick = sprinkle;
+
+// theme
+const setTheme = t => { document.documentElement.dataset.theme = t; try { localStorage.setItem('ebru-theme', t); } catch (e) {} };
+let savedTheme = null; try { savedTheme = localStorage.getItem('ebru-theme'); } catch (e) {}
+setTheme(savedTheme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+const toggleTheme = () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+$('#theme').onclick = toggleTheme;
+
+// help
+const help = $('#help');
+const toggleHelp = (show = help.hidden) => { help.hidden = !show; };
+$('#helpBtn').onclick = () => toggleHelp(true); $('#helpClose').onclick = () => toggleHelp(false);
+help.addEventListener('click', e => { if (e.target === help) toggleHelp(false); });
+
+// ---------- save / open / export ----------
+const today = () => { const d = new Date(), z = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`; };
+function download(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
+function save() {
+  const data = { app:'Ebru', version:1, saved:new Date().toISOString(), shape:state.shape, bg:state.bg, palette:state.palette, color:state.color, size:state.size, tool:state.tool, ops:state.ops };
+  download(new Blob([JSON.stringify(data)], { type:'application/json' }), `ebru-${today()}.json`); toast('Saved ebru-' + today() + '.json');
+}
+function restore(data) {
+  if (!data || data.app !== 'Ebru' || data.version !== 1 || !Array.isArray(data.ops)) throw new Error('bad');
+  if (SHAPES[data.shape]) state.shape = data.shape; if (PAPERS[data.bg]) state.bg = data.bg; if (PALETTES[data.palette]) state.palette = data.palette;
+  state.color = Number.isInteger(data.color) ? data.color : -1; if (data.size) setSize(+data.size); if (TOOLS.includes(data.tool)) setTool(data.tool);
+  state.ops = data.ops; $('#paper-size').value = state.shape; $('#bg').value = state.bg; $('#palette').value = state.palette; buildSwatches(); fit(); replay();
+}
+$('#open').onclick = () => $('#file').click();
+$('#file').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  const r = new FileReader(); r.onload = () => { try { restore(JSON.parse(r.result)); toast('Opened ' + f.name); } catch (err) { toast('Not an Ebru file: expected {"app":"Ebru","version":1,…}'); } }; r.readAsText(f); };
+$('#save').onclick = save;
+function exportPNG() { const c = document.createElement('canvas'); c.width = 2000; c.height = Math.round(2000*paperH()/W); paint(c.getContext('2d'), 2);
+  c.toBlob(b => { download(b, `ebru-${today()}.png`); toast('Exported PNG'); }, 'image/png'); }
+$('#png').onclick = exportPNG;
+
+// ---------- keyboard ----------
+const TOOLS = ['drop','rake','comb','wave','swirl'];
+document.addEventListener('keydown', e => {
+  const t = e.target; if (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable) return;
+  const mod = e.ctrlKey || e.metaKey;
+  if (mod && e.key === '/') { e.preventDefault(); return toggleHelp(); }
+  if (mod && e.key.toLowerCase() === 'z') { e.preventDefault(); return undo(); }
+  if (mod || e.altKey) return;
+  if (e.key === 'Escape') return toggleHelp(false);
+  if (e.key === '?') return toggleHelp();
+  if (!help.hidden) return;
+  const k = e.key.toLowerCase();
+  if (k >= '1' && k <= '5') return setTool(TOOLS[k-1]);
+  const map = { z:undo, n:clearPaper, r:sprinkle, s:save, o:() => $('#file').click(), e:exportPNG, d:toggleTheme,
+    c:() => { state.color = state.color >= 5 ? -1 : state.color + 1; buildSwatches(); }, '[':() => setSize(state.size-5), ']':() => setSize(state.size+5) };
+  if (map[k]) { e.preventDefault(); map[k](); }
+});
+
+// ---------- go ----------
+loadPreset('bouquet'); fit();
+</script>
+</body>
+</html>
+
+</body></html>

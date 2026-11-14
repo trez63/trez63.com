@@ -26,3 +26,9 @@ Only `*.html` is ever published. Save files (`*.json`), shortcuts and anything e
 ## Privacy gate
 
 `scripts/privacy_check.py` scans for emails, phone numbers, API keys/tokens, AWS account IDs, private IPs, home-directory paths, street addresses, SSN/card shapes, and (optionally, `--terms FILE`) a private word list kept outside the repo. `publish.py` runs it on every incoming file and refuses to copy anything with findings, then sweeps `apps/`, `catalog.json`, `index.html` and `README.md` before exiting. Run it by hand on anything else before committing: `python3 scripts/privacy_check.py --terms <file> <paths>`. `scripts/privacy_allow.txt` lists exact strings that are known fakes (the 4242 test card, AWS's documentation key, an app's own demo data) so a redaction demo can ship without weakening the rules; the private word list is never allowlisted.
+
+## Likes
+
+Each card and play page has a like button. Counts live in [Abacus](https://abacus.jasoncameron.dev), a free third-party counter service: namespace `trez63.com`, one counter per app slug, incremented straight from the visitor's browser. No account and no backend of ours. A browser remembers what it liked in `localStorage`, so one click per app per browser; that is a courtesy limit, not protection against a determined person.
+
+Pages show the count stored in `catalog.json` (`likes`) and refresh what is on screen from the service. The daily task snapshots the counts with `scripts/fetch_likes.js` (run in a browser tab) and `scripts/apply_likes.py`, which never lowers a stored number, so the catalog doubles as the backup if the service resets or goes away. "Most liked" sorts by these counts.

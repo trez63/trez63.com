@@ -91,6 +91,8 @@ h2{margin:0}
 .body p{margin:0;color:var(--mute);font-size:13px;flex:1;line-height:1.55}
 .meta{display:flex;flex-wrap:wrap;gap:6px;font:11px "Courier New",monospace;color:var(--mute);align-items:center;letter-spacing:.3px}
 .meta a{text-decoration:underline dotted}
+.meta .acts{margin-left:auto}
+.sort{margin-left:auto}
 .toolbar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;padding:0 23px 14px}
 #q{font:inherit;font-size:14px;padding:10px 13px;border-radius:7px;border:1px solid var(--line);background:#fff;color:var(--fg);width:min(100%,320px);outline:none}
 #q:focus-visible{outline:3px solid var(--acc);outline-offset:3px}
@@ -105,6 +107,15 @@ h2{margin:0}
 main{padding:0 23px 23px}
 footer{padding:10px 0 48px;color:var(--mute);font:11px "Courier New",monospace;letter-spacing:.5px}
 footer a{text-decoration:underline}
+
+button.like{font:700 11px Arial,Helvetica,sans-serif;display:inline-flex;align-items:center;gap:5px;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--fg);border-radius:6px;padding:5px 9px;white-space:nowrap;line-height:1}
+button.like i{font-style:normal;font-size:13px;line-height:1;color:var(--mute)}
+button.like b{font-variant-numeric:tabular-nums;min-width:1ch;text-align:right}
+button.like:hover{border-color:var(--acc)}
+button.like:hover i{color:var(--acc)}
+button.like:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+button.like.on{background:var(--acc-soft,#eef2ff);border-color:var(--acc);color:var(--acc);cursor:default}
+button.like.on i{color:var(--acc)}
 </style>
 </head>
 <body>
@@ -148,11 +159,14 @@ footer a{text-decoration:underline}
     <div class="filters engines" role="group" aria-label="Filter by model">
       <button data-filter="all" aria-pressed="true">All</button><button data-filter="ChatGPT">ChatGPT</button><button data-filter="Claude">Claude</button><button data-filter="Gemini">Gemini</button><button data-filter="Grok">Grok</button><button data-filter="Muse">Muse</button>
     </div>
+    <div class="filters sort" role="group" aria-label="Sort">
+      <button data-sort="new" aria-pressed="true">Newest</button><button data-sort="top">Most liked</button>
+    </div>
   </div>
   <div class="filters cats" role="group" aria-label="Filter by category"><button data-cat="audio">Audio</button><button data-cat="dev">Dev tools</button><button data-cat="edu">Explainers</button><button data-cat="finance">Finance</button><button data-cat="focus">Focus</button><button data-cat="game">Games</button><button data-cat="art">Generative art</button><button data-cat="image">Image</button><button data-cat="sim">Simulations</button><button data-cat="text">Text</button><button data-cat="tool">Tools</button></div>
   <p id="empty" hidden>No apps match that.</p>
   <main id="grid">
-    <article class="card" data-engine="Claude" data-cat="art" data-date="2026-11-14" data-search="ebru a paper-marbling bath. tap to float ink drops that push the earlier ones aside, then drag a rake, comb, wave or swirl through them; every gesture is an exact closed-form deformation, so pictures replay perfectly from the saved gesture list, and you can start from stone, gelgit, nonpareil, bouquet, peacock or vortex presets, switch palettes and paper, undo, and export a 2000-px png. ebru art claude">
+    <article class="card" data-engine="Claude" data-cat="art" data-date="2026-11-14" data-likes="0" data-search="ebru a paper-marbling bath. tap to float ink drops that push the earlier ones aside, then drag a rake, comb, wave or swirl through them; every gesture is an exact closed-form deformation, so pictures replay perfectly from the saved gesture list, and you can start from stone, gelgit, nonpareil, bouquet, peacock or vortex presets, switch palettes and paper, undo, and export a 2000-px png. ebru art claude">
       <a class="shot" href="p/ebru.html" aria-label="Open Ebru"><img src="thumbs/ebru.webp" alt="" loading=lazy width="640" height="400"><video src="previews/ebru.webm" muted loop playsinline preload="none" poster="thumbs/ebru.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -165,10 +179,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/ebru.html" title="Version history on GitHub">v1</a>
           <span>· Generative art</span>
+          <span class="acts"><button class="like" type="button" data-slug="ebru" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Ebru"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Claude" data-cat="game" data-date="2026-11-14" data-search="nash hex against a computer opponent you can watch think. you connect left to right, nash connects top to bottom, and while it searches the board glows with where its monte-carlo tree search is spending attention; pick a 7, 9 or 11 board, quick to deep thinking time, ask for a hint, undo, and save or open games as json. nash game claude">
+    <article class="card" data-engine="Claude" data-cat="game" data-date="2026-11-14" data-likes="0" data-search="nash hex against a computer opponent you can watch think. you connect left to right, nash connects top to bottom, and while it searches the board glows with where its monte-carlo tree search is spending attention; pick a 7, 9 or 11 board, quick to deep thinking time, ask for a hint, undo, and save or open games as json. nash game claude">
       <a class="shot" href="p/nash.html" aria-label="Open Nash"><img src="thumbs/nash.webp" alt="" loading=lazy width="640" height="400"><video src="previews/nash.webm" muted loop playsinline preload="none" poster="thumbs/nash.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -181,10 +196,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/nash.html" title="Version history on GitHub">v1</a>
           <span>· Games</span>
+          <span class="acts"><button class="like" type="button" data-slug="nash" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Nash"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="ChatGPT" data-cat="audio" data-date="2026-11-14" data-search="belfry a change-ringing studio for six synthesised bells. tap a bell to hear it, play a score row by row at a chosen strikes-per-minute, follow one bell’s path through the diagram, edit which neighbouring positions swap on each row or build your own method and return it to rounds, choose a bronze or glass voice, and save the score as json or export the performance as a wav. belfry audio chatgpt">
+    <article class="card" data-engine="ChatGPT" data-cat="audio" data-date="2026-11-14" data-likes="0" data-search="belfry a change-ringing studio for six synthesised bells. tap a bell to hear it, play a score row by row at a chosen strikes-per-minute, follow one bell’s path through the diagram, edit which neighbouring positions swap on each row or build your own method and return it to rounds, choose a bronze or glass voice, and save the score as json or export the performance as a wav. belfry audio chatgpt">
       <a class="shot" href="p/belfry.html" aria-label="Open Belfry"><img src="thumbs/belfry.webp" alt="" loading=lazy width="640" height="400"><video src="previews/belfry.webm" muted loop playsinline preload="none" poster="thumbs/belfry.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -197,10 +213,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/belfry.html" title="Version history on GitHub">v1</a>
           <span>· Audio</span>
+          <span class="acts"><button class="like" type="button" data-slug="belfry" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Belfry"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Muse" data-cat="audio" data-date="2026-11-14" data-search="drift an ambient soundscape mixer. rain, ocean, wind, fire and birdsong are synthesised live from filtered noise and scheduled chirps and crackles, with no recordings; blend them with sliders, start from presets like rainy night or forest dawn, set a sleep timer, and save or open a mix as json. drift-soundscape audio muse">
+    <article class="card" data-engine="Muse" data-cat="audio" data-date="2026-11-14" data-likes="0" data-search="drift an ambient soundscape mixer. rain, ocean, wind, fire and birdsong are synthesised live from filtered noise and scheduled chirps and crackles, with no recordings; blend them with sliders, start from presets like rainy night or forest dawn, set a sleep timer, and save or open a mix as json. drift-soundscape audio muse">
       <a class="shot" href="p/drift-soundscape.html" aria-label="Open Drift"><img src="thumbs/drift-soundscape.webp" alt="" loading=lazy width="640" height="400"><video src="previews/drift-soundscape.webm" muted loop playsinline preload="none" poster="thumbs/drift-soundscape.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -213,10 +230,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/drift-soundscape.html" title="Version history on GitHub">v1</a>
           <span>· Audio</span>
+          <span class="acts"><button class="like" type="button" data-slug="drift-soundscape" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Drift"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Muse" data-cat="sim" data-date="2026-11-14" data-search="dropzone a galton board. tap along the top to drop a ball, or release ten, a hundred or a steady rain, and watch them bounce through 5 to 12 rows of pegs into bins while a histogram fills in against the ideal binomial curve; live stats show the count, mean, spread and bell match, and results save and reopen as json. dropzone sim muse">
+    <article class="card" data-engine="Muse" data-cat="sim" data-date="2026-11-14" data-likes="0" data-search="dropzone a galton board. tap along the top to drop a ball, or release ten, a hundred or a steady rain, and watch them bounce through 5 to 12 rows of pegs into bins while a histogram fills in against the ideal binomial curve; live stats show the count, mean, spread and bell match, and results save and reopen as json. dropzone sim muse">
       <a class="shot" href="p/dropzone.html" aria-label="Open Dropzone"><img src="thumbs/dropzone.webp" alt="" loading=lazy width="640" height="400"><video src="previews/dropzone.webm" muted loop playsinline preload="none" poster="thumbs/dropzone.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -229,10 +247,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/dropzone.html" title="Version history on GitHub">v1</a>
           <span>· Simulations</span>
+          <span class="acts"><button class="like" type="button" data-slug="dropzone" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Dropzone"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Claude" data-cat="art" data-date="2026-11-14" data-search="lathe a pottery wheel in one file. the pot is a solid of revolution rendered in software on a 2d canvas; drag on the wall to pull it out or push it in, smooth out lumps, set brush width and height, start from vase, bowl, bottle, cup or plate presets, pick glazes and camera tilt, then save the pot as json or export a watertight obj with real wall thickness for 3d printing. lathe art claude">
+    <article class="card" data-engine="Claude" data-cat="art" data-date="2026-11-14" data-likes="0" data-search="lathe a pottery wheel in one file. the pot is a solid of revolution rendered in software on a 2d canvas; drag on the wall to pull it out or push it in, smooth out lumps, set brush width and height, start from vase, bowl, bottle, cup or plate presets, pick glazes and camera tilt, then save the pot as json or export a watertight obj with real wall thickness for 3d printing. lathe art claude">
       <a class="shot" href="p/lathe.html" aria-label="Open Lathe"><img src="thumbs/lathe.webp" alt="" loading=lazy width="640" height="400"><video src="previews/lathe.webm" muted loop playsinline preload="none" poster="thumbs/lathe.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -245,10 +264,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/lathe.html" title="Version history on GitHub">v1</a>
           <span>· Generative art</span>
+          <span class="acts"><button class="like" type="button" data-slug="lathe" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Lathe"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="ChatGPT" data-cat="art" data-date="2026-11-14" data-search="paper cinema a barrier-grid animation studio. draw four 40×24 pixel frames with ink and erase tools, play them back or scrub a virtual shutter across the interlaced plate, and export a print kit with the plate and the slitted shutter at actual size so the animation works on paper; films save and reopen as json. paper-cinema art chatgpt">
+    <article class="card" data-engine="ChatGPT" data-cat="art" data-date="2026-11-14" data-likes="0" data-search="paper cinema a barrier-grid animation studio. draw four 40×24 pixel frames with ink and erase tools, play them back or scrub a virtual shutter across the interlaced plate, and export a print kit with the plate and the slitted shutter at actual size so the animation works on paper; films save and reopen as json. paper-cinema art chatgpt">
       <a class="shot" href="p/paper-cinema.html" aria-label="Open Paper Cinema"><img src="thumbs/paper-cinema.webp" alt="" loading=lazy width="640" height="400"><video src="previews/paper-cinema.webm" muted loop playsinline preload="none" poster="thumbs/paper-cinema.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -261,10 +281,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/paper-cinema.html" title="Version history on GitHub">v1</a>
           <span>· Generative art</span>
+          <span class="acts"><button class="like" type="button" data-slug="paper-cinema" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Paper Cinema"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Muse" data-cat="tool" data-date="2026-11-14" data-search="passphrase forge a password and passphrase generator. forge a memorable multi-word passphrase or a random character password from the browser’s secure random source, tune words, separators, capitals, length and character sets, and see the entropy in bits with estimated offline and online crack times; recent results are kept for copying and settings save as json. passphrase-forge tool muse">
+    <article class="card" data-engine="Muse" data-cat="tool" data-date="2026-11-14" data-likes="0" data-search="passphrase forge a password and passphrase generator. forge a memorable multi-word passphrase or a random character password from the browser’s secure random source, tune words, separators, capitals, length and character sets, and see the entropy in bits with estimated offline and online crack times; recent results are kept for copying and settings save as json. passphrase-forge tool muse">
       <a class="shot" href="p/passphrase-forge.html" aria-label="Open Passphrase Forge"><img src="thumbs/passphrase-forge.webp" alt="" loading=lazy width="640" height="400"><video src="previews/passphrase-forge.webm" muted loop playsinline preload="none" poster="thumbs/passphrase-forge.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -277,10 +298,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/passphrase-forge.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="passphrase-forge" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Passphrase Forge"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Muse" data-cat="text" data-date="2026-11-14" data-search="swiftread an rsvp speed reader. paste any text and press play to see it one word (or two or three) at a time with the focal letter highlighted so your eyes stay still; set the words per minute live, skip or jump along the progress bar, and save or open your text and position as json. swiftread text muse">
+    <article class="card" data-engine="Muse" data-cat="text" data-date="2026-11-14" data-likes="0" data-search="swiftread an rsvp speed reader. paste any text and press play to see it one word (or two or three) at a time with the focal letter highlighted so your eyes stay still; set the words per minute live, skip or jump along the progress bar, and save or open your text and position as json. swiftread text muse">
       <a class="shot" href="p/swiftread.html" aria-label="Open Swiftread"><img src="thumbs/swiftread.webp" alt="" loading=lazy width="640" height="400"><video src="previews/swiftread.webm" muted loop playsinline preload="none" poster="thumbs/swiftread.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -293,10 +315,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/swiftread.html" title="Version history on GitHub">v1</a>
           <span>· Text</span>
+          <span class="acts"><button class="like" type="button" data-slug="swiftread" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Swiftread"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Claude" data-cat="audio" data-date="2026-11-14" data-search="trill a modem made of birdsong. type a message and it plays as a short melody of 32 pure tones that another phone (or the same one) decodes from its microphone, with a live waterfall of what the decoder hears; a self-test routes a message through simulated room noise so you can watch it lock on, and drafts and the inbox save as json. trill audio claude">
+    <article class="card" data-engine="Claude" data-cat="audio" data-date="2026-11-14" data-likes="0" data-search="trill a modem made of birdsong. type a message and it plays as a short melody of 32 pure tones that another phone (or the same one) decodes from its microphone, with a live waterfall of what the decoder hears; a self-test routes a message through simulated room noise so you can watch it lock on, and drafts and the inbox save as json. trill audio claude">
       <a class="shot" href="p/trill.html" aria-label="Open Trill"><img src="thumbs/trill.webp" alt="" loading=lazy width="640" height="400"><video src="previews/trill.webm" muted loop playsinline preload="none" poster="thumbs/trill.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -309,10 +332,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/trill.html" title="Version history on GitHub">v1</a>
           <span>· Audio</span>
+          <span class="acts"><button class="like" type="button" data-slug="trill" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Trill"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Grok" data-cat="audio" data-date="2026-11-14" data-search="ca sonifier a cellular automaton you can hear. paint cells on a 24×16 wrapping grid, pick life, highlife, day &amp; night, seeds or life without death, and press play: every birth that generation triggers a pentatonic note whose pitch depends on its row, voiced as sine, square, saw or triangle, and the grid and settings save as json. cellular-automata-sonifier audio grok">
+    <article class="card" data-engine="Grok" data-cat="audio" data-date="2026-11-14" data-likes="0" data-search="ca sonifier a cellular automaton you can hear. paint cells on a 24×16 wrapping grid, pick life, highlife, day &amp; night, seeds or life without death, and press play: every birth that generation triggers a pentatonic note whose pitch depends on its row, voiced as sine, square, saw or triangle, and the grid and settings save as json. cellular-automata-sonifier audio grok">
       <a class="shot" href="p/cellular-automata-sonifier.html" aria-label="Open CA Sonifier"><img src="thumbs/cellular-automata-sonifier.webp" alt="" loading=lazy width="640" height="400"><video src="previews/cellular-automata-sonifier.webm" muted loop playsinline preload="none" poster="thumbs/cellular-automata-sonifier.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -325,10 +349,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/cellular-automata-sonifier.html" title="Version history on GitHub">v1</a>
           <span>· Audio</span>
+          <span class="acts"><button class="like" type="button" data-slug="cellular-automata-sonifier" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like CA Sonifier"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Muse" data-cat="tool" data-date="2026-11-14" data-search="pinch a recipe scaler. paste ingredients one per line, set how many the recipe serves and how many you are feeding (or tap half, double, triple), and every quantity rescales to friendly fractions with units and foods pluralised correctly, ranges and mixed numbers included; copy or download the result and save the recipe as json. pinch-recipe-scaler tool muse">
+    <article class="card" data-engine="Muse" data-cat="tool" data-date="2026-11-14" data-likes="0" data-search="pinch a recipe scaler. paste ingredients one per line, set how many the recipe serves and how many you are feeding (or tap half, double, triple), and every quantity rescales to friendly fractions with units and foods pluralised correctly, ranges and mixed numbers included; copy or download the result and save the recipe as json. pinch-recipe-scaler tool muse">
       <a class="shot" href="p/pinch-recipe-scaler.html" aria-label="Open Pinch"><img src="thumbs/pinch-recipe-scaler.webp" alt="" loading=lazy width="640" height="400"><video src="previews/pinch-recipe-scaler.webm" muted loop playsinline preload="none" poster="thumbs/pinch-recipe-scaler.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -341,10 +366,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/pinch-recipe-scaler.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="pinch-recipe-scaler" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Pinch"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="ChatGPT" data-cat="art" data-date="2026-11-14" data-search="selvedge a four-shaft weaving studio. tap a crossing in the rendered cloth, thread its warp end onto a shaft and choose which shafts lift on each pick, and watch the drawdown, threading and liftplan notation update along with the longest warp and weft floats; start from twill, basket, plain or broken twill, pick yarn colours, undo, save the draft as json or export the swatch as svg. selvedge art chatgpt">
+    <article class="card" data-engine="ChatGPT" data-cat="art" data-date="2026-11-14" data-likes="0" data-search="selvedge a four-shaft weaving studio. tap a crossing in the rendered cloth, thread its warp end onto a shaft and choose which shafts lift on each pick, and watch the drawdown, threading and liftplan notation update along with the longest warp and weft floats; start from twill, basket, plain or broken twill, pick yarn colours, undo, save the draft as json or export the swatch as svg. selvedge art chatgpt">
       <a class="shot" href="p/selvedge.html" aria-label="Open Selvedge"><img src="thumbs/selvedge.webp" alt="" loading=lazy width="640" height="400"><video src="previews/selvedge.webm" muted loop playsinline preload="none" poster="thumbs/selvedge.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -357,10 +383,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/selvedge.html" title="Version history on GitHub">v1</a>
           <span>· Generative art</span>
+          <span class="acts"><button class="like" type="button" data-slug="selvedge" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Selvedge"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Claude" data-cat="sim" data-date="2026-11-11" data-search="umbra a sun and shadow planner for a 50 m site. place buildings and trees, set a date, city or latitude and longitude and the map rotation, then scrub or play through the day to watch the shadows move; a colour map shows how many hours of direct sun each patch of ground gets, and scenes save and reopen as json. umbra sim claude">
+    <article class="card" data-engine="Claude" data-cat="sim" data-date="2026-11-11" data-likes="0" data-search="umbra a sun and shadow planner for a 50 m site. place buildings and trees, set a date, city or latitude and longitude and the map rotation, then scrub or play through the day to watch the shadows move; a colour map shows how many hours of direct sun each patch of ground gets, and scenes save and reopen as json. umbra sim claude">
       <a class="shot" href="p/umbra.html" aria-label="Open Umbra"><img src="thumbs/umbra.webp" alt="" loading=lazy width="640" height="400"><video src="previews/umbra.webm" muted loop playsinline preload="none" poster="thumbs/umbra.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -373,10 +400,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/umbra.html" title="Version history on GitHub">v1</a>
           <span>· Simulations</span>
+          <span class="acts"><button class="like" type="button" data-slug="umbra" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Umbra"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Grok" data-cat="edu" data-date="2026-11-10" data-search="fourier epicycles studio draw any closed shape and watch it redrawn by a chain of rotating circles. the app takes the discrete fourier transform of your path and traces it back with epicycles; slide the number of terms up and down to see the reconstruction sharpen or blur, change the speed, and save or reload a drawing as json. fourier-epicycles-studio edu grok">
+    <article class="card" data-engine="Grok" data-cat="edu" data-date="2026-11-10" data-likes="0" data-search="fourier epicycles studio draw any closed shape and watch it redrawn by a chain of rotating circles. the app takes the discrete fourier transform of your path and traces it back with epicycles; slide the number of terms up and down to see the reconstruction sharpen or blur, change the speed, and save or reload a drawing as json. fourier-epicycles-studio edu grok">
       <a class="shot" href="p/fourier-epicycles-studio.html" aria-label="Open Fourier Epicycles Studio"><img src="thumbs/fourier-epicycles-studio.webp" alt="" loading=lazy width="640" height="400"><video src="previews/fourier-epicycles-studio.webm" muted loop playsinline preload="none" poster="thumbs/fourier-epicycles-studio.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -389,10 +417,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/fourier-epicycles-studio.html" title="Version history on GitHub">v1</a>
           <span>· Explainers</span>
+          <span class="acts"><button class="like" type="button" data-slug="fourier-epicycles-studio" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Fourier Epicycles Studio"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Muse" data-cat="focus" data-date="2026-11-10" data-search="breathe a guided breathing pacer. pick box, 4-7-8, coherent or deep-slow breathing and a session length and follow the circle as it grows and shrinks, or switch to hold mode and press the circle to breathe in and let go to breathe out; sessions are logged on the device and can be saved as json. breathe focus muse">
+    <article class="card" data-engine="Muse" data-cat="focus" data-date="2026-11-10" data-likes="0" data-search="breathe a guided breathing pacer. pick box, 4-7-8, coherent or deep-slow breathing and a session length and follow the circle as it grows and shrinks, or switch to hold mode and press the circle to breathe in and let go to breathe out; sessions are logged on the device and can be saved as json. breathe focus muse">
       <a class="shot" href="p/breathe.html" aria-label="Open Breathe"><img src="thumbs/breathe.webp" alt="" loading=lazy width="640" height="400"><video src="previews/breathe.webm" muted loop playsinline preload="none" poster="thumbs/breathe.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -405,10 +434,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/breathe.html" title="Version history on GitHub">v1</a>
           <span>· Focus</span>
+          <span class="acts"><button class="like" type="button" data-slug="breathe" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Breathe"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Gemini" data-cat="sim" data-date="2026-11-10" data-search="celestialtrace a gravitational n-body sandbox. drag on the canvas to launch a planet with a velocity vector and watch it orbit, slingshot or merge with the other bodies, tune the gravitational constant, trail length and collision mode, and save or reload a system as json. celestialtrace sim gemini">
+    <article class="card" data-engine="Gemini" data-cat="sim" data-date="2026-11-10" data-likes="0" data-search="celestialtrace a gravitational n-body sandbox. drag on the canvas to launch a planet with a velocity vector and watch it orbit, slingshot or merge with the other bodies, tune the gravitational constant, trail length and collision mode, and save or reload a system as json. celestialtrace sim gemini">
       <a class="shot" href="p/celestialtrace.html" aria-label="Open CelestialTrace"><img src="thumbs/celestialtrace.webp" alt="" loading=lazy width="640" height="400"><video src="previews/celestialtrace.webm" muted loop playsinline preload="none" poster="thumbs/celestialtrace.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -421,10 +451,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/celestialtrace.html" title="Version history on GitHub">v1</a>
           <span>· Simulations</span>
+          <span class="acts"><button class="like" type="button" data-slug="celestialtrace" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like CelestialTrace"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Claude" data-cat="art" data-date="2026-11-09" data-search="nib a typeface drawn by one pen. every letter is a bare skeleton of lines and arcs, and a single nib swept along it makes the shape — drag the pen pad to turn and widen the nib, adjust slant, x-height, bowls and wobble, tap any glyph to see its construction, and export the result as a real truetype font you can install. nib art claude">
+    <article class="card" data-engine="Claude" data-cat="art" data-date="2026-11-09" data-likes="0" data-search="nib a typeface drawn by one pen. every letter is a bare skeleton of lines and arcs, and a single nib swept along it makes the shape — drag the pen pad to turn and widen the nib, adjust slant, x-height, bowls and wobble, tap any glyph to see its construction, and export the result as a real truetype font you can install. nib art claude">
       <a class="shot" href="p/nib.html" aria-label="Open Nib"><img src="thumbs/nib.webp" alt="" loading=lazy width="640" height="400"><video src="previews/nib.webm" muted loop playsinline preload="none" poster="thumbs/nib.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -437,10 +468,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/nib.html" title="Version history on GitHub">v1</a>
           <span>· Generative art</span>
+          <span class="acts"><button class="like" type="button" data-slug="nib" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Nib"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Claude" data-cat="dev" data-date="2026-11-09" data-search="parapet a security-header audit that runs in the page. paste the response headers from curl or devtools and it grades them out of 100, lists each finding with a one-tap fix, maps every content-security-policy source by how open it is, and exports the hardened set as nginx, apache, caddy or express config. parapet dev claude">
+    <article class="card" data-engine="Claude" data-cat="dev" data-date="2026-11-09" data-likes="0" data-search="parapet a security-header audit that runs in the page. paste the response headers from curl or devtools and it grades them out of 100, lists each finding with a one-tap fix, maps every content-security-policy source by how open it is, and exports the hardened set as nginx, apache, caddy or express config. parapet dev claude">
       <a class="shot" href="p/parapet.html" aria-label="Open Parapet"><img src="thumbs/parapet.webp" alt="" loading=lazy width="640" height="400"><video src="previews/parapet.webm" muted loop playsinline preload="none" poster="thumbs/parapet.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -453,10 +485,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/parapet.html" title="Version history on GitHub">v1</a>
           <span>· Dev tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="parapet" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Parapet"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Muse" data-cat="edu" data-date="2026-11-09" data-search="keycuts a keyboard shortcut trainer. pick vs code, gmail, chrome or macos, read the action and press its combo on your keyboard or the on-screen keys; misses go into a needs-work pile, a learn mode shows flip cards, and you can add your own shortcuts and save progress as json. keycuts edu muse">
+    <article class="card" data-engine="Muse" data-cat="edu" data-date="2026-11-09" data-likes="0" data-search="keycuts a keyboard shortcut trainer. pick vs code, gmail, chrome or macos, read the action and press its combo on your keyboard or the on-screen keys; misses go into a needs-work pile, a learn mode shows flip cards, and you can add your own shortcuts and save progress as json. keycuts edu muse">
       <a class="shot" href="p/keycuts.html" aria-label="Open Keycuts"><img src="thumbs/keycuts.webp" alt="" loading=lazy width="640" height="400"><video src="previews/keycuts.webm" muted loop playsinline preload="none" poster="thumbs/keycuts.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -469,10 +502,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/keycuts.html" title="Version history on GitHub">v1</a>
           <span>· Explainers</span>
+          <span class="acts"><button class="like" type="button" data-slug="keycuts" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Keycuts"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Muse" data-cat="tool" data-date="2026-11-09" data-search="rename studio plan a batch rename before touching any files. build a naming pattern from date, client, project, name and counter tokens, watch the new name for every file update as you type with duplicates flagged, then copy the names or download the plan as text. rename-studio tool muse">
+    <article class="card" data-engine="Muse" data-cat="tool" data-date="2026-11-09" data-likes="0" data-search="rename studio plan a batch rename before touching any files. build a naming pattern from date, client, project, name and counter tokens, watch the new name for every file update as you type with duplicates flagged, then copy the names or download the plan as text. rename-studio tool muse">
       <a class="shot" href="p/rename-studio.html" aria-label="Open Rename Studio"><img src="thumbs/rename-studio.webp" alt="" loading=lazy width="640" height="400"><video src="previews/rename-studio.webm" muted loop playsinline preload="none" poster="thumbs/rename-studio.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -485,10 +519,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/rename-studio.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="rename-studio" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Rename Studio"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Grok" data-cat="tool" data-date="2026-11-08" data-search="pipelineforge a deal list with a live forecast. add deals with a value, win probability and stage, filter by stage or search by name, and the bar on top keeps pipeline total, weighted forecast and won value current. arrow keys move the selection; save or reopen the list as json. pipelineforge tool grok">
+    <article class="card" data-engine="Grok" data-cat="tool" data-date="2026-11-08" data-likes="0" data-search="pipelineforge a deal list with a live forecast. add deals with a value, win probability and stage, filter by stage or search by name, and the bar on top keeps pipeline total, weighted forecast and won value current. arrow keys move the selection; save or reopen the list as json. pipelineforge tool grok">
       <a class="shot" href="p/pipelineforge.html" aria-label="Open PipelineForge"><img src="thumbs/pipelineforge.webp" alt="" loading=lazy width="640" height="400"><video src="previews/pipelineforge.webm" muted loop playsinline preload="none" poster="thumbs/pipelineforge.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -501,10 +536,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/pipelineforge.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="pipelineforge" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like PipelineForge"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Claude" data-cat="finance" data-date="2026-11-03" data-search="dibs multi-touch attribution for a path report. paste the touch paths from your analytics export with converted and non-converted counts, and it runs seven models over the same data — last, first, linear, position, decay, markov removal effect and exact shapley — and shows where they disagree about which channels open, assist and close. dibs finance claude">
+    <article class="card" data-engine="Claude" data-cat="finance" data-date="2026-11-03" data-likes="0" data-search="dibs multi-touch attribution for a path report. paste the touch paths from your analytics export with converted and non-converted counts, and it runs seven models over the same data — last, first, linear, position, decay, markov removal effect and exact shapley — and shows where they disagree about which channels open, assist and close. dibs finance claude">
       <a class="shot" href="p/dibs.html" aria-label="Open Dibs"><img src="thumbs/dibs.webp" alt="" loading=lazy width="640" height="400"><video src="previews/dibs.webm" muted loop playsinline preload="none" poster="thumbs/dibs.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -517,10 +553,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/dibs.html" title="Version history on GitHub">v1</a>
           <span>· Finance</span>
+          <span class="acts"><button class="like" type="button" data-slug="dibs" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Dibs"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="ChatGPT" data-cat="tool" data-date="2026-11-03" data-search="common hour find a meeting time that fits everyone&#x27;s working day. add up to six people with their time zones, work windows and weekdays, then slide the start across the day and watch the local clocks line up; it marks the starts that fit all of them, jumps to the best overlap, and copies or exports the proposal with every local time. common-hour tool chatgpt">
+    <article class="card" data-engine="ChatGPT" data-cat="tool" data-date="2026-11-03" data-likes="0" data-search="common hour find a meeting time that fits everyone&#x27;s working day. add up to six people with their time zones, work windows and weekdays, then slide the start across the day and watch the local clocks line up; it marks the starts that fit all of them, jumps to the best overlap, and copies or exports the proposal with every local time. common-hour tool chatgpt">
       <a class="shot" href="p/common-hour.html" aria-label="Open Common Hour"><img src="thumbs/common-hour.webp" alt="" loading=lazy width="640" height="400"><video src="previews/common-hour.webm" muted loop playsinline preload="none" poster="thumbs/common-hour.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -533,10 +570,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/common-hour.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="common-hour" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Common Hour"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Muse" data-cat="tool" data-date="2026-11-03" data-search="contrast checker pick a text colour and a background colour and see the wcag contrast ratio and which levels it passes, with a live preview at body, button and small-print sizes. one tap nudges the text colour until it reaches aa or aaa, and pairs that pass can be saved and moved between machines as json. contrast-checker tool muse">
+    <article class="card" data-engine="Muse" data-cat="tool" data-date="2026-11-03" data-likes="0" data-search="contrast checker pick a text colour and a background colour and see the wcag contrast ratio and which levels it passes, with a live preview at body, button and small-print sizes. one tap nudges the text colour until it reaches aa or aaa, and pairs that pass can be saved and moved between machines as json. contrast-checker tool muse">
       <a class="shot" href="p/contrast-checker.html" aria-label="Open Contrast Checker"><img src="thumbs/contrast-checker.webp" alt="" loading=lazy width="640" height="400"><video src="previews/contrast-checker.webm" muted loop playsinline preload="none" poster="thumbs/contrast-checker.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -549,10 +587,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/contrast-checker.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="contrast-checker" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Contrast Checker"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="ChatGPT" data-cat="text" data-date="2026-11-03" data-search="linework a reusable recipe for cleaning up lists. paste a list, one item per line, then stack up to eight steps — trim, drop blanks, dedupe, replace, prefix or suffix, sort, keep or exclude matches, number — and inspect the rows at any stage before copying or exporting the final result. the source stays intact and the recipe saves as json. linework text chatgpt">
+    <article class="card" data-engine="ChatGPT" data-cat="text" data-date="2026-11-03" data-likes="0" data-search="linework a reusable recipe for cleaning up lists. paste a list, one item per line, then stack up to eight steps — trim, drop blanks, dedupe, replace, prefix or suffix, sort, keep or exclude matches, number — and inspect the rows at any stage before copying or exporting the final result. the source stays intact and the recipe saves as json. linework text chatgpt">
       <a class="shot" href="p/linework.html" aria-label="Open Linework"><img src="thumbs/linework.webp" alt="" loading=lazy width="640" height="400"><video src="previews/linework.webm" muted loop playsinline preload="none" poster="thumbs/linework.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -565,10 +604,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/linework.html" title="Version history on GitHub">v1</a>
           <span>· Text</span>
+          <span class="acts"><button class="like" type="button" data-slug="linework" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Linework"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Claude" data-cat="finance" data-date="2026-11-01" data-search="tranche a cap table exit waterfall. enter the share classes with their preferences, caps and participation, then drag the exit value and see who gets paid what, where the kinks are and when a series converts to common. tranche finance claude">
+    <article class="card" data-engine="Claude" data-cat="finance" data-date="2026-11-01" data-likes="0" data-search="tranche a cap table exit waterfall. enter the share classes with their preferences, caps and participation, then drag the exit value and see who gets paid what, where the kinks are and when a series converts to common. tranche finance claude">
       <a class="shot" href="p/tranche.html" aria-label="Open Tranche"><img src="thumbs/tranche.webp" alt="" loading=lazy width="640" height="400"><video src="previews/tranche.webm" muted loop playsinline preload="none" poster="thumbs/tranche.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -581,10 +621,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/tranche.html" title="Version history on GitHub">v1</a>
           <span>· Finance</span>
+          <span class="acts"><button class="like" type="button" data-slug="tranche" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Tranche"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Muse" data-cat="dev" data-date="2026-11-01" data-search="deploy board a release tracker board. add a service, version, owner and risk level, then drag each card from backlog through staging and deploying to live; the board stays in the browser and can be saved to a file. deploy-board dev muse">
+    <article class="card" data-engine="Muse" data-cat="dev" data-date="2026-11-01" data-likes="0" data-search="deploy board a release tracker board. add a service, version, owner and risk level, then drag each card from backlog through staging and deploying to live; the board stays in the browser and can be saved to a file. deploy-board dev muse">
       <a class="shot" href="p/deploy-board.html" aria-label="Open Deploy Board"><img src="thumbs/deploy-board.webp" alt="" loading=lazy width="640" height="400"><video src="previews/deploy-board.webm" muted loop playsinline preload="none" poster="thumbs/deploy-board.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -597,10 +638,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/deploy-board.html" title="Version history on GitHub">v1</a>
           <span>· Dev tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="deploy-board" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Deploy Board"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="ChatGPT" data-cat="dev" data-date="2026-11-01" data-search="keyline a role-based permission workbench. pick a role and an ability and it traces whether access is granted directly or inherited and from where, previews who loses access if you revoke a grant, and exports the whole model as a plain-text report. keyline dev chatgpt">
+    <article class="card" data-engine="ChatGPT" data-cat="dev" data-date="2026-11-01" data-likes="0" data-search="keyline a role-based permission workbench. pick a role and an ability and it traces whether access is granted directly or inherited and from where, previews who loses access if you revoke a grant, and exports the whole model as a plain-text report. keyline dev chatgpt">
       <a class="shot" href="p/keyline.html" aria-label="Open Keyline"><img src="thumbs/keyline.webp" alt="" loading=lazy width="640" height="400"><video src="previews/keyline.webm" muted loop playsinline preload="none" poster="thumbs/keyline.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -613,10 +655,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/keyline.html" title="Version history on GitHub">v1</a>
           <span>· Dev tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="keyline" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Keyline"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Gemini" data-cat="sim" data-date="2026-11-01" data-search="loadmaster a load-test simulator. set concurrent workers, base latency, jitter and an injected failure rate, hit start and watch throughput, p95 latency and the status-code mix move in real time. nothing leaves the browser. loadmaster sim gemini">
+    <article class="card" data-engine="Gemini" data-cat="sim" data-date="2026-11-01" data-likes="0" data-search="loadmaster a load-test simulator. set concurrent workers, base latency, jitter and an injected failure rate, hit start and watch throughput, p95 latency and the status-code mix move in real time. nothing leaves the browser. loadmaster sim gemini">
       <a class="shot" href="p/loadmaster.html" aria-label="Open LoadMaster"><img src="thumbs/loadmaster.webp" alt="" loading=lazy width="640" height="400"><video src="previews/loadmaster.webm" muted loop playsinline preload="none" poster="thumbs/loadmaster.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -629,10 +672,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/loadmaster.html" title="Version history on GitHub">v1</a>
           <span>· Simulations</span>
+          <span class="acts"><button class="like" type="button" data-slug="loadmaster" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like LoadMaster"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Grok" data-cat="tool" data-date="2026-10-31" data-search="flowforge a process mapper. drop in start, task, decision and end nodes, drag them around, connect them with arrows and save the flowchart as a file you can reopen. flowforge tool grok">
+    <article class="card" data-engine="Grok" data-cat="tool" data-date="2026-10-31" data-likes="0" data-search="flowforge a process mapper. drop in start, task, decision and end nodes, drag them around, connect them with arrows and save the flowchart as a file you can reopen. flowforge tool grok">
       <a class="shot" href="p/flowforge.html" aria-label="Open FlowForge"><img src="thumbs/flowforge.webp" alt="" loading=lazy width="640" height="400"><video src="previews/flowforge.webm" muted loop playsinline preload="none" poster="thumbs/flowforge.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -645,10 +689,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/flowforge.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="flowforge" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like FlowForge"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Claude" data-cat="text" data-date="2026-10-31" data-search="folio write markdown on the left and it is laid out as real pages on the right, with a cover, a table of contents, running headers and page numbers. print to pdf exactly as shown. folio text claude">
+    <article class="card" data-engine="Claude" data-cat="text" data-date="2026-10-31" data-likes="0" data-search="folio write markdown on the left and it is laid out as real pages on the right, with a cover, a table of contents, running headers and page numbers. print to pdf exactly as shown. folio text claude">
       <a class="shot" href="p/folio.html" aria-label="Open Folio"><img src="thumbs/folio.webp" alt="" loading=lazy width="640" height="400"><video src="previews/folio.webm" muted loop playsinline preload="none" poster="thumbs/folio.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -661,10 +706,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/folio.html" title="Version history on GitHub">v1</a>
           <span>· Text</span>
+          <span class="acts"><button class="like" type="button" data-slug="folio" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Folio"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Muse" data-cat="tool" data-date="2026-10-31" data-search="campaign link builder type a page url, pick the source, medium and campaign, and a tracked utm link builds itself as you type. copy it, or save the ones you actually send. campaign-link-builder tool muse">
+    <article class="card" data-engine="Muse" data-cat="tool" data-date="2026-10-31" data-likes="0" data-search="campaign link builder type a page url, pick the source, medium and campaign, and a tracked utm link builds itself as you type. copy it, or save the ones you actually send. campaign-link-builder tool muse">
       <a class="shot" href="p/campaign-link-builder.html" aria-label="Open Campaign Link Builder"><img src="thumbs/campaign-link-builder.webp" alt="" loading=lazy width="640" height="400"><video src="previews/campaign-link-builder.webm" muted loop playsinline preload="none" poster="thumbs/campaign-link-builder.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -677,10 +723,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/campaign-link-builder.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="campaign-link-builder" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Campaign Link Builder"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="ChatGPT" data-cat="text" data-date="2026-10-31" data-search="draftloom write a template with named slots like {{client_name}}, fill each detail once and every matching slot updates together. export the finished text or save the template. draftloom text chatgpt">
+    <article class="card" data-engine="ChatGPT" data-cat="text" data-date="2026-10-31" data-likes="0" data-search="draftloom write a template with named slots like {{client_name}}, fill each detail once and every matching slot updates together. export the finished text or save the template. draftloom text chatgpt">
       <a class="shot" href="p/draftloom.html" aria-label="Open Draftloom"><img src="thumbs/draftloom.webp" alt="" loading=lazy width="640" height="400"><video src="previews/draftloom.webm" muted loop playsinline preload="none" poster="thumbs/draftloom.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -693,10 +740,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/draftloom.html" title="Version history on GitHub">v1</a>
           <span>· Text</span>
+          <span class="acts"><button class="like" type="button" data-slug="draftloom" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Draftloom"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Grok" data-cat="tool" data-date="2026-10-30" data-search="canvasforge a business model canvas you fill in block by block. add, edit and remove items across the nine blocks, watch the completeness score climb, and it writes a one-paragraph pitch from your segments, value propositions and revenue streams. save and reopen as json. canvasforge tool grok">
+    <article class="card" data-engine="Grok" data-cat="tool" data-date="2026-10-30" data-likes="0" data-search="canvasforge a business model canvas you fill in block by block. add, edit and remove items across the nine blocks, watch the completeness score climb, and it writes a one-paragraph pitch from your segments, value propositions and revenue streams. save and reopen as json. canvasforge tool grok">
       <a class="shot" href="p/canvasforge.html" aria-label="Open CanvasForge"><img src="thumbs/canvasforge.webp" alt="" loading=lazy width="640" height="400"><video src="previews/canvasforge.webm" muted loop playsinline preload="none" poster="thumbs/canvasforge.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -709,10 +757,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/canvasforge.html" title="Version history on GitHub">v2</a>
           <span>· Tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="canvasforge" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like CanvasForge"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Claude" data-cat="dev" data-date="2026-10-29" data-search="sieve paste raw log lines in any format and it clusters them into message templates with the variable parts marked as slots, so thousands of lines collapse to a short list you can filter by level and sort by frequency. drag across the timeline to see which templates spike or first appear in that window; tap one for its slot values, sample lines and a ready-made regex; export templates as csv. sieve dev claude">
+    <article class="card" data-engine="Claude" data-cat="dev" data-date="2026-10-29" data-likes="0" data-search="sieve paste raw log lines in any format and it clusters them into message templates with the variable parts marked as slots, so thousands of lines collapse to a short list you can filter by level and sort by frequency. drag across the timeline to see which templates spike or first appear in that window; tap one for its slot values, sample lines and a ready-made regex; export templates as csv. sieve dev claude">
       <a class="shot" href="p/sieve.html" aria-label="Open Sieve"><img src="thumbs/sieve.webp" alt="" loading=lazy width="640" height="400"><video src="previews/sieve.webm" muted loop playsinline preload="none" poster="thumbs/sieve.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -725,10 +774,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/sieve.html" title="Version history on GitHub">v1</a>
           <span>· Dev tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="sieve" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Sieve"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Claude" data-cat="dev" data-date="2026-10-29" data-search="rail type a regular expression and it draws it as a railroad diagram you can read left to right. paste test text to see every match highlighted, tap any box in the diagram to see which characters that part captured, read a plain-english breakdown, and preview a replacement live. rail dev claude">
+    <article class="card" data-engine="Claude" data-cat="dev" data-date="2026-10-29" data-likes="0" data-search="rail type a regular expression and it draws it as a railroad diagram you can read left to right. paste test text to see every match highlighted, tap any box in the diagram to see which characters that part captured, read a plain-english breakdown, and preview a replacement live. rail dev claude">
       <a class="shot" href="p/rail.html" aria-label="Open Rail"><img src="thumbs/rail.webp" alt="" loading=lazy width="640" height="400"><video src="previews/rail.webm" muted loop playsinline preload="none" poster="thumbs/rail.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -741,10 +791,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/rail.html" title="Version history on GitHub">v1</a>
           <span>· Dev tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="rail" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Rail"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Gemini" data-cat="tool" data-date="2026-10-29" data-search="docuforge lay out a one-page document on a canvas: drag text blocks into place, edit their text and size, fill in template variables like client, invoice number and total that substitute into any block that references them, then print it to pdf. save the layout as json. docuforge tool gemini">
+    <article class="card" data-engine="Gemini" data-cat="tool" data-date="2026-10-29" data-likes="0" data-search="docuforge lay out a one-page document on a canvas: drag text blocks into place, edit their text and size, fill in template variables like client, invoice number and total that substitute into any block that references them, then print it to pdf. save the layout as json. docuforge tool gemini">
       <a class="shot" href="p/docuforge.html" aria-label="Open DocuForge"><img src="thumbs/docuforge.webp" alt="" loading=lazy width="640" height="400"><video src="previews/docuforge.webm" muted loop playsinline preload="none" poster="thumbs/docuforge.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -757,10 +808,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/docuforge.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="docuforge" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like DocuForge"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="ChatGPT" data-cat="tool" data-date="2026-10-29" data-search="launchstamp enter one destination url and a campaign name, add a placement for each place the link will appear (newsletter, social post, partner email), and it builds the utm-tagged url for every placement, shows the anatomy of each, flags two placements that would produce the same link, and copies or exports the set as a launch sheet. launchstamp tool chatgpt">
+    <article class="card" data-engine="ChatGPT" data-cat="tool" data-date="2026-10-29" data-likes="0" data-search="launchstamp enter one destination url and a campaign name, add a placement for each place the link will appear (newsletter, social post, partner email), and it builds the utm-tagged url for every placement, shows the anatomy of each, flags two placements that would produce the same link, and copies or exports the set as a launch sheet. launchstamp tool chatgpt">
       <a class="shot" href="p/launchstamp.html" aria-label="Open Launchstamp"><img src="thumbs/launchstamp.webp" alt="" loading=lazy width="640" height="400"><video src="previews/launchstamp.webm" muted loop playsinline preload="none" poster="thumbs/launchstamp.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -773,10 +825,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/launchstamp.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="launchstamp" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Launchstamp"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="ChatGPT" data-cat="focus" data-date="2026-10-29" data-search="next touch a small follow-up desk: add the people you want to stay in touch with, give each a next action and a date, and it sorts them into due, later and undated. after you talk to someone, log the touch with a note and pick the next step; the history stays with that person. save and reopen as json. next-touch focus chatgpt">
+    <article class="card" data-engine="ChatGPT" data-cat="focus" data-date="2026-10-29" data-likes="0" data-search="next touch a small follow-up desk: add the people you want to stay in touch with, give each a next action and a date, and it sorts them into due, later and undated. after you talk to someone, log the touch with a note and pick the next step; the history stays with that person. save and reopen as json. next-touch focus chatgpt">
       <a class="shot" href="p/next-touch.html" aria-label="Open Next Touch"><img src="thumbs/next-touch.webp" alt="" loading=lazy width="640" height="400"><video src="previews/next-touch.webm" muted loop playsinline preload="none" poster="thumbs/next-touch.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -789,10 +842,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/next-touch.html" title="Version history on GitHub">v1</a>
           <span>· Focus</span>
+          <span class="acts"><button class="like" type="button" data-slug="next-touch" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Next Touch"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Muse" data-cat="text" data-date="2026-10-29" data-search="outline builder pick a template (consulting proposal, statement of work or project brief), tick sections on or off, rename and reorder them or add your own, and it writes a numbered outline in a live preview you can copy or download as markdown, text or json. outline-builder text muse">
+    <article class="card" data-engine="Muse" data-cat="text" data-date="2026-10-29" data-likes="0" data-search="outline builder pick a template (consulting proposal, statement of work or project brief), tick sections on or off, rename and reorder them or add your own, and it writes a numbered outline in a live preview you can copy or download as markdown, text or json. outline-builder text muse">
       <a class="shot" href="p/outline-builder.html" aria-label="Open Outline Builder"><img src="thumbs/outline-builder.webp" alt="" loading=lazy width="640" height="400"><video src="previews/outline-builder.webm" muted loop playsinline preload="none" poster="thumbs/outline-builder.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -805,10 +859,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/outline-builder.html" title="Version history on GitHub">v1</a>
           <span>· Text</span>
+          <span class="acts"><button class="like" type="button" data-slug="outline-builder" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Outline Builder"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Muse" data-cat="edu" data-date="2026-10-29" data-search="phish spotter a deck of fourteen made-up emails, texts and chat messages. swipe or press a button to call each one phish or legit, and after every verdict it tells you the tells you should have spotted (lookalike domains, urgency, odd requests) and keeps your score and streak. phish-spotter edu muse">
+    <article class="card" data-engine="Muse" data-cat="edu" data-date="2026-10-29" data-likes="0" data-search="phish spotter a deck of fourteen made-up emails, texts and chat messages. swipe or press a button to call each one phish or legit, and after every verdict it tells you the tells you should have spotted (lookalike domains, urgency, odd requests) and keeps your score and streak. phish-spotter edu muse">
       <a class="shot" href="p/phish-spotter.html" aria-label="Open Phish Spotter"><img src="thumbs/phish-spotter.webp" alt="" loading=lazy width="640" height="400"><video src="previews/phish-spotter.webm" muted loop playsinline preload="none" poster="thumbs/phish-spotter.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -821,10 +876,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/phish-spotter.html" title="Version history on GitHub">v1</a>
           <span>· Explainers</span>
+          <span class="acts"><button class="like" type="button" data-slug="phish-spotter" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Phish Spotter"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Claude" data-cat="tool" data-date="2026-10-28" data-search="veil paste text with secrets or personal details in it, and every key, token, card number, email, ip, phone and name you list is swapped for a consistent placeholder so you can share it safely. paste the reply back and restore puts the originals in. toggle categories with a click; save the session as json. veil tool claude">
+    <article class="card" data-engine="Claude" data-cat="tool" data-date="2026-10-28" data-likes="0" data-search="veil paste text with secrets or personal details in it, and every key, token, card number, email, ip, phone and name you list is swapped for a consistent placeholder so you can share it safely. paste the reply back and restore puts the originals in. toggle categories with a click; save the session as json. veil tool claude">
       <a class="shot" href="p/veil.html" aria-label="Open Veil"><img src="thumbs/veil.webp" alt="" loading=lazy width="640" height="400"><video src="previews/veil.webm" muted loop playsinline preload="none" poster="thumbs/veil.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -837,10 +893,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/veil.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="veil" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Veil"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Claude" data-cat="tool" data-date="2026-10-28" data-search="crux type a project plan one task per line with optimistic-likely-pessimistic durations and dependencies, and it draws the gantt chart, marks the critical path, and simulates the schedule thousands of times to show how likely each finish date really is. tap a task for its float and risk; save or reopen plans as json. crux tool claude">
+    <article class="card" data-engine="Claude" data-cat="tool" data-date="2026-10-28" data-likes="0" data-search="crux type a project plan one task per line with optimistic-likely-pessimistic durations and dependencies, and it draws the gantt chart, marks the critical path, and simulates the schedule thousands of times to show how likely each finish date really is. tap a task for its float and risk; save or reopen plans as json. crux tool claude">
       <a class="shot" href="p/crux.html" aria-label="Open Crux"><img src="thumbs/crux.webp" alt="" loading=lazy width="640" height="400"><video src="previews/crux.webm" muted loop playsinline preload="none" poster="thumbs/crux.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -853,10 +910,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/crux.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="crux" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Crux"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Grok" data-cat="tool" data-date="2026-10-28" data-search="dealforge a sales pipeline board: drag deal cards between stages from lead to closed, click one to edit its value, probability, close date and next action, and watch the total and probability-weighted forecast update. search filters the board; save or open the pipeline as json. dealforge tool grok">
+    <article class="card" data-engine="Grok" data-cat="tool" data-date="2026-10-28" data-likes="0" data-search="dealforge a sales pipeline board: drag deal cards between stages from lead to closed, click one to edit its value, probability, close date and next action, and watch the total and probability-weighted forecast update. search filters the board; save or open the pipeline as json. dealforge tool grok">
       <a class="shot" href="p/dealforge.html" aria-label="Open DealForge"><img src="thumbs/dealforge.webp" alt="" loading=lazy width="640" height="400"><video src="previews/dealforge.webm" muted loop playsinline preload="none" poster="thumbs/dealforge.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -869,10 +927,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/dealforge.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="dealforge" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like DealForge"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Claude" data-cat="dev" data-date="2026-10-28" data-search="prism paste any sql and it parses it in the browser and shows the query&#x27;s shape from seven angles: a dataflow diagram, join fan-out analysis, where and case logic as trees, execution steps in order, column lineage, lint findings with one-click fixes, and a clause outline. format or transform the query, then save the session as json. prism dev claude">
+    <article class="card" data-engine="Claude" data-cat="dev" data-date="2026-10-28" data-likes="0" data-search="prism paste any sql and it parses it in the browser and shows the query&#x27;s shape from seven angles: a dataflow diagram, join fan-out analysis, where and case logic as trees, execution steps in order, column lineage, lint findings with one-click fixes, and a clause outline. format or transform the query, then save the session as json. prism dev claude">
       <a class="shot" href="p/prism.html" aria-label="Open Prism"><img src="thumbs/prism.webp" alt="" loading=lazy width="640" height="400"><video src="previews/prism.webm" muted loop playsinline preload="none" poster="thumbs/prism.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -885,10 +944,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/prism.html" title="Version history on GitHub">v1</a>
           <span>· Dev tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="prism" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Prism"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="ChatGPT" data-cat="dev" data-date="2026-10-28" data-search="logglass paste or open an application log and it parses each line&#x27;s level, timestamp and message, counts severities, maps where the noise clusters along the file, and groups recurring messages into patterns. filter by level, text or region, pin the useful lines, add notes, and copy a brief for a handoff; save or reopen the investigation as json. logglass dev chatgpt">
+    <article class="card" data-engine="ChatGPT" data-cat="dev" data-date="2026-10-28" data-likes="0" data-search="logglass paste or open an application log and it parses each line&#x27;s level, timestamp and message, counts severities, maps where the noise clusters along the file, and groups recurring messages into patterns. filter by level, text or region, pin the useful lines, add notes, and copy a brief for a handoff; save or reopen the investigation as json. logglass dev chatgpt">
       <a class="shot" href="p/logglass.html" aria-label="Open Logglass"><img src="thumbs/logglass.webp" alt="" loading=lazy width="640" height="400"><video src="previews/logglass.webm" muted loop playsinline preload="none" poster="thumbs/logglass.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -901,10 +961,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/logglass.html" title="Version history on GitHub">v1</a>
           <span>· Dev tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="logglass" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Logglass"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Muse" data-cat="tool" data-date="2026-10-27" data-search="meeting meter set attendees, hourly cost and planned length with three sliders, then start the timer and watch the running cost of the meeting climb by the second. presets for standups and all-hands; save or reload the setup as json. meeting-meter tool muse">
+    <article class="card" data-engine="Muse" data-cat="tool" data-date="2026-10-27" data-likes="0" data-search="meeting meter set attendees, hourly cost and planned length with three sliders, then start the timer and watch the running cost of the meeting climb by the second. presets for standups and all-hands; save or reload the setup as json. meeting-meter tool muse">
       <a class="shot" href="p/meeting-meter.html" aria-label="Open Meeting Meter"><img src="thumbs/meeting-meter.webp" alt="" loading=lazy width="640" height="400"><video src="previews/meeting-meter.webm" muted loop playsinline preload="none" poster="thumbs/meeting-meter.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -917,10 +978,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/meeting-meter.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="meeting-meter" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Meeting Meter"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Gemini" data-cat="tool" data-date="2026-10-27" data-search="kanbanflow a deal pipeline board. drag cards between lead, contacted, proposal, negotiation and won; each deal carries a value and win probability, and the bar on top keeps total, weighted forecast and won value current. save and reopen the board as json. pipeline tool gemini">
+    <article class="card" data-engine="Gemini" data-cat="tool" data-date="2026-10-27" data-likes="0" data-search="kanbanflow a deal pipeline board. drag cards between lead, contacted, proposal, negotiation and won; each deal carries a value and win probability, and the bar on top keeps total, weighted forecast and won value current. save and reopen the board as json. pipeline tool gemini">
       <a class="shot" href="p/pipeline.html" aria-label="Open KanbanFlow"><img src="thumbs/pipeline.webp" alt="" loading=lazy width="640" height="400"><video src="previews/pipeline.webm" muted loop playsinline preload="none" poster="thumbs/pipeline.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -933,10 +995,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/pipeline.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="pipeline" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like KanbanFlow"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="ChatGPT" data-cat="text" data-date="2026-10-27" data-search="revision room paste a before and after draft and compare them: a word-level redline shows what was removed and added, with counts and next/previous jumps between changes. swap drafts, copy the notes, or save the session as json. revision-room text chatgpt">
+    <article class="card" data-engine="ChatGPT" data-cat="text" data-date="2026-10-27" data-likes="0" data-search="revision room paste a before and after draft and compare them: a word-level redline shows what was removed and added, with counts and next/previous jumps between changes. swap drafts, copy the notes, or save the session as json. revision-room text chatgpt">
       <a class="shot" href="p/revision-room.html" aria-label="Open Revision Room"><img src="thumbs/revision-room.webp" alt="" loading=lazy width="640" height="400"><video src="previews/revision-room.webm" muted loop playsinline preload="none" poster="thumbs/revision-room.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -949,10 +1012,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/revision-room.html" title="Version history on GitHub">v1</a>
           <span>· Text</span>
+          <span class="acts"><button class="like" type="button" data-slug="revision-room" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Revision Room"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Gemini" data-cat="audio" data-date="2026-10-26" data-search="chromawave a synthesizer in the browser. play the keys a to k, pick a waveform, turn the filter and delay knobs, and watch the waveform draw itself as it sounds. chromawave audio gemini">
+    <article class="card" data-engine="Gemini" data-cat="audio" data-date="2026-10-26" data-likes="0" data-search="chromawave a synthesizer in the browser. play the keys a to k, pick a waveform, turn the filter and delay knobs, and watch the waveform draw itself as it sounds. chromawave audio gemini">
       <a class="shot" href="p/chromawave.html" aria-label="Open ChromaWave"><img src="thumbs/chromawave.webp" alt="" loading=lazy width="640" height="400"><video src="previews/chromawave.webm" muted loop playsinline preload="none" poster="thumbs/chromawave.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -965,10 +1029,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/chromawave.html" title="Version history on GitHub">v1</a>
           <span>· Audio</span>
+          <span class="acts"><button class="like" type="button" data-slug="chromawave" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like ChromaWave"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Claude" data-cat="sim" data-date="2026-10-26" data-search="orrery the solar system from above and the sky overhead, computed from orbital elements. scrub time forward or back, pick a city, and click any body for its position, phase and rise and set times. orrery-calude sim claude">
+    <article class="card" data-engine="Claude" data-cat="sim" data-date="2026-10-26" data-likes="0" data-search="orrery the solar system from above and the sky overhead, computed from orbital elements. scrub time forward or back, pick a city, and click any body for its position, phase and rise and set times. orrery-calude sim claude">
       <a class="shot" href="p/orrery-calude.html" aria-label="Open Orrery"><img src="thumbs/orrery-calude.webp" alt="" loading=lazy width="640" height="400"><video src="previews/orrery-calude.webm" muted loop playsinline preload="none" poster="thumbs/orrery-calude.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -981,10 +1046,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/orrery-calude.html" title="Version history on GitHub">v1</a>
           <span>· Simulations</span>
+          <span class="acts"><button class="like" type="button" data-slug="orrery-calude" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Orrery"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Muse" data-cat="text" data-date="2026-10-26" data-search="tidy text paste messy copied text and clean copy appears beside it. toggle the rules: join wrapped lines, collapse blanks, fix double spaces, straighten quotes. copy or download the result. tidytext text muse">
+    <article class="card" data-engine="Muse" data-cat="text" data-date="2026-10-26" data-likes="0" data-search="tidy text paste messy copied text and clean copy appears beside it. toggle the rules: join wrapped lines, collapse blanks, fix double spaces, straighten quotes. copy or download the result. tidytext text muse">
       <a class="shot" href="p/tidytext.html" aria-label="Open Tidy Text"><img src="thumbs/tidytext.webp" alt="" loading=lazy width="640" height="400"><video src="previews/tidytext.webm" muted loop playsinline preload="none" poster="thumbs/tidytext.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -997,10 +1063,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/tidytext.html" title="Version history on GitHub">v1</a>
           <span>· Text</span>
+          <span class="acts"><button class="like" type="button" data-slug="tidytext" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Tidy Text"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Grok" data-cat="art" data-date="2026-10-26" data-search="turtleloom turtle graphics with live sliders. drag repeats, sides, turn step and hue and the pattern redraws as you go; edit the generated commands to go further, then save a png. turtleloom art grok">
+    <article class="card" data-engine="Grok" data-cat="art" data-date="2026-10-26" data-likes="0" data-search="turtleloom turtle graphics with live sliders. drag repeats, sides, turn step and hue and the pattern redraws as you go; edit the generated commands to go further, then save a png. turtleloom art grok">
       <a class="shot" href="p/turtleloom.html" aria-label="Open TurtleLoom"><img src="thumbs/turtleloom.webp" alt="" loading=lazy width="640" height="400"><video src="previews/turtleloom.webm" muted loop playsinline preload="none" poster="thumbs/turtleloom.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1013,10 +1080,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/turtleloom.html" title="Version history on GitHub">v1</a>
           <span>· Generative art</span>
+          <span class="acts"><button class="like" type="button" data-slug="turtleloom" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like TurtleLoom"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="ChatGPT" data-cat="tool" data-date="2026-10-26" data-search="backplan plan backward from a deadline. set the finish time, list the steps with their minutes and prerequisites, and it works out the latest you can start and which steps have no slack. backplan tool chatgpt">
+    <article class="card" data-engine="ChatGPT" data-cat="tool" data-date="2026-10-26" data-likes="0" data-search="backplan plan backward from a deadline. set the finish time, list the steps with their minutes and prerequisites, and it works out the latest you can start and which steps have no slack. backplan tool chatgpt">
       <a class="shot" href="p/backplan.html" aria-label="Open Backplan"><img src="thumbs/backplan.webp" alt="" loading=lazy width="640" height="400"><video src="previews/backplan.webm" muted loop playsinline preload="none" poster="thumbs/backplan.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1029,10 +1097,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/backplan.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="backplan" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Backplan"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Claude" data-cat="image" data-date="2026-10-25" data-search="carve content-aware image resizing. drag an edge and the picture shrinks by removing its least interesting paths, so subjects stay intact. paint over an object and delete it. carve image claude">
+    <article class="card" data-engine="Claude" data-cat="image" data-date="2026-10-25" data-likes="0" data-search="carve content-aware image resizing. drag an edge and the picture shrinks by removing its least interesting paths, so subjects stay intact. paint over an object and delete it. carve image claude">
       <a class="shot" href="p/carve.html" aria-label="Open Carve"><img src="thumbs/carve.webp" alt="" loading=lazy width="640" height="400"><video src="previews/carve.webm" muted loop playsinline preload="none" poster="thumbs/carve.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1045,10 +1114,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/carve.html" title="Version history on GitHub">v1</a>
           <span>· Image</span>
+          <span class="acts"><button class="like" type="button" data-slug="carve" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Carve"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Muse" data-cat="finance" data-date="2026-10-25" data-search="budget projected income and expenses on one page, offline. enter anything weekly, monthly or yearly and it normalizes to a monthly view. budget finance muse">
+    <article class="card" data-engine="Muse" data-cat="finance" data-date="2026-10-25" data-likes="0" data-search="budget projected income and expenses on one page, offline. enter anything weekly, monthly or yearly and it normalizes to a monthly view. budget finance muse">
       <a class="shot" href="p/budget.html" aria-label="Open Budget"><img src="thumbs/budget.webp" alt="" loading=lazy width="640" height="400"><video src="previews/budget.webm" muted loop playsinline preload="none" poster="thumbs/budget.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1061,10 +1131,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/budget.html" title="Version history on GitHub">v1</a>
           <span>· Finance</span>
+          <span class="acts"><button class="like" type="button" data-slug="budget" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Budget"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Claude" data-cat="dev" data-date="2026-10-25" data-search="hilbert see the shape of any file. every byte is laid along a hilbert curve, so headers, text, compressed streams and padding each get their own texture. hilbert dev claude">
+    <article class="card" data-engine="Claude" data-cat="dev" data-date="2026-10-25" data-likes="0" data-search="hilbert see the shape of any file. every byte is laid along a hilbert curve, so headers, text, compressed streams and padding each get their own texture. hilbert dev claude">
       <a class="shot" href="p/hilbert.html" aria-label="Open Hilbert"><img src="thumbs/hilbert.webp" alt="" loading=lazy width="640" height="400"><video src="previews/hilbert.webm" muted loop playsinline preload="none" poster="thumbs/hilbert.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1077,10 +1148,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/hilbert.html" title="Version history on GitHub">v1</a>
           <span>· Dev tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="hilbert" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Hilbert"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Claude" data-cat="art" data-date="2026-10-25" data-search="tessera an escher-style tiling editor. shape one tile and the plane re-tiles itself with no gaps or overlaps. tessera art claude">
+    <article class="card" data-engine="Claude" data-cat="art" data-date="2026-10-25" data-likes="0" data-search="tessera an escher-style tiling editor. shape one tile and the plane re-tiles itself with no gaps or overlaps. tessera art claude">
       <a class="shot" href="p/tessera.html" aria-label="Open Tessera"><img src="thumbs/tessera.webp" alt="" loading=lazy width="640" height="400"><video src="previews/tessera.webm" muted loop playsinline preload="none" poster="thumbs/tessera.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1093,10 +1165,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/tessera.html" title="Version history on GitHub">v1</a>
           <span>· Generative art</span>
+          <span class="acts"><button class="like" type="button" data-slug="tessera" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Tessera"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="ChatGPT" data-cat="image" data-date="2026-10-25" data-search="chroma desk a small studio for everyday color. drop a photo, pull a palette out of it, then edit and export the swatches. chroma-desk image chatgpt">
+    <article class="card" data-engine="ChatGPT" data-cat="image" data-date="2026-10-25" data-likes="0" data-search="chroma desk a small studio for everyday color. drop a photo, pull a palette out of it, then edit and export the swatches. chroma-desk image chatgpt">
       <a class="shot" href="p/chroma-desk.html" aria-label="Open Chroma Desk"><img src="thumbs/chroma-desk.webp" alt="" loading=lazy width="640" height="400"><video src="previews/chroma-desk.webm" muted loop playsinline preload="none" poster="thumbs/chroma-desk.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1109,10 +1182,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/chroma-desk.html" title="Version history on GitHub">v1</a>
           <span>· Image</span>
+          <span class="acts"><button class="like" type="button" data-slug="chroma-desk" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Chroma Desk"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Muse" data-cat="tool" data-date="2026-10-25" data-search="dayblock a time-block day planner. drag on the timeline to carve out your day; overlaps are allowed and the totals just add up. dayblock tool muse">
+    <article class="card" data-engine="Muse" data-cat="tool" data-date="2026-10-25" data-likes="0" data-search="dayblock a time-block day planner. drag on the timeline to carve out your day; overlaps are allowed and the totals just add up. dayblock tool muse">
       <a class="shot" href="p/dayblock.html" aria-label="Open Dayblock"><img src="thumbs/dayblock.webp" alt="" loading=lazy width="640" height="400"><video src="previews/dayblock.webm" muted loop playsinline preload="none" poster="thumbs/dayblock.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1125,10 +1199,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/dayblock.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="dayblock" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Dayblock"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Muse" data-cat="tool" data-date="2026-10-25" data-search="pantry clock what&#x27;s expiring first? track what&#x27;s in the fridge, freezer and pantry and tap an item to use it up before it becomes waste. pantry-clock tool muse">
+    <article class="card" data-engine="Muse" data-cat="tool" data-date="2026-10-25" data-likes="0" data-search="pantry clock what&#x27;s expiring first? track what&#x27;s in the fridge, freezer and pantry and tap an item to use it up before it becomes waste. pantry-clock tool muse">
       <a class="shot" href="p/pantry-clock.html" aria-label="Open Pantry Clock"><img src="thumbs/pantry-clock.webp" alt="" loading=lazy width="640" height="400"><video src="previews/pantry-clock.webm" muted loop playsinline preload="none" poster="thumbs/pantry-clock.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1141,10 +1216,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/pantry-clock.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="pantry-clock" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Pantry Clock"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Grok" data-cat="art" data-date="2026-10-25" data-search="aether a cosmic particle weaver. move the mouse to weave, click to plant a star, scroll to change the force; attract, orbit, chaos and paint modes. aether art grok">
+    <article class="card" data-engine="Grok" data-cat="art" data-date="2026-10-25" data-likes="0" data-search="aether a cosmic particle weaver. move the mouse to weave, click to plant a star, scroll to change the force; attract, orbit, chaos and paint modes. aether art grok">
       <a class="shot" href="p/aether.html" aria-label="Open Aether"><img src="thumbs/aether.webp" alt="" loading=lazy width="640" height="400"><video src="previews/aether.webm" muted loop playsinline preload="none" poster="thumbs/aether.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1157,10 +1233,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/aether.html" title="Version history on GitHub">v1</a>
           <span>· Generative art</span>
+          <span class="acts"><button class="like" type="button" data-slug="aether" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Aether"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Grok" data-cat="audio" data-date="2026-10-25" data-search="pulseforge an offline step sequencer. eight tracks from kick to pad, click steps to toggle notes, tempo and randomize on the keyboard. pure web audio. pulseforge audio grok">
+    <article class="card" data-engine="Grok" data-cat="audio" data-date="2026-10-25" data-likes="0" data-search="pulseforge an offline step sequencer. eight tracks from kick to pad, click steps to toggle notes, tempo and randomize on the keyboard. pure web audio. pulseforge audio grok">
       <a class="shot" href="p/pulseforge.html" aria-label="Open PulseForge"><img src="thumbs/pulseforge.webp" alt="" loading=lazy width="640" height="400"><video src="previews/pulseforge.webm" muted loop playsinline preload="none" poster="thumbs/pulseforge.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1173,10 +1250,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/pulseforge.html" title="Version history on GitHub">v1</a>
           <span>· Audio</span>
+          <span class="acts"><button class="like" type="button" data-slug="pulseforge" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like PulseForge"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Gemini" data-cat="focus" data-date="2026-10-25" data-search="cosmic breath a slow particle field that breathes. click to begin, move the cursor to bend its gravity, and let it set your pace. cosmic-breath focus gemini">
+    <article class="card" data-engine="Gemini" data-cat="focus" data-date="2026-10-25" data-likes="0" data-search="cosmic breath a slow particle field that breathes. click to begin, move the cursor to bend its gravity, and let it set your pace. cosmic-breath focus gemini">
       <a class="shot" href="p/cosmic-breath.html" aria-label="Open Cosmic Breath"><img src="thumbs/cosmic-breath.webp" alt="" loading=lazy width="640" height="400"><video src="previews/cosmic-breath.webm" muted loop playsinline preload="none" poster="thumbs/cosmic-breath.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1189,10 +1267,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/cosmic-breath.html" title="Version history on GitHub">v1</a>
           <span>· Focus</span>
+          <span class="acts"><button class="like" type="button" data-slug="cosmic-breath" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Cosmic Breath"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Muse" data-cat="finance" data-date="2026-10-23" data-search="ledger your money on one page, offline. add an entry and the totals, chart and list update at once. nothing leaves the browser. ledger finance muse">
+    <article class="card" data-engine="Muse" data-cat="finance" data-date="2026-10-23" data-likes="0" data-search="ledger your money on one page, offline. add an entry and the totals, chart and list update at once. nothing leaves the browser. ledger finance muse">
       <a class="shot" href="p/ledger.html" aria-label="Open Ledger"><img src="thumbs/ledger.webp" alt="" loading=lazy width="640" height="400"><video src="previews/ledger.webm" muted loop playsinline preload="none" poster="thumbs/ledger.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1205,10 +1284,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/ledger.html" title="Version history on GitHub">v1</a>
           <span>· Finance</span>
+          <span class="acts"><button class="like" type="button" data-slug="ledger" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Ledger"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Muse" data-cat="audio" data-date="2026-10-23" data-search="meadowsong a wind-chime meadow you play by gliding your cursor through it. meadowsong audio muse">
+    <article class="card" data-engine="Muse" data-cat="audio" data-date="2026-10-23" data-likes="0" data-search="meadowsong a wind-chime meadow you play by gliding your cursor through it. meadowsong audio muse">
       <a class="shot" href="p/meadowsong.html" aria-label="Open Meadowsong"><img src="thumbs/meadowsong.webp" alt="" loading=lazy width="640" height="400"><video src="previews/meadowsong.webm" muted loop playsinline preload="none" poster="thumbs/meadowsong.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1221,10 +1301,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/meadowsong.html" title="Version history on GitHub">v1</a>
           <span>· Audio</span>
+          <span class="acts"><button class="like" type="button" data-slug="meadowsong" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Meadowsong"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Claude" data-cat="tool" data-date="2026-10-23" data-search="position press or fold — nothing in between. six crude signals decide whether you have position in a deal, so there is nothing to interpret in the moment. position tool claude">
+    <article class="card" data-engine="Claude" data-cat="tool" data-date="2026-10-23" data-likes="0" data-search="position press or fold — nothing in between. six crude signals decide whether you have position in a deal, so there is nothing to interpret in the moment. position tool claude">
       <a class="shot" href="p/position.html" aria-label="Open Position"><img src="thumbs/position.webp" alt="" loading=lazy width="640" height="400"><video src="previews/position.webm" muted loop playsinline preload="none" poster="thumbs/position.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1237,10 +1318,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/position.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="position" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Position"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="ChatGPT" data-cat="game" data-date="2026-10-23" data-search="crosslight a mirror puzzle. turn the mirrors so every beam reaches its receiver — a small game that rewards a second look. crosslight game chatgpt">
+    <article class="card" data-engine="ChatGPT" data-cat="game" data-date="2026-10-23" data-likes="0" data-search="crosslight a mirror puzzle. turn the mirrors so every beam reaches its receiver — a small game that rewards a second look. crosslight game chatgpt">
       <a class="shot" href="p/crosslight.html" aria-label="Open Crosslight"><img src="thumbs/crosslight.webp" alt="" loading=lazy width="640" height="400"><video src="previews/crosslight.webm" muted loop playsinline preload="none" poster="thumbs/crosslight.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1253,10 +1335,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/crosslight.html" title="Version history on GitHub">v1</a>
           <span>· Games</span>
+          <span class="acts"><button class="like" type="button" data-slug="crosslight" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Crosslight"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Muse" data-cat="art" data-date="2026-10-22" data-search="kaleido draw once, see it eight times. every stroke mirrors around the centre into a mandala. kaleido art muse">
+    <article class="card" data-engine="Muse" data-cat="art" data-date="2026-10-22" data-likes="0" data-search="kaleido draw once, see it eight times. every stroke mirrors around the centre into a mandala. kaleido art muse">
       <a class="shot" href="p/kaleido.html" aria-label="Open Kaleido"><img src="thumbs/kaleido.webp" alt="" loading=lazy width="640" height="400"><video src="previews/kaleido.webm" muted loop playsinline preload="none" poster="thumbs/kaleido.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1269,10 +1352,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/kaleido.html" title="Version history on GitHub">v1</a>
           <span>· Generative art</span>
+          <span class="acts"><button class="like" type="button" data-slug="kaleido" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Kaleido"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Claude" data-cat="audio" data-date="2026-10-22" data-search="sonogram draw a picture; hear it. the canvas is a spectrogram — left to right is time, bottom to top is pitch. sonogram audio claude">
+    <article class="card" data-engine="Claude" data-cat="audio" data-date="2026-10-22" data-likes="0" data-search="sonogram draw a picture; hear it. the canvas is a spectrogram — left to right is time, bottom to top is pitch. sonogram audio claude">
       <a class="shot" href="p/sonogram.html" aria-label="Open Sonogram"><img src="thumbs/sonogram.webp" alt="" loading=lazy width="640" height="400"><video src="previews/sonogram.webm" muted loop playsinline preload="none" poster="thumbs/sonogram.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1285,10 +1369,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/sonogram.html" title="Version history on GitHub">v1</a>
           <span>· Audio</span>
+          <span class="acts"><button class="like" type="button" data-slug="sonogram" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Sonogram"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="ChatGPT" data-cat="tool" data-date="2026-10-22" data-search="tradeoff make room for what matters. rate your options, weigh your priorities, and see the smallest shift that would change your mind. tradeoff tool chatgpt">
+    <article class="card" data-engine="ChatGPT" data-cat="tool" data-date="2026-10-22" data-likes="0" data-search="tradeoff make room for what matters. rate your options, weigh your priorities, and see the smallest shift that would change your mind. tradeoff tool chatgpt">
       <a class="shot" href="p/tradeoff.html" aria-label="Open Tradeoff"><img src="thumbs/tradeoff.webp" alt="" loading=lazy width="640" height="400"><video src="previews/tradeoff.webm" muted loop playsinline preload="none" poster="thumbs/tradeoff.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1301,10 +1386,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/tradeoff.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="tradeoff" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Tradeoff"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="ChatGPT" data-cat="tool" data-date="2026-10-21" data-search="foldwork a tiny paper studio. size an envelope, add a name and a message, print the template and fold it into something real. foldwork tool chatgpt">
+    <article class="card" data-engine="ChatGPT" data-cat="tool" data-date="2026-10-21" data-likes="0" data-search="foldwork a tiny paper studio. size an envelope, add a name and a message, print the template and fold it into something real. foldwork tool chatgpt">
       <a class="shot" href="p/foldwork.html" aria-label="Open Foldwork"><img src="thumbs/foldwork.webp" alt="" loading=lazy width="640" height="400"><video src="previews/foldwork.webm" muted loop playsinline preload="none" poster="thumbs/foldwork.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1317,10 +1403,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/foldwork.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="foldwork" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Foldwork"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Muse" data-cat="art" data-date="2026-10-21" data-search="genesis type anything and it becomes a universe. the same words always produce the same universe, on any machine. genesis-universe art muse">
+    <article class="card" data-engine="Muse" data-cat="art" data-date="2026-10-21" data-likes="0" data-search="genesis type anything and it becomes a universe. the same words always produce the same universe, on any machine. genesis-universe art muse">
       <a class="shot" href="p/genesis-universe.html" aria-label="Open Genesis"><img src="thumbs/genesis-universe.webp" alt="" loading=lazy width="640" height="400"><video src="previews/genesis-universe.webm" muted loop playsinline preload="none" poster="thumbs/genesis-universe.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1333,10 +1420,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/genesis-universe.html" title="Version history on GitHub">v1</a>
           <span>· Generative art</span>
+          <span class="acts"><button class="like" type="button" data-slug="genesis-universe" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Genesis"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Claude" data-cat="tool" data-date="2026-10-21" data-search="reckon a notepad that does math. write naturally; numbers, units, dates and variables compute in the margin. reckon tool claude">
+    <article class="card" data-engine="Claude" data-cat="tool" data-date="2026-10-21" data-likes="0" data-search="reckon a notepad that does math. write naturally; numbers, units, dates and variables compute in the margin. reckon tool claude">
       <a class="shot" href="p/reckon.html" aria-label="Open Reckon"><img src="thumbs/reckon.webp" alt="" loading=lazy width="640" height="400"><video src="previews/reckon.webm" muted loop playsinline preload="none" poster="thumbs/reckon.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1349,10 +1437,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/reckon.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="reckon" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Reckon"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Claude" data-cat="sim" data-date="2026-10-21" data-search="ripple a wave tank you can draw in. walls reflect, glass refracts, and the whole wave equation is ten lines of code. ripple sim claude">
+    <article class="card" data-engine="Claude" data-cat="sim" data-date="2026-10-21" data-likes="0" data-search="ripple a wave tank you can draw in. walls reflect, glass refracts, and the whole wave equation is ten lines of code. ripple sim claude">
       <a class="shot" href="p/ripple.html" aria-label="Open Ripple"><img src="thumbs/ripple.webp" alt="" loading=lazy width="640" height="400"><video src="previews/ripple.webm" muted loop playsinline preload="none" poster="thumbs/ripple.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1365,10 +1454,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/ripple.html" title="Version history on GitHub">v1</a>
           <span>· Simulations</span>
+          <span class="acts"><button class="like" type="button" data-slug="ripple" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Ripple"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Muse" data-cat="art" data-date="2026-10-21" data-search="sprout a tiny garden you grow by clicking. every plant is different; rain makes them grow faster. sprout-garden art muse">
+    <article class="card" data-engine="Muse" data-cat="art" data-date="2026-10-21" data-likes="0" data-search="sprout a tiny garden you grow by clicking. every plant is different; rain makes them grow faster. sprout-garden art muse">
       <a class="shot" href="p/sprout-garden.html" aria-label="Open Sprout"><img src="thumbs/sprout-garden.webp" alt="" loading=lazy width="640" height="400"><video src="previews/sprout-garden.webm" muted loop playsinline preload="none" poster="thumbs/sprout-garden.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1381,10 +1471,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/sprout-garden.html" title="Version history on GitHub">v1</a>
           <span>· Generative art</span>
+          <span class="acts"><button class="like" type="button" data-slug="sprout-garden" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Sprout"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="ChatGPT" data-cat="focus" data-date="2026-10-21" data-search="stillpoint a little space to focus. plant a star, shape a soundscape, make room for one thing. stillpoint focus chatgpt">
+    <article class="card" data-engine="ChatGPT" data-cat="focus" data-date="2026-10-21" data-likes="0" data-search="stillpoint a little space to focus. plant a star, shape a soundscape, make room for one thing. stillpoint focus chatgpt">
       <a class="shot" href="p/stillpoint.html" aria-label="Open Stillpoint"><img src="thumbs/stillpoint.webp" alt="" loading=lazy width="640" height="400"><video src="previews/stillpoint.webm" muted loop playsinline preload="none" poster="thumbs/stillpoint.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1397,10 +1488,11 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/stillpoint.html" title="Version history on GitHub">v1</a>
           <span>· Focus</span>
+          <span class="acts"><button class="like" type="button" data-slug="stillpoint" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Stillpoint"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Claude" data-cat="tool" data-date="2026-10-05" data-search="label sheets paste a list of names, pick a label size and paper, and print a sheet where every name is set as large as it fits. labelmaker tool claude">
+    <article class="card" data-engine="Claude" data-cat="tool" data-date="2026-10-05" data-likes="0" data-search="label sheets paste a list of names, pick a label size and paper, and print a sheet where every name is set as large as it fits. labelmaker tool claude">
       <a class="shot" href="p/labelmaker.html" aria-label="Open Label sheets"><img src="thumbs/labelmaker.webp" alt="" loading=lazy width="640" height="400"><video src="previews/labelmaker.webm" muted loop playsinline preload="none" poster="thumbs/labelmaker.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1413,6 +1505,7 @@ footer a{text-decoration:underline}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/labelmaker.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
+          <span class="acts"><button class="like" type="button" data-slug="labelmaker" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Label sheets"><i aria-hidden="true">♥</i><b>0</b></button></span>
         </div>
       </div>
     </article>
@@ -1436,6 +1529,13 @@ function press(group,b){ group.forEach(x=>x.setAttribute('aria-pressed',x===b));
 const eng=[...document.querySelectorAll('.engines button')], cts=[...document.querySelectorAll('.cats button')];
 eng.forEach(b=>b.addEventListener('click',()=>{engine=b.dataset.filter;press(eng,b);apply();}));
 cts.forEach(b=>b.addEventListener('click',()=>{cat=(cat===b.dataset.cat?'all':b.dataset.cat);press(cts,cat==='all'?null:b);apply();}));
+const srt=[...document.querySelectorAll('.sort button')];
+srt.forEach(b=>b.addEventListener('click',()=>{
+  press(srt,b);
+  const byDate=(a,c)=>c.dataset.date.localeCompare(a.dataset.date);
+  const by=b.dataset.sort==='top' ? (a,c)=>(+c.dataset.likes-(+a.dataset.likes))||byDate(a,c) : byDate;
+  [...cards].sort(by).forEach(c=>grid.appendChild(c));
+}));
 q.addEventListener('input',apply);
 document.addEventListener('keydown',e=>{ if(e.key==='/'&&document.activeElement!==q){e.preventDefault();q.focus();} if(e.key==='Escape'&&document.activeElement===q){q.value='';apply();} });
 document.querySelectorAll('.card').forEach(c=>{
@@ -1443,6 +1543,45 @@ document.querySelectorAll('.card').forEach(c=>{
   c.addEventListener('mouseenter',()=>{ if(v.preload==='none'){v.preload='auto';v.load();} v.play().then(()=>v.classList.add('ready')).catch(()=>{}); });
   c.addEventListener('mouseleave',()=>{ v.pause(); v.classList.remove('ready'); });
 });
+
+(function(){
+  // Likes are counted by Abacus (abacus.jasoncameron.dev), one counter per app. No account, no cookies;
+  // this browser remembers what it liked in localStorage. Counts baked into the page are the last snapshot.
+  const API='https://abacus.jasoncameron.dev', NS='trez63.com';
+  const store=(s)=>({get(k){try{return s.getItem(k)}catch(e){return null}},set(k,v){try{s.setItem(k,v)}catch(e){}}});
+  const ls=store(window.localStorage), ss=store(window.sessionStorage);
+  const btns=[...document.querySelectorAll('button.like')];
+  const put=(b,n)=>{ b.dataset.n=n; b.querySelector('b').textContent=n; const c=b.closest('.card'); if(c) c.dataset.likes=n; };
+  const raise=(b,n)=>{ if(n>(+b.dataset.n||0)) put(b,n); };
+  const mark=(b,on)=>{ b.classList.toggle('on',on); b.setAttribute('aria-pressed',on); b.title=on?'You liked this':'Like this app'; };
+  btns.forEach(b=>{
+    const slug=b.dataset.slug;
+    if(ls.get('liked:'+slug)) mark(b,true);
+    b.addEventListener('click',async ev=>{
+      ev.preventDefault(); ev.stopPropagation();
+      if(b.classList.contains('on')||b.dataset.busy) return;
+      const before=+b.dataset.n||0; b.dataset.busy=1; mark(b,true); put(b,before+1);
+      try{
+        const r=await fetch(API+'/hit/'+NS+'/'+slug); if(!r.ok) throw 0;
+        const j=await r.json(); ls.set('liked:'+slug,'1'); raise(b,+j.value||0); ss.set('likes:'+slug,b.dataset.n+'|'+Date.now());
+      }catch(e){ mark(b,false); put(b,before); }
+      delete b.dataset.busy;
+    });
+  });
+  // Refresh counts for what is on screen, one request every 400ms (the service allows 30 per 10s per visitor).
+  const queue=[], seen=new Set();
+  const want=b=>{ const slug=b.dataset.slug; if(seen.has(slug)) return; seen.add(slug);
+    const c=(ss.get('likes:'+slug)||'').split('|'); if(c[1] && Date.now()-c[1]<600000){ raise(b,+c[0]||0); return; }
+    queue.push(b); };
+  setInterval(async()=>{ const b=queue.shift(); if(!b) return;
+    try{ const r=await fetch(API+'/get/'+NS+'/'+b.dataset.slug); const n=r.ok?(+(await r.json()).value||0):0;
+      if(r.ok||r.status===404){ raise(b,n); ss.set('likes:'+b.dataset.slug,b.dataset.n+'|'+Date.now()); } }catch(e){}
+  },400);
+  if('IntersectionObserver' in window){
+    const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ want(e.target); io.unobserve(e.target); } }),{rootMargin:'200px'});
+    btns.forEach(b=>io.observe(b));
+  } else btns.slice(0,12).forEach(want);
+})();
 </script>
 </body>
 </html>

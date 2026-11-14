@@ -35,6 +35,15 @@ body{display:flex;flex-direction:column;background:var(--bg);color:var(--fg);fon
 iframe{flex:1;border:0;width:100%;background:#fff}
 @media (max-width:640px){.desc,.raw{display:none}}
 
+button.like{font:700 11px Arial,Helvetica,sans-serif;display:inline-flex;align-items:center;gap:5px;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--fg);border-radius:6px;padding:5px 9px;white-space:nowrap;line-height:1}
+button.like i{font-style:normal;font-size:13px;line-height:1;color:var(--mute)}
+button.like b{font-variant-numeric:tabular-nums;min-width:1ch;text-align:right}
+button.like:hover{border-color:var(--acc)}
+button.like:hover i{color:var(--acc)}
+button.like:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+button.like.on{background:var(--acc-soft,#eef2ff);border-color:var(--acc);color:var(--acc);cursor:default}
+button.like.on i{color:var(--acc)}
+
 </style>
 </head>
 <body>
@@ -44,7 +53,48 @@ iframe{flex:1;border:0;width:100%;background:#fff}
   <span class="badge claude">Claude</span>
   <span class="desc">See the shape of any file. Every byte is laid along a Hilbert curve, so headers, text, compressed streams and padding each get their own texture.</span>
   <a class="raw" href="../apps/hilbert.html" title="Open the app on its own, full window">open raw ↗</a>
+  <button class="like" type="button" data-slug="hilbert" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Hilbert"><i aria-hidden="true">♥</i><b>0</b></button>
 </div>
 <iframe src="../apps/hilbert.html" title="Hilbert" allow="clipboard-write; fullscreen; autoplay" allowfullscreen></iframe>
+<script>
+(function(){
+  // Likes are counted by Abacus (abacus.jasoncameron.dev), one counter per app. No account, no cookies;
+  // this browser remembers what it liked in localStorage. Counts baked into the page are the last snapshot.
+  const API='https://abacus.jasoncameron.dev', NS='trez63.com';
+  const store=(s)=>({get(k){try{return s.getItem(k)}catch(e){return null}},set(k,v){try{s.setItem(k,v)}catch(e){}}});
+  const ls=store(window.localStorage), ss=store(window.sessionStorage);
+  const btns=[...document.querySelectorAll('button.like')];
+  const put=(b,n)=>{ b.dataset.n=n; b.querySelector('b').textContent=n; const c=b.closest('.card'); if(c) c.dataset.likes=n; };
+  const raise=(b,n)=>{ if(n>(+b.dataset.n||0)) put(b,n); };
+  const mark=(b,on)=>{ b.classList.toggle('on',on); b.setAttribute('aria-pressed',on); b.title=on?'You liked this':'Like this app'; };
+  btns.forEach(b=>{
+    const slug=b.dataset.slug;
+    if(ls.get('liked:'+slug)) mark(b,true);
+    b.addEventListener('click',async ev=>{
+      ev.preventDefault(); ev.stopPropagation();
+      if(b.classList.contains('on')||b.dataset.busy) return;
+      const before=+b.dataset.n||0; b.dataset.busy=1; mark(b,true); put(b,before+1);
+      try{
+        const r=await fetch(API+'/hit/'+NS+'/'+slug); if(!r.ok) throw 0;
+        const j=await r.json(); ls.set('liked:'+slug,'1'); raise(b,+j.value||0); ss.set('likes:'+slug,b.dataset.n+'|'+Date.now());
+      }catch(e){ mark(b,false); put(b,before); }
+      delete b.dataset.busy;
+    });
+  });
+  // Refresh counts for what is on screen, one request every 400ms (the service allows 30 per 10s per visitor).
+  const queue=[], seen=new Set();
+  const want=b=>{ const slug=b.dataset.slug; if(seen.has(slug)) return; seen.add(slug);
+    const c=(ss.get('likes:'+slug)||'').split('|'); if(c[1] && Date.now()-c[1]<600000){ raise(b,+c[0]||0); return; }
+    queue.push(b); };
+  setInterval(async()=>{ const b=queue.shift(); if(!b) return;
+    try{ const r=await fetch(API+'/get/'+NS+'/'+b.dataset.slug); const n=r.ok?(+(await r.json()).value||0):0;
+      if(r.ok||r.status===404){ raise(b,n); ss.set('likes:'+b.dataset.slug,b.dataset.n+'|'+Date.now()); } }catch(e){}
+  },400);
+  if('IntersectionObserver' in window){
+    const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ want(e.target); io.unobserve(e.target); } }),{rootMargin:'200px'});
+    btns.forEach(b=>io.observe(b));
+  } else btns.slice(0,12).forEach(want);
+})();
+</script>
 </body>
 </html>

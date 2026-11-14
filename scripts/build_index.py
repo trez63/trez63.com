@@ -18,8 +18,56 @@ ENGINE_CLASS = {"Claude": "claude", "ChatGPT": "chatgpt", "Muse": "muse", "Gemin
 WORDS = {2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight"}
 CAT_LABEL = {"tool": "Tools", "art": "Generative art", "game": "Games", "audio": "Audio", "sim": "Simulations",
              "image": "Image", "finance": "Finance", "dev": "Dev tools", "focus": "Focus", "text": "Text", "edu": "Explainers"}
-SHARE_CSS = ""
-SHARE_JS = ""
+LIKE_CSS = """
+button.like{font:700 11px Arial,Helvetica,sans-serif;display:inline-flex;align-items:center;gap:5px;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--fg);border-radius:6px;padding:5px 9px;white-space:nowrap;line-height:1}
+button.like i{font-style:normal;font-size:13px;line-height:1;color:var(--mute)}
+button.like b{font-variant-numeric:tabular-nums;min-width:1ch;text-align:right}
+button.like:hover{border-color:var(--acc)}
+button.like:hover i{color:var(--acc)}
+button.like:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+button.like.on{background:var(--acc-soft,#eef2ff);border-color:var(--acc);color:var(--acc);cursor:default}
+button.like.on i{color:var(--acc)}
+"""
+LIKE_JS = """
+(function(){
+  // Likes are counted by Abacus (abacus.jasoncameron.dev), one counter per app. No account, no cookies;
+  // this browser remembers what it liked in localStorage. Counts baked into the page are the last snapshot.
+  const API='https://abacus.jasoncameron.dev', NS='trez63.com';
+  const store=(s)=>({get(k){try{return s.getItem(k)}catch(e){return null}},set(k,v){try{s.setItem(k,v)}catch(e){}}});
+  const ls=store(window.localStorage), ss=store(window.sessionStorage);
+  const btns=[...document.querySelectorAll('button.like')];
+  const put=(b,n)=>{ b.dataset.n=n; b.querySelector('b').textContent=n; const c=b.closest('.card'); if(c) c.dataset.likes=n; };
+  const raise=(b,n)=>{ if(n>(+b.dataset.n||0)) put(b,n); };
+  const mark=(b,on)=>{ b.classList.toggle('on',on); b.setAttribute('aria-pressed',on); b.title=on?'You liked this':'Like this app'; };
+  btns.forEach(b=>{
+    const slug=b.dataset.slug;
+    if(ls.get('liked:'+slug)) mark(b,true);
+    b.addEventListener('click',async ev=>{
+      ev.preventDefault(); ev.stopPropagation();
+      if(b.classList.contains('on')||b.dataset.busy) return;
+      const before=+b.dataset.n||0; b.dataset.busy=1; mark(b,true); put(b,before+1);
+      try{
+        const r=await fetch(API+'/hit/'+NS+'/'+slug); if(!r.ok) throw 0;
+        const j=await r.json(); ls.set('liked:'+slug,'1'); raise(b,+j.value||0); ss.set('likes:'+slug,b.dataset.n+'|'+Date.now());
+      }catch(e){ mark(b,false); put(b,before); }
+      delete b.dataset.busy;
+    });
+  });
+  // Refresh counts for what is on screen, one request every 400ms (the service allows 30 per 10s per visitor).
+  const queue=[], seen=new Set();
+  const want=b=>{ const slug=b.dataset.slug; if(seen.has(slug)) return; seen.add(slug);
+    const c=(ss.get('likes:'+slug)||'').split('|'); if(c[1] && Date.now()-c[1]<600000){ raise(b,+c[0]||0); return; }
+    queue.push(b); };
+  setInterval(async()=>{ const b=queue.shift(); if(!b) return;
+    try{ const r=await fetch(API+'/get/'+NS+'/'+b.dataset.slug); const n=r.ok?(+(await r.json()).value||0):0;
+      if(r.ok||r.status===404){ raise(b,n); ss.set('likes:'+b.dataset.slug,b.dataset.n+'|'+Date.now()); } }catch(e){}
+  },400);
+  if('IntersectionObserver' in window){
+    const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ want(e.target); io.unobserve(e.target); } }),{rootMargin:'200px'});
+    btns.forEach(b=>io.observe(b));
+  } else btns.slice(0,12).forEach(want);
+})();
+"""
 E = html.escape
 
 def fmt(d):
@@ -34,12 +82,17 @@ def shot(slug, e, lazy=True):
     return (f'<a class="shot" href="p/{slug}.html" aria-label="Open {E(e["title"])}">'
             f'<img src="thumbs/{slug}.webp" alt="" {"loading=lazy" if lazy else ""} width="640" height="400">{v}</a>')
 
+def likes(e): return int(e.get("likes") or 0)
+def like_btn(slug, e):
+    return (f'<button class="like" type="button" data-slug="{slug}" data-n="{likes(e)}" aria-pressed="false" '
+            f'title="Like this app" aria-label="Like {E(e["title"])}"><i aria-hidden="true">♥</i><b>{likes(e)}</b></button>')
+
 def card(slug, e, big=False):
     eng = E(e["engine"]); cls = ENGINE_CLASS.get(e["engine"], "other")
     cat = e.get("category", "")
     search = E((e["title"] + " " + (e.get("description") or "") + " " + slug + " " + cat + " " + e["engine"]).lower())
     return f"""
-    <article class="card{' big' if big else ''}" data-engine="{eng}" data-cat="{E(cat)}" data-date="{e['last_updated']}" data-search="{search}">
+    <article class="card{' big' if big else ''}" data-engine="{eng}" data-cat="{E(cat)}" data-date="{e['last_updated']}" data-likes="{likes(e)}" data-search="{search}">
       {shot(slug, e, lazy=not big)}
       <div class="body">
         <div class="row">
@@ -52,6 +105,7 @@ def card(slug, e, big=False):
           <span>·</span>
           <a href="{REPO}/commits/main/apps/{slug}.html" title="Version history on GitHub">v{e['version']}</a>
           {f'<span>· {E(CAT_LABEL.get(cat, cat))}</span>' if cat else ''}
+          <span class="acts">{like_btn(slug, e)}</span>
         </div>
       </div>
     </article>"""
@@ -135,6 +189,8 @@ h2{margin:0}
 .body p{margin:0;color:var(--mute);font-size:13px;flex:1;line-height:1.55}
 .meta{display:flex;flex-wrap:wrap;gap:6px;font:11px "Courier New",monospace;color:var(--mute);align-items:center;letter-spacing:.3px}
 .meta a{text-decoration:underline dotted}
+.meta .acts{margin-left:auto}
+.sort{margin-left:auto}
 .toolbar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;padding:0 23px 14px}
 #q{font:inherit;font-size:14px;padding:10px 13px;border-radius:7px;border:1px solid var(--line);background:#fff;color:var(--fg);width:min(100%,320px);outline:none}
 #q:focus-visible{outline:3px solid var(--acc);outline-offset:3px}
@@ -167,6 +223,13 @@ function press(group,b){ group.forEach(x=>x.setAttribute('aria-pressed',x===b));
 const eng=[...document.querySelectorAll('.engines button')], cts=[...document.querySelectorAll('.cats button')];
 eng.forEach(b=>b.addEventListener('click',()=>{engine=b.dataset.filter;press(eng,b);apply();}));
 cts.forEach(b=>b.addEventListener('click',()=>{cat=(cat===b.dataset.cat?'all':b.dataset.cat);press(cts,cat==='all'?null:b);apply();}));
+const srt=[...document.querySelectorAll('.sort button')];
+srt.forEach(b=>b.addEventListener('click',()=>{
+  press(srt,b);
+  const byDate=(a,c)=>c.dataset.date.localeCompare(a.dataset.date);
+  const by=b.dataset.sort==='top' ? (a,c)=>(+c.dataset.likes-(+a.dataset.likes))||byDate(a,c) : byDate;
+  [...cards].sort(by).forEach(c=>grid.appendChild(c));
+}));
 q.addEventListener('input',apply);
 document.addEventListener('keydown',e=>{ if(e.key==='/'&&document.activeElement!==q){e.preventDefault();q.focus();} if(e.key==='Escape'&&document.activeElement===q){q.value='';apply();} });
 document.querySelectorAll('.card').forEach(c=>{
@@ -221,7 +284,7 @@ page = f"""<!doctype html>
 <link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 {og("trez63 — one small app a day", SITE_DESC, f"{SITE}/assets/og.png", SITE + "/")}
-<style>{CSS}{SHARE_CSS}</style>
+<style>{CSS}{LIKE_CSS}</style>
 </head>
 <body>
 <div class="shell">
@@ -251,6 +314,9 @@ page = f"""<!doctype html>
     <div class="filters engines" role="group" aria-label="Filter by model">
       <button data-filter="all" aria-pressed="true">All</button>{engine_filters}
     </div>
+    <div class="filters sort" role="group" aria-label="Sort">
+      <button data-sort="new" aria-pressed="true">Newest</button><button data-sort="top">Most liked</button>
+    </div>
   </div>
   <div class="filters cats" role="group" aria-label="Filter by category">{cat_filters}</div>
   <p id="empty" hidden>No apps match that.</p>
@@ -259,7 +325,7 @@ page = f"""<!doctype html>
 </section>
 <footer>SOURCE AND FULL VERSION HISTORY ON <a href="{REPO}">GITHUB</a> · <a href="feed.xml">RSS</a> · LAST PUBLISHED {fmt(catalog.get('generated', TODAY.isoformat())).upper()}</footer>
 </div>
-<script>{JS}{SHARE_JS}</script>
+<script>{JS}{LIKE_JS}</script>
 </body>
 </html>
 """
@@ -299,7 +365,7 @@ body{{display:flex;flex-direction:column;background:var(--bg);color:var(--fg);fo
 .back img{{height:36px;width:auto;display:block}}
 iframe{{flex:1;border:0;width:100%;background:#fff}}
 @media (max-width:640px){{.desc,.raw{{display:none}}}}
-{SHARE_CSS}
+{LIKE_CSS}
 </style>
 </head>
 <body>
@@ -309,8 +375,10 @@ iframe{{flex:1;border:0;width:100%;background:#fff}}
   <span class="badge {cls}">{eng}</span>
   <span class="desc">{E(desc)}</span>
   <a class="raw" href="../apps/{slug}.html" title="Open the app on its own, full window">open raw ↗</a>
+  {like_btn(slug, e)}
 </div>
 <iframe src="../apps/{slug}.html" title="{E(e['title'])}" allow="clipboard-write; fullscreen; autoplay" allowfullscreen></iframe>
+<script>{LIKE_JS}</script>
 </body>
 </html>
 """)

@@ -93,6 +93,7 @@ h2{margin:0}
 .meta a{text-decoration:underline dotted}
 .meta .acts{margin-left:auto}
 .sort{margin-left:auto}
+#likenote{margin:-6px 23px 12px;text-align:right;font:11px "Courier New",monospace;letter-spacing:.3px;color:var(--mute)}
 .toolbar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;padding:0 23px 14px}
 #q{font:inherit;font-size:14px;padding:10px 13px;border-radius:7px;border:1px solid var(--line);background:#fff;color:var(--fg);width:min(100%,320px);outline:none}
 #q:focus-visible{outline:3px solid var(--acc);outline-offset:3px}
@@ -163,6 +164,7 @@ button.like.on i{color:var(--acc)}
       <button data-sort="new" aria-pressed="true">Newest</button><button data-sort="top">Most liked</button>
     </div>
   </div>
+  <p id="likenote" role="status" hidden></p>
   <div class="filters cats" role="group" aria-label="Filter by category"><button data-cat="audio">Audio</button><button data-cat="dev">Dev tools</button><button data-cat="edu">Explainers</button><button data-cat="finance">Finance</button><button data-cat="focus">Focus</button><button data-cat="game">Games</button><button data-cat="art">Generative art</button><button data-cat="image">Image</button><button data-cat="sim">Simulations</button><button data-cat="text">Text</button><button data-cat="tool">Tools</button></div>
   <p id="empty" hidden>No apps match that.</p>
   <main id="grid">
@@ -319,7 +321,7 @@ button.like.on i{color:var(--acc)}
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Claude" data-cat="audio" data-date="2026-11-14" data-likes="0" data-search="trill a modem made of birdsong. type a message and it plays as a short melody of 32 pure tones that another phone (or the same one) decodes from its microphone, with a live waterfall of what the decoder hears; a self-test routes a message through simulated room noise so you can watch it lock on, and drafts and the inbox save as json. trill audio claude">
+    <article class="card" data-engine="Claude" data-cat="audio" data-date="2026-11-14" data-likes="1" data-search="trill a modem made of birdsong. type a message and it plays as a short melody of 32 pure tones that another phone (or the same one) decodes from its microphone, with a live waterfall of what the decoder hears; a self-test routes a message through simulated room noise so you can watch it lock on, and drafts and the inbox save as json. trill audio claude">
       <a class="shot" href="p/trill.html" aria-label="Open Trill"><img src="thumbs/trill.webp" alt="" loading=lazy width="640" height="400"><video src="previews/trill.webm" muted loop playsinline preload="none" poster="thumbs/trill.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -332,7 +334,7 @@ button.like.on i{color:var(--acc)}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/trill.html" title="Version history on GitHub">v1</a>
           <span>· Audio</span>
-          <span class="acts"><button class="like" type="button" data-slug="trill" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Trill"><i aria-hidden="true">♥</i><b>0</b></button></span>
+          <span class="acts"><button class="like" type="button" data-slug="trill" data-n="1" aria-pressed="false" title="Like this app" aria-label="Like Trill"><i aria-hidden="true">♥</i><b>1</b></button></span>
         </div>
       </div>
     </article>
@@ -1237,7 +1239,7 @@ button.like.on i{color:var(--acc)}
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Grok" data-cat="audio" data-date="2026-10-25" data-likes="0" data-search="pulseforge an offline step sequencer. eight tracks from kick to pad, click steps to toggle notes, tempo and randomize on the keyboard. pure web audio. pulseforge audio grok">
+    <article class="card" data-engine="Grok" data-cat="audio" data-date="2026-10-25" data-likes="1" data-search="pulseforge an offline step sequencer. eight tracks from kick to pad, click steps to toggle notes, tempo and randomize on the keyboard. pure web audio. pulseforge audio grok">
       <a class="shot" href="p/pulseforge.html" aria-label="Open PulseForge"><img src="thumbs/pulseforge.webp" alt="" loading=lazy width="640" height="400"><video src="previews/pulseforge.webm" muted loop playsinline preload="none" poster="thumbs/pulseforge.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1250,7 +1252,7 @@ button.like.on i{color:var(--acc)}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/pulseforge.html" title="Version history on GitHub">v1</a>
           <span>· Audio</span>
-          <span class="acts"><button class="like" type="button" data-slug="pulseforge" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like PulseForge"><i aria-hidden="true">♥</i><b>0</b></button></span>
+          <span class="acts"><button class="like" type="button" data-slug="pulseforge" data-n="1" aria-pressed="false" title="Like this app" aria-label="Like PulseForge"><i aria-hidden="true">♥</i><b>1</b></button></span>
         </div>
       </div>
     </article>
@@ -1271,7 +1273,7 @@ button.like.on i{color:var(--acc)}
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Muse" data-cat="finance" data-date="2026-10-23" data-likes="0" data-search="ledger your money on one page, offline. add an entry and the totals, chart and list update at once. nothing leaves the browser. ledger finance muse">
+    <article class="card" data-engine="Muse" data-cat="finance" data-date="2026-10-23" data-likes="1" data-search="ledger your money on one page, offline. add an entry and the totals, chart and list update at once. nothing leaves the browser. ledger finance muse">
       <a class="shot" href="p/ledger.html" aria-label="Open Ledger"><img src="thumbs/ledger.webp" alt="" loading=lazy width="640" height="400"><video src="previews/ledger.webm" muted loop playsinline preload="none" poster="thumbs/ledger.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1284,7 +1286,7 @@ button.like.on i{color:var(--acc)}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/ledger.html" title="Version history on GitHub">v1</a>
           <span>· Finance</span>
-          <span class="acts"><button class="like" type="button" data-slug="ledger" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Ledger"><i aria-hidden="true">♥</i><b>0</b></button></span>
+          <span class="acts"><button class="like" type="button" data-slug="ledger" data-n="1" aria-pressed="false" title="Like this app" aria-label="Like Ledger"><i aria-hidden="true">♥</i><b>1</b></button></span>
         </div>
       </div>
     </article>
@@ -1356,7 +1358,7 @@ button.like.on i{color:var(--acc)}
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Claude" data-cat="audio" data-date="2026-10-22" data-likes="0" data-search="sonogram draw a picture; hear it. the canvas is a spectrogram — left to right is time, bottom to top is pitch. sonogram audio claude">
+    <article class="card" data-engine="Claude" data-cat="audio" data-date="2026-10-22" data-likes="1" data-search="sonogram draw a picture; hear it. the canvas is a spectrogram — left to right is time, bottom to top is pitch. sonogram audio claude">
       <a class="shot" href="p/sonogram.html" aria-label="Open Sonogram"><img src="thumbs/sonogram.webp" alt="" loading=lazy width="640" height="400"><video src="previews/sonogram.webm" muted loop playsinline preload="none" poster="thumbs/sonogram.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1369,11 +1371,11 @@ button.like.on i{color:var(--acc)}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/sonogram.html" title="Version history on GitHub">v1</a>
           <span>· Audio</span>
-          <span class="acts"><button class="like" type="button" data-slug="sonogram" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Sonogram"><i aria-hidden="true">♥</i><b>0</b></button></span>
+          <span class="acts"><button class="like" type="button" data-slug="sonogram" data-n="1" aria-pressed="false" title="Like this app" aria-label="Like Sonogram"><i aria-hidden="true">♥</i><b>1</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="ChatGPT" data-cat="tool" data-date="2026-10-22" data-likes="0" data-search="tradeoff make room for what matters. rate your options, weigh your priorities, and see the smallest shift that would change your mind. tradeoff tool chatgpt">
+    <article class="card" data-engine="ChatGPT" data-cat="tool" data-date="2026-10-22" data-likes="1" data-search="tradeoff make room for what matters. rate your options, weigh your priorities, and see the smallest shift that would change your mind. tradeoff tool chatgpt">
       <a class="shot" href="p/tradeoff.html" aria-label="Open Tradeoff"><img src="thumbs/tradeoff.webp" alt="" loading=lazy width="640" height="400"><video src="previews/tradeoff.webm" muted loop playsinline preload="none" poster="thumbs/tradeoff.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1386,11 +1388,11 @@ button.like.on i{color:var(--acc)}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/tradeoff.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
-          <span class="acts"><button class="like" type="button" data-slug="tradeoff" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Tradeoff"><i aria-hidden="true">♥</i><b>0</b></button></span>
+          <span class="acts"><button class="like" type="button" data-slug="tradeoff" data-n="1" aria-pressed="false" title="Like this app" aria-label="Like Tradeoff"><i aria-hidden="true">♥</i><b>1</b></button></span>
         </div>
       </div>
     </article>
-    <article class="card" data-engine="ChatGPT" data-cat="tool" data-date="2026-10-21" data-likes="0" data-search="foldwork a tiny paper studio. size an envelope, add a name and a message, print the template and fold it into something real. foldwork tool chatgpt">
+    <article class="card" data-engine="ChatGPT" data-cat="tool" data-date="2026-10-21" data-likes="1" data-search="foldwork a tiny paper studio. size an envelope, add a name and a message, print the template and fold it into something real. foldwork tool chatgpt">
       <a class="shot" href="p/foldwork.html" aria-label="Open Foldwork"><img src="thumbs/foldwork.webp" alt="" loading=lazy width="640" height="400"><video src="previews/foldwork.webm" muted loop playsinline preload="none" poster="thumbs/foldwork.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1403,7 +1405,7 @@ button.like.on i{color:var(--acc)}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/foldwork.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
-          <span class="acts"><button class="like" type="button" data-slug="foldwork" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Foldwork"><i aria-hidden="true">♥</i><b>0</b></button></span>
+          <span class="acts"><button class="like" type="button" data-slug="foldwork" data-n="1" aria-pressed="false" title="Like this app" aria-label="Like Foldwork"><i aria-hidden="true">♥</i><b>1</b></button></span>
         </div>
       </div>
     </article>
@@ -1441,7 +1443,7 @@ button.like.on i{color:var(--acc)}
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Claude" data-cat="sim" data-date="2026-10-21" data-likes="0" data-search="ripple a wave tank you can draw in. walls reflect, glass refracts, and the whole wave equation is ten lines of code. ripple sim claude">
+    <article class="card" data-engine="Claude" data-cat="sim" data-date="2026-10-21" data-likes="1" data-search="ripple a wave tank you can draw in. walls reflect, glass refracts, and the whole wave equation is ten lines of code. ripple sim claude">
       <a class="shot" href="p/ripple.html" aria-label="Open Ripple"><img src="thumbs/ripple.webp" alt="" loading=lazy width="640" height="400"><video src="previews/ripple.webm" muted loop playsinline preload="none" poster="thumbs/ripple.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1454,7 +1456,7 @@ button.like.on i{color:var(--acc)}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/ripple.html" title="Version history on GitHub">v1</a>
           <span>· Simulations</span>
-          <span class="acts"><button class="like" type="button" data-slug="ripple" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Ripple"><i aria-hidden="true">♥</i><b>0</b></button></span>
+          <span class="acts"><button class="like" type="button" data-slug="ripple" data-n="1" aria-pressed="false" title="Like this app" aria-label="Like Ripple"><i aria-hidden="true">♥</i><b>1</b></button></span>
         </div>
       </div>
     </article>
@@ -1492,7 +1494,7 @@ button.like.on i{color:var(--acc)}
         </div>
       </div>
     </article>
-    <article class="card" data-engine="Claude" data-cat="tool" data-date="2026-10-05" data-likes="0" data-search="label sheets paste a list of names, pick a label size and paper, and print a sheet where every name is set as large as it fits. labelmaker tool claude">
+    <article class="card" data-engine="Claude" data-cat="tool" data-date="2026-10-05" data-likes="1" data-search="label sheets paste a list of names, pick a label size and paper, and print a sheet where every name is set as large as it fits. labelmaker tool claude">
       <a class="shot" href="p/labelmaker.html" aria-label="Open Label sheets"><img src="thumbs/labelmaker.webp" alt="" loading=lazy width="640" height="400"><video src="previews/labelmaker.webm" muted loop playsinline preload="none" poster="thumbs/labelmaker.webp"></video></a>
       <div class="body">
         <div class="row">
@@ -1505,7 +1507,7 @@ button.like.on i{color:var(--acc)}
           <span>·</span>
           <a href="https://github.com/trez63/trez63.com/commits/main/apps/labelmaker.html" title="Version history on GitHub">v1</a>
           <span>· Tools</span>
-          <span class="acts"><button class="like" type="button" data-slug="labelmaker" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Label sheets"><i aria-hidden="true">♥</i><b>0</b></button></span>
+          <span class="acts"><button class="like" type="button" data-slug="labelmaker" data-n="1" aria-pressed="false" title="Like this app" aria-label="Like Label sheets"><i aria-hidden="true">♥</i><b>1</b></button></span>
         </div>
       </div>
     </article>
@@ -1529,13 +1531,23 @@ function press(group,b){ group.forEach(x=>x.setAttribute('aria-pressed',x===b));
 const eng=[...document.querySelectorAll('.engines button')], cts=[...document.querySelectorAll('.cats button')];
 eng.forEach(b=>b.addEventListener('click',()=>{engine=b.dataset.filter;press(eng,b);apply();}));
 cts.forEach(b=>b.addEventListener('click',()=>{cat=(cat===b.dataset.cat?'all':b.dataset.cat);press(cts,cat==='all'?null:b);apply();}));
-const srt=[...document.querySelectorAll('.sort button')];
-srt.forEach(b=>b.addEventListener('click',()=>{
-  press(srt,b);
+const srt=[...document.querySelectorAll('.sort button')], note=document.getElementById('likenote');
+let sort='new', resortTimer=0;
+function resort(){
   const byDate=(a,c)=>c.dataset.date.localeCompare(a.dataset.date);
-  const by=b.dataset.sort==='top' ? (a,c)=>(+c.dataset.likes-(+a.dataset.likes))||byDate(a,c) : byDate;
+  const by=sort==='top' ? (a,c)=>(+c.dataset.likes-(+a.dataset.likes))||byDate(a,c) : byDate;
   [...cards].sort(by).forEach(c=>grid.appendChild(c));
+}
+srt.forEach(b=>b.addEventListener('click',()=>{
+  sort=b.dataset.sort; press(srt,b); resort();
+  if(sort==='top' && window.trezLikes) window.trezLikes.loadAll(); else note.hidden=true;
 }));
+// Counts arrive a few at a time; while "Most liked" is on, keep the order current as they land.
+document.addEventListener('likes:update',e=>{
+  if(sort!=='top') return;
+  const d=e.detail; note.hidden=!d.pending; note.textContent='Checking latest counts… '+d.done+' of '+d.total;
+  clearTimeout(resortTimer); resortTimer=setTimeout(resort,d.pending?600:0);
+});
 q.addEventListener('input',apply);
 document.addEventListener('keydown',e=>{ if(e.key==='/'&&document.activeElement!==q){e.preventDefault();q.focus();} if(e.key==='Escape'&&document.activeElement===q){q.value='';apply();} });
 document.querySelectorAll('.card').forEach(c=>{
@@ -1568,19 +1580,31 @@ document.querySelectorAll('.card').forEach(c=>{
       delete b.dataset.busy;
     });
   });
-  // Refresh counts for what is on screen, one request every 400ms (the service allows 30 per 10s per visitor).
-  const queue=[], seen=new Set();
-  const want=b=>{ const slug=b.dataset.slug; if(seen.has(slug)) return; seen.add(slug);
-    const c=(ss.get('likes:'+slug)||'').split('|'); if(c[1] && Date.now()-c[1]<600000){ raise(b,+c[0]||0); return; }
-    queue.push(b); };
-  setInterval(async()=>{ const b=queue.shift(); if(!b) return;
-    try{ const r=await fetch(API+'/get/'+NS+'/'+b.dataset.slug); const n=r.ok?(+(await r.json()).value||0):0;
-      if(r.ok||r.status===404){ raise(b,n); ss.set('likes:'+b.dataset.slug,b.dataset.n+'|'+Date.now()); } }catch(e){}
-  },400);
+  // Anything this browser already knows needs no request: counts fetched earlier this session, and its own likes.
+  btns.forEach(b=>{ const c=(ss.get('likes:'+b.dataset.slug)||'').split('|'); if(c[0]) raise(b,+c[0]||0);
+    if(ls.get('liked:'+b.dataset.slug)) raise(b,1); });
+  // Live counts. The service has no "all counters" call and allows 30 requests per 10s per visitor, so requests
+  // go through one queue capped at 24 per 10s: what is on screen first, everything else when "Most liked" is chosen.
+  const queue=[], seen=new Set(), sent=[]; let total=0, done=0;
+  const changed=()=>document.dispatchEvent(new CustomEvent('likes:update',{detail:{done,total,pending:queue.length}}));
+  const want=(b,front)=>{ const slug=b.dataset.slug; if(seen.has(slug)) return; seen.add(slug);
+    const c=(ss.get('likes:'+slug)||'').split('|'); if(c[1] && Date.now()-c[1]<600000) return;
+    total++; front?queue.unshift(b):queue.push(b); };
+  setInterval(()=>{ if(!queue.length) return;
+    const now=Date.now(); while(sent.length && now-sent[0]>10000) sent.shift();
+    if(sent.length>=24) return;
+    const b=queue.shift(); sent.push(now);
+    fetch(API+'/get/'+NS+'/'+b.dataset.slug).then(async r=>{
+      if(r.status===429){ queue.push(b); return; }   // over the limit: try this one again later
+      if(r.ok||r.status===404){ raise(b,r.ok?(+(await r.json()).value||0):0); ss.set('likes:'+b.dataset.slug,b.dataset.n+'|'+Date.now()); }
+      done++;
+    }).catch(()=>{ done++; }).finally(changed);
+  },80);
   if('IntersectionObserver' in window){
-    const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ want(e.target); io.unobserve(e.target); } }),{rootMargin:'200px'});
+    const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ want(e.target,true); io.unobserve(e.target); } }),{rootMargin:'200px'});
     btns.forEach(b=>io.observe(b));
-  } else btns.slice(0,12).forEach(want);
+  } else btns.slice(0,12).forEach(b=>want(b,true));
+  window.trezLikes={ loadAll(){ btns.forEach(b=>want(b,false)); changed(); } };
 })();
 </script>
 </body>

@@ -53,7 +53,7 @@ button.like.on i{color:var(--acc)}
   <span class="badge chatgpt">ChatGPT</span>
   <span class="desc">Make room for what matters. Rate your options, weigh your priorities, and see the smallest shift that would change your mind.</span>
   <a class="raw" href="../apps/tradeoff.html" title="Open the app on its own, full window">open raw ↗</a>
-  <button class="like" type="button" data-slug="tradeoff" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Tradeoff"><i aria-hidden="true">♥</i><b>0</b></button>
+  <button class="like" type="button" data-slug="tradeoff" data-n="1" aria-pressed="false" title="Like this app" aria-label="Like Tradeoff"><i aria-hidden="true">♥</i><b>1</b></button>
 </div>
 <iframe src="../apps/tradeoff.html" title="Tradeoff" allow="clipboard-write; fullscreen; autoplay" allowfullscreen></iframe>
 <script>
@@ -81,19 +81,31 @@ button.like.on i{color:var(--acc)}
       delete b.dataset.busy;
     });
   });
-  // Refresh counts for what is on screen, one request every 400ms (the service allows 30 per 10s per visitor).
-  const queue=[], seen=new Set();
-  const want=b=>{ const slug=b.dataset.slug; if(seen.has(slug)) return; seen.add(slug);
-    const c=(ss.get('likes:'+slug)||'').split('|'); if(c[1] && Date.now()-c[1]<600000){ raise(b,+c[0]||0); return; }
-    queue.push(b); };
-  setInterval(async()=>{ const b=queue.shift(); if(!b) return;
-    try{ const r=await fetch(API+'/get/'+NS+'/'+b.dataset.slug); const n=r.ok?(+(await r.json()).value||0):0;
-      if(r.ok||r.status===404){ raise(b,n); ss.set('likes:'+b.dataset.slug,b.dataset.n+'|'+Date.now()); } }catch(e){}
-  },400);
+  // Anything this browser already knows needs no request: counts fetched earlier this session, and its own likes.
+  btns.forEach(b=>{ const c=(ss.get('likes:'+b.dataset.slug)||'').split('|'); if(c[0]) raise(b,+c[0]||0);
+    if(ls.get('liked:'+b.dataset.slug)) raise(b,1); });
+  // Live counts. The service has no "all counters" call and allows 30 requests per 10s per visitor, so requests
+  // go through one queue capped at 24 per 10s: what is on screen first, everything else when "Most liked" is chosen.
+  const queue=[], seen=new Set(), sent=[]; let total=0, done=0;
+  const changed=()=>document.dispatchEvent(new CustomEvent('likes:update',{detail:{done,total,pending:queue.length}}));
+  const want=(b,front)=>{ const slug=b.dataset.slug; if(seen.has(slug)) return; seen.add(slug);
+    const c=(ss.get('likes:'+slug)||'').split('|'); if(c[1] && Date.now()-c[1]<600000) return;
+    total++; front?queue.unshift(b):queue.push(b); };
+  setInterval(()=>{ if(!queue.length) return;
+    const now=Date.now(); while(sent.length && now-sent[0]>10000) sent.shift();
+    if(sent.length>=24) return;
+    const b=queue.shift(); sent.push(now);
+    fetch(API+'/get/'+NS+'/'+b.dataset.slug).then(async r=>{
+      if(r.status===429){ queue.push(b); return; }   // over the limit: try this one again later
+      if(r.ok||r.status===404){ raise(b,r.ok?(+(await r.json()).value||0):0); ss.set('likes:'+b.dataset.slug,b.dataset.n+'|'+Date.now()); }
+      done++;
+    }).catch(()=>{ done++; }).finally(changed);
+  },80);
   if('IntersectionObserver' in window){
-    const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ want(e.target); io.unobserve(e.target); } }),{rootMargin:'200px'});
+    const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ want(e.target,true); io.unobserve(e.target); } }),{rootMargin:'200px'});
     btns.forEach(b=>io.observe(b));
-  } else btns.slice(0,12).forEach(want);
+  } else btns.slice(0,12).forEach(b=>want(b,true));
+  window.trezLikes={ loadAll(){ btns.forEach(b=>want(b,false)); changed(); } };
 })();
 </script>
 </body>

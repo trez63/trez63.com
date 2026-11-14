@@ -47,7 +47,8 @@
           "sha": "c9eab6f58cd7"
         }
       ],
-      "category": "tool"
+      "category": "tool",
+      "likes": 1
     },
     "genesis-universe": {
       "title": "Genesis",
@@ -166,7 +167,8 @@
           "sha": "290019c18967"
         }
       ],
-      "category": "finance"
+      "category": "finance",
+      "likes": 1
     },
     "meadowsong": {
       "title": "Meadowsong",
@@ -298,7 +300,8 @@
           }
         ]
       },
-      "category": "sim"
+      "category": "sim",
+      "likes": 1
     },
     "sonogram": {
       "title": "Sonogram",
@@ -353,7 +356,8 @@
           }
         ]
       },
-      "category": "audio"
+      "category": "audio",
+      "likes": 1
     },
     "sprout-garden": {
       "title": "Sprout",
@@ -447,7 +451,8 @@
           "sha": "69ffaf5a8e79"
         }
       ],
-      "category": "tool"
+      "category": "tool",
+      "likes": 1
     },
     "budget": {
       "title": "Budget",
@@ -545,7 +550,8 @@
           "sha": "32b4397ea346"
         }
       ],
-      "category": "tool"
+      "category": "tool",
+      "likes": 1
     },
     "tessera": {
       "title": "Tessera",
@@ -695,7 +701,8 @@
           "sha": "fb211c7a079f"
         }
       ],
-      "category": "audio"
+      "category": "audio",
+      "likes": 1
     },
     "cosmic-breath": {
       "title": "Cosmic Breath",
@@ -1835,7 +1842,8 @@
           "sha": "4359716b6cbe"
         }
       ],
-      "category": "audio"
+      "category": "audio",
+      "likes": 1
     },
     "cellular-automata-sonifier": {
       "title": "CA Sonifier",

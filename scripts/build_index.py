@@ -53,19 +53,31 @@ LIKE_JS = """
       delete b.dataset.busy;
     });
   });
-  // Refresh counts for what is on screen, one request every 400ms (the service allows 30 per 10s per visitor).
-  const queue=[], seen=new Set();
-  const want=b=>{ const slug=b.dataset.slug; if(seen.has(slug)) return; seen.add(slug);
-    const c=(ss.get('likes:'+slug)||'').split('|'); if(c[1] && Date.now()-c[1]<600000){ raise(b,+c[0]||0); return; }
-    queue.push(b); };
-  setInterval(async()=>{ const b=queue.shift(); if(!b) return;
-    try{ const r=await fetch(API+'/get/'+NS+'/'+b.dataset.slug); const n=r.ok?(+(await r.json()).value||0):0;
-      if(r.ok||r.status===404){ raise(b,n); ss.set('likes:'+b.dataset.slug,b.dataset.n+'|'+Date.now()); } }catch(e){}
-  },400);
+  // Anything this browser already knows needs no request: counts fetched earlier this session, and its own likes.
+  btns.forEach(b=>{ const c=(ss.get('likes:'+b.dataset.slug)||'').split('|'); if(c[0]) raise(b,+c[0]||0);
+    if(ls.get('liked:'+b.dataset.slug)) raise(b,1); });
+  // Live counts. The service has no "all counters" call and allows 30 requests per 10s per visitor, so requests
+  // go through one queue capped at 24 per 10s: what is on screen first, everything else when "Most liked" is chosen.
+  const queue=[], seen=new Set(), sent=[]; let total=0, done=0;
+  const changed=()=>document.dispatchEvent(new CustomEvent('likes:update',{detail:{done,total,pending:queue.length}}));
+  const want=(b,front)=>{ const slug=b.dataset.slug; if(seen.has(slug)) return; seen.add(slug);
+    const c=(ss.get('likes:'+slug)||'').split('|'); if(c[1] && Date.now()-c[1]<600000) return;
+    total++; front?queue.unshift(b):queue.push(b); };
+  setInterval(()=>{ if(!queue.length) return;
+    const now=Date.now(); while(sent.length && now-sent[0]>10000) sent.shift();
+    if(sent.length>=24) return;
+    const b=queue.shift(); sent.push(now);
+    fetch(API+'/get/'+NS+'/'+b.dataset.slug).then(async r=>{
+      if(r.status===429){ queue.push(b); return; }   // over the limit: try this one again later
+      if(r.ok||r.status===404){ raise(b,r.ok?(+(await r.json()).value||0):0); ss.set('likes:'+b.dataset.slug,b.dataset.n+'|'+Date.now()); }
+      done++;
+    }).catch(()=>{ done++; }).finally(changed);
+  },80);
   if('IntersectionObserver' in window){
-    const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ want(e.target); io.unobserve(e.target); } }),{rootMargin:'200px'});
+    const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ want(e.target,true); io.unobserve(e.target); } }),{rootMargin:'200px'});
     btns.forEach(b=>io.observe(b));
-  } else btns.slice(0,12).forEach(want);
+  } else btns.slice(0,12).forEach(b=>want(b,true));
+  window.trezLikes={ loadAll(){ btns.forEach(b=>want(b,false)); changed(); } };
 })();
 """
 E = html.escape
@@ -191,6 +203,7 @@ h2{margin:0}
 .meta a{text-decoration:underline dotted}
 .meta .acts{margin-left:auto}
 .sort{margin-left:auto}
+#likenote{margin:-6px 23px 12px;text-align:right;font:11px "Courier New",monospace;letter-spacing:.3px;color:var(--mute)}
 .toolbar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;padding:0 23px 14px}
 #q{font:inherit;font-size:14px;padding:10px 13px;border-radius:7px;border:1px solid var(--line);background:#fff;color:var(--fg);width:min(100%,320px);outline:none}
 #q:focus-visible{outline:3px solid var(--acc);outline-offset:3px}
@@ -223,13 +236,23 @@ function press(group,b){ group.forEach(x=>x.setAttribute('aria-pressed',x===b));
 const eng=[...document.querySelectorAll('.engines button')], cts=[...document.querySelectorAll('.cats button')];
 eng.forEach(b=>b.addEventListener('click',()=>{engine=b.dataset.filter;press(eng,b);apply();}));
 cts.forEach(b=>b.addEventListener('click',()=>{cat=(cat===b.dataset.cat?'all':b.dataset.cat);press(cts,cat==='all'?null:b);apply();}));
-const srt=[...document.querySelectorAll('.sort button')];
-srt.forEach(b=>b.addEventListener('click',()=>{
-  press(srt,b);
+const srt=[...document.querySelectorAll('.sort button')], note=document.getElementById('likenote');
+let sort='new', resortTimer=0;
+function resort(){
   const byDate=(a,c)=>c.dataset.date.localeCompare(a.dataset.date);
-  const by=b.dataset.sort==='top' ? (a,c)=>(+c.dataset.likes-(+a.dataset.likes))||byDate(a,c) : byDate;
+  const by=sort==='top' ? (a,c)=>(+c.dataset.likes-(+a.dataset.likes))||byDate(a,c) : byDate;
   [...cards].sort(by).forEach(c=>grid.appendChild(c));
+}
+srt.forEach(b=>b.addEventListener('click',()=>{
+  sort=b.dataset.sort; press(srt,b); resort();
+  if(sort==='top' && window.trezLikes) window.trezLikes.loadAll(); else note.hidden=true;
 }));
+// Counts arrive a few at a time; while "Most liked" is on, keep the order current as they land.
+document.addEventListener('likes:update',e=>{
+  if(sort!=='top') return;
+  const d=e.detail; note.hidden=!d.pending; note.textContent='Checking latest counts… '+d.done+' of '+d.total;
+  clearTimeout(resortTimer); resortTimer=setTimeout(resort,d.pending?600:0);
+});
 q.addEventListener('input',apply);
 document.addEventListener('keydown',e=>{ if(e.key==='/'&&document.activeElement!==q){e.preventDefault();q.focus();} if(e.key==='Escape'&&document.activeElement===q){q.value='';apply();} });
 document.querySelectorAll('.card').forEach(c=>{
@@ -318,6 +341,7 @@ page = f"""<!doctype html>
       <button data-sort="new" aria-pressed="true">Newest</button><button data-sort="top">Most liked</button>
     </div>
   </div>
+  <p id="likenote" role="status" hidden></p>
   <div class="filters cats" role="group" aria-label="Filter by category">{cat_filters}</div>
   <p id="empty" hidden>No apps match that.</p>
   <main id="grid">{cards}

@@ -1898,6 +1898,24 @@
         }
       ],
       "category": "art"
+    },
+    "aws-diagram-studio": {
+      "title": "AWS Diagram Studio",
+      "engine": "Claude",
+      "description": "An AWS architecture diagram editor. Drag services from a searchable palette of embedded AWS Architecture Icons (or upload your own), nest them in cloud, account, region, AZ, VPC, subnet and security-group boundaries, draw labelled elbow or straight connectors, add notes and extra pages, then step through the flow in Present mode with animated traffic dots; save as JSON, copy a share link, or export PNG, vector PDF, SVG or an animated GIF. Unlike the others, this one took several rounds of prompting rather than a single pass, and the PDF and GIF exporters are pulled from a CDN on demand instead of being inlined.",
+      "source_file": "aws-diagram-studio-claude.html",
+      "first_published": "2026-11-14",
+      "last_updated": "2026-11-14",
+      "version": 1,
+      "sha": "2dd00ff7f612",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-14",
+          "sha": "2dd00ff7f612"
+        }
+      ],
+      "category": "tool"
     }
   },
   "generated": "2026-11-14"

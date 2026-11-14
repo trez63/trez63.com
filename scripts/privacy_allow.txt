@@ -41,3 +41,9 @@ people@yourcompany.com
 invoices@officesupplies.example
 facilities@yourcompany.com
 careers@global-talent-hiring.com
+
+# aws-diagram-studio — decimal runs inside the embedded AWS icon SVG path data
+# (e.g. "c-4.79 0-10.5.694-10.5 4"), not IP addresses. Approved by Tan 2026-11-14.
+10.5.694
+10.001.003.001
+10.142.67

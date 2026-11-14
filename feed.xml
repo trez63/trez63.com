@@ -96,6 +96,13 @@
     <description>A four-shaft weaving studio. Tap a crossing in the rendered cloth, thread its warp end onto a shaft and choose which shafts lift on each pick, and watch the drawdown, threading and liftplan notation update along with the longest warp and weft floats; start from twill, basket, plain or broken twill, pick yarn colours, undo, save the draft as JSON or export the swatch as SVG.</description>
   </item>
   <item>
+    <title>AWS Diagram Studio (Claude)</title>
+    <link>https://trez63.com/p/aws-diagram-studio.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/aws-diagram-studio.html</guid>
+    <pubDate>Sat, 14 Nov 2026 12:00:00 +0000</pubDate>
+    <description>An AWS architecture diagram editor. Drag services from a searchable palette of embedded AWS Architecture Icons (or upload your own), nest them in cloud, account, region, AZ, VPC, subnet and security-group boundaries, draw labelled elbow or straight connectors, add notes and extra pages, then step through the flow in Present mode with animated traffic dots; save as JSON, copy a share link, or export PNG, vector PDF, SVG or an animated GIF. Unlike the others, this one took several rounds of prompting rather than a single pass, and the PDF and GIF exporters are pulled from a CDN on demand instead of being inlined.</description>
+  </item>
+  <item>
     <title>Umbra (Claude)</title>
     <link>https://trez63.com/p/umbra.html</link>
     <guid isPermaLink="true">https://trez63.com/p/umbra.html</guid>
@@ -346,12 +353,5 @@
     <guid isPermaLink="true">https://trez63.com/p/pipeline.html</guid>
     <pubDate>Tue, 27 Oct 2026 12:00:00 +0000</pubDate>
     <description>A deal pipeline board. Drag cards between Lead, Contacted, Proposal, Negotiation and Won; each deal carries a value and win probability, and the bar on top keeps total, weighted forecast and won value current. Save and reopen the board as JSON.</description>
-  </item>
-  <item>
-    <title>Revision Room (ChatGPT)</title>
-    <link>https://trez63.com/p/revision-room.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/revision-room.html</guid>
-    <pubDate>Tue, 27 Oct 2026 12:00:00 +0000</pubDate>
-    <description>Paste a before and after draft and compare them: a word-level redline shows what was removed and added, with counts and next/previous jumps between changes. Swap drafts, copy the notes, or save the session as JSON.</description>
   </item>
 </channel></rss>

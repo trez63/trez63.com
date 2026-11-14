@@ -1906,13 +1906,18 @@
       "source_file": "aws-diagram-studio-claude.html",
       "first_published": "2026-11-14",
       "last_updated": "2026-11-14",
-      "version": 1,
-      "sha": "2dd00ff7f612",
+      "version": 2,
+      "sha": "d8cd89eaf3b5",
       "versions": [
         {
           "v": 1,
           "date": "2026-11-14",
           "sha": "2dd00ff7f612"
+        },
+        {
+          "v": 2,
+          "date": "2026-11-14",
+          "sha": "d8cd89eaf3b5"
         }
       ],
       "category": "tool"

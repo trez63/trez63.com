@@ -30,7 +30,7 @@
         ]
       },
       "category": "image",
-      "likes": 1
+      "likes": 2
     },
     "foldwork": {
       "title": "Foldwork",
@@ -49,7 +49,7 @@
         }
       ],
       "category": "tool",
-      "likes": 1
+      "likes": 2
     },
     "genesis-universe": {
       "title": "Genesis",
@@ -86,7 +86,8 @@
           }
         ]
       },
-      "category": "art"
+      "category": "art",
+      "likes": 1
     },
     "kaleido": {
       "title": "Kaleido",
@@ -150,7 +151,8 @@
           }
         ]
       },
-      "category": "art"
+      "category": "art",
+      "likes": 1
     },
     "ledger": {
       "title": "Ledger",
@@ -258,7 +260,8 @@
           }
         ]
       },
-      "category": "tool"
+      "category": "tool",
+      "likes": 1
     },
     "ripple": {
       "title": "Ripple",
@@ -302,7 +305,7 @@
         ]
       },
       "category": "sim",
-      "likes": 1
+      "likes": 2
     },
     "sonogram": {
       "title": "Sonogram",
@@ -358,7 +361,7 @@
         ]
       },
       "category": "audio",
-      "likes": 6
+      "likes": 7
     },
     "sprout-garden": {
       "title": "Sprout",
@@ -416,7 +419,8 @@
           }
         ]
       },
-      "category": "art"
+      "category": "art",
+      "likes": 1
     },
     "stillpoint": {
       "title": "Stillpoint",
@@ -453,7 +457,7 @@
         }
       ],
       "category": "tool",
-      "likes": 2
+      "likes": 3
     },
     "budget": {
       "title": "Budget",
@@ -552,7 +556,7 @@
         }
       ],
       "category": "tool",
-      "likes": 1
+      "likes": 2
     },
     "tessera": {
       "title": "Tessera",
@@ -666,7 +670,8 @@
           }
         ]
       },
-      "category": "tool"
+      "category": "tool",
+      "likes": 1
     },
     "aether": {
       "title": "Aether",
@@ -703,7 +708,7 @@
         }
       ],
       "category": "audio",
-      "likes": 3
+      "likes": 4
     },
     "cosmic-breath": {
       "title": "Cosmic Breath",
@@ -789,7 +794,7 @@
         }
       ],
       "category": "sim",
-      "likes": 8
+      "likes": 10
     },
     "tidytext": {
       "title": "Tidy Text",
@@ -861,7 +866,8 @@
           "sha": "997d9e2ac55e"
         }
       ],
-      "category": "tool"
+      "category": "tool",
+      "likes": 1
     },
     "pipeline": {
       "title": "KanbanFlow",
@@ -1006,7 +1012,8 @@
           "sha": "3a03af5fbf02"
         }
       ],
-      "category": "dev"
+      "category": "dev",
+      "likes": 1
     },
     "canvasforge": {
       "title": "CanvasForge",
@@ -1061,7 +1068,7 @@
         }
       ],
       "category": "dev",
-      "likes": 1
+      "likes": 2
     },
     "docuforge": {
       "title": "DocuForge",
@@ -1366,7 +1373,8 @@
           "sha": "517bada396c6"
         }
       ],
-      "category": "tool"
+      "category": "tool",
+      "likes": 1
     },
     "contrast-checker": {
       "title": "Contrast Checker",
@@ -1479,7 +1487,8 @@
           "sha": "a58a4e30bd6a"
         }
       ],
-      "category": "art"
+      "category": "art",
+      "likes": 1
     },
     "parapet": {
       "title": "Parapet",
@@ -1515,7 +1524,8 @@
           "sha": "e9178fa9e17e"
         }
       ],
-      "category": "edu"
+      "category": "edu",
+      "likes": 2
     },
     "rename-studio": {
       "title": "Rename Studio",
@@ -1533,7 +1543,8 @@
           "sha": "5d9f0b966330"
         }
       ],
-      "category": "tool"
+      "category": "tool",
+      "likes": 1
     },
     "fourier-epicycles-studio": {
       "title": "Fourier Epicycles Studio",
@@ -1583,7 +1594,7 @@
         }
       ],
       "category": "focus",
-      "likes": 1
+      "likes": 2
     },
     "celestialtrace": {
       "title": "CelestialTrace",
@@ -1601,7 +1612,8 @@
           "sha": "1734b0e4748f"
         }
       ],
-      "category": "sim"
+      "category": "sim",
+      "likes": 1
     },
     "umbra": {
       "title": "Umbra",
@@ -1637,7 +1649,8 @@
           "sha": "09f75853b123"
         }
       ],
-      "category": "art"
+      "category": "art",
+      "likes": 1
     },
     "nash": {
       "title": "Nash",
@@ -1656,7 +1669,7 @@
         }
       ],
       "category": "game",
-      "likes": 3
+      "likes": 4
     },
     "belfry": {
       "title": "Belfry",
@@ -1675,7 +1688,7 @@
         }
       ],
       "category": "audio",
-      "likes": 1
+      "likes": 2
     },
     "drift-soundscape": {
       "title": "Drift",
@@ -1707,7 +1720,7 @@
           }
         ]
       },
-      "likes": 1
+      "likes": 2
     },
     "dropzone": {
       "title": "Dropzone",
@@ -1725,7 +1738,8 @@
           "sha": "b14138abd9db"
         }
       ],
-      "category": "sim"
+      "category": "sim",
+      "likes": 1
     },
     "lathe": {
       "title": "Lathe",
@@ -1744,7 +1758,7 @@
         }
       ],
       "category": "art",
-      "likes": 1
+      "likes": 3
     },
     "paper-cinema": {
       "title": "Paper Cinema",
@@ -1794,7 +1808,7 @@
           }
         ]
       },
-      "likes": 2
+      "likes": 3
     },
     "swiftread": {
       "title": "Swiftread",
@@ -1834,7 +1848,8 @@
             "wait": 400
           }
         ]
-      }
+      },
+      "likes": 1
     },
     "trill": {
       "title": "Trill",
@@ -1853,7 +1868,7 @@
         }
       ],
       "category": "audio",
-      "likes": 3
+      "likes": 5
     },
     "cellular-automata-sonifier": {
       "title": "CA Sonifier",
@@ -1871,7 +1886,8 @@
           "sha": "0640402ba42c"
         }
       ],
-      "category": "audio"
+      "category": "audio",
+      "likes": 3
     },
     "pinch-recipe-scaler": {
       "title": "Pinch",
@@ -1889,7 +1905,8 @@
           "sha": "302349b466df"
         }
       ],
-      "category": "tool"
+      "category": "tool",
+      "likes": 1
     },
     "selvedge": {
       "title": "Selvedge",
@@ -1931,7 +1948,7 @@
         }
       ],
       "category": "tool",
-      "likes": 1
+      "likes": 2
     }
   },
   "generated": "2026-11-14"

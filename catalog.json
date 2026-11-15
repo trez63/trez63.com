@@ -152,7 +152,7 @@
         ]
       },
       "category": "art",
-      "likes": 1
+      "likes": 2
     },
     "ledger": {
       "title": "Ledger",
@@ -305,7 +305,7 @@
         ]
       },
       "category": "sim",
-      "likes": 2
+      "likes": 3
     },
     "sonogram": {
       "title": "Sonogram",
@@ -506,7 +506,8 @@
           }
         ]
       },
-      "category": "game"
+      "category": "game",
+      "likes": 1
     },
     "hilbert": {
       "title": "Hilbert",
@@ -537,7 +538,8 @@
           }
         ]
       },
-      "category": "dev"
+      "category": "dev",
+      "likes": 1
     },
     "labelmaker": {
       "title": "Label sheets",
@@ -794,7 +796,7 @@
         }
       ],
       "category": "sim",
-      "likes": 10
+      "likes": 11
     },
     "tidytext": {
       "title": "Tidy Text",
@@ -812,7 +814,8 @@
           "sha": "51ada2865877"
         }
       ],
-      "category": "text"
+      "category": "text",
+      "likes": 1
     },
     "turtleloom": {
       "title": "TurtleLoom",
@@ -1650,7 +1653,7 @@
         }
       ],
       "category": "art",
-      "likes": 1
+      "likes": 2
     },
     "nash": {
       "title": "Nash",
@@ -1720,7 +1723,7 @@
           }
         ]
       },
-      "likes": 2
+      "likes": 3
     },
     "dropzone": {
       "title": "Dropzone",
@@ -1739,7 +1742,7 @@
         }
       ],
       "category": "sim",
-      "likes": 1
+      "likes": 3
     },
     "lathe": {
       "title": "Lathe",
@@ -1808,7 +1811,7 @@
           }
         ]
       },
-      "likes": 3
+      "likes": 4
     },
     "swiftread": {
       "title": "Swiftread",

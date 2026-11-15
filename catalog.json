@@ -1855,19 +1855,24 @@
       "likes": 1
     },
     "trill": {
-      "title": "Trill",
+      "title": "Daily Build 2026-11-14",
       "engine": "Claude",
-      "description": "A modem made of birdsong. Type a message and it plays as a short melody of 32 pure tones that another phone (or the same one) decodes from its microphone, with a live waterfall of what the decoder hears; a self-test routes a message through simulated room noise so you can watch it lock on, and drafts and the inbox save as JSON.",
+      "description": "A modem made of birdsong. Type a message and it plays as a short melody of 32 pure tones that another phone (or the same one) decodes from its microphone, with a live waterfall of what the decoder hears; Reed–Solomon coding repairs up to two wrong tones in every fifteen, the receiver locks onto slow, normal or fast sends on its own, a self-test routes a message through simulated room noise, and a message can be exported as a WAV to send by email or decoded back from a recording. Drafts and the inbox save as JSON.",
       "source_file": "trill - Claude.html",
       "first_published": "2026-11-14",
-      "last_updated": "2026-11-14",
-      "version": 1,
-      "sha": "4359716b6cbe",
+      "last_updated": "2026-11-15",
+      "version": 2,
+      "sha": "cbd42aaaab9a",
       "versions": [
         {
           "v": 1,
           "date": "2026-11-14",
           "sha": "4359716b6cbe"
+        },
+        {
+          "v": 2,
+          "date": "2026-11-15",
+          "sha": "cbd42aaaab9a"
         }
       ],
       "category": "audio",
@@ -1954,5 +1959,5 @@
       "likes": 2
     }
   },
-  "generated": "2026-11-14"
+  "generated": "2026-11-15"
 }

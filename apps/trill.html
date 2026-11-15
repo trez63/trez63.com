@@ -76,6 +76,7 @@ canvas{display:block;width:100%;border-radius:10px;background:var(--lane0);borde
   <button id="themeBtn" title="Theme (D)">Dark</button>
   <button id="helpBtn" title="Help (Ctrl/Cmd+/)">?</button>
   <input id="file" type="file" accept=".json,application/json" class="sr">
+  <input id="audioIn" type="file" accept="audio/*,.wav,.m4a,.mp3" class="sr">
 </header>
 
 <main>
@@ -92,16 +93,18 @@ canvas{display:block;width:100%;border-radius:10px;background:var(--lane0);borde
     </div>
     <div class="row">
       <button id="testBtn" title="Self-test (T)">Self-test</button>
+      <button id="wavBtn" title="Export as WAV (W)">⤓ WAV</button>
       <button id="sendBtn" class="primary grow" title="Send (Ctrl/Cmd+Enter)">▶ Send</button>
     </div>
     <canvas id="bars"></canvas>
-    <div class="hint">Each stripe is one 4-bit tone. Two phones: one taps <b>Listen</b>, the other taps <b>Send</b>. One phone: tap Listen, then Send — it hears itself.</div>
+    <div class="hint">Each stripe is one 4-bit tone (4 in every 15 are error-correction). Two phones: one taps <b>Listen</b>, the other taps <b>Send</b>. One phone: tap Listen, then Send — it hears itself. No speaker handy? <b>WAV</b> exports the melody to email; the recipient taps <b>From file</b>.</div>
   </section>
 
   <section class="card">
     <h2>Receive</h2>
     <div class="row">
       <button id="listenBtn" class="primary grow" title="Listen (L)">● Listen</button>
+      <button id="fileBtn" title="Decode an audio file (F)">From file</button>
       <button id="clearBtn" title="Clear inbox">Clear</button>
     </div>
     <canvas id="falls"></canvas>
@@ -114,12 +117,14 @@ canvas{display:block;width:100%;border-radius:10px;background:var(--lane0);borde
 <div id="help" role="dialog" aria-modal="true">
   <div class="box">
     <h3>Trill — a modem made of birdsong</h3>
-    <p>Trill turns text into a short melody of 32 pure tones (1500–3438 Hz) and decodes it again from any microphone. Nothing leaves the page: no network, no server, no library. Each 4-bit nibble is one tone; consecutive symbols alternate between two interleaved tone banks so every boundary is audible to the decoder, which uses Hann-windowed Goertzel filters and run-length symbol clocking, locks on a 4-tone preamble (and reads the speed from it), then checks a CRC-8.</p>
+    <p>Trill turns text into a short melody of 32 pure tones (2000–3938 Hz) and decodes it again from any microphone. Nothing leaves the page: no network, no server, no library. Each 4-bit nibble is one tone; consecutive symbols alternate between two interleaved tone banks so every boundary is audible to the decoder, which uses Hann-windowed Goertzel filters, finds a 6-tone preamble with a matched filter (learning the speed from it), keeps its symbol clock aligned with an early/late gate, repairs up to 2 wrong tones in every 15 with a Reed–Solomon code, then checks a CRC-8.</p>
     <p><b>Phone tips:</b> raise the volume and turn the ringer on. Hold devices within a metre. Microphone access needs a secure page (https) or a desktop file; iPhone Chrome asks once.</p>
     <dl>
-      <dt><kbd>Ctrl/Cmd</kbd>+<kbd>Enter</kbd></dt><dd>Send (works inside the text box)</dd>
+      <dt><kbd>Ctrl/Cmd</kbd>+<kbd>Enter</kbd></dt><dd>Send / stop sending (works inside the text box)</dd>
       <dt><kbd>L</kbd></dt><dd>Start / stop listening</dd>
       <dt><kbd>T</kbd></dt><dd>Self-test: route the message through the decoder with simulated room noise</dd>
+      <dt><kbd>W</kbd></dt><dd>Export the message as a WAV file you can email or text</dd>
+      <dt><kbd>F</kbd></dt><dd>Decode a WAV (or a voice-memo recording of a Trill) from a file</dd>
       <dt><kbd>D</kbd></dt><dd>Dark / light theme</dd>
       <dt><kbd>Ctrl/Cmd</kbd>+<kbd>S</kbd></dt><dd>Save draft, speed, theme and inbox as JSON (downloads directly from the standalone file; inside the claude.ai viewer it asks you to confirm the save)</dd>
       <dt><kbd>Ctrl/Cmd</kbd>+<kbd>O</kbd></dt><dd>Open a saved Trill JSON</dd>
@@ -133,17 +138,41 @@ canvas{display:block;width:100%;border-radius:10px;background:var(--lane0);borde
 <script>
 'use strict';
 // @@core — pure codec: no DOM, runs in node for tests
-const F0 = 1500, DF = 62.5, NT = 32;              // 32 tones, 62.5 Hz apart
-const PRE = [15, 0, 15, 0];                        // preamble nibbles (bank A,B,A,B)
-const toneOf = (nib, bank) => nib * 2 + bank;      // interleaved banks share speaker response
+const F0 = 2000, DF = 62.5, NT = 32;              // 32 tones, 2000–3937.5 Hz: 2nd harmonics of every tone fall outside the band
+const SPEEDS = [60, 90, 140];                      // symbol lengths (ms) the receiver may snap to
+const PRE = [15, 0, 7, 8, 3, 12];                // preamble tones 30,1,14,17,6,25: six distinct, far apart
+const toneOf = (nib, bank) => nib * 2 + bank;      // interleaved banks share the speaker's response curve
 const freqOf = t => F0 + t * DF;
 function crc8(bytes){ let c = 0; for (const b of bytes){ c ^= b; for (let i = 0; i < 8; i++) c = c & 0x80 ? ((c << 1) ^ 0x07) & 0xff : (c << 1) & 0xff; } return c; }
+// Reed–Solomon RS(15,11) over GF(16): every 11 data nibbles carry 4 parity nibbles, so any 2 wrong tones in 15 are repaired.
+const GX = [], GL = []; for (let i = 0, x = 1; i < 15; i++){ GX[i] = x; GL[x] = i; x <<= 1; if (x & 16) x ^= 0x13; }
+const gmul = (a, b) => a && b ? GX[(GL[a] + GL[b]) % 15] : 0, gdiv = (a, b) => a ? GX[(GL[a] + 15 - GL[b]) % 15] : 0;
+const GEN = [0, 1, 2, 3].reduce((g, i) => [...g, 0].map((c, k) => c ^ gmul(g[k - 1] ?? 0, GX[i])), [1]);   // (x+1)(x+α)(x+α²)(x+α³), highest power first
+function rsEncode(d){                              // 11 nibbles -> 15
+  const rem = [0, 0, 0, 0];
+  for (const v of d){ const fb = v ^ rem.shift(); rem.push(0); for (let k = 0; k < 4; k++) rem[k] ^= gmul(fb, GEN[k + 1]); }
+  return d.concat(rem);
+}
+function rsDecode(r){                              // 15 nibbles -> { data: 11 nibbles, fixed: 0..2 } or null if beyond repair
+  const S = [0, 1, 2, 3].map(i => r.reduce((s, c) => gmul(s, GX[i]) ^ c, 0)), c = r.slice();
+  if (S.every(v => !v)) return { data: c.slice(0, 11), fixed: 0 };
+  for (let q = 0; q < 15; q++){                    // one error of value S0 at power q?
+    const X = GX[q]; if (S[0] && gmul(S[0], X) === S[1] && gmul(S[1], X) === S[2] && gmul(S[2], X) === S[3]){ c[14 - q] ^= S[0]; return { data: c.slice(0, 11), fixed: 1 }; }
+  }
+  for (let q1 = 0; q1 < 15; q1++) for (let q2 = q1 + 1; q2 < 15; q2++){   // two errors: solve from S0,S1, verify with S2,S3
+    const X1 = GX[q1], X2 = GX[q2], e1 = gdiv(S[1] ^ gmul(S[0], X2), X1 ^ X2), e2 = S[0] ^ e1; if (!e1 || !e2) continue;
+    const X1s = gmul(X1, X1), X2s = gmul(X2, X2);
+    if ((gmul(e1, X1s) ^ gmul(e2, X2s)) === S[2] && (gmul(e1, gmul(X1s, X1)) ^ gmul(e2, gmul(X2s, X2))) === S[3]){ c[14 - q1] ^= e1; c[14 - q2] ^= e2; return { data: c.slice(0, 11), fixed: 2 }; }
+  }
+  return null;
+}
 function frameNibbles(text){
   const bytes = new TextEncoder().encode(text);
   if (!bytes.length || bytes.length > 160) return null;
-  const all = [bytes.length, ...bytes, crc8(bytes)];
+  const raw = []; for (const b of [bytes.length, ...bytes, crc8(bytes)]) raw.push(b >> 4, b & 15);
+  while (raw.length % 11) raw.push(0);
   const nibs = PRE.slice();
-  for (const b of all) nibs.push(b >> 4, b & 15);
+  for (let i = 0; i < raw.length; i += 11) nibs.push(...rsEncode(raw.slice(i, i + 11)));
   return nibs;
 }
 function toneSequence(nibs){ return nibs.map((n, i) => toneOf(n, i & 1)); }
@@ -160,18 +189,31 @@ function encode(text, sr, symMs){
   });
   return out;
 }
-// Decoder: Hann-windowed Goertzel on every hop, run-length symbol clock, preamble lock, CRC.
+function wavBytes(pcm, sr){                        // 16-bit mono PCM WAV
+  const b = new ArrayBuffer(44 + pcm.length * 2), v = new DataView(b), s = (o, t) => { for (let i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); };
+  s(0, 'RIFF'); v.setUint32(4, 36 + pcm.length * 2, true); s(8, 'WAVEfmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); s(36, 'data'); v.setUint32(40, pcm.length * 2, true);
+  for (let i = 0; i < pcm.length; i++) v.setInt16(44 + i * 2, Math.max(-32768, Math.min(32767, Math.round(pcm[i] * 32767))), true);
+  return b;
+}
+// Decoder. Every ~10.7 ms hop it measures the energy of all 32 tones (Hann-windowed Goertzel) into a ring buffer.
+// Idle: a matched filter slides the 6-tone preamble over the ring at each speed; the best-scoring alignment wins.
+// Locked: the symbol clock is known, so each slot is simply "loudest tone of the expected bank", and an early/late
+// gate on that tone's energy keeps the clock aligned through drift. Tones are judged by how much they rose since the
+// previous slot, so a room echo of an earlier tone (which is fading) cannot outvote a quiet new one.
 class Demod{
   constructor(sr, onFrame, onEvent){
     this.sr = sr; this.onFrame = onFrame; this.onEvent = onEvent;
-    this.W = 1536; this.hop = 512;                      // 32 ms window, 10.7 ms hop @48 kHz
+    this.hop = Math.round(sr / 93.75); this.W = this.hop * 3;   // 512 / 1536 samples at 48 kHz
     this.buf = new Float32Array(this.W); this.fill = 0; this.since = 0;
     this.win = Float32Array.from({ length: this.W }, (_, n) => 0.5 - 0.5 * Math.cos(2 * Math.PI * n / this.W));
     this.coef = Float32Array.from({ length: NT }, (_, t) => 2 * Math.cos(2 * Math.PI * freqOf(t) / sr));
-    this.cur = -1; this.len = 0; this.gap = 0; this.pending = null; this.runs = [];
-    this.reset('idle');
+    this.h = 0; this.RING = 256; this.ring = new Float32Array(this.RING * NT);   // last ~2.7 s of tone energies
+    this.Ss = SPEEDS.map(ms => ms / 1000 * sr / this.hop);     // hops per symbol at each speed
+    this.pre = toneSequence(PRE); this.acc = new Float64Array(NT);
+    this.reset();
   }
-  reset(why){ this.state = 'idle'; this.nibs = []; this.symHops = 0; this.need = 0; if (why && why !== 'idle') this.onEvent({ type: 'status', text: why }); }
+  reset(why){ this.state = 'idle'; this.cand = null; this.nibs = []; this.weak = 0; if (why) this.onEvent({ type: 'status', text: why }); }
   push(samples){                                        // any chunk size, any time
     for (let i = 0; i < samples.length; i++){
       if (this.fill < this.W) this.buf[this.fill++] = samples[i];
@@ -179,8 +221,9 @@ class Demod{
       if (this.fill === this.W && ++this.since >= this.hop){ this.since = 0; this.analyze(); }
     }
   }
+  row(i){ return i >= 0 && i < this.h && this.h - i <= this.RING ? this.ring.subarray((i % this.RING) * NT, (i % this.RING + 1) * NT) : null; }
   analyze(){
-    const W = this.W, x = this.buf, win = this.win, E = new Float32Array(NT);
+    const W = this.W, x = this.buf, win = this.win, o = (this.h % this.RING) * NT, E = this.ring.subarray(o, o + NT);
     for (let t = 0; t < NT; t++){
       let s0 = 0, s1 = 0, s2 = 0; const c = this.coef[t];
       for (let n = 0; n < W; n++){ s0 = x[n] * win[n] + c * s1 - s2; s2 = s1; s1 = s0; }
@@ -188,62 +231,80 @@ class Demod{
     }
     let peak = 0, pi = -1, sum = 0;
     for (let t = 0; t < NT; t++){ sum += E[t]; if (E[t] > peak){ peak = E[t]; pi = t; } }
-    const rest = (sum - peak) / (NT - 1);
-    const dom = peak > 1e-9 && peak > 8 * rest ? pi : -1;   // a tone must stand 8x above the band average (noise rarely does)
-    this.onFrame(E, dom, peak);
-    this.clock(dom);
+    this.onFrame(E, peak > 1e-9 && peak > 4 * (sum - peak) / (NT - 1) ? pi : -1, peak);   // for the waterfall only
+    this.h++;
+    if (this.state === 'idle') this.search(); else this.drain();
   }
-  clock(dom){                                           // group hops into runs of one dominant tone
-    if (dom !== -1 && dom === this.cur) this.len++;
-    else { if (this.cur !== -1) this.endRun(); this.cur = dom; this.len = dom === -1 ? 0 : 1; }
-    this.gap++;                                         // hops since the pending run last grew
-    if (this.pending && this.gap > Math.max(4, this.symHops * 0.8)) this.flush();
-    if (this.state !== 'idle' && this.gap > 300) this.reset('Lost signal');
+  band(a, b){                                           // per-tone energy summed over hops [a, b); returns the total
+    const acc = this.acc.fill(0); let tot = 0;
+    for (let i = Math.ceil(a); i < b; i++){ const E = this.row(i); if (E) for (let t = 0; t < NT; t++){ acc[t] += E[t]; tot += E[t]; } }
+    return tot;
   }
-  endRun(){
-    const tone = this.cur, len = this.len; this.cur = -1; this.len = 0;
-    if (len < Math.max(2, this.symHops * 0.35)) return;  // glitch: too short to be a symbol, keep the pending one alive
-    this.gap = 0;
-    if (this.pending && this.pending.tone === tone){ this.pending.len += len; return; }   // rejoin a split run
-    this.flush(); this.pending = { tone, len };
-  }
-  flush(){ if (!this.pending) return; const r = this.pending; this.pending = null; this.symbol(r); }
-  symbol(r){
-    this.runs.push(r); if (this.runs.length > 4) this.runs.shift();
-    if (this.state === 'idle'){
-      const p = toneSequence(PRE);
-      if (this.runs.length === 4 && this.runs.every((q, i) => q.tone === p[i])){
-        this.symHops = this.runs.reduce((a, q) => a + q.len, 0) / 4;
-        this.state = 'len'; this.nibs = []; this.need = 2; this.parity = 0; this.lastTone = this.runs[3].tone;
-        this.onEvent({ type: 'status', text: `Locked · ${Math.round(this.symHops * this.hop / this.sr * 1000)} ms symbols` });
+  tone(t, a, b){ let s = 0; for (let i = Math.ceil(a); i < b; i++){ const E = this.row(i); if (E) s += E[t]; } return s; }
+  lateness(t, a, S){ const e = this.tone(t, a, a + S / 2), l = this.tone(t, a + S / 2, a + S); return e + l > 0 ? (l - e) / (l + e) : 0; }   // early/late gate
+  search(){                                             // does a preamble end exactly here, at any speed?
+    for (const S of this.Ss){
+      const start = this.h - 6 * S; if (start < 0) continue;
+      let hits = 0, score = 0;
+      for (let j = 0; j < 6; j++){
+        this.band(start + j * S, start + (j + 1) * S); const want = this.pre[j], acc = this.acc;
+        let tot = 0, top = 0; for (let t = j & 1; t < NT; t += 2){ tot += acc[t]; if (acc[t] > top) top = acc[t]; }   // judged within its own bank, like data
+        if (tot > 0){ score += acc[want] / tot; if (acc[want] === top) hits++; }
       }
-      return;
+      if (hits >= 5 && score > 1.8 && (!this.cand || score > this.cand.score)) this.cand = { score, S, t0: this.h, at: this.h };
     }
-    if (r.len < this.symHops * 0.4 || r.tone === this.lastTone) return;   // boundary glitch, or the tail of a split symbol
-    if ((r.tone & 1) !== this.parity) return this.reset('Lost sync');
-    this.parity ^= 1; this.lastTone = r.tone; this.nibs.push(r.tone >> 1);
-    if (this.nibs.length < this.need) { if (this.state === 'data') this.onEvent({ type: 'progress', have: this.nibs.length / 2, total: this.need / 2 }); return; }
-    if (this.state === 'len'){
-      const n = (this.nibs[0] << 4) | this.nibs[1];
-      if (n < 1 || n > 160) return this.reset('Bad header');
-      this.state = 'data'; this.nibs = []; this.need = n * 2 + 2; this.onEvent({ type: 'progress', have: 0, total: n });
-    } else {
-      const bytes = []; for (let i = 0; i < this.nibs.length; i += 2) bytes.push((this.nibs[i] << 4) | this.nibs[i + 1]);
-      const crc = bytes.pop(), ok = crc8(bytes) === crc;
-      let text; try { text = new TextDecoder('utf-8', { fatal: true }).decode(new Uint8Array(bytes)); } catch { text = String.fromCharCode(...bytes); }
-      this.onEvent({ type: 'message', text, ok }); this.reset('idle');
+    // Wait long enough for a slower-speed preamble to finish and compete: echo can make a fast template half-match a slow signal.
+    const slow = this.Ss[this.Ss.length - 1];
+    if (this.cand && this.h - this.cand.at > 6 * (slow - this.cand.S) + slow / 2) this.lock(this.cand);
+  }
+  lock({ S, t0 }){
+    for (let it = 0; it < 3; it++){                     // fine-align on the six known tones
+      let err = 0; for (let j = 0; j < 6; j++) err += this.lateness(this.pre[j], t0 - (6 - j) * S, S);
+      t0 += err / 6 * S * 0.5;
     }
+    this.S = S; this.t0 = t0; this.k = 0; this.parity = 0; this.cand = null; this.weak = 0;
+    this.state = 'len'; this.nibs = [];
+    this.onEvent({ type: 'status', text: `Locked · ${Math.round(S * this.hop / this.sr * 1000)} ms symbols` });
+    this.drain();
+  }
+  drain(){ while (this.state !== 'idle' && this.h >= this.t0 + (this.k + 1) * this.S + 1) this.decide(); }
+  decide(){
+    const S = this.S, a = this.t0 + this.k * S, acc = this.acc;
+    this.band(a - S * 0.8, a - S * 0.2); const was = acc.slice();          // the slot before: echoes live here, new tones do not
+    const tot = this.band(a + S * 0.2, a + S * 0.8), rise = t => acc[t] - was[t];   // an echo is fading, a fresh tone is rising
+    let best = this.parity; for (let t = this.parity; t < NT; t += 2) if (rise(t) > rise(best)) best = t;
+    this.weak = tot > 0 && acc[best] / tot > 0.18 ? 0 : this.weak + 1;
+    if (this.weak >= 8) return this.reset('Signal faded — move closer or raise the volume');
+    this.t0 += Math.max(-0.1, Math.min(0.1, 0.15 * this.lateness(best, a, S))) * S;
+    this.k++; this.parity ^= 1; this.accept(best >> 1);
+  }
+  accept(nib){
+    this.nibs.push(nib);
+    if (this.state === 'len' && this.nibs.length === 15){   // first RS block holds the length byte
+      const b = rsDecode(this.nibs); if (!b) return this.reset('Could not read the header — try again');
+      this.n = (b.data[0] << 4) | b.data[1];
+      if (this.n < 1 || this.n > 160) return this.reset('Bad header — try again');
+      this.state = 'data'; this.need = Math.ceil((this.n * 2 + 4) / 11) * 15;
+    }
+    if (this.state !== 'data') return;
+    if (this.nibs.length < this.need) return this.onEvent({ type: 'progress', have: Math.round(this.nibs.length / this.need * this.n), total: this.n });
+    const raw = []; let fixed = 0;
+    for (let i = 0; i < this.need; i += 15){ const blk = this.nibs.slice(i, i + 15), b = rsDecode(blk); raw.push(...(b ? b.data : blk.slice(0, 11))); fixed += b ? b.fixed : 0; }
+    const bytes = []; for (let i = 2; i < this.n * 2 + 4; i += 2) bytes.push((raw[i] << 4) | raw[i + 1]);
+    const crc = bytes.pop(), ok = crc8(bytes) === crc;
+    let text; try { text = new TextDecoder('utf-8', { fatal: true }).decode(new Uint8Array(bytes)); } catch { text = String.fromCharCode(...bytes); }
+    this.onEvent({ type: 'message', text, ok, fixed }); this.reset();
   }
 }
 // @@endcore
-if (typeof module !== 'undefined') module.exports = { encode, Demod, crc8, frameNibbles, toneSequence, NT };
+if (typeof module !== 'undefined') module.exports = { encode, Demod, crc8, frameNibbles, toneSequence, wavBytes, rsEncode, rsDecode, NT };
 </script>
 <script>
 'use strict';
 const $ = id => document.getElementById(id);
 const APP = 'trill', VERSION = 1;
 const state = { messages: [], listening: false, playing: false };
-let ctx = null, micStream = null, micNode = null, demod = null, rows = [], simTimer = null;
+let ctx = null, micStream = null, micNode = null, demod = null, rows = [], simTimer = null, playSrc = null;
 
 // ---------- theme ----------
 const root = document.documentElement;
@@ -261,7 +322,7 @@ function symMs(){ return +speed.value; }
 function updateInfo(){
   const bytes = new TextEncoder().encode(msg.value).length, nibs = frameNibbles(msg.value);
   $('info').textContent = nibs ? `${bytes} B · ${nibs.length} tones · ${(nibs.length * symMs() / 1000 + 0.25).toFixed(1)} s` : (bytes ? 'Too long (160 bytes max)' : 'Type something');
-  $('sendBtn').disabled = $('testBtn').disabled = !nibs;
+  $('sendBtn').disabled = !nibs && !state.playing; $('testBtn').disabled = $('wavBtn').disabled = !nibs;
   drawBars();
 }
 msg.addEventListener('input', updateInfo); speed.addEventListener('change', updateInfo);
@@ -277,16 +338,17 @@ function drawBars(cursor = -1){
   if (cursor >= 0){ g.fillStyle = css('--hot'); g.fillRect(cursor * sw - 1, 0, 3, h); }
 }
 
-async function send(){
-  const nibs = frameNibbles(msg.value); if (!nibs || state.playing) return;
+function send(){
+  if (state.playing) return playSrc.stop();             // the same button stops a transmission
+  const nibs = frameNibbles(msg.value); if (!nibs) return;
   const ac = ensureCtx(), pcm = encode(msg.value, ac.sampleRate, symMs());
   const buf = ac.createBuffer(1, pcm.length, ac.sampleRate); buf.copyToChannel(pcm, 0);
-  const src = ac.createBufferSource(); src.buffer = buf; src.connect(ac.destination);
-  state.playing = true; $('sendBtn').textContent = '♪ Sending…'; $('sendBtn').disabled = true;
+  const src = playSrc = ac.createBufferSource(); src.buffer = buf; src.connect(ac.destination);
+  state.playing = true; $('sendBtn').textContent = '■ Stop'; $('sendBtn').className = 'live grow';
   const t0 = ac.currentTime + 0.05, L = symMs() / 1000; src.start(t0);
   const tick = () => { if (!state.playing) return; const k = Math.floor((ac.currentTime - t0 - 0.15) / L); drawBars(k >= 0 && k < nibs.length ? k : -1); requestAnimationFrame(tick); };
   tick();
-  src.onended = () => { state.playing = false; $('sendBtn').textContent = '▶ Send'; updateInfo(); };
+  src.onended = () => { state.playing = false; playSrc = null; $('sendBtn').textContent = '▶ Send'; $('sendBtn').className = 'primary grow'; updateInfo(); };
 }
 $('sendBtn').onclick = send;
 
@@ -301,7 +363,8 @@ function rgb(hex){ const n = parseInt(hex.slice(1), 16); return [n >> 16 & 255, 
 let ref = 0;                                               // slow-decaying level reference so silence stays dark
 function drawRows(){
   if (rows.length){
-    const n = Math.min(rows.length, 6), c0 = rgb(css('--lane0')), c1 = rgb(css('--lane1')), c2 = rgb(css('--lane2'));
+    if (rows.length > FH) rows = rows.slice(-FH);   // a decoded file arrives all at once: show its tail
+    const n = rows.length, c0 = rgb(css('--lane0')), c1 = rgb(css('--lane1')), c2 = rgb(css('--lane2'));
     fg.drawImage(falls, 0, -n);
     for (let r = 0; r < n; r++){
       const { E, dom, peak } = rows[r], y = FH - n + r;
@@ -322,7 +385,7 @@ function setStatus(text, live){ $('status').textContent = text; $('dot').classNa
 function onEvent(e){
   if (e.type === 'status') setStatus(e.text, state.listening);
   else if (e.type === 'progress') setStatus(`Receiving ${Math.floor(e.have)}/${e.total} bytes`, state.listening);
-  else if (e.type === 'message') addMessage(e.text, e.ok, e.via || 'mic');
+  else if (e.type === 'message') addMessage(e.text, e.ok, e.via || 'mic', e.fixed);
 }
 function makeDemod(sr, via){ return new Demod(sr, (E, dom, peak) => rows.push({ E, dom, peak }), e => onEvent(e.type === 'message' ? { ...e, via } : e)); }
 
@@ -363,11 +426,27 @@ function selfTest(){
 }
 $('testBtn').onclick = selfTest;
 
+// ---------- audio files: export a WAV, decode a WAV / voice memo ----------
+function exportWav(){
+  const pcm = encode(msg.value, 48000, symMs()); if (!pcm) return;
+  saveFile(`trill-${new Date().toISOString().slice(0, 10)}.wav`, wavBytes(pcm, 48000), 'audio/wav');
+}
+$('wavBtn').onclick = exportWav;
+$('fileBtn').onclick = () => $('audioIn').click();
+$('audioIn').onchange = async ev => {
+  const f = ev.target.files[0]; ev.target.value = ''; if (!f) return;
+  let audio; try { audio = await ensureCtx().decodeAudioData(await f.arrayBuffer()); } catch { return setStatus('Could not read that as audio', state.listening); }
+  const x = audio.getChannelData(0), d = makeDemod(audio.sampleRate, 'file'), before = state.messages.length;
+  for (let p = 0; p < x.length; p += 8192) d.push(x.subarray(p, p + 8192));
+  d.push(new Float32Array(audio.sampleRate));
+  if (state.messages.length === before) setStatus(`No Trill message found in ${f.name}`, state.listening);
+};
+
 // ---------- inbox ----------
 const linkify = s => s.split(/(https?:\/\/\S+)/g).map(p => /^https?:\/\//.test(p) ? `<a href="${p.replace(/"/g, '')}" target="_blank" rel="noopener">${p}</a>` : p.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))).join('');
-function addMessage(text, ok, via, when = new Date().toISOString()){
+function addMessage(text, ok, via, fixed = 0, when = new Date().toISOString()){
   state.messages.unshift({ text, ok, via, when }); renderInbox();
-  setStatus(ok ? `Received ✓ ${text.length} chars via ${via}` : 'Checksum failed — shown in red', state.listening);
+  setStatus(ok ? `Received ✓ ${text.length} chars via ${via}${fixed ? ` · ${fixed} tone${fixed > 1 ? 's' : ''} repaired` : ''}` : 'Checksum failed — shown in red', state.listening);
   if (navigator.vibrate) navigator.vibrate(ok ? 40 : [40, 60, 40]);
 }
 function renderInbox(){
@@ -383,14 +462,16 @@ function renderInbox(){
 $('clearBtn').onclick = () => { state.messages = []; renderInbox(); };
 
 // ---------- save / open ----------
-async function save(){
-  const data = { app: APP, version: VERSION, draft: msg.value, speed: symMs(), theme: root.dataset.theme, messages: state.messages };
-  const name = `trill-${new Date().toISOString().slice(0, 10)}.json`, json = JSON.stringify(data, null, 2);
+async function saveFile(name, data, type){
   const dl = window.claude?.use ? await window.claude.use('downloads').catch(() => null) : null;   // inside the claude.ai viewer, saves go through its download prompt
-  if (dl){ try { await dl.save({ filename: name, data: json }); } catch (err) { if (err?.code !== 'cancelled' && err?.code !== 'viewer_declined') setStatus('Save failed: ' + (err?.code || err), state.listening); } return; }
-  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+  if (dl){ try { await dl.save({ filename: name, data }); } catch (err) { if (err?.code !== 'cancelled' && err?.code !== 'viewer_declined') setStatus('Save failed: ' + (err?.code || err), state.listening); } return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type }));
   a.download = name; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+function save(){
+  const data = { app: APP, version: VERSION, draft: msg.value, speed: symMs(), theme: root.dataset.theme, messages: state.messages };
+  saveFile(`trill-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(data, null, 2), 'application/json');
 }
 function restore(obj){
   if (!obj || obj.app !== APP || typeof obj.version !== 'number') throw new Error('Not a Trill file (expected {"app":"trill"})');
@@ -421,6 +502,8 @@ addEventListener('keydown', e => {
   if (typing || mod || e.altKey) return;
   if (e.key === 'l' || e.key === 'L') toggleListen();
   else if (e.key === 't' || e.key === 'T') selfTest();
+  else if (e.key === 'w' || e.key === 'W') exportWav();
+  else if (e.key === 'f' || e.key === 'F') $('audioIn').click();
   else if (e.key === 'd' || e.key === 'D') $('themeBtn').click();
 });
 addEventListener('resize', () => drawBars());

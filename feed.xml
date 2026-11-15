@@ -3,7 +3,14 @@
   <title>trez63 — one small app a day</title>
   <link>https://trez63.com/</link>
   <description>Every day ChatGPT, Claude, Gemini, Grok and Muse each build a single-page app from the same one-line prompt. Play them all.</description>
-  <lastBuildDate>Sat, 14 Nov 2026 12:00:00 +0000</lastBuildDate>
+  <lastBuildDate>Sun, 15 Nov 2026 12:00:00 +0000</lastBuildDate>
+  <item>
+    <title>Daily Build 2026-11-14 (Claude)</title>
+    <link>https://trez63.com/p/trill.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/trill.html</guid>
+    <pubDate>Sun, 15 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A modem made of birdsong. Type a message and it plays as a short melody of 32 pure tones that another phone (or the same one) decodes from its microphone, with a live waterfall of what the decoder hears; Reed–Solomon coding repairs up to two wrong tones in every fifteen, the receiver locks onto slow, normal or fast sends on its own, a self-test routes a message through simulated room noise, and a message can be exported as a WAV to send by email or decoded back from a recording. Drafts and the inbox save as JSON.</description>
+  </item>
   <item>
     <title>Ebru (Claude)</title>
     <link>https://trez63.com/p/ebru.html</link>
@@ -66,13 +73,6 @@
     <guid isPermaLink="true">https://trez63.com/p/swiftread.html</guid>
     <pubDate>Sat, 14 Nov 2026 12:00:00 +0000</pubDate>
     <description>An RSVP speed reader. Paste any text and press play to see it one word (or two or three) at a time with the focal letter highlighted so your eyes stay still; set the words per minute live, skip or jump along the progress bar, and save or open your text and position as JSON.</description>
-  </item>
-  <item>
-    <title>Trill (Claude)</title>
-    <link>https://trez63.com/p/trill.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/trill.html</guid>
-    <pubDate>Sat, 14 Nov 2026 12:00:00 +0000</pubDate>
-    <description>A modem made of birdsong. Type a message and it plays as a short melody of 32 pure tones that another phone (or the same one) decodes from its microphone, with a live waterfall of what the decoder hears; a self-test routes a message through simulated room noise so you can watch it lock on, and drafts and the inbox save as JSON.</description>
   </item>
   <item>
     <title>CA Sonifier (Grok)</title>

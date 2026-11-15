@@ -291,7 +291,7 @@ const q=document.getElementById('q'), grid=document.getElementById('grid'), card
 const more=document.getElementById('more'), count=document.getElementById('count'), note=document.getElementById('likenote'), pickf=document.getElementById('pickf');
 const PAGE=24, TODAY=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
 cards.forEach((c,i)=>c.dataset.i=i);
-let engine='all', cat='all', sort='new', picksOnly=false, limit=PAGE, matching=[];
+let engine='all', cat='all', sort='top', picksOnly=false, limit=PAGE, matching=[], fullLoad=false;
 const dayLabel=d=>{ const t=new Date(d+'T12:00:00'), o={weekday:'long',month:'short',day:'numeric'};
   if(t.getFullYear()!==new Date().getFullYear()) o.year='numeric'; return t.toLocaleDateString('en-US',o); };
 // One place decides what is on screen: filter, sort, cut to the current page size, and (for Newest) add a heading per publish day.
@@ -331,12 +331,14 @@ const srt=[...document.querySelectorAll('.sort button')];
 let resortTimer=0;
 srt.forEach(b=>b.addEventListener('click',()=>{
   sort=b.dataset.sort; press(srt,b); apply();
-  if(sort==='top' && window.trezLikes) window.trezLikes.loadAll(); else note.hidden=true;
+  // Most liked is the default view and opens on the stored counts plus live counts for what is on screen.
+  // Choosing it by hand also fetches the live count for every app.
+  if(sort==='top' && window.trezLikes){ fullLoad=true; window.trezLikes.loadAll(); } else note.hidden=true;
 }));
 // Counts arrive a few at a time; while "Most liked" is on, keep the order current as they land.
 document.addEventListener('likes:update',e=>{
   if(sort!=='top') return;
-  const d=e.detail; note.hidden=!d.pending; note.textContent='Checking latest counts… '+d.done+' of '+d.total;
+  const d=e.detail; note.hidden=!(fullLoad&&d.pending); note.textContent='Checking latest counts… '+d.done+' of '+d.total;
   clearTimeout(resortTimer); resortTimer=setTimeout(render,d.pending?600:0);
 });
 // Surprise me: a random app from whatever the current search and filters match.
@@ -431,7 +433,7 @@ page = f"""<!doctype html>
     </div>
     {pick_filter}
     <div class="filters sort" role="group" aria-label="Sort">
-      <button data-sort="new" aria-pressed="true">Newest</button><button data-sort="top">Most liked</button>
+      <button data-sort="top" aria-pressed="true">Most liked</button><button data-sort="new">Newest</button>
     </div>
     <button class="lucky" type="button" title="Open a random app from the ones listed">Surprise me</button>
   </div>

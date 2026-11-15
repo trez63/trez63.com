@@ -1578,7 +1578,8 @@
           "sha": "e1b2c2f15391"
         }
       ],
-      "category": "focus"
+      "category": "focus",
+      "likes": 1
     },
     "celestialtrace": {
       "title": "CelestialTrace",
@@ -1650,7 +1651,8 @@
           "sha": "6a3386c55d38"
         }
       ],
-      "category": "game"
+      "category": "game",
+      "likes": 1
     },
     "belfry": {
       "title": "Belfry",
@@ -1735,7 +1737,8 @@
           "sha": "2c3faff2927a"
         }
       ],
-      "category": "art"
+      "category": "art",
+      "likes": 1
     },
     "paper-cinema": {
       "title": "Paper Cinema",
@@ -1920,7 +1923,8 @@
           "sha": "d8cd89eaf3b5"
         }
       ],
-      "category": "tool"
+      "category": "tool",
+      "likes": 1
     }
   },
   "generated": "2026-11-14"

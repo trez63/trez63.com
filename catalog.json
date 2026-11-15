@@ -358,7 +358,7 @@
         ]
       },
       "category": "audio",
-      "likes": 5
+      "likes": 6
     },
     "sprout-garden": {
       "title": "Sprout",
@@ -703,7 +703,7 @@
         }
       ],
       "category": "audio",
-      "likes": 2
+      "likes": 3
     },
     "cosmic-breath": {
       "title": "Cosmic Breath",
@@ -789,7 +789,7 @@
         }
       ],
       "category": "sim",
-      "likes": 7
+      "likes": 8
     },
     "tidytext": {
       "title": "Tidy Text",
@@ -969,7 +969,8 @@
           "sha": "eff606f39648"
         }
       ],
-      "category": "dev"
+      "category": "dev",
+      "likes": 1
     },
     "logglass": {
       "title": "Logglass",
@@ -1655,7 +1656,7 @@
         }
       ],
       "category": "game",
-      "likes": 2
+      "likes": 3
     },
     "belfry": {
       "title": "Belfry",

@@ -358,7 +358,7 @@
         ]
       },
       "category": "audio",
-      "likes": 1
+      "likes": 3
     },
     "sprout-garden": {
       "title": "Sprout",
@@ -453,7 +453,7 @@
         }
       ],
       "category": "tool",
-      "likes": 1
+      "likes": 2
     },
     "budget": {
       "title": "Budget",
@@ -703,7 +703,7 @@
         }
       ],
       "category": "audio",
-      "likes": 1
+      "likes": 2
     },
     "cosmic-breath": {
       "title": "Cosmic Breath",
@@ -789,7 +789,7 @@
         }
       ],
       "category": "sim",
-      "likes": 2
+      "likes": 6
     },
     "tidytext": {
       "title": "Tidy Text",
@@ -1704,7 +1704,8 @@
             "wait": 2500
           }
         ]
-      }
+      },
+      "likes": 1
     },
     "dropzone": {
       "title": "Dropzone",
@@ -1791,7 +1792,7 @@
           }
         ]
       },
-      "likes": 1
+      "likes": 2
     },
     "swiftread": {
       "title": "Swiftread",
@@ -1850,7 +1851,7 @@
         }
       ],
       "category": "audio",
-      "likes": 1
+      "likes": 2
     },
     "cellular-automata-sonifier": {
       "title": "CA Sonifier",

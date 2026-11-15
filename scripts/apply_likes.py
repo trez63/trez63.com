@@ -29,6 +29,8 @@ def main(paths):
     subprocess.run([sys.executable, str(ROOT / "scripts" / "build_index.py")], check=True)
     total = sum(int(e.get("likes") or 0) for e in cat["apps"].values())
     print(f"likes: {changed} apps changed, {total} likes recorded in total")
+    top = max(cat["apps"].items(), key=lambda kv: int(kv[1].get("likes") or 0))
+    print(f"top: {top[0]} {int(top[1].get('likes') or 0)}")
 
 if __name__ == "__main__":
     main(sys.argv[1:])

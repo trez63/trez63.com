@@ -111,6 +111,8 @@ def fmt(d):
 def pub(e): return e["first_published"]
 def has_preview(slug): return (ROOT / "previews" / f"{slug}.webm").exists()
 
+# NOTE: on the index, LIKE_JS must run before JS. JS's first render() removes every card past the first page from
+# the document; LIKE_JS finds its buttons with querySelectorAll, so run later it would wire up only the first page.
 # ------------------------------------------------------------------ cards
 all_engines = sorted({e["engine"] for e in apps.values()})
 def shot(slug, e, lazy=True):
@@ -446,7 +448,7 @@ page = f"""<!doctype html>
 </section>
 <footer>SOURCE AND FULL VERSION HISTORY ON <a href="{REPO}">GITHUB</a> · <a href="feed.xml">RSS</a> · LAST PUBLISHED {fmt(catalog.get('generated', TODAY.isoformat())).upper()}</footer>
 </div>
-<script>{JS}{LIKE_JS}{TRACK_JS}</script>
+<script>{LIKE_JS}{JS}{TRACK_JS}</script>
 </body>
 </html>
 """

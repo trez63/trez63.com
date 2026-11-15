@@ -1636,6 +1636,57 @@ button.like.on i{color:var(--acc)}
 <footer>SOURCE AND FULL VERSION HISTORY ON <a href="https://github.com/trez63/trez63.com">GITHUB</a> · <a href="feed.xml">RSS</a> · LAST PUBLISHED NOV 14, 2026</footer>
 </div>
 <script>
+(function(){
+  // Likes are counted by Abacus (abacus.jasoncameron.dev), one counter per app. No account, no cookies;
+  // this browser remembers what it liked in localStorage. Counts baked into the page are the last snapshot.
+  const API='https://abacus.jasoncameron.dev', NS='trez63.com';
+  const store=(s)=>({get(k){try{return s.getItem(k)}catch(e){return null}},set(k,v){try{s.setItem(k,v)}catch(e){}}});
+  const ls=store(window.localStorage), ss=store(window.sessionStorage);
+  const btns=[...document.querySelectorAll('button.like')];
+  const put=(b,n)=>{ b.dataset.n=n; b.querySelector('b').textContent=n; const c=b.closest('.card'); if(c) c.dataset.likes=n; };
+  const raise=(b,n)=>{ if(n>(+b.dataset.n||0)) put(b,n); };
+  const mark=(b,on)=>{ b.classList.toggle('on',on); b.setAttribute('aria-pressed',on); b.title=on?'You liked this':'Like this app'; };
+  btns.forEach(b=>{
+    const slug=b.dataset.slug;
+    if(ls.get('liked:'+slug)) mark(b,true);
+    b.addEventListener('click',async ev=>{
+      ev.preventDefault(); ev.stopPropagation();
+      if(b.classList.contains('on')||b.dataset.busy) return;
+      const before=+b.dataset.n||0; b.dataset.busy=1; mark(b,true); put(b,before+1);
+      try{
+        const r=await fetch(API+'/hit/'+NS+'/'+slug); if(!r.ok) throw 0;
+        const j=await r.json(); ls.set('liked:'+slug,'1'); raise(b,+j.value||0); ss.set('likes:'+slug,b.dataset.n+'|'+Date.now());
+      }catch(e){ mark(b,false); put(b,before); }
+      delete b.dataset.busy;
+    });
+  });
+  // Anything this browser already knows needs no request: counts fetched earlier this session, and its own likes.
+  btns.forEach(b=>{ const c=(ss.get('likes:'+b.dataset.slug)||'').split('|'); if(c[0]) raise(b,+c[0]||0);
+    if(ls.get('liked:'+b.dataset.slug)) raise(b,1); });
+  // Live counts. The service has no "all counters" call and allows 30 requests per 10s per visitor, so requests
+  // go through one queue capped at 24 per 10s: what is on screen first, everything else when "Most liked" is chosen.
+  const queue=[], seen=new Set(), sent=[]; let total=0, done=0;
+  const changed=()=>document.dispatchEvent(new CustomEvent('likes:update',{detail:{done,total,pending:queue.length}}));
+  const want=(b,front)=>{ const slug=b.dataset.slug; if(seen.has(slug)) return; seen.add(slug);
+    const c=(ss.get('likes:'+slug)||'').split('|'); if(c[1] && Date.now()-c[1]<600000) return;
+    total++; front?queue.unshift(b):queue.push(b); };
+  setInterval(()=>{ if(!queue.length) return;
+    const now=Date.now(); while(sent.length && now-sent[0]>10000) sent.shift();
+    if(sent.length>=24) return;
+    const b=queue.shift(); sent.push(now);
+    fetch(API+'/get/'+NS+'/'+b.dataset.slug).then(async r=>{
+      if(r.status===429){ queue.push(b); return; }   // over the limit: try this one again later
+      if(r.ok||r.status===404){ raise(b,r.ok?(+(await r.json()).value||0):0); ss.set('likes:'+b.dataset.slug,b.dataset.n+'|'+Date.now()); }
+      done++;
+    }).catch(()=>{ done++; }).finally(changed);
+  },80);
+  if('IntersectionObserver' in window){
+    const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ want(e.target,true); io.unobserve(e.target); } }),{rootMargin:'200px'});
+    btns.forEach(b=>io.observe(b));
+  } else btns.slice(0,12).forEach(b=>want(b,true));
+  window.trezLikes={ loadAll(){ btns.forEach(b=>want(b,false)); changed(); } };
+})();
+
 const q=document.getElementById('q'), grid=document.getElementById('grid'), cards=[...grid.querySelectorAll('.card')], empty=document.getElementById('empty');
 const more=document.getElementById('more'), count=document.getElementById('count'), note=document.getElementById('likenote'), pickf=document.getElementById('pickf');
 const PAGE=24, TODAY=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
@@ -1701,57 +1752,6 @@ document.querySelectorAll('.card').forEach(c=>{
   c.addEventListener('mouseenter',()=>{ if(v.preload==='none'){v.preload='auto';v.load();} v.play().then(()=>v.classList.add('ready')).catch(()=>{}); });
   c.addEventListener('mouseleave',()=>{ v.pause(); v.classList.remove('ready'); });
 });
-
-(function(){
-  // Likes are counted by Abacus (abacus.jasoncameron.dev), one counter per app. No account, no cookies;
-  // this browser remembers what it liked in localStorage. Counts baked into the page are the last snapshot.
-  const API='https://abacus.jasoncameron.dev', NS='trez63.com';
-  const store=(s)=>({get(k){try{return s.getItem(k)}catch(e){return null}},set(k,v){try{s.setItem(k,v)}catch(e){}}});
-  const ls=store(window.localStorage), ss=store(window.sessionStorage);
-  const btns=[...document.querySelectorAll('button.like')];
-  const put=(b,n)=>{ b.dataset.n=n; b.querySelector('b').textContent=n; const c=b.closest('.card'); if(c) c.dataset.likes=n; };
-  const raise=(b,n)=>{ if(n>(+b.dataset.n||0)) put(b,n); };
-  const mark=(b,on)=>{ b.classList.toggle('on',on); b.setAttribute('aria-pressed',on); b.title=on?'You liked this':'Like this app'; };
-  btns.forEach(b=>{
-    const slug=b.dataset.slug;
-    if(ls.get('liked:'+slug)) mark(b,true);
-    b.addEventListener('click',async ev=>{
-      ev.preventDefault(); ev.stopPropagation();
-      if(b.classList.contains('on')||b.dataset.busy) return;
-      const before=+b.dataset.n||0; b.dataset.busy=1; mark(b,true); put(b,before+1);
-      try{
-        const r=await fetch(API+'/hit/'+NS+'/'+slug); if(!r.ok) throw 0;
-        const j=await r.json(); ls.set('liked:'+slug,'1'); raise(b,+j.value||0); ss.set('likes:'+slug,b.dataset.n+'|'+Date.now());
-      }catch(e){ mark(b,false); put(b,before); }
-      delete b.dataset.busy;
-    });
-  });
-  // Anything this browser already knows needs no request: counts fetched earlier this session, and its own likes.
-  btns.forEach(b=>{ const c=(ss.get('likes:'+b.dataset.slug)||'').split('|'); if(c[0]) raise(b,+c[0]||0);
-    if(ls.get('liked:'+b.dataset.slug)) raise(b,1); });
-  // Live counts. The service has no "all counters" call and allows 30 requests per 10s per visitor, so requests
-  // go through one queue capped at 24 per 10s: what is on screen first, everything else when "Most liked" is chosen.
-  const queue=[], seen=new Set(), sent=[]; let total=0, done=0;
-  const changed=()=>document.dispatchEvent(new CustomEvent('likes:update',{detail:{done,total,pending:queue.length}}));
-  const want=(b,front)=>{ const slug=b.dataset.slug; if(seen.has(slug)) return; seen.add(slug);
-    const c=(ss.get('likes:'+slug)||'').split('|'); if(c[1] && Date.now()-c[1]<600000) return;
-    total++; front?queue.unshift(b):queue.push(b); };
-  setInterval(()=>{ if(!queue.length) return;
-    const now=Date.now(); while(sent.length && now-sent[0]>10000) sent.shift();
-    if(sent.length>=24) return;
-    const b=queue.shift(); sent.push(now);
-    fetch(API+'/get/'+NS+'/'+b.dataset.slug).then(async r=>{
-      if(r.status===429){ queue.push(b); return; }   // over the limit: try this one again later
-      if(r.ok||r.status===404){ raise(b,r.ok?(+(await r.json()).value||0):0); ss.set('likes:'+b.dataset.slug,b.dataset.n+'|'+Date.now()); }
-      done++;
-    }).catch(()=>{ done++; }).finally(changed);
-  },80);
-  if('IntersectionObserver' in window){
-    const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ want(e.target,true); io.unobserve(e.target); } }),{rootMargin:'200px'});
-    btns.forEach(b=>io.observe(b));
-  } else btns.slice(0,12).forEach(b=>want(b,true));
-  window.trezLikes={ loadAll(){ btns.forEach(b=>want(b,false)); changed(); } };
-})();
 
 (()=>{ try{
   const P=new URLSearchParams(location.search);

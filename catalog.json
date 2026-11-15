@@ -789,7 +789,7 @@
         }
       ],
       "category": "sim",
-      "likes": 1
+      "likes": 2
     },
     "tidytext": {
       "title": "Tidy Text",
@@ -1059,7 +1059,8 @@
           "sha": "6cf64b83c6be"
         }
       ],
-      "category": "dev"
+      "category": "dev",
+      "likes": 1
     },
     "docuforge": {
       "title": "DocuForge",

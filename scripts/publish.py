@@ -218,7 +218,8 @@ def main():
             entry["sha"] = h
             entry["source_file"] = f.name
             if engine and entry.get("engine") in (None, "Unknown"): entry["engine"] = engine
-            if title: entry["title"] = title
+            # The catalog title is authoritative once set (same rule as the description): a re-saved file whose
+            # <title> reads differently, e.g. "Daily Build 2026-11-14 — Trill", must not rename a published app.
             entry["versions"].append({"v": entry["version"], "date": today, "sha": h})
             print(f"^ {slug}: updated -> v{entry['version']}")
         changed.append(slug)

@@ -1855,7 +1855,7 @@
       "likes": 1
     },
     "trill": {
-      "title": "Daily Build 2026-11-14",
+      "title": "Trill",
       "engine": "Claude",
       "description": "A modem made of birdsong. Type a message and it plays as a short melody of 32 pure tones that another phone (or the same one) decodes from its microphone, with a live waterfall of what the decoder hears; Reed–Solomon coding repairs up to two wrong tones in every fifteen, the receiver locks onto slow, normal or fast sends on its own, a self-test routes a message through simulated room noise, and a message can be exported as a WAV to send by email or decoded back from a recording. Drafts and the inbox save as JSON.",
       "source_file": "trill - Claude.html",

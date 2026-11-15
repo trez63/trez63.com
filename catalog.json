@@ -29,7 +29,8 @@
           }
         ]
       },
-      "category": "image"
+      "category": "image",
+      "likes": 1
     },
     "foldwork": {
       "title": "Foldwork",
@@ -787,7 +788,8 @@
           "sha": "9613e61b015e"
         }
       ],
-      "category": "sim"
+      "category": "sim",
+      "likes": 1
     },
     "tidytext": {
       "title": "Tidy Text",
@@ -1652,7 +1654,7 @@
         }
       ],
       "category": "game",
-      "likes": 1
+      "likes": 2
     },
     "belfry": {
       "title": "Belfry",

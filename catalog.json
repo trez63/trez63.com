@@ -87,7 +87,7 @@
         ]
       },
       "category": "art",
-      "likes": 1
+      "likes": 2
     },
     "kaleido": {
       "title": "Kaleido",
@@ -305,7 +305,7 @@
         ]
       },
       "category": "sim",
-      "likes": 3
+      "likes": 4
     },
     "sonogram": {
       "title": "Sonogram",
@@ -361,7 +361,7 @@
         ]
       },
       "category": "audio",
-      "likes": 7
+      "likes": 8
     },
     "sprout-garden": {
       "title": "Sprout",
@@ -420,7 +420,7 @@
         ]
       },
       "category": "art",
-      "likes": 1
+      "likes": 2
     },
     "stillpoint": {
       "title": "Stillpoint",
@@ -457,7 +457,7 @@
         }
       ],
       "category": "tool",
-      "likes": 3
+      "likes": 4
     },
     "budget": {
       "title": "Budget",
@@ -796,7 +796,7 @@
         }
       ],
       "category": "sim",
-      "likes": 11
+      "likes": 13
     },
     "tidytext": {
       "title": "Tidy Text",
@@ -1491,7 +1491,7 @@
         }
       ],
       "category": "art",
-      "likes": 1
+      "likes": 2
     },
     "parapet": {
       "title": "Parapet",
@@ -1528,7 +1528,7 @@
         }
       ],
       "category": "edu",
-      "likes": 2
+      "likes": 3
     },
     "rename-studio": {
       "title": "Rename Studio",
@@ -1672,7 +1672,7 @@
         }
       ],
       "category": "game",
-      "likes": 4
+      "likes": 5
     },
     "belfry": {
       "title": "Belfry",
@@ -1876,7 +1876,7 @@
         }
       ],
       "category": "audio",
-      "likes": 5
+      "likes": 6
     },
     "cellular-automata-sonifier": {
       "title": "CA Sonifier",

@@ -358,7 +358,7 @@
         ]
       },
       "category": "audio",
-      "likes": 3
+      "likes": 5
     },
     "sprout-garden": {
       "title": "Sprout",
@@ -789,7 +789,7 @@
         }
       ],
       "category": "sim",
-      "likes": 6
+      "likes": 7
     },
     "tidytext": {
       "title": "Tidy Text",
@@ -1673,7 +1673,8 @@
           "sha": "48439be42dca"
         }
       ],
-      "category": "audio"
+      "category": "audio",
+      "likes": 1
     },
     "drift-soundscape": {
       "title": "Drift",
@@ -1851,7 +1852,7 @@
         }
       ],
       "category": "audio",
-      "likes": 2
+      "likes": 3
     },
     "cellular-automata-sonifier": {
       "title": "CA Sonifier",

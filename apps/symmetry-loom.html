@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Symmetry Loom</title>
+<style>
+:root {
+  --bg: #0f1117;
+  --fg: #e8eaf0;
+  --accent: #7c9cff;
+  --panel: #1a1d27;
+  --border: #2a2e3a;
+  --canvas-bg: #0a0c12;
+  --shadow: rgba(0,0,0,.4);
+}
+body.light {
+  --bg: #f4f6fb;
+  --fg: #1a1d27;
+  --accent: #3d5afe;
+  --panel: #ffffff;
+  --border: #d0d5e0;
+  --canvas-bg: #fafbff;
+  --shadow: rgba(0,0,0,.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--bg); color: var(--fg); font-family: system-ui, -apple-system, sans-serif; overflow: hidden; }
+header { display: flex; align-items: center; justify-content: space-between; padding: .6rem 1rem; background: var(--panel); border-bottom: 1px solid var(--border); gap: .5rem; flex-wrap: wrap; }
+h1 { font-size: 1.15rem; font-weight: 600; letter-spacing: -.02em; }
+.controls { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; padding: .5rem 1rem; background: var(--panel); border-bottom: 1px solid var(--border); }
+button, select, input[type=range], input[type=color], input[type=file] {
+  background: var(--bg); color: var(--fg); border: 1px solid var(--border); border-radius: 6px;
+  padding: .45rem .7rem; font-size: .9rem; cursor: pointer; transition: all .15s;
+}
+button:hover, select:hover { border-color: var(--accent); }
+input[type=color] { width: 2.4rem; height: 2.1rem; padding: .1rem; }
+input[type=range] { width: 90px; accent-color: var(--accent); }
+#canvas-wrap { position: relative; flex: 1; min-height: 0; }
+canvas { display: block; width: 100%; height: 100%; background: var(--canvas-bg); touch-action: none; cursor: crosshair; }
+#help {
+  position: fixed; inset: 0; background: rgba(0,0,0,.72); display: none; align-items: center; justify-content: center; z-index: 100; padding: 1rem;
+}
+#help.show { display: flex; }
+.help-box {
+  background: var(--panel); color: var(--fg); max-width: 520px; width: 100%; padding: 1.5rem; border-radius: 12px;
+  border: 1px solid var(--border); box-shadow: 0 20px 50px var(--shadow); max-height: 90vh; overflow: auto;
+}
+.help-box h2 { margin-bottom: .8rem; }
+.help-box kbd { background: var(--bg); padding: .1rem .4rem; border-radius: 4px; border: 1px solid var(--border); font-size: .85em; }
+body { display: flex; flex-direction: column; height: 100dvh; padding-bottom: env(safe-area-inset-bottom); }
+@media (max-width: 640px) {
+  header h1 { font-size: 1rem; }
+  .controls { font-size: .85rem; }
+  button, select { padding: .5rem .6rem; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Symmetry Loom</h1>
+  <div>
+    <button id="themeBtn">Theme</button>
+    <button id="helpBtn">Help</button>
+  </div>
+</header>
+<div class="controls">
+  <label>Folds <select id="folds"><option>2</option><option>3</option><option selected>6</option><option>8</option><option>12</option></select></label>
+  <label>Mirror <input type="checkbox" id="mirror" checked></label>
+  <input type="color" id="color" value="#7c9cff">
+  <label>Size <input type="range" id="size" min="1" max="28" value="4"></label>
+  <button id="clearBtn">Clear</button>
+  <button id="undoBtn">Undo</button>
+  <button id="animBtn">Pulse</button>
+  <button id="saveBtn">Save</button>
+  <button id="openBtn">Open</button>
+  <input type="file" id="file" accept=".json" hidden>
+</div>
+<div id="canvas-wrap"><canvas id="c"></canvas></div>
+<div id="help">
+  <div class="help-box">
+    <h2>Symmetry Loom</h2>
+    <p>Draw freehand; every stroke is instantly mirrored and rotated into perfect multi-fold symmetry around the center.</p>
+    <ul style="margin:1rem 0 1rem 1.2rem; line-height:1.6">
+      <li><kbd>H</kbd> or <kbd>?</kbd> — toggle this help</li>
+      <li><kbd>T</kbd> — toggle light/dark theme</li>
+      <li><kbd>C</kbd> — clear canvas</li>
+      <li><kbd>U</kbd> — undo last stroke</li>
+      <li><kbd>Space</kbd> — toggle pulse animation</li>
+      <li><kbd>1</kbd>–<kbd>5</kbd> — set folds (2/3/6/8/12)</li>
+      <li><kbd>M</kbd> — toggle mirror</li>
+    </ul>
+    <p>Save downloads a .json of all strokes. Open restores any previous design. Works fully offline.</p>
+    <button id="closeHelp" style="margin-top:1rem">Close</button>
+  </div>
+</div>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const foldsEl = document.getElementById('folds');
+const mirrorEl = document.getElementById('mirror');
+const colorEl = document.getElementById('color');
+const sizeEl = document.getElementById('size');
+let strokes = [];
+let current = null;
+let animating = false;
+let animAngle = 0;
+let theme = localStorage.getItem('theme') || 'dark';
+
+function applyTheme() {
+  document.body.classList.toggle('light', theme === 'light');
+  localStorage.setItem('theme', theme);
+}
+applyTheme();
+
+function resize() {
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  redraw();
+}
+window.addEventListener('resize', resize);
+resize();
+
+function getCenter() {
+  return { x: canvas.clientWidth / 2, y: canvas.clientHeight / 2 };
+}
+
+function drawStroke(stroke, angle = 0) {
+  if (!stroke.points.length) return;
+  const n = stroke.folds;
+  const mirror = stroke.mirror;
+  const c = getCenter();
+  ctx.lineWidth = stroke.size;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = stroke.color;
+  for (let i = 0; i < n; i++) {
+    const rot = (i * Math.PI * 2 / n) + angle;
+    ctx.beginPath();
+    stroke.points.forEach((p, idx) => {
+      const dx = p.x - c.x, dy = p.y - c.y;
+      const x = c.x + dx * Math.cos(rot) - dy * Math.sin(rot);
+      const y = c.y + dx * Math.sin(rot) + dy * Math.cos(rot);
+      if (idx === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    if (mirror) {
+      ctx.beginPath();
+      stroke.points.forEach((p, idx) => {
+        const dx = p.x - c.x, dy = p.y - c.y;
+        const x = c.x - dx * Math.cos(rot) - dy * Math.sin(rot);
+        const y = c.y + dx * Math.sin(rot) - dy * Math.cos(rot);
+        if (idx === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+    }
+  }
+}
+
+function redraw() {
+  ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+  strokes.forEach(s => drawStroke(s, animating ? animAngle : 0));
+  if (current) drawStroke(current, animating ? animAngle : 0);
+}
+
+function addPoint(x, y) {
+  if (!current) return;
+  const last = current.points[current.points.length - 1];
+  if (last && Math.hypot(x - last.x, y - last.y) < 1.5) return;
+  current.points.push({ x, y });
+  redraw();
+}
+
+function startStroke(x, y) {
+  current = {
+    points: [{ x, y }],
+    color: colorEl.value,
+    size: +sizeEl.value,
+    folds: +foldsEl.value,
+    mirror: mirrorEl.checked
+  };
+}
+
+function endStroke() {
+  if (current && current.points.length > 1) strokes.push(current);
+  current = null;
+  redraw();
+}
+
+function getPos(e) {
+  const r = canvas.getBoundingClientRect();
+  const src = e.touches ? e.touches[0] : e;
+  return { x: src.clientX - r.left, y: src.clientY - r.top };
+}
+
+canvas.addEventListener('pointerdown', e => { e.preventDefault(); canvas.setPointerCapture(e.pointerId); const p = getPos(e); startStroke(p.x, p.y); });
+canvas.addEventListener('pointermove', e => { if (current) { const p = getPos(e); addPoint(p.x, p.y); } });
+canvas.addEventListener('pointerup', endStroke);
+canvas.addEventListener('pointercancel', endStroke);
+
+function clearAll() { strokes = []; current = null; redraw(); }
+function undo() { strokes.pop(); redraw(); }
+
+function toggleAnim() {
+  animating = !animating;
+  document.getElementById('animBtn').textContent = animating ? 'Stop' : 'Pulse';
+  if (animating) loop();
+}
+function loop() {
+  if (!animating) return;
+  animAngle += 0.008;
+  redraw();
+  requestAnimationFrame(loop);
+}
+
+function save() {
+  const data = { version: 1, strokes, folds: +foldsEl.value, mirror: mirrorEl.checked, color: colorEl.value, size: +sizeEl.value };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'symmetry-loom.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function load(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (data.strokes) {
+        strokes = data.strokes;
+        if (data.folds) foldsEl.value = data.folds;
+        if (typeof data.mirror === 'boolean') mirrorEl.checked = data.mirror;
+        if (data.color) colorEl.value = data.color;
+        if (data.size) sizeEl.value = data.size;
+        redraw();
+      }
+    } catch (e) { alert('Invalid file'); }
+  };
+  reader.readAsText(file);
+}
+
+document.getElementById('clearBtn').onclick = clearAll;
+document.getElementById('undoBtn').onclick = undo;
+document.getElementById('animBtn').onclick = toggleAnim;
+document.getElementById('saveBtn').onclick = save;
+document.getElementById('openBtn').onclick = () => document.getElementById('file').click();
+document.getElementById('file').onchange = e => { if (e.target.files[0]) load(e.target.files[0]); e.target.value = ''; };
+document.getElementById('themeBtn').onclick = () => { theme = theme === 'dark' ? 'light' : 'dark'; applyTheme(); };
+document.getElementById('helpBtn').onclick = () => document.getElementById('help').classList.toggle('show');
+document.getElementById('closeHelp').onclick = () => document.getElementById('help').classList.remove('show');
+foldsEl.onchange = redraw;
+mirrorEl.onchange = redraw;
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  const k = e.key.toLowerCase();
+  if (k === 'h' || e.key === '?') { e.preventDefault(); document.getElementById('help').classList.toggle('show'); }
+  else if (k === 't') { theme = theme === 'dark' ? 'light' : 'dark'; applyTheme(); }
+  else if (k === 'c') clearAll();
+  else if (k === 'u') undo();
+  else if (e.key === ' ') { e.preventDefault(); toggleAnim(); }
+  else if (k === 'm') mirrorEl.checked = !mirrorEl.checked;
+  else if (k >= '1' && k <= '5') {
+    const map = ['2','3','6','8','12'];
+    foldsEl.value = map[+k - 1];
+    redraw();
+  }
+});
+
+// Demo seed: luminous radial bloom
+function seedDemo() {
+  const c = getCenter();
+  const colors = ['#7c9cff', '#ff7cb8', '#7cffa3', '#ffd27c', '#c07cff'];
+  for (let i = 0; i < 5; i++) {
+    const pts = [];
+    const r = 40 + i * 35;
+    for (let a = 0; a < Math.PI * 1.6; a += 0.08) {
+      pts.push({
+        x: c.x + Math.cos(a + i) * r * (0.6 + 0.4 * Math.sin(a * 3)),
+        y: c.y + Math.sin(a + i * 0.7) * r * (0.5 + 0.5 * Math.cos(a * 2))
+      });
+    }
+    strokes.push({ points: pts, color: colors[i], size: 3 + i, folds: 6, mirror: true });
+  }
+  redraw();
+}
+setTimeout(seedDemo, 80);
+</script>
+</body>
+</html>

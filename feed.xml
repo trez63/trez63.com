@@ -40,6 +40,34 @@
     <description>A geometric optics bench. A laser fires across the canvas and bends by Snell&#x27;s law through draggable glass blocks of adjustable refractive index, reflecting totally when it meets an interface past the critical angle; turn the emitter angle, change the wavelength colour, add prisms and lenses, and save or reload a setup as JSON.</description>
   </item>
   <item>
+    <title>Crank (Claude)</title>
+    <link>https://trez63.com/p/crank.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/crank.html</guid>
+    <pubDate>Mon, 16 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A planar linkage laboratory. Place joints, pin some to the ground, connect them with rigid bars and make one bar the crank; every frame each free joint is solved as the intersection of two circles, so you can build a four-bar, a Chebyshev straight-line linkage, Hoeken&#x27;s walker or a Jansen Strandbeest leg from the presets or from scratch, trace any joint&#x27;s path over a revolution (coloured by speed), see in red where the mechanism binds, and save or reload the whole thing as JSON.</description>
+  </item>
+  <item>
+    <title>Symmetry Loom (Grok)</title>
+    <link>https://trez63.com/p/symmetry-loom.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/symmetry-loom.html</guid>
+    <pubDate>Mon, 16 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A mandala drawing pad. Every freehand stroke is mirrored and rotated into 2, 3, 6, 8 or 12-fold symmetry around the centre as you draw; pick a colour and brush size, toggle the mirror, undo, set the finished design pulsing, and save or reload all the strokes as JSON.</description>
+  </item>
+  <item>
+    <title>CipherLab (Gemini)</title>
+    <link>https://trez63.com/p/cipherlab.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/cipherlab.html</guid>
+    <pubDate>Mon, 16 Nov 2026 12:00:00 +0000</pubDate>
+    <description>An Enigma machine and cryptanalysis bench. Type a message and it passes through a three-rotor Enigma M3 with reflector and plugboard (or a Vigenère or Caesar shift), with the rotor windows stepping as you go; a live letter-frequency chart against the English baseline, index of coincidence and Shannon entropy show how well the cipher hides the text, swap input and output to decrypt, and save or reload a key setup as JSON.</description>
+  </item>
+  <item>
+    <title>Labyrinth (Muse)</title>
+    <link>https://trez63.com/p/labyrinth.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/labyrinth.html</guid>
+    <pubDate>Mon, 16 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A maze you solve by hand. Each one is carved fresh by a recursive backtracker at 9×9, 13×13 or 19×19 and always has an exit; steer with swipes, arrow keys, WASD or the on-screen pad against a timer and move counter, leave a trail, ask for the hint path, and keep best times per size, with a maze saved or reloaded as JSON.</description>
+  </item>
+  <item>
     <title>Trill (Claude)</title>
     <link>https://trez63.com/p/trill.html</link>
     <guid isPermaLink="true">https://trez63.com/p/trill.html</guid>
@@ -325,33 +353,5 @@
     <guid isPermaLink="true">https://trez63.com/p/next-touch.html</guid>
     <pubDate>Thu, 29 Oct 2026 12:00:00 +0000</pubDate>
     <description>A small follow-up desk: add the people you want to stay in touch with, give each a next action and a date, and it sorts them into due, later and undated. After you talk to someone, log the touch with a note and pick the next step; the history stays with that person. Save and reopen as JSON.</description>
-  </item>
-  <item>
-    <title>Outline Builder (Muse)</title>
-    <link>https://trez63.com/p/outline-builder.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/outline-builder.html</guid>
-    <pubDate>Thu, 29 Oct 2026 12:00:00 +0000</pubDate>
-    <description>Pick a template (consulting proposal, statement of work or project brief), tick sections on or off, rename and reorder them or add your own, and it writes a numbered outline in a live preview you can copy or download as Markdown, text or JSON.</description>
-  </item>
-  <item>
-    <title>Phish Spotter (Muse)</title>
-    <link>https://trez63.com/p/phish-spotter.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/phish-spotter.html</guid>
-    <pubDate>Thu, 29 Oct 2026 12:00:00 +0000</pubDate>
-    <description>A deck of fourteen made-up emails, texts and chat messages. Swipe or press a button to call each one phish or legit, and after every verdict it tells you the tells you should have spotted (lookalike domains, urgency, odd requests) and keeps your score and streak.</description>
-  </item>
-  <item>
-    <title>Veil (Claude)</title>
-    <link>https://trez63.com/p/veil.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/veil.html</guid>
-    <pubDate>Wed, 28 Oct 2026 12:00:00 +0000</pubDate>
-    <description>Paste text with secrets or personal details in it, and every key, token, card number, email, IP, phone and name you list is swapped for a consistent placeholder so you can share it safely. Paste the reply back and Restore puts the originals in. Toggle categories with a click; save the session as JSON.</description>
-  </item>
-  <item>
-    <title>Crux (Claude)</title>
-    <link>https://trez63.com/p/crux.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/crux.html</guid>
-    <pubDate>Wed, 28 Oct 2026 12:00:00 +0000</pubDate>
-    <description>Type a project plan one task per line with optimistic-likely-pessimistic durations and dependencies, and it draws the Gantt chart, marks the critical path, and simulates the schedule thousands of times to show how likely each finish date really is. Tap a task for its float and risk; save or reopen plans as JSON.</description>
   </item>
 </channel></rss>

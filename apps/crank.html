@@ -1,0 +1,311 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<title>Daily Build 2026-11-15 — Crank</title>
+<style>
+:root{--bg:#0e1217;--panel:#151b23;--ink:#e7edf4;--mute:#8d9aab;--line:#273140;--accent:#5fc9ff;--crank:#ffb454;--bad:#ff5d6c;--ground:#7ee787;--bar:#aebbcc;--fill:rgba(174,187,204,.08)}
+:root[data-theme=light]{--bg:#f2f4f8;--panel:#ffffff;--ink:#121a26;--mute:#5c6879;--line:#d6dce6;--accent:#0a74d3;--crank:#c76a00;--bad:#d4293b;--ground:#1f8f3f;--bar:#4a5668;--fill:rgba(74,86,104,.08)}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;flex-direction:column;height:100dvh;overflow:hidden;padding-top:env(safe-area-inset-top)}
+header,.tools{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--panel);flex-wrap:wrap}
+header{border-bottom:1px solid var(--line)}
+.tools{border-top:1px solid var(--line);padding-bottom:calc(8px + env(safe-area-inset-bottom));flex-wrap:nowrap}
+.tools button{flex:1;max-width:170px;padding:0 6px}.tools i{font-style:normal;margin-right:5px}
+h1{font-size:22px;margin:0 4px 0 0;letter-spacing:.3px}
+h1 small{font-size:12px;color:var(--mute);font-weight:400;margin-left:6px}
+button,select{min-height:44px;min-width:44px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;font-size:16px;cursor:pointer;touch-action:manipulation;white-space:nowrap}
+button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:transparent}
+.sp{flex:1}
+input[type=range]{width:110px;min-height:44px;accent-color:var(--accent)}
+main{flex:1;position:relative;min-height:0}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.hud{position:absolute;left:10px;top:10px;right:10px;display:flex;justify-content:space-between;gap:8px;pointer-events:none;font-size:13px}
+.hud div{background:color-mix(in srgb,var(--panel) 80%,transparent);border:1px solid var(--line);border-radius:10px;padding:6px 10px;backdrop-filter:blur(6px);max-width:62%}
+.hud b{color:var(--accent)}.hud .bad{color:var(--bad)}
+#toast{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:var(--bad);color:#fff;padding:10px 14px;border-radius:10px;opacity:0;transition:opacity .3s;pointer-events:none;max-width:90%;font-size:14px}
+#toast.ok{background:var(--accent)}
+#help{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:9}
+#help[open]{display:flex}
+#help section{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:18px 20px;max-width:560px;max-height:90dvh;overflow:auto;font-size:15px}
+#help h2{margin:0 0 8px;font-size:18px}#help h3{margin:14px 0 4px;font-size:14px;color:var(--mute);text-transform:uppercase;letter-spacing:.06em}
+#help p{margin:6px 0}kbd{background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:13px}
+#help table{border-collapse:collapse;width:100%}#help td{padding:3px 6px 3px 0;vertical-align:top}
+@media (max-width:560px){h1 small{display:none}input[type=range]{width:70px}.tools button{min-height:52px;font-size:12px;line-height:1.1}.tools i{display:block;font-size:17px;margin:0 0 1px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Crank<small>linkage lab — draw a mechanism, watch it move</small></h1>
+  <select id="preset" aria-label="Preset mechanism"></select>
+  <button id="play" aria-pressed="true" title="Play / pause (Space)">▶︎ Run</button>
+  <input id="speed" type="range" min="0.02" max="1.2" step="0.02" value="0.3" aria-label="Speed, revolutions per second">
+  <span class="sp"></span>
+  <button id="save" title="Save (S)">Save</button>
+  <button id="open" title="Open (O)">Open</button>
+  <button id="theme" title="Theme (D)">◐</button>
+  <button id="helpbtn" title="Help (Ctrl+/)">?</button>
+  <input id="file" type="file" accept=".json,application/json" hidden>
+</header>
+<main>
+  <canvas id="c"></canvas>
+  <div class="hud"><div id="stats"></div><div id="hint"></div></div>
+  <div id="toast" role="status"></div>
+</main>
+<div class="tools" role="toolbar">
+  <button data-tool="move" aria-pressed="true"><i>✥</i><span>Move</span></button>
+  <button data-tool="joint"><i>●</i><span>Joint</span></button>
+  <button data-tool="link"><i>╱</i><span>Link</span></button>
+  <button data-tool="crank"><i>↻</i><span>Crank</span></button>
+  <button data-tool="trace"><i>∿</i><span>Trace</span></button>
+  <button data-tool="delete"><i>✕</i><span>Delete</span></button>
+  <button id="fit" title="Fit to view (F)"><i>⤢</i><span>Fit</span></button>
+</div>
+<div id="help"><section>
+  <h2>Crank — a planar linkage laboratory</h2>
+  <p>Pin-jointed bars, grounded pivots and a turning crank. Every frame the positions are solved geometrically (each free joint is the intersection of two circles), so you can build any four-bar, straight-line or walking linkage and see exactly where it goes — and where it binds.</p>
+  <h3>Tools (bottom bar)</h3>
+  <table>
+  <tr><td><b>Move</b></td><td>drag a joint to redesign (bar lengths follow it); drag empty space to pan; tap a bar or joint to inspect it. Pinch or wheel to zoom.</td></tr>
+  <tr><td><b>Joint</b></td><td>tap empty space to add a joint; tap a joint to pin it to the ground (and back).</td></tr>
+  <tr><td><b>Link</b></td><td>tap two joints to connect them with a rigid bar.</td></tr>
+  <tr><td><b>Crank</b></td><td>tap a bar with one grounded end to make it the driver (tap again to release).</td></tr>
+  <tr><td><b>Trace</b></td><td>tap a joint to draw its path over one full revolution (colour = speed).</td></tr>
+  <tr><td><b>Delete</b></td><td>tap a joint or bar to remove it.</td></tr>
+  </table>
+  <p>Red joints or path segments mean the bars cannot reach each other at that crank angle — the mechanism locks up there. Hollow joints are not yet constrained by two bars.</p>
+  <h3>Keyboard</h3>
+  <p><kbd>Space</kbd> run/pause · <kbd>1</kbd>–<kbd>6</kbd> tools · <kbd>←</kbd> <kbd>→</kbd> step 1° · <kbd>F</kbd> fit · <kbd>D</kbd> theme · <kbd>S</kbd> save · <kbd>O</kbd> open · <kbd>Ctrl/⌘ /</kbd> or <kbd>?</kbd> help · <kbd>Esc</kbd> close</p>
+  <h3>Save / Open</h3>
+  <p>Save downloads a <code>crank-YYYY-MM-DD.json</code> with every joint, bar, trace and setting; Open restores it exactly. Downloads work when this file is opened directly (the artifact viewer blocks them).</p>
+  <p style="text-align:right"><button id="helpclose">Close</button></p>
+</section></div>
+<script>
+'use strict';
+const $=s=>document.querySelector(s), TAU=Math.PI*2, STEPS=360;
+const cv=$('#c'), ctx=cv.getContext('2d');
+
+/* ---------- model: joints {id,x,y,ground,trace,side}, links {a,b,len,crank,phase} ---------- */
+let M, nextId=1, theta=0, speed=0.3, playing=true, tool='move', pending=null, inspect=null;
+let cache=null;                       // {steps:[positions...], fails, tris}
+const view={x:0,y:0,s:3};             // world centre + px per unit
+const dirty=()=>{cache=null;};
+
+function J(x,y,o={}){return {id:nextId++,x,y,ground:false,trace:false,side:1,...o};}
+function L(a,b,o={}){return {a,b,len:0,crank:false,phase:0,...o};}
+const dist=(p,q)=>Math.hypot(p.x-q.x,p.y-q.y);
+const jof=id=>M.joints.find(j=>j.id===id);
+function fixLengths(m=M){for(const l of m.links){l.len=dist(jof(l.a),jof(l.b));}}
+
+/* Intersection of circle(A,ra) and circle(B,rb); side picks the branch.
+   If they cannot meet, return the nearest point on A's circle and flag ok=false. */
+function meet(A,ra,B,rb,side){
+  const dx=B.x-A.x,dy=B.y-A.y,d=Math.hypot(dx,dy)||1e-9, ux=dx/d,uy=dy/d;
+  let a=(ra*ra-rb*rb+d*d)/(2*d), h2=ra*ra-a*a, ok=true;
+  if(h2<-1e-7*(ra+rb)**2){ok=false;a=Math.max(-ra,Math.min(ra,a));h2=0;}
+  const h=Math.sqrt(Math.max(h2,0));
+  return {x:A.x+a*ux-side*h*uy, y:A.y+a*uy+side*h*ux, ok};
+}
+/* Solve all joint positions at crank angle th. reseed=true recomputes each joint's branch
+   from its stored (drawn) position, used after any edit. */
+function solve(m,th,reseed=false){
+  const P={};
+  for(const j of m.joints) if(j.ground) P[j.id]={x:j.x,y:j.y,ok:true};
+  for(const l of m.links) if(l.crank&&P[l.a]){const A=P[l.a],g=th+l.phase;P[l.b]={x:A.x+l.len*Math.cos(g),y:A.y+l.len*Math.sin(g),ok:true};}
+  for(let progress=true;progress;){progress=false;
+    for(const j of m.joints){ if(P[j.id]) continue;
+      const k=[];
+      for(const l of m.links){const o=l.a===j.id?l.b:l.b===j.id?l.a:null; if(o!==null&&P[o]) k.push({p:P[o],r:l.len});}
+      if(k.length<2) continue;
+      if(reseed){const A=k[0].p,B=k[1].p; j.side=((B.x-A.x)*(j.y-A.y)-(B.y-A.y)*(j.x-A.x))>=0?1:-1;}
+      P[j.id]=meet(k[0].p,k[0].r,k[1].p,k[1].r,j.side); progress=true;
+    }}
+  for(const j of m.joints) if(!P[j.id]) P[j.id]={x:j.x,y:j.y,ok:true,loose:true};
+  return P;
+}
+function build(){ if(cache) return cache;
+  const steps=[]; let fails=0;
+  for(let i=0;i<STEPS;i++){const P=solve(M,i/STEPS*TAU); steps.push(P); if(Object.values(P).some(p=>!p.ok)) fails++;}
+  const adj={}; for(const l of M.links){(adj[l.a]??=new Set()).add(l.b);(adj[l.b]??=new Set()).add(l.a);}
+  const ids=M.joints.map(j=>j.id), tris=[];
+  for(let i=0;i<ids.length;i++)for(let k=i+1;k<ids.length;k++)if(adj[ids[i]]?.has(ids[k]))
+    for(let q=k+1;q<ids.length;q++)if(adj[ids[i]].has(ids[q])&&adj[ids[k]].has(ids[q]))tris.push([ids[i],ids[k],ids[q]]);
+  return cache={steps,fails,tris};
+}
+
+/* ---------- presets ---------- */
+function jansenLeg(m,mirror,phase){
+  const s=mirror?-1:1, A=J(-38*s,-7.8,{ground:true}), O=m.joints[0];
+  // Theo Jansen's "holy numbers"; the drawn positions seed which side of each bar pair the joint sits on
+  const C=J(15*s,0),B=J(-24*s,31),D=J(-75*s,8),E=J(-27*s,-45),F=J(-59*s,-28),G=J(-43*s,-92,{trace:true});
+  m.joints.push(A,C,B,D,E,F,G);
+  m.links.push(L(O.id,C.id,{len:15,crank:true,phase}),L(A.id,B.id,{len:41.5}),L(C.id,B.id,{len:50}),L(A.id,D.id,{len:40.1}),L(B.id,D.id,{len:55.8}),
+    L(A.id,E.id,{len:39.3}),L(C.id,E.id,{len:61.9}),L(D.id,F.id,{len:39.4}),L(E.id,F.id,{len:36.7}),L(E.id,G.id,{len:49}),L(F.id,G.id,{len:65.7}));
+}
+const PRESETS={
+  'Jansen leg (Strandbeest)':()=>{const m={joints:[J(0,0,{ground:true})],links:[]};jansenLeg(m,false,0);return m;},
+  'Strandbeest pair':()=>{const m={joints:[J(0,0,{ground:true})],links:[]};jansenLeg(m,false,0);jansenLeg(m,true,Math.PI);return m;},
+  'Four-bar crank-rocker':()=>{const O=J(0,0,{ground:true}),A=J(50,0,{ground:true}),B=J(15,0),C=J(40,30),P=J(20,45,{trace:true});
+    return {joints:[O,A,B,C,P],links:[L(O.id,B.id,{len:15,crank:true}),L(A.id,C.id,{len:35}),L(B.id,C.id,{len:40}),L(B.id,P.id,{len:30}),L(C.id,P.id,{len:30})]};},
+  'Chebyshev lambda (straight line)':()=>{const O=J(0,0,{ground:true}),A=J(40,0,{ground:true}),B=J(20,0),C=J(60,30),P=J(100,60,{trace:true});
+    return {joints:[O,A,B,C,P],links:[L(O.id,B.id,{len:20,crank:true}),L(A.id,C.id,{len:50}),L(B.id,C.id,{len:50}),L(B.id,P.id,{len:100}),L(C.id,P.id,{len:50})]};},
+  "Hoeken's walker":()=>{const O=J(0,0,{ground:true}),A=J(20,0,{ground:true}),B=J(10,0),C=J(30,20),P=J(55,45,{trace:true});
+    return {joints:[O,A,B,C,P],links:[L(O.id,B.id,{len:10,crank:true}),L(A.id,C.id,{len:25}),L(B.id,C.id,{len:25}),L(B.id,P.id,{len:50}),L(C.id,P.id,{len:25})]};},
+  'Blank canvas':()=>({joints:[J(0,0,{ground:true}),J(15,0)],links:[L(1,2,{len:15,crank:true})]}),
+};
+function load(name){nextId=1;M=PRESETS[name]();M.name=name;theta=0;pending=null;inspect=null;
+  // seed drawn positions by solving once with the drawn guesses, then fit the view
+  const P=solve(M,0,true); for(const j of M.joints){j.x=P[j.id].x;j.y=P[j.id].y;} dirty(); fit();}
+
+/* ---------- view ---------- */
+let W=0,H=0,DPR=1;
+function resize(){DPR=Math.min(devicePixelRatio||1,3);W=cv.clientWidth;H=cv.clientHeight;cv.width=W*DPR;cv.height=H*DPR;draw();}
+new ResizeObserver(resize).observe(cv);
+const toS=p=>({x:W/2+(p.x-view.x)*view.s, y:H/2-(p.y-view.y)*view.s});
+const toW=(sx,sy)=>({x:view.x+(sx-W/2)/view.s, y:view.y-(sy-H/2)/view.s});
+function fit(){const {steps}=build(); let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+  for(const P of steps)for(const p of Object.values(P)){x0=Math.min(x0,p.x);x1=Math.max(x1,p.x);y0=Math.min(y0,p.y);y1=Math.max(y1,p.y);}
+  view.x=(x0+x1)/2;view.y=(y0+y1)/2;view.s=Math.max(0.1,Math.min((W-80)/(x1-x0||1),(H-120)/(y1-y0||1)));draw();}
+
+/* ---------- drawing ---------- */
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function draw(){ if(!W||!M) return; const {steps,fails,tris}=build(); const P=solve(M,theta);
+  for(const j of M.joints){j.x=P[j.id].x;j.y=P[j.id].y;}      // keep drawn positions current
+  ctx.setTransform(DPR,0,0,DPR,0,0); ctx.clearRect(0,0,W,H);
+  const mute=css('--mute'),bar=css('--bar'),bad=css('--bad'),accent=css('--accent'),crank=css('--crank'),ground=css('--ground');
+  // dot grid every 10 units
+  const g=10*view.s; if(g>14){ctx.fillStyle=mute;ctx.globalAlpha=.35;const o=toS({x:0,y:0});
+    for(let x=((o.x%g)+g)%g;x<W;x+=g)for(let y=((o.y%g)+g)%g;y<H;y+=g){ctx.fillRect(x-.5,y-.5,1,1);} ctx.globalAlpha=1;}
+  // traces, coloured by speed
+  for(const j of M.joints) if(j.trace){ const pts=steps.map(P=>P[j.id]); let vmax=1e-9;
+    const v=pts.map((p,i)=>{const q=pts[(i+1)%STEPS];const d=dist(p,q);vmax=Math.max(vmax,d);return d;});
+    ctx.lineWidth=3;ctx.lineCap='round';
+    for(let i=0;i<STEPS;i++){const p=toS(pts[i]),q=toS(pts[(i+1)%STEPS]);
+      ctx.strokeStyle=pts[i].ok&&pts[(i+1)%STEPS].ok?`hsl(${200-150*v[i]/vmax} 90% 60%)`:bad;
+      ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke();}}
+  // rigid triangles
+  ctx.fillStyle=css('--fill');
+  for(const [a,b,c] of tris){const A=toS(P[a]),B=toS(P[b]),C=toS(P[c]);ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(B.x,B.y);ctx.lineTo(C.x,C.y);ctx.fill();}
+  // bars
+  for(const l of M.links){const A=toS(P[l.a]),B=toS(P[l.b]); const stretched=Math.abs(dist(P[l.a],P[l.b])-l.len)>1e-6*l.len+1e-6;
+    ctx.lineWidth=l.crank?7:6;ctx.lineCap='round';ctx.strokeStyle=l===inspect?accent:l.crank?crank:bar;
+    ctx.setLineDash(stretched?[6,6]:[]);ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(B.x,B.y);ctx.stroke();ctx.setLineDash([]);}
+  // joints
+  for(const j of M.joints){const p=toS(P[j.id]),q=P[j.id];
+    if(j.ground){ctx.strokeStyle=ground;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(p.x,p.y+6);ctx.lineTo(p.x-10,p.y+18);ctx.lineTo(p.x+10,p.y+18);ctx.closePath();ctx.stroke();
+      for(let k=-8;k<=8;k+=5){ctx.beginPath();ctx.moveTo(p.x+k,p.y+18);ctx.lineTo(p.x+k-4,p.y+24);ctx.stroke();}}
+    if(j===inspect||j===pending){ctx.fillStyle=accent;ctx.globalAlpha=.3;ctx.beginPath();ctx.arc(p.x,p.y,16,0,TAU);ctx.fill();ctx.globalAlpha=1;}
+    ctx.beginPath();ctx.arc(p.x,p.y,7,0,TAU);
+    ctx.fillStyle=!q.ok?bad:q.loose?css('--bg'):j.ground?ground:css('--ink');ctx.fill();
+    ctx.lineWidth=2.5;ctx.strokeStyle=j.trace?accent:q.loose?mute:css('--bg');ctx.stroke();
+    if(j.trace||j===inspect){ctx.fillStyle=accent;ctx.font='bold 12px system-ui,sans-serif';ctx.fillText(j.id,p.x+10,p.y-10);}}
+  hud(P,fails);
+}
+function hud(P,fails){ const traced=M.joints.filter(j=>j.trace), {steps}=build(); let s=`<b>${M.name}</b> · ${M.joints.length} joints · ${M.links.length} bars · θ ${Math.round(theta/TAU*360)%360}°`;
+  for(const j of traced.slice(0,2)){const pts=steps.map(P=>P[j.id]);const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y);
+    s+=`<br>path of joint ${j.id}: ${(Math.max(...xs)-Math.min(...xs)).toFixed(1)} wide × ${(Math.max(...ys)-Math.min(...ys)).toFixed(1)} tall`;}
+  if(inspect&&inspect.len!==undefined) s+=`<br>bar ${inspect.a}–${inspect.b}: length ${inspect.len.toFixed(2)}${inspect.crank?' (crank)':''}`;
+  else if(inspect) s+=`<br>joint ${inspect.id}: (${P[inspect.id].x.toFixed(1)}, ${P[inspect.id].y.toFixed(1)})${inspect.ground?' grounded':''}`;
+  s+=fails?`<br><span class="bad">locks up at ${fails} of ${STEPS} crank angles</span>`:`<br>turns freely through 360°`;
+  $('#stats').innerHTML=s;
+  $('#hint').textContent={move:'drag joints to redesign · drag space to pan',joint:pending?'':'tap space to add · tap joint to ground it',
+    link:pending?'now tap the second joint':'tap two joints to connect',crank:'tap a bar with a grounded end',trace:'tap a joint to trace its path',delete:'tap a joint or bar'}[tool];
+}
+
+/* ---------- animation ---------- */
+let last=0; function frame(t){ if(playing){ if(last) theta=(theta+speed*TAU*(t-last)/1000)%TAU; draw(); } last=t; requestAnimationFrame(frame);} requestAnimationFrame(frame);
+
+/* ---------- editing ---------- */
+function hitJoint(w){let best=null,bd=18/view.s;for(const j of M.joints){const d=dist(j,w);if(d<bd){bd=d;best=j;}}return best;}
+function hitLink(w){let best=null,bd=14/view.s;for(const l of M.links){const A=jof(l.a),B=jof(l.b),dx=B.x-A.x,dy=B.y-A.y,len2=dx*dx+dy*dy||1;
+  const t=Math.max(0,Math.min(1,((w.x-A.x)*dx+(w.y-A.y)*dy)/len2)),d=Math.hypot(A.x+t*dx-w.x,A.y+t*dy-w.y);if(d<bd){bd=d;best=l;}}return best;}
+function toggleCrank(l){ if(l.crank){l.crank=false;} else { if(jof(l.b).ground&&!jof(l.a).ground)[l.a,l.b]=[l.b,l.a];
+    if(!jof(l.a).ground) return toast('A crank needs one grounded end');
+    for(const o of M.links) if(o.a===l.a&&o.crank) o.crank=false;   // one driver per hub
+    l.crank=true; l.phase=Math.atan2(jof(l.b).y-jof(l.a).y,jof(l.b).x-jof(l.a).x)-theta; }
+  reseed(); }
+function reseed(){solve(M,theta,true);dirty();draw();}
+function tap(w){ const j=hitJoint(w), l=j?null:hitLink(w);
+  if(tool==='move'){inspect=j||l;}
+  else if(tool==='joint'){ if(j){j.ground=!j.ground;reseed();} else {M.joints.push(J(w.x,w.y));dirty();} }
+  else if(tool==='link'){ if(!j) pending=null; else if(!pending||pending===j) pending=j; else { if(!M.links.some(x=>(x.a===j.id&&x.b===pending.id)||(x.b===j.id&&x.a===pending.id))) M.links.push(L(pending.id,j.id,{len:dist(pending,j)})); pending=null; reseed(); } }
+  else if(tool==='crank'){ if(l) toggleCrank(l); }
+  else if(tool==='trace'){ if(j){j.trace=!j.trace;dirty();} }
+  else if(tool==='delete'){ if(j){M.joints=M.joints.filter(x=>x!==j);M.links=M.links.filter(x=>x.a!==j.id&&x.b!==j.id);} else if(l) M.links=M.links.filter(x=>x!==l); if(inspect===j||inspect===l) inspect=null; reseed(); }
+  draw(); }
+function dragJoint(j,w){ j.x=w.x;j.y=w.y;
+  for(const l of M.links){ if(l.a!==j.id&&l.b!==j.id) continue; const o=jof(l.a===j.id?l.b:l.a); l.len=Math.max(0.5,dist(j,o));
+    if(l.crank) l.phase=Math.atan2(jof(l.b).y-jof(l.a).y,jof(l.b).x-jof(l.a).x)-theta; }
+  reseed(); }
+
+const ptrs=new Map(); let gesture=null; // {kind:'press'|'joint'|'pan'|'pinch', ...}
+cv.addEventListener('pointerdown',e=>{ cv.setPointerCapture(e.pointerId); ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(ptrs.size===2){const [a,b]=[...ptrs.values()];gesture={kind:'pinch',d:Math.hypot(a.x-b.x,a.y-b.y),cx:(a.x+b.x)/2,cy:(a.y+b.y)/2};return;}
+  const r=cv.getBoundingClientRect(), w=toW(e.clientX-r.left,e.clientY-r.top);
+  gesture={kind:'press',x:e.clientX,y:e.clientY,w,joint:hitJoint(w)}; });
+cv.addEventListener('pointermove',e=>{ if(!ptrs.has(e.pointerId)||!gesture) return; const p=ptrs.get(e.pointerId); const dx=e.clientX-p.x,dy=e.clientY-p.y; p.x=e.clientX;p.y=e.clientY;
+  if(gesture.kind==='pinch'){const [a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y),cx=(a.x+b.x)/2,cy=(a.y+b.y)/2;
+    view.s*=d/gesture.d; view.x-=(cx-gesture.cx)/view.s; view.y+=(cy-gesture.cy)/view.s; Object.assign(gesture,{d,cx,cy}); return draw();}
+  if(gesture.kind==='press'){ if(Math.hypot(e.clientX-gesture.x,e.clientY-gesture.y)<6) return;
+    if(gesture.joint&&tool!=='delete'){gesture.kind='joint';setPlay(false);} else gesture.kind='pan'; }
+  if(gesture.kind==='pan'){view.x-=dx/view.s;view.y+=dy/view.s;draw();}
+  else if(gesture.kind==='joint'){const r=cv.getBoundingClientRect();dragJoint(gesture.joint,toW(e.clientX-r.left,e.clientY-r.top));} });
+const up=e=>{ if(!ptrs.has(e.pointerId)) return; ptrs.delete(e.pointerId);
+  if(gesture?.kind==='press') tap(gesture.w); if(ptrs.size===0) gesture=null; else if(gesture?.kind==='pinch') gesture=null; };
+cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',up);
+cv.addEventListener('wheel',e=>{e.preventDefault();const r=cv.getBoundingClientRect(),w=toW(e.clientX-r.left,e.clientY-r.top),k=Math.exp(-e.deltaY*0.0015);
+  view.s*=k; const w2=toW(e.clientX-r.left,e.clientY-r.top); view.x+=w.x-w2.x; view.y+=w.y-w2.y; draw();},{passive:false});
+
+/* ---------- controls ---------- */
+function setTool(t){tool=t;pending=null;for(const b of document.querySelectorAll('[data-tool]'))b.setAttribute('aria-pressed',b.dataset.tool===t);draw();}
+for(const b of document.querySelectorAll('[data-tool]')) b.onclick=()=>setTool(b.dataset.tool);
+function setPlay(v){playing=v;last=0;$('#play').setAttribute('aria-pressed',v);$('#play').textContent=v?'❙❙ Pause':'▶︎ Run';}
+$('#play').onclick=()=>setPlay(!playing);
+$('#speed').oninput=e=>{speed=+e.target.value;};
+$('#fit').onclick=fit;
+const sel=$('#preset'); for(const k in PRESETS) sel.append(new Option(k,k)); sel.onchange=()=>load(sel.value);
+function setTheme(t){document.documentElement.dataset.theme=t;draw();}
+$('#theme').onclick=()=>setTheme(document.documentElement.dataset.theme==='light'?'dark':'light');
+if(matchMedia('(prefers-color-scheme: light)').matches) setTheme('light');
+$('#helpbtn').onclick=()=>$('#help').toggleAttribute('open'); $('#helpclose').onclick=()=>$('#help').removeAttribute('open');
+$('#help').addEventListener('click',e=>{if(e.target===$('#help'))$('#help').removeAttribute('open');});
+let toastT; function toast(msg,ok){const t=$('#toast');t.textContent=msg;t.className=ok?'ok':'';t.style.opacity=1;clearTimeout(toastT);toastT=setTimeout(()=>t.style.opacity=0,2600);}
+
+/* ---------- save / open ---------- */
+function serialize(){return {app:'crank',version:1,saved:new Date().toISOString(),name:M.name,theta,speed,playing,view:{...view},
+  joints:M.joints.map(j=>({id:j.id,x:+j.x.toFixed(4),y:+j.y.toFixed(4),ground:j.ground,trace:j.trace,side:j.side})),
+  links:M.links.map(l=>({a:l.a,b:l.b,len:+l.len.toFixed(4),crank:l.crank,phase:+l.phase.toFixed(6)}))};}
+function save(){const blob=new Blob([JSON.stringify(serialize(),null,1)],{type:'application/json'});const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=`crank-${new Date().toISOString().slice(0,10)}.json`;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);toast('Saved',true);}
+function restore(d){ if(!d||d.app!=='crank'||d.version!==1||!Array.isArray(d.joints)||!Array.isArray(d.links)) throw new Error('Not a Crank file (expected app "crank", version 1)');
+  M={name:String(d.name||'Opened mechanism'),joints:d.joints.map(j=>({id:+j.id,x:+j.x,y:+j.y,ground:!!j.ground,trace:!!j.trace,side:j.side<0?-1:1})),
+     links:d.links.filter(l=>d.joints.some(j=>j.id===l.a)&&d.joints.some(j=>j.id===l.b)).map(l=>({a:+l.a,b:+l.b,len:+l.len,crank:!!l.crank,phase:+l.phase||0}))};
+  nextId=Math.max(0,...M.joints.map(j=>j.id))+1; theta=+d.theta||0; speed=+d.speed||0.3; $('#speed').value=speed; setPlay(d.playing!==false);
+  pending=null;inspect=null;dirty(); if(d.view&&d.view.s>0) Object.assign(view,d.view); else fit(); draw(); toast(`Opened “${M.name}”`,true);}
+$('#save').onclick=save; $('#open').onclick=()=>$('#file').click();
+$('#file').onchange=async e=>{const f=e.target.files[0]; e.target.value=''; if(!f) return;
+  try{restore(JSON.parse(await f.text()));}catch(err){toast('Could not open: '+err.message);}};
+
+/* ---------- keyboard (none fire while typing) ---------- */
+addEventListener('keydown',e=>{ const t=e.target; if(t.matches?.('input,textarea,select,[contenteditable]')&&!(e.key==='/'&&(e.ctrlKey||e.metaKey))) return;
+  if((e.ctrlKey||e.metaKey)&&e.key==='/'){e.preventDefault();return $('#help').toggleAttribute('open');}
+  if(e.ctrlKey||e.metaKey||e.altKey) return;
+  const tools=['move','joint','link','crank','trace','delete'];
+  switch(e.key){
+    case ' ':e.preventDefault();setPlay(!playing);break;
+    case '1':case '2':case '3':case '4':case '5':case '6':setTool(tools[+e.key-1]);break;
+    case 'ArrowLeft':setPlay(false);theta=(theta-TAU/360+TAU)%TAU;draw();break;
+    case 'ArrowRight':setPlay(false);theta=(theta+TAU/360)%TAU;draw();break;
+    case 'f':fit();break; case 'd':$('#theme').click();break; case 's':save();break; case 'o':$('#file').click();break;
+    case '?':$('#help').toggleAttribute('open');break; case 'Escape':$('#help').removeAttribute('open');pending=null;draw();break;
+  }});
+
+resize(); load(sel.value);
+</script>
+</body>
+</html>
+
+</body></html>

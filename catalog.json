@@ -1880,7 +1880,7 @@
         }
       ],
       "category": "audio",
-      "likes": 12
+      "likes": 13
     },
     "cellular-automata-sonifier": {
       "title": "CA Sonifier",
@@ -2051,6 +2051,97 @@
         }
       ],
       "category": "edu"
+    },
+    "crank": {
+      "title": "Crank",
+      "engine": "Claude",
+      "description": "A planar linkage laboratory. Place joints, pin some to the ground, connect them with rigid bars and make one bar the crank; every frame each free joint is solved as the intersection of two circles, so you can build a four-bar, a Chebyshev straight-line linkage, Hoeken's walker or a Jansen Strandbeest leg from the presets or from scratch, trace any joint's path over a revolution (coloured by speed), see in red where the mechanism binds, and save or reload the whole thing as JSON.",
+      "source_file": "Crank-Claude.html",
+      "first_published": "2026-11-16",
+      "last_updated": "2026-11-16",
+      "version": 1,
+      "sha": "68a1e217019c",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-16",
+          "sha": "68a1e217019c"
+        }
+      ],
+      "category": "sim",
+      "thumb": {
+        "actions": [
+          {
+            "wait": 1200
+          },
+          {
+            "selector_click": "#fit"
+          },
+          {
+            "wait": 300
+          },
+          {
+            "selector_click": "#play"
+          },
+          {
+            "wait": 1500
+          }
+        ]
+      }
+    },
+    "symmetry-loom": {
+      "title": "Symmetry Loom",
+      "engine": "Grok",
+      "description": "A mandala drawing pad. Every freehand stroke is mirrored and rotated into 2, 3, 6, 8 or 12-fold symmetry around the centre as you draw; pick a colour and brush size, toggle the mirror, undo, set the finished design pulsing, and save or reload all the strokes as JSON.",
+      "source_file": "Symmetry Loom - Grok.html",
+      "first_published": "2026-11-16",
+      "last_updated": "2026-11-16",
+      "version": 1,
+      "sha": "56384985817f",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-16",
+          "sha": "56384985817f"
+        }
+      ],
+      "category": "art"
+    },
+    "cipherlab": {
+      "title": "CipherLab",
+      "engine": "Gemini",
+      "description": "An Enigma machine and cryptanalysis bench. Type a message and it passes through a three-rotor Enigma M3 with reflector and plugboard (or a Vigenère or Caesar shift), with the rotor windows stepping as you go; a live letter-frequency chart against the English baseline, index of coincidence and Shannon entropy show how well the cipher hides the text, swap input and output to decrypt, and save or reload a key setup as JSON.",
+      "source_file": "cipherlab-gemini.html",
+      "first_published": "2026-11-16",
+      "last_updated": "2026-11-16",
+      "version": 1,
+      "sha": "f9907f3162a3",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-16",
+          "sha": "f9907f3162a3"
+        }
+      ],
+      "category": "edu"
+    },
+    "labyrinth": {
+      "title": "Labyrinth",
+      "engine": "Muse",
+      "description": "A maze you solve by hand. Each one is carved fresh by a recursive backtracker at 9×9, 13×13 or 19×19 and always has an exit; steer with swipes, arrow keys, WASD or the on-screen pad against a timer and move counter, leave a trail, ask for the hint path, and keep best times per size, with a maze saved or reloaded as JSON.",
+      "source_file": "labyrinth-muse.html",
+      "first_published": "2026-11-16",
+      "last_updated": "2026-11-16",
+      "version": 1,
+      "sha": "6f6667711d71",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-16",
+          "sha": "6f6667711d71"
+        }
+      ],
+      "category": "game"
     }
   },
   "generated": "2026-11-16"

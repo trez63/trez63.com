@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CipherLab — Enigma Rotor & Cryptanalysis Studio</title>
+    <style>
+        :root {
+            --bg: #080b12; --panel: #101622; --card: #1a2234; --border: #2d384d;
+            --text: #f1f5f9; --sub: #94a3b8; --accent: #8b5cf6; --accent-hover: #7c3aed;
+            --amber: #f59e0b; --emerald: #10b981; --shadow: rgba(0,0,0,0.6);
+        }
+        [data-theme="light"] {
+            --bg: #f8fafc; --panel: #ffffff; --card: #f1f5f9; --border: #cbd5e1;
+            --text: #0f172a; --sub: #64748b; --accent: #7c3aed; --accent-hover: #6d28d9;
+            --amber: #d97706; --emerald: #059669; --shadow: rgba(0,0,0,0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+
+        header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; z-index: 10; }
+        .brand { font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em; }
+        .key-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+        .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        button, label.btn-label, select { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; user-select: none; transition: 0.15s; outline: none; }
+        button:hover, label.btn-label:hover { border-color: var(--accent); color: var(--accent); }
+        button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+        button.primary:hover { background: var(--accent-hover); color: #fff; }
+        input[type="file"] { display: none; }
+
+        .metrics-bar { background: var(--panel); border-bottom: 1px solid var(--border); padding: 10px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: 12px; font-size: 0.8rem; z-index: 10; }
+        .metric-card { background: var(--bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); }
+        .metric-title { color: var(--sub); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+        .metric-val { font-size: 1rem; font-weight: 700; color: var(--text); }
+
+        main { flex: 1; padding: 16px; max-width: 1360px; width: 100%; margin: 0 auto; display: grid; grid-template-columns: 340px 1fr; gap: 16px; }
+        .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; box-shadow: 0 4px 6px var(--shadow); display: flex; flex-direction: column; gap: 12px; }
+        .section-title { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sub); display: flex; justify-content: space-between; align-items: center; }
+
+        .rotor-rack { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .rotor-box { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 8px; text-align: center; display: flex; flex-direction: column; gap: 4px; }
+        .rotor-letter { font-size: 1.4rem; font-weight: 800; color: var(--amber); padding: 4px 0; }
+        .rotor-step-btns { display: flex; justify-content: center; gap: 4px; }
+        .rotor-step-btns button { padding: 3px 10px; font-size: 0.78rem; }
+
+        .form-group label { display: block; font-size: 0.78rem; color: var(--sub); margin-bottom: 4px; font-weight: 500; }
+        input[type="text"], textarea, select { width: 100%; padding: 8px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.85rem; outline: none; }
+        textarea { resize: vertical; min-height: 82px; line-height: 1.45; }
+
+        .io-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .chart-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px; height: 220px; position: relative; }
+        canvas { width: 100%; height: 100%; display: block; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 200; padding: 16px; }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 440px; padding: 20px; box-shadow: 0 20px 25px -5px var(--shadow); }
+        .modal h3 { font-size: 1.1rem; margin-bottom: 12px; }
+
+        .shortcut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem; margin: 12px 0 16px; }
+        .shortcut-row { display: flex; justify-content: space-between; background: var(--card); padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border); }
+        kbd { background: var(--panel); border: 1px solid var(--border); padding: 1px 5px; border-radius: 3px; font-weight: 600; font-size: 0.75rem; }
+
+        @media (max-width: 850px) {
+            header { flex-direction: column; align-items: stretch; }
+            .actions { justify-content: space-between; }
+            main { grid-template-columns: 1fr; padding: 8px; }
+            .io-grid { grid-template-columns: 1fr; }
+            .metrics-bar { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand"><div class="key-dot"></div> CipherLab Cryptanalysis Studio</div>
+        <div class="actions">
+            <button id="swapBtn" class="primary">⇅ Swap Text</button>
+            <button id="resetBtn">🔄 Reset Key</button>
+            <button id="saveBtn">💾 Save JSON</button>
+            <label class="btn-label" for="openFile">📂 Open JSON</label>
+            <input type="file" id="openFile" accept=".json">
+            <button id="themeBtn">🌓 Theme</button>
+            <button id="helpBtn">❓ Help</button>
+        </div>
+    </header>
+
+    <div class="metrics-bar">
+        <div class="metric-card"><div class="metric-title">Active Cipher</div><div class="metric-val" id="mCipher">Enigma M3</div></div>
+        <div class="metric-card"><div class="metric-title">Index of Coincidence</div><div class="metric-val" id="mIoC" style="color:var(--amber);">0.0385</div></div>
+        <div class="metric-card"><div class="metric-title">Shannon Entropy</div><div class="metric-val" id="mEntropy">4.68 bits</div></div>
+        <div class="metric-card"><div class="metric-title">Rotor Key / Seed</div><div class="metric-val" id="mKey" style="color:var(--emerald);">K-R-Y</div></div>
+    </div>
+
+    <main>
+        <!-- Rotor & Key Configuration -->
+        <div class="panel">
+            <div class="section-title"><span>Cipher Engine &amp; Rotor Bank</span></div>
+
+            <div class="form-group">
+                <label>Cryptographic Algorithm</label>
+                <select id="cfgMode">
+                    <option value="enigma">Enigma M3 (3-Rotor + Reflector B)</option>
+                    <option value="vigenere">Vigenère Polyalphabetic Stream</option>
+                    <option value="caesar">Caesar / ROT-N Shift</option>
+                </select>
+            </div>
+
+            <div class="section-title"><span>3-Rotor Stepping Bank (I - II - III)</span></div>
+            <div class="rotor-rack">
+                <div class="rotor-box">
+                    <span style="font-size:0.7rem;color:var(--sub)">ROTOR I</span>
+                    <div class="rotor-letter" id="rVal0">K</div>
+                    <div class="rotor-step-btns">
+                        <button onclick="stepRotor(0, -1)">−</button>
+                        <button onclick="stepRotor(0, 1)">+</button>
+                    </div>
+                </div>
+                <div class="rotor-box">
+                    <span style="font-size:0.7rem;color:var(--sub)">ROTOR II</span>
+                    <div class="rotor-letter" id="rVal1">R</div>
+                    <div class="rotor-step-btns">
+                        <button onclick="stepRotor(1, -1)">−</button>
+                        <button onclick="stepRotor(1, 1)">+</button>
+                    </div>
+                </div>
+                <div class="rotor-box">
+                    <span style="font-size:0.7rem;color:var(--sub)">ROTOR III</span>
+                    <div class="rotor-letter" id="rVal2">Y</div>
+                    <div class="rotor-step-btns">
+                        <button onclick="stepRotor(2, -1)">−</button>
+                        <button onclick="stepRotor(2, 1)">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Plugboard Pairs (e.g. AB CD EF)</label>
+                <input type="text" id="cfgPlug" value="AT BL DF GJ HM NW" maxlength="29">
+            </div>
+
+            <p style="font-size:0.76rem; color:var(--sub); line-height:1.4;">
+                <strong>Reciprocal Encryption:</strong> Enigma and Caesar-13 are symmetric—click <strong>Swap Text</strong> with identical rotor settings to decrypt back to plaintext.
+            </p>
+        </div>
+
+        <!-- Plaintext / Ciphertext & Frequency Spectrum -->
+        <div class="panel">
+            <div class="section-title"><span>Signal Intercept &amp; Cipher Output</span></div>
+            <div class="io-grid">
+                <div class="form-group">
+                    <label>Input Stream (Plaintext / Intercept)</label>
+                    <textarea id="inputText">WEATHER REPORT NORTH ATLANTIC SECTOR FOUR: BAROMETRIC PRESSURE FALLING RAPIDLY, CONVOY COURSE ZERO SEVEN FIVE DEGREES.</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Transformed Output Stream</label>
+                    <textarea id="outputText" readonly></textarea>
+                </div>
+            </div>
+
+            <div class="section-title">
+                <span>Live Letter Frequency Cryptanalysis (Purple: Cipher | Amber Line: English Baseline)</span>
+            </div>
+            <div class="chart-box">
+                <canvas id="freqCanvas"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal">
+            <h3>CipherLab Guide &amp; Shortcuts</h3>
+            <p style="font-size:0.85rem; color:var(--sub); line-height:1.4; margin-bottom:10px;">Electro-mechanical Enigma rotor simulator and statistical Index of Coincidence cryptanalysis workbench.</p>
+            <div class="shortcut-grid">
+                <div class="shortcut-row"><span>Swap Input/Output</span> <kbd>X</kbd></div>
+                <div class="shortcut-row"><span>Reset Key</span> <kbd>R</kbd></div>
+                <div class="shortcut-row"><span>Save Config</span> <kbd>S</kbd></div>
+                <div class="shortcut-row"><span>Open Config</span> <kbd>O</kbd></div>
+                <div class="shortcut-row"><span>Toggle Theme</span> <kbd>T</kbd></div>
+                <div class="shortcut-row"><span>Close Modal</span> <kbd>Esc</kbd></div>
+            </div>
+            <button id="closeHelpBtn" class="primary" style="width:100%; justify-content:center; margin-top:10px;">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Historical Enigma M3 Wiring & English Letter Frequencies ---
+        const ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const ROTORS = [
+            { wiring: 'EKMFLGDQVZNTOWYHXUSPAIBRCJ', notch: 16 }, // Rotor I (Q)
+            { wiring: 'AJDKSIRUXBLHWTMCQGZNPYFVOE', notch: 4 },  // Rotor II (E)
+            { wiring: 'BDFHJLCPRTXVZNYEIWGAKMUSQO', notch: 21 }  // Rotor III (V)
+        ];
+        const REFLECTOR_B = 'YRUHQSLDPXNGOKMIEBFZCWVJAT';
+        const ENG_FREQ = [8.2,1.5,2.8,4.3,13.0,2.2,2.0,6.1,7.0,0.15,0.77,4.0,2.4,6.7,7.5,1.9,0.095,6.0,6.3,9.1,2.8,0.98,2.4,0.15,2.0,0.074];
+
+        let rotorPos = [10, 17, 24]; // K-R-Y
+
+        function stepRotor(idx, delta) {
+            rotorPos[idx] = (rotorPos[idx] + delta + 26) % 26;
+            updateRotorUI();
+            processCipher();
+        }
+
+        function updateRotorUI() {
+            rotorPos.forEach((p, i) => {
+                document.getElementById(`rVal${i}`).innerText = ALPHA[p];
+            });
+            document.getElementById('mKey').innerText = rotorPos.map(p => ALPHA[p]).join('-');
+        }
+
+        function parsePlugboard() {
+            const map = {};
+            const pairs = document.getElementById('cfgPlug').value.toUpperCase().replace(/[^A-Z]/g, '');
+            for (let i = 0; i + 1 < pairs.length; i += 2) {
+                const a = pairs[i], b = pairs[i + 1];
+                if (a !== b && !map[a] && !map[b]) {
+                    map[a] = b;
+                    map[b] = a;
+                }
+            }
+            return map;
+        }
+
+        function encodeEnigma(text) {
+            let r = [...rotorPos];
+            const plug = parsePlugboard();
+            let out = '';
+
+            for (let ch of text.toUpperCase()) {
+                const idx = ALPHA.indexOf(ch);
+                if (idx === -1) { out += ch; continue; }
+
+                // Rotor Stepping (with double-stepping anomaly)
+                if (r[1] === ROTORS[1].notch) {
+                    r[1] = (r[1] + 1) % 26;
+                    r[0] = (r[0] + 1) % 26;
+                } else if (r[2] === ROTORS[2].notch) {
+                    r[1] = (r[1] + 1) % 26;
+                }
+                r[2] = (r[2] + 1) % 26;
+
+                let c = plug[ch] ? ALPHA.indexOf(plug[ch]) : idx;
+
+                // Forward through Rotors III -> II -> I
+                for (let i = 2; i >= 0; i--) {
+                    const shifted = (c + r[i]) % 26;
+                    const wired = ALPHA.indexOf(ROTORS[i].wiring[shifted]);
+                    c = (wired - r[i] + 26) % 26;
+                }
+
+                // Reflector B
+                c = ALPHA.indexOf(REFLECTOR_B[c]);
+
+                // Backward through Rotors I -> II -> III
+                for (let i = 0; i < 3; i++) {
+                    const shifted = (c + r[i]) % 26;
+                    const wired = ROTORS[i].wiring.indexOf(ALPHA[shifted]);
+                    c = (wired - r[i] + 26) % 26;
+                }
+
+                const finalChar = ALPHA[c];
+                out += plug[finalChar] || finalChar;
+            }
+            return out;
+        }
+
+        function encodeVigenere(text) {
+            const key = rotorPos.map(p => ALPHA[p]).join('');
+            let out = '', ki = 0;
+            for (let ch of text.toUpperCase()) {
+                const idx = ALPHA.indexOf(ch);
+                if (idx === -1) { out += ch; continue; }
+                const shift = ALPHA.indexOf(key[ki % key.length]);
+                out += ALPHA[(idx + shift) % 26];
+                ki++;
+            }
+            return out;
+        }
+
+        function encodeCaesar(text) {
+            const shift = rotorPos[2];
+            return text.toUpperCase().replace(/[A-Z]/g, ch => ALPHA[(ALPHA.indexOf(ch) + shift) % 26]);
+        }
+
+        function processCipher() {
+            const mode = document.getElementById('cfgMode').value;
+            const input = document.getElementById('inputText').value;
+            const labels = { enigma: 'Enigma M3', vigenere: 'Vigenère', caesar: `Caesar +${rotorPos[2]}` };
+            document.getElementById('mCipher').innerText = labels[mode];
+
+            let result = '';
+            if (mode === 'enigma') result = encodeEnigma(input);
+            else if (mode === 'vigenere') result = encodeVigenere(input);
+            else result = encodeCaesar(input);
+
+            document.getElementById('outputText').value = result;
+            analyzeCryptanalysis(result);
+        }
+
+        // --- Statistical Cryptanalysis & Frequency Chart ---
+        function analyzeCryptanalysis(cipherText) {
+            const counts = Array(26).fill(0);
+            let total = 0;
+            for (let ch of cipherText) {
+                const idx = ALPHA.indexOf(ch);
+                if (idx !== -1) { counts[idx]++; total++; }
+            }
+
+            // Index of Coincidence & Shannon Entropy
+            let iocNum = 0, entropy = 0;
+            for (let c of counts) {
+                iocNum += c * (c - 1);
+                if (c > 0 && total > 0) {
+                    const p = c / total;
+                    entropy -= p * Math.log2(p);
+                }
+            }
+            const ioc = total > 1 ? iocNum / (total * (total - 1)) : 0;
+            document.getElementById('mIoC').innerText = ioc.toFixed(4);
+            document.getElementById('mEntropy').innerText = `${entropy.toFixed(2)} bits`;
+
+            renderChart(counts, total);
+        }
+
+        function renderChart(counts, total) {
+            const canvas = document.getElementById('freqCanvas');
+            canvas.width = canvas.parentElement.clientWidth - 16;
+            canvas.height = canvas.parentElement.clientHeight - 16;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width, h = canvas.height;
+            const padBottom = 20, chartH = h - padBottom;
+            const colW = w / 26;
+
+            const styles = getComputedStyle(document.documentElement);
+            const accent = styles.getPropertyValue('--accent').trim();
+            const amber = styles.getPropertyValue('--amber').trim();
+            const sub = styles.getPropertyValue('--sub').trim();
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Cipher Bars
+            for (let i = 0; i < 26; i++) {
+                const pct = total > 0 ? (counts[i] / total) * 100 : 0;
+                const barH = Math.min(chartH, (pct / 16) * chartH);
+                ctx.fillStyle = accent;
+                ctx.fillRect(i * colW + 2, chartH - barH, colW - 4, barH);
+
+                ctx.fillStyle = sub;
+                ctx.font = '10px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(ALPHA[i], i * colW + colW / 2, h - 5);
+            }
+
+            // Standard English Frequency Overlay Curve
+            ctx.beginPath();
+            ctx.strokeStyle = amber;
+            ctx.lineWidth = 2;
+            for (let i = 0; i < 26; i++) {
+                const y = chartH - (ENG_FREQ[i] / 16) * chartH;
+                const x = i * colW + colW / 2;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+        }
+
+        // --- Event Listeners & JSON Save/Open ---
+        document.getElementById('inputText').addEventListener('input', processCipher);
+        document.getElementById('cfgMode').addEventListener('change', processCipher);
+        document.getElementById('cfgPlug').addEventListener('input', processCipher);
+        window.addEventListener('resize', processCipher);
+
+        document.getElementById('swapBtn').addEventListener('click', () => {
+            const inp = document.getElementById('inputText');
+            const out = document.getElementById('outputText');
+            inp.value = out.value;
+            processCipher();
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            rotorPos = [10, 17, 24];
+            document.getElementById('cfgPlug').value = 'AT BL DF GJ HM NW';
+            updateRotorUI();
+            processCipher();
+        });
+
+        document.getElementById('saveBtn').addEventListener('click', exportJSON);
+        document.getElementById('openFile').addEventListener('change', importJSON);
+
+        function exportJSON() {
+            const payload = {
+                mode: document.getElementById('cfgMode').value,
+                rotorPos,
+                plugboard: document.getElementById('cfgPlug').value,
+                inputText: document.getElementById('inputText').value
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload, null, 2));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            a.setAttribute("download", `cipherlab_intercept_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        function importJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = evt => {
+                try {
+                    const data = JSON.parse(evt.target.result);
+                    if (Array.isArray(data.rotorPos) && data.rotorPos.length === 3) {
+                        rotorPos = data.rotorPos;
+                        if (data.mode) document.getElementById('cfgMode').value = data.mode;
+                        if (typeof data.plugboard === 'string') document.getElementById('cfgPlug').value = data.plugboard;
+                        if (typeof data.inputText === 'string') document.getElementById('inputText').value = data.inputText;
+                        updateRotorUI();
+                        processCipher();
+                    } else alert('Invalid CipherLab JSON file.');
+                } catch { alert('Error reading JSON file.'); }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Theme & Shortcuts (Zero Key Overlap) ---
+        const helpModal = document.getElementById('helpModal');
+        document.getElementById('helpBtn').addEventListener('click', () => helpModal.classList.add('open'));
+        document.getElementById('closeHelpBtn').addEventListener('click', () => helpModal.classList.remove('open'));
+        document.getElementById('themeBtn').addEventListener('click', () => {
+            const cur = document.documentElement.getAttribute('data-theme');
+            document.documentElement.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+            processCipher();
+        });
+
+        // X = Swap Text, R = Reset Key, S = Save JSON, O = Open JSON, T = Theme, Esc = Close Modal
+        window.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+            const k = e.key.toLowerCase();
+            if (k === 'x') { e.preventDefault(); document.getElementById('swapBtn').click(); }
+            if (k === 'r') { e.preventDefault(); document.getElementById('resetBtn').click(); }
+            if (k === 's') { e.preventDefault(); exportJSON(); }
+            if (k === 'o') { e.preventDefault(); document.getElementById('openFile').click(); }
+            if (k === 't') { e.preventDefault(); document.getElementById('themeBtn').click(); }
+            if (e.key === 'Escape') helpModal.classList.remove('open');
+        });
+
+        // Pre-loaded 5-Second Impressive Demo State
+        updateRotorUI();
+        processCipher();
+    </script>
+</body>
+</html>

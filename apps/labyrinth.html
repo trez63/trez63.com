@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LABYRINTH — a maze you solve by hand</title>
+<style>
+  /* ---------- 1. Theme ---------- */
+  :root{
+    --ink:#0d1526;        /* deep midnight ink */
+    --panel:#16213a;      /* raised panel */
+    --panel-2:#1d2c4d;
+    --text:#e8eef7;
+    --muted:#8fa3bf;
+    --mint:#3ddc97;       /* path / player glow */
+    --gold:#f5b942;       /* start cell */
+    --coral:#ff6b5e;      /* exit cell */
+    --line:#2a3a5c;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--ink);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.45;
+    -webkit-tap-highlight-color:transparent;
+  }
+  main{max-width:560px;margin:0 auto;padding:18px 16px 40px}
+
+  /* ---------- 2. Header ---------- */
+  header{text-align:center;margin-bottom:14px}
+  h1{margin:0;font-size:30px;letter-spacing:.22em;color:var(--mint)}
+  header p{margin:6px 0 0;color:var(--muted);font-size:15px}
+
+  /* ---------- 3. Stats bar ---------- */
+  .stats{
+    display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;
+  }
+  .stat{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:10px 8px;text-align:center;
+  }
+  .stat b{display:block;font-size:20px;color:var(--text);font-variant-numeric:tabular-nums}
+  .stat span{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+
+  /* ---------- 4. Maze canvas ---------- */
+  .board{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:10px;
+  }
+  canvas{
+    display:block;width:100%;height:auto;aspect-ratio:1/1;border-radius:8px;
+    background:#0a1120;touch-action:none;user-select:none;-webkit-user-select:none;
+  }
+  .win{
+    display:none;margin-top:10px;text-align:center;font-size:17px;font-weight:700;
+    color:var(--gold);background:var(--panel-2);border:1px solid var(--gold);
+    border-radius:10px;padding:10px;
+  }
+  .win.show{display:block}
+
+  /* ---------- 5. D-pad ---------- */
+  .dpad{
+    display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,56px);
+    gap:8px;justify-content:center;margin:16px 0 6px;
+  }
+  .dpad button{
+    font-size:24px;color:var(--text);background:var(--panel-2);
+    border:1px solid var(--line);border-radius:12px;cursor:pointer;
+    min-width:64px;min-height:56px;
+  }
+  .dpad button:active{background:var(--mint);color:#06281c}
+  .dpad .up{grid-column:2;grid-row:1}
+  .dpad .left{grid-column:1;grid-row:2}
+  .dpad .down{grid-column:2;grid-row:2}
+  .dpad .right{grid-column:3;grid-row:2}
+  .dpad-hint{text-align:center;color:var(--muted);font-size:13px;margin:0 0 14px}
+
+  /* ---------- 6. Controls ---------- */
+  .sizes{display:flex;gap:8px;margin-bottom:12px}
+  .sizes button{
+    flex:1;padding:12px 4px;font-size:15px;font-weight:600;color:var(--text);
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;cursor:pointer;
+    min-height:48px;
+  }
+  .sizes button[aria-pressed="true"]{background:var(--mint);color:#06281c;border-color:var(--mint)}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .row button{
+    flex:1 1 30%;padding:13px 8px;font-size:15px;font-weight:600;color:var(--text);
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;cursor:pointer;
+    min-height:48px;
+  }
+  .row button:active{background:var(--panel-2)}
+  .row button.on{background:var(--mint);color:#06281c;border-color:var(--mint)}
+  .row button.primary{background:var(--mint);color:#06281c;border-color:var(--mint)}
+
+  /* ---------- 7. Best times ---------- */
+  .bests{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:12px 14px;margin-bottom:12px;
+  }
+  .bests h2{margin:0 0 8px;font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .bests ul{margin:0;padding:0;list-style:none}
+  .bests li{display:flex;justify-content:space-between;padding:5px 0;font-size:15px}
+  .bests li b{font-variant-numeric:tabular-nums;color:var(--mint)}
+
+  .note{color:var(--muted);font-size:13px;text-align:center;margin:14px 0 0}
+  .status{color:var(--muted);font-size:13px;text-align:center;min-height:18px;margin-top:10px}
+  .status.err{color:var(--coral)}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;animation:none !important}
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>LABYRINTH</h1>
+    <p>Find the coral exit. Swipe, use the arrows, or tap the pad.</p>
+  </header>
+
+  <!-- Stats -->
+  <section class="stats" aria-label="Run stats">
+    <div class="stat"><b id="stat-time">0:00</b><span>Time</span></div>
+    <div class="stat"><b id="stat-moves">0</b><span>Moves</span></div>
+    <div class="stat"><b id="stat-best">—</b><span>Best · <span id="stat-best-size">Classic</span></span></div>
+  </section>
+
+  <!-- Maze board -->
+  <section class="board">
+    <canvas id="maze" width="520" height="520" aria-label="Maze. Use arrow keys, swipe, or the direction pad to move the glowing dot to the coral exit."></canvas>
+    <div class="win" id="win" role="status"></div>
+  </section>
+
+  <!-- D-pad -->
+  <div class="dpad" aria-label="Direction pad">
+    <button type="button" class="up"    data-dir="up"    aria-label="Move up">▲</button>
+    <button type="button" class="left"  data-dir="left"  aria-label="Move left">◀</button>
+    <button type="button" class="down"  data-dir="down"  aria-label="Move down">▼</button>
+    <button type="button" class="right" data-dir="right" aria-label="Move right">▶</button>
+  </div>
+  <p class="dpad-hint">Arrow keys or WASD work too · swipe across the maze to step</p>
+
+  <!-- Size picker -->
+  <div class="sizes" role="group" aria-label="Maze size">
+    <button type="button" data-size="cozy"    aria-pressed="false">Cozy · 9×9</button>
+    <button type="button" data-size="classic" aria-pressed="true">Classic · 13×13</button>
+    <button type="button" data-size="epic"    aria-pressed="false">Epic · 19×19</button>
+  </div>
+
+  <!-- Actions -->
+  <div class="row">
+    <button type="button" id="btn-new" class="primary">New maze</button>
+    <button type="button" id="btn-hint" aria-pressed="false">Hint path</button>
+    <button type="button" id="btn-trail" aria-pressed="true">Trail</button>
+  </div>
+  <div class="row">
+    <button type="button" id="btn-reset">Reset position</button>
+    <button type="button" id="btn-save">Save</button>
+    <button type="button" id="btn-open">Open</button>
+  </div>
+  <input type="file" id="file-input" accept=".json,application/json" hidden>
+
+  <!-- Best times -->
+  <section class="bests" aria-label="Best times">
+    <h2>Best times</h2>
+    <ul>
+      <li><span>Cozy · 9×9</span><b id="best-cozy">—</b></li>
+      <li><span>Classic · 13×13</span><b id="best-classic">—</b></li>
+      <li><span>Epic · 19×19</span><b id="best-epic">—</b></li>
+    </ul>
+  </section>
+
+  <p class="status" id="status" role="status"></p>
+  <p class="note">Every maze is generated fresh and always has a solution. No two are alike.</p>
+</main>
+
+<script>
+"use strict";
+/* =====================================================================
+   LABYRINTH — a maze you solve by hand
+   Sections: 1 State · 2 Seeded RNG · 3 Maze generation · 4 Solver (BFS)
+   5 Rendering · 6 Movement · 7 Timer & win · 8 Best times · 9 Save/Open
+   10 UI wiring · 11 Boot
+   ===================================================================== */
+
+/* ---------- 1. State ---------- */
+const SIZES = { cozy: 9, classic: 13, epic: 19 };
+const SIZE_LABELS = { cozy: "Cozy", classic: "Classic", epic: "Epic" };
+const WALL = { N: 1, E: 2, S: 4, W: 8 };
+const DIRS = [
+  { dx: 0, dy: -1, wall: WALL.N, opp: WALL.S },
+  { dx: 1, dy: 0,  wall: WALL.E, opp: WALL.W },
+  { dx: 0, dy: 1,  wall: WALL.S, opp: WALL.N },
+  { dx: -1, dy: 0, wall: WALL.W, opp: WALL.E },
+];
+const LS_KEY = "labyrinth-best-v1";
+const SAVE_APP = "labyrinth";
+const SAVE_VERSION = 1;
+
+const state = {
+  size: "classic",          // cozy | classic | epic
+  cols: SIZES.classic,
+  rows: SIZES.classic,
+  seed: 0,
+  walls: null,              // Uint8Array of wall bitmasks, length cols*rows
+  player: { x: 0, y: 0 },
+  exit: { x: 0, y: 0 },
+  visited: null,            // Uint8Array, 1 = stepped on
+  moves: 0,
+  startedAt: null,          // performance.now() of first move
+  elapsedMs: 0,
+  won: false,
+  showHint: false,
+  showTrail: true,
+  hintPath: null,           // array of {x,y} from BFS, or null
+  bestTimes: { cozy: null, classic: null, epic: null },
+  confetti: [],             // capped win particles
+};
+
+const reducedMotion = window.matchMedia &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------- 2. Seeded RNG (mulberry32) ---------- */
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/* ---------- 3. Maze generation (iterative recursive backtracker) ---------- */
+function genMaze(cols, rows, seed) {
+  const rand = mulberry32(seed);
+  const walls = new Uint8Array(cols * rows).fill(WALL.N | WALL.E | WALL.S | WALL.W);
+  const seen = new Uint8Array(cols * rows);
+  const stack = [{ x: 0, y: 0 }];
+  seen[0] = 1;
+  while (stack.length) {
+    const cur = stack[stack.length - 1];
+    const options = [];
+    for (const d of DIRS) {
+      const nx = cur.x + d.dx, ny = cur.y + d.dy;
+      if (nx < 0 || ny < 0 || nx >= cols || ny >= rows) continue;
+      if (seen[ny * cols + nx]) continue;
+      options.push(d);
+    }
+    if (!options.length) { stack.pop(); continue; }
+    const d = options[Math.floor(rand() * options.length)];
+    const nx = cur.x + d.dx, ny = cur.y + d.dy;
+    walls[cur.y * cols + cur.x] &= ~d.wall;
+    walls[ny * cols + nx] &= ~d.opp;
+    seen[ny * cols + nx] = 1;
+    stack.push({ x: nx, y: ny });
+  }
+  return walls;
+}
+
+/* ---------- 4. Solver (BFS shortest path) ---------- */
+function solveMaze(cols, rows, walls, start, goal) {
+  const prev = new Int32Array(cols * rows).fill(-1);
+  const queue = [start.y * cols + start.x];
+  prev[start.y * cols + start.x] = -2; // -2 = start marker
+  let head = 0;
+  while (head < queue.length) {
+    const cur = queue[head++];
+    const cx = cur % cols, cy = Math.floor(cur / cols);
+    if (cx === goal.x && cy === goal.y) break;
+    for (const d of DIRS) {
+      if (walls[cur] & d.wall) continue; // wall blocks
+      const nx = cx + d.dx, ny = cy + d.dy;
+      if (nx < 0 || ny < 0 || nx >= cols || ny >= rows) continue;
+      const ni = ny * cols + nx;
+      if (prev[ni] !== -1) continue;
+      prev[ni] = cur;
+      queue.push(ni);
+    }
+  }
+  const goalIdx = goal.y * cols + goal.x;
+  if (prev[goalIdx] === -1) return null; // unreachable (should never happen)
+  const path = [];
+  let cur = goalIdx;
+  while (cur !== -2) {
+    path.push({ x: cur % cols, y: Math.floor(cur / cols) });
+    cur = prev[cur];
+  }
+  path.reverse();
+  return path;
+}
+
+/* ---------- 5. Rendering ---------- */
+const canvas = document.getElementById("maze");
+const ctx = canvas.getContext("2d");
+const DPR = Math.min(window.devicePixelRatio || 1, 2);
+const CSS_SIZE = 520;
+
+function setupCanvas() {
+  canvas.width = CSS_SIZE * DPR;
+  canvas.height = CSS_SIZE * DPR;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+
+function cellSize() { return CSS_SIZE / state.cols; }
+
+function draw() {
+  const cs = cellSize();
+  ctx.clearRect(0, 0, CSS_SIZE, CSS_SIZE);
+
+  // visited trail
+  if (state.showTrail) {
+    ctx.fillStyle = "rgba(61,220,151,0.10)";
+    for (let i = 0; i < state.visited.length; i++) {
+      if (!state.visited[i]) continue;
+      ctx.fillRect((i % state.cols) * cs + 2, Math.floor(i / state.cols) * cs + 2, cs - 4, cs - 4);
+    }
+  }
+
+  // hint path (dashed centre line)
+  if (state.showHint && state.hintPath) {
+    ctx.strokeStyle = "rgba(61,220,151,0.75)";
+    ctx.lineWidth = Math.max(2, cs * 0.08);
+    ctx.setLineDash([cs * 0.22, cs * 0.22]);
+    ctx.beginPath();
+    state.hintPath.forEach((c, i) => {
+      const cx = (c.x + 0.5) * cs, cy = (c.y + 0.5) * cs;
+      if (i === 0) ctx.moveTo(cx, cy); else ctx.lineTo(cx, cy);
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // start + exit cells
+  ctx.fillStyle = "rgba(245,185,66,0.28)";
+  ctx.fillRect(2, 2, cs - 4, cs - 4);
+  ctx.fillStyle = "rgba(255,107,94,0.30)";
+  ctx.fillRect(state.exit.x * cs + 2, state.exit.y * cs + 2, cs - 4, cs - 4);
+
+  // walls
+  ctx.strokeStyle = "#5b7398";
+  ctx.lineWidth = Math.max(1.5, cs * 0.07);
+  ctx.lineCap = "square";
+  ctx.beginPath();
+  for (let y = 0; y < state.rows; y++) {
+    for (let x = 0; x < state.cols; x++) {
+      const w = state.walls[y * state.cols + x];
+      const x0 = x * cs, y0 = y * cs;
+      if (w & WALL.N) { ctx.moveTo(x0, y0); ctx.lineTo(x0 + cs, y0); }
+      if (w & WALL.W) { ctx.moveTo(x0, y0); ctx.lineTo(x0, y0 + cs); }
+      if (x === state.cols - 1 && (w & WALL.E)) { ctx.moveTo(x0 + cs, y0); ctx.lineTo(x0 + cs, y0 + cs); }
+      if (y === state.rows - 1 && (w & WALL.S)) { ctx.moveTo(x0, y0 + cs); ctx.lineTo(x0 + cs, y0 + cs); }
+    }
+  }
+  ctx.stroke();
+
+  // player: glowing dot (radial gradient, no shadowBlur)
+  const px = (state.player.x + 0.5) * cs, py = (state.player.y + 0.5) * cs;
+  const r = cs * 0.34;
+  const glow = ctx.createRadialGradient(px, py, r * 0.2, px, py, r * 1.9);
+  glow.addColorStop(0, "rgba(61,220,151,0.55)");
+  glow.addColorStop(1, "rgba(61,220,151,0)");
+  ctx.fillStyle = glow;
+  ctx.beginPath(); ctx.arc(px, py, r * 1.9, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#3ddc97";
+  ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#0d1526";
+  ctx.beginPath(); ctx.arc(px, py, r * 0.38, 0, Math.PI * 2); ctx.fill();
+
+  // win confetti (capped, skipped for reduced motion)
+  if (state.confetti.length) {
+    for (const p of state.confetti) {
+      ctx.fillStyle = p.color;
+      ctx.fillRect(p.x, p.y, p.s, p.s);
+    }
+  }
+}
+
+/* confetti animation loop — only runs while particles exist */
+let confettiRunning = false;
+function animateConfetti() {
+  if (!state.confetti.length) { confettiRunning = false; return; }
+  confettiRunning = true;
+  for (const p of state.confetti) {
+    p.x += p.vx; p.y += p.vy; p.vy += 0.12; p.life--;
+  }
+  state.confetti = state.confetti.filter(p => p.life > 0 && p.y < CSS_SIZE + 20);
+  draw();
+  if (state.confetti.length) requestAnimationFrame(animateConfetti);
+  else confettiRunning = false;
+}
+function burstConfetti() {
+  if (reducedMotion) return;
+  const colors = ["#3ddc97", "#f5b942", "#ff6b5e", "#e8eef7", "#7fb3ff"];
+  for (let i = 0; i < 90; i++) {
+    state.confetti.push({
+      x: CSS_SIZE / 2 + (Math.random() - 0.5) * 120,
+      y: CSS_SIZE / 2 + (Math.random() - 0.5) * 40,
+      vx: (Math.random() - 0.5) * 5,
+      vy: -Math.random() * 5 - 1,
+      s: 4 + Math.random() * 5,
+      life: 50 + Math.random() * 40,
+      color: colors[i % colors.length],
+    });
+  }
+  if (!confettiRunning) animateConfetti();
+}
+
+/* ---------- 6. Movement ---------- */
+const DIR_BY_NAME = {
+  up: { dx: 0, dy: -1, wall: WALL.N },
+  right: { dx: 1, dy: 0, wall: WALL.E },
+  down: { dx: 0, dy: 1, wall: WALL.S },
+  left: { dx: -1, dy: 0, wall: WALL.W },
+};
+
+function tryMove(dirName) {
+  if (state.won) return;
+  const d = DIR_BY_NAME[dirName];
+  if (!d) return;
+  const curIdx = state.player.y * state.cols + state.player.x;
+  if (state.walls[curIdx] & d.wall) { bump(dirName); return; } // wall: no move
+  state.player.x += d.dx;
+  state.player.y += d.dy;
+  state.visited[state.player.y * state.cols + state.player.x] = 1;
+  state.moves++;
+  if (state.startedAt === null) state.startedAt = performance.now();
+  updateStats();
+  if (state.player.x === state.exit.x && state.player.y === state.exit.y) onWin();
+  else draw();
+}
+
+/* tiny shake-free feedback for bumping a wall: redraw only */
+function bump() { draw(); }
+
+/* swipe / drag on the canvas: step each time the finger crosses a threshold */
+let touchStart = null;
+let touchLast = null;
+function onTouchStart(e) {
+  const t = e.changedTouches[0];
+  touchStart = { x: t.clientX, y: t.clientY };
+  touchLast = { x: t.clientX, y: t.clientY };
+  e.preventDefault();
+}
+function onTouchMove(e) {
+  if (!touchLast) return;
+  const t = e.changedTouches[0];
+  const dx = t.clientX - touchLast.x, dy = t.clientY - touchLast.y;
+  const THRESH = 26;
+  if (Math.abs(dx) < THRESH && Math.abs(dy) < THRESH) return;
+  const dir = Math.abs(dx) > Math.abs(dy)
+    ? (dx > 0 ? "right" : "left")
+    : (dy > 0 ? "down" : "up");
+  touchLast = { x: t.clientX, y: t.clientY };
+  tryMove(dir);
+  e.preventDefault();
+}
+function onTouchEnd() { touchStart = null; touchLast = null; }
+
+/* ---------- 7. Timer & win ---------- */
+let timerId = null;
+function fmtTime(ms) {
+  const total = Math.floor(ms / 1000);
+  const m = Math.floor(total / 60), s = total % 60;
+  return m + ":" + String(s).padStart(2, "0");
+}
+function startTimer() {
+  if (timerId) return;
+  timerId = setInterval(() => {
+    if (state.startedAt !== null && !state.won) {
+      state.elapsedMs = performance.now() - state.startedAt;
+      document.getElementById("stat-time").textContent = fmtTime(state.elapsedMs);
+    }
+  }, 250);
+}
+function updateStats() {
+  document.getElementById("stat-moves").textContent = String(state.moves);
+  document.getElementById("stat-time").textContent = fmtTime(state.elapsedMs);
+  const best = state.bestTimes[state.size];
+  document.getElementById("stat-best").textContent = best === null ? "—" : fmtTime(best);
+  document.getElementById("stat-best-size").textContent = SIZE_LABELS[state.size];
+}
+function renderBests() {
+  for (const key of Object.keys(SIZES)) {
+    const el = document.getElementById("best-" + key);
+    const v = state.bestTimes[key];
+    el.textContent = v === null ? "—" : fmtTime(v);
+  }
+}
+function onWin() {
+  state.won = true;
+  state.elapsedMs = performance.now() - state.startedAt;
+  const prev = state.bestTimes[state.size];
+  const isBest = prev === null || state.elapsedMs < prev;
+  if (isBest) {
+    state.bestTimes[state.size] = Math.round(state.elapsedMs);
+    persistBests();
+    renderBests();
+  }
+  const winEl = document.getElementById("win");
+  winEl.textContent = "Solved in " + fmtTime(state.elapsedMs) + " · " + state.moves +
+    " moves" + (isBest ? " — new best for " + SIZE_LABELS[state.size] + "!" : "");
+  winEl.classList.add("show");
+  updateStats();
+  burstConfetti();
+  draw();
+}
+
+/* ---------- 8. Best times (localStorage) ---------- */
+function persistBests() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(state.bestTimes)); } catch (e) { /* storage unavailable: ignore */ }
+}
+function loadBests() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object") {
+      for (const key of Object.keys(SIZES)) {
+        const v = parsed[key];
+        if (v === null || (typeof v === "number" && Number.isFinite(v) && v >= 0)) {
+          state.bestTimes[key] = v;
+        }
+      }
+    }
+  } catch (e) { /* corrupt stored data: keep defaults */ }
+}
+
+/* ---------- 9. Save / Open JSON ---------- */
+function buildSaveData() {
+  return {
+    app: SAVE_APP,
+    version: SAVE_VERSION,
+    size: state.size,
+    bestTimes: { ...state.bestTimes },
+    settings: { showHint: state.showHint, showTrail: state.showTrail },
+  };
+}
+/* Full validation: a bad file must never wipe current data. Returns
+   a clean {size, bestTimes, settings} object, or null when invalid. */
+function validateSaveData(data) {
+  if (!data || typeof data !== "object" || Array.isArray(data)) return null;
+  if (data.app !== SAVE_APP) return null;
+  if (data.version !== SAVE_VERSION) return null;
+  if (!Object.prototype.hasOwnProperty.call(SIZES, data.size)) return null;
+  if (!data.bestTimes || typeof data.bestTimes !== "object" || Array.isArray(data.bestTimes)) return null;
+  const bestTimes = {};
+  for (const key of Object.keys(SIZES)) {
+    const v = data.bestTimes[key];
+    if (v === null) bestTimes[key] = null;
+    else if (typeof v === "number" && Number.isFinite(v) && v >= 0) bestTimes[key] = v;
+    else return null;
+  }
+  if (!data.settings || typeof data.settings !== "object" || Array.isArray(data.settings)) return null;
+  if (typeof data.settings.showHint !== "boolean") return null;
+  if (typeof data.settings.showTrail !== "boolean") return null;
+  return { size: data.size, bestTimes, settings: { ...data.settings } };
+}
+function applySaveData(clean) {
+  state.size = clean.size;
+  state.bestTimes = clean.bestTimes;
+  state.showHint = clean.settings.showHint;
+  state.showTrail = clean.settings.showTrail;
+  syncSizeButtons();
+  syncToggleButtons();
+  renderBests();
+  newMaze();
+  setStatus("Loaded saved maze settings and best times.");
+}
+function downloadSave() {
+  const blob = new Blob([JSON.stringify(buildSaveData(), null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "labyrinth-save.json";
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  setStatus("Saved labyrinth-save.json — best times and settings.");
+}
+function setStatus(msg, isErr) {
+  const el = document.getElementById("status");
+  el.textContent = msg;
+  el.classList.toggle("err", !!isErr);
+}
+
+/* ---------- 10. Maze lifecycle & UI wiring ---------- */
+function newMaze(seed) {
+  state.cols = SIZES[state.size];
+  state.rows = SIZES[state.size];
+  state.seed = (typeof seed === "number") ? seed : Math.floor(Math.random() * 2147483647);
+  state.walls = genMaze(state.cols, state.rows, state.seed);
+  state.player = { x: 0, y: 0 };
+  state.exit = { x: state.cols - 1, y: state.rows - 1 };
+  state.visited = new Uint8Array(state.cols * state.rows);
+  state.visited[0] = 1;
+  state.moves = 0;
+  state.startedAt = null;
+  state.elapsedMs = 0;
+  state.won = false;
+  state.confetti = [];
+  state.hintPath = solveMaze(state.cols, state.rows, state.walls, state.player, state.exit);
+  document.getElementById("win").classList.remove("show");
+  updateStats();
+  draw();
+}
+function syncSizeButtons() {
+  document.querySelectorAll(".sizes button").forEach(b => {
+    b.setAttribute("aria-pressed", String(b.dataset.size === state.size));
+  });
+}
+function syncToggleButtons() {
+  document.getElementById("btn-hint").setAttribute("aria-pressed", String(state.showHint));
+  document.getElementById("btn-hint").classList.toggle("on", state.showHint);
+  document.getElementById("btn-trail").setAttribute("aria-pressed", String(state.showTrail));
+  document.getElementById("btn-trail").classList.toggle("on", state.showTrail);
+}
+function resetPosition() {
+  state.player = { x: 0, y: 0 };
+  state.visited = new Uint8Array(state.cols * state.rows);
+  state.visited[0] = 1;
+  state.moves = 0;
+  state.startedAt = null;
+  state.elapsedMs = 0;
+  state.won = false;
+  state.confetti = [];
+  document.getElementById("win").classList.remove("show");
+  updateStats();
+  draw();
+  setStatus("Back at the start — the maze is unchanged.");
+}
+
+function wireUI() {
+  // D-pad
+  document.querySelectorAll(".dpad button").forEach(b => {
+    b.addEventListener("click", () => tryMove(b.dataset.dir));
+  });
+
+  // canvas swipe
+  canvas.addEventListener("touchstart", onTouchStart, { passive: false });
+  canvas.addEventListener("touchmove", onTouchMove, { passive: false });
+  canvas.addEventListener("touchend", onTouchEnd);
+  canvas.addEventListener("touchcancel", onTouchEnd);
+
+  // size picker
+  document.querySelectorAll(".sizes button").forEach(b => {
+    b.addEventListener("click", () => {
+      state.size = b.dataset.size;
+      syncSizeButtons();
+      newMaze();
+      setStatus("New " + SIZE_LABELS[state.size] + " maze — " +
+        SIZES[state.size] + "×" + SIZES[state.size] + ".");
+    });
+  });
+
+  // action buttons
+  document.getElementById("btn-new").addEventListener("click", () => {
+    newMaze();
+    setStatus("Fresh maze generated.");
+  });
+  document.getElementById("btn-hint").addEventListener("click", () => {
+    state.showHint = !state.showHint;
+    syncToggleButtons();
+    draw();
+  });
+  document.getElementById("btn-trail").addEventListener("click", () => {
+    state.showTrail = !state.showTrail;
+    syncToggleButtons();
+    draw();
+  });
+  document.getElementById("btn-reset").addEventListener("click", resetPosition);
+  document.getElementById("btn-save").addEventListener("click", downloadSave);
+  document.getElementById("btn-open").addEventListener("click", () => {
+    document.getElementById("file-input").click();
+  });
+  document.getElementById("file-input").addEventListener("change", (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = ""; // allow re-selecting the same file
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      let parsed;
+      try { parsed = JSON.parse(reader.result); }
+      catch (err) { setStatus("That file is not valid JSON — nothing changed.", true); return; }
+      const clean = validateSaveData(parsed);
+      if (!clean) { setStatus("That file is not a Labyrinth save — nothing changed.", true); return; }
+      applySaveData(clean);
+    };
+    reader.onerror = () => setStatus("Could not read that file — nothing changed.", true);
+    reader.readAsText(file);
+  });
+
+  // keyboard: each key does exactly one thing
+  document.addEventListener("keydown", (e) => {
+    if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
+    const k = e.key;
+    const moveKey = {
+      ArrowUp: "up", w: "up", W: "up",
+      ArrowRight: "right", d: "right", D: "right",
+      ArrowDown: "down", s: "down", S: "down",
+      ArrowLeft: "left", a: "left", A: "left",
+    };
+    if (moveKey[k]) { e.preventDefault(); tryMove(moveKey[k]); return; }
+    if (k === "n" || k === "N") { newMaze(); setStatus("Fresh maze generated."); }
+    else if (k === "h" || k === "H") { document.getElementById("btn-hint").click(); }
+    else if (k === "t" || k === "T") { document.getElementById("btn-trail").click(); }
+    else if (k === "r" || k === "R") { resetPosition(); }
+    else if (k === "v" || k === "V") { downloadSave(); } // v = save (s is a move key)
+    else if (k === "o" || k === "O") { document.getElementById("btn-open").click(); }
+  });
+}
+
+/* ---------- 11. Boot ---------- */
+setupCanvas();
+loadBests();
+wireUI();
+syncSizeButtons();
+syncToggleButtons();
+renderBests();
+newMaze();
+startTimer();
+updateStats();
+
+/* Test hooks (harmless in the page; used by the node smoke test). */
+window.__labyrinth = { genMaze, solveMaze, validateSaveData, SIZES, state };
+</script>
+</body>
+</html>

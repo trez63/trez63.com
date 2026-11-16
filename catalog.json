@@ -30,7 +30,7 @@
         ]
       },
       "category": "image",
-      "likes": 2
+      "likes": 5
     },
     "foldwork": {
       "title": "Foldwork",
@@ -49,7 +49,7 @@
         }
       ],
       "category": "tool",
-      "likes": 2
+      "likes": 4
     },
     "genesis-universe": {
       "title": "Genesis",
@@ -152,7 +152,7 @@
         ]
       },
       "category": "art",
-      "likes": 2
+      "likes": 4
     },
     "ledger": {
       "title": "Ledger",
@@ -305,7 +305,7 @@
         ]
       },
       "category": "sim",
-      "likes": 4
+      "likes": 5
     },
     "sonogram": {
       "title": "Sonogram",
@@ -361,7 +361,7 @@
         ]
       },
       "category": "audio",
-      "likes": 8
+      "likes": 12
     },
     "sprout-garden": {
       "title": "Sprout",
@@ -438,7 +438,8 @@
           "sha": "25b715301e51"
         }
       ],
-      "category": "focus"
+      "category": "focus",
+      "likes": 1
     },
     "tradeoff": {
       "title": "Tradeoff",
@@ -457,7 +458,7 @@
         }
       ],
       "category": "tool",
-      "likes": 4
+      "likes": 6
     },
     "budget": {
       "title": "Budget",
@@ -507,7 +508,7 @@
         ]
       },
       "category": "game",
-      "likes": 1
+      "likes": 2
     },
     "hilbert": {
       "title": "Hilbert",
@@ -539,7 +540,7 @@
         ]
       },
       "category": "dev",
-      "likes": 1
+      "likes": 2
     },
     "labelmaker": {
       "title": "Label sheets",
@@ -641,7 +642,8 @@
           }
         ]
       },
-      "category": "tool"
+      "category": "tool",
+      "likes": 2
     },
     "pantry-clock": {
       "title": "Pantry Clock",
@@ -710,7 +712,7 @@
         }
       ],
       "category": "audio",
-      "likes": 4
+      "likes": 5
     },
     "cosmic-breath": {
       "title": "Cosmic Breath",
@@ -796,7 +798,7 @@
         }
       ],
       "category": "sim",
-      "likes": 13
+      "likes": 15
     },
     "tidytext": {
       "title": "Tidy Text",
@@ -979,7 +981,7 @@
         }
       ],
       "category": "dev",
-      "likes": 1
+      "likes": 2
     },
     "logglass": {
       "title": "Logglass",
@@ -1138,7 +1140,8 @@
             "wait": 800
           }
         ]
-      }
+      },
+      "likes": 1
     },
     "outline-builder": {
       "title": "Outline Builder",
@@ -1322,7 +1325,8 @@
             "wait": 1200
           }
         ]
-      }
+      },
+      "likes": 1
     },
     "loadmaster": {
       "title": "LoadMaster",
@@ -1491,7 +1495,7 @@
         }
       ],
       "category": "art",
-      "likes": 2
+      "likes": 3
     },
     "parapet": {
       "title": "Parapet",
@@ -1528,7 +1532,7 @@
         }
       ],
       "category": "edu",
-      "likes": 3
+      "likes": 4
     },
     "rename-studio": {
       "title": "Rename Studio",
@@ -1691,7 +1695,7 @@
         }
       ],
       "category": "audio",
-      "likes": 2
+      "likes": 4
     },
     "drift-soundscape": {
       "title": "Drift",
@@ -1761,7 +1765,7 @@
         }
       ],
       "category": "art",
-      "likes": 3
+      "likes": 4
     },
     "paper-cinema": {
       "title": "Paper Cinema",
@@ -1852,7 +1856,7 @@
           }
         ]
       },
-      "likes": 1
+      "likes": 2
     },
     "trill": {
       "title": "Trill",
@@ -1876,7 +1880,7 @@
         }
       ],
       "category": "audio",
-      "likes": 6
+      "likes": 12
     },
     "cellular-automata-sonifier": {
       "title": "CA Sonifier",
@@ -1956,7 +1960,7 @@
         }
       ],
       "category": "tool",
-      "likes": 2
+      "likes": 4
     }
   },
   "generated": "2026-11-15"

@@ -194,6 +194,14 @@ def main():
             # published version back and forth every day.
             print(f"= {slug}: stale copy ({f.name} matches an earlier version); skipped")
             continue
+        if entry is None:
+            # The same bytes already live under another slug (e.g. trill-v2-claud.html is a copy of
+            # the published trill.html). A second entry for one app is never wanted.
+            twin = next((s for s, e in apps.items()
+                         if e.get("sha") == h or any(v.get("sha") == h for v in e.get("versions", []))), None)
+            if twin:
+                print(f"= {slug}: duplicate of {twin} ({f.name} has the same content); skipped")
+                continue
         # PRIVACY GATE: a file with findings is never copied into the public repo.
         chk = subprocess.run([sys.executable, str(ROOT / "scripts" / "privacy_check.py")]
                              + (["--terms", args.terms] if args.terms else []) + [str(f)],

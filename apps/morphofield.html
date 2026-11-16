@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MorphoField — Reaction-Diffusion & Turing Pattern Studio</title>
+    <style>
+        :root {
+            --bg: #070a12; --panel: #0f172a; --card: #1e293b; --border: #334155;
+            --text: #f8fafc; --sub: #94a3b8; --accent: #10b981; --accent-hover: #059669;
+            --shadow: rgba(0,0,0,0.6);
+        }
+        [data-theme="light"] {
+            --bg: #f8fafc; --panel: #ffffff; --card: #f1f5f9; --border: #cbd5e1;
+            --text: #0f172a; --sub: #64748b; --accent: #059669; --accent-hover: #047857;
+            --shadow: rgba(0,0,0,0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+
+        header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; z-index: 10; }
+        .brand { font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em; }
+        .bio-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+        .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        button, label.btn-label, select { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; user-select: none; transition: 0.15s; outline: none; }
+        button:hover, label.btn-label:hover { border-color: var(--accent); color: var(--accent); }
+        button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+        button.primary:hover { background: var(--accent-hover); color: #fff; }
+        input[type="file"] { display: none; }
+
+        .metrics-bar { background: var(--panel); border-bottom: 1px solid var(--border); padding: 10px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; font-size: 0.8rem; z-index: 10; }
+        .metric-card { background: var(--bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); }
+        .metric-title { color: var(--sub); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+        .metric-val { font-size: 1rem; font-weight: 700; color: var(--text); }
+
+        main { flex: 1; padding: 16px; max-width: 1300px; width: 100%; margin: 0 auto; display: grid; grid-template-columns: 310px 1fr; gap: 16px; }
+        .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; box-shadow: 0 4px 6px var(--shadow); display: flex; flex-direction: column; gap: 12px; }
+        .section-title { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sub); display: flex; justify-content: space-between; align-items: center; }
+
+        .form-group { margin-bottom: 6px; }
+        .form-group label { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--sub); margin-bottom: 4px; font-weight: 500; }
+        .form-group select, .form-group input[type="range"] { width: 100%; accent-color: var(--accent); }
+
+        .canvas-container { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px; height: 460px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        canvas { width: 100%; max-width: 440px; aspect-ratio: 1 / 1; image-rendering: auto; border-radius: 6px; cursor: crosshair; touch-action: none; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 200; padding: 16px; }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 440px; padding: 20px; box-shadow: 0 20px 25px -5px var(--shadow); }
+        .modal h3 { font-size: 1.1rem; margin-bottom: 12px; }
+
+        .shortcut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem; margin: 12px 0 16px; }
+        .shortcut-row { display: flex; justify-content: space-between; background: var(--card); padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border); }
+        kbd { background: var(--panel); border: 1px solid var(--border); padding: 1px 5px; border-radius: 3px; font-weight: 600; font-size: 0.75rem; }
+
+        @media (max-width: 850px) {
+            header { flex-direction: column; align-items: stretch; }
+            .actions { justify-content: space-between; }
+            main { grid-template-columns: 1fr; padding: 8px; }
+            .metrics-bar { grid-template-columns: repeat(2, 1fr); }
+            .canvas-container { height: 350px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand"><div class="bio-dot"></div> MorphoField Turing Studio</div>
+        <div class="actions">
+            <button id="pauseBtn" class="primary">⏸ Pause Reaction</button>
+            <button id="seedBtn">🧪 Re-Seed Petri Dish</button>
+            <button id="saveBtn">💾 Save JSON</button>
+            <label class="btn-label" for="openFile">📂 Open JSON</label>
+            <input type="file" id="openFile" accept=".json">
+            <button id="themeBtn">🌓 Theme</button>
+            <button id="helpBtn">❓ Help</button>
+        </div>
+    </header>
+
+    <div class="metrics-bar">
+        <div class="metric-card"><div class="metric-title">Morphogen Preset</div><div class="metric-val" id="mPreset">Coral Reef</div></div>
+        <div class="metric-card"><div class="metric-title">Feed Rate (f)</div><div class="metric-val" id="mFeed">0.0545</div></div>
+        <div class="metric-card"><div class="metric-title">Kill Rate (k)</div><div class="metric-val" id="mKill">0.0620</div></div>
+        <div class="metric-card"><div class="metric-title">Reaction Steps</div><div class="metric-val" id="mSteps" style="color:var(--accent);">0</div></div>
+    </div>
+
+    <main>
+        <!-- Chemical Controls -->
+        <div class="panel">
+            <div class="section-title"><span>Gray-Scott PDE Parameters</span></div>
+
+            <div class="form-group">
+                <label>Biological Pattern Preset</label>
+                <select id="cfgPreset">
+                    <option value="coral">Coral Labyrinth (f=0.0545, k=0.0620)</option>
+                    <option value="mitosis">Cellular Mitosis (f=0.0367, k=0.0649)</option>
+                    <option value="spots">Leopard Spots (f=0.0300, k=0.0620)</option>
+                    <option value="waves">Soliton Waves (f=0.0140, k=0.0540)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Feed Rate (f): <span id="valFeed">0.0545</span></label>
+                <input type="range" id="cfgFeed" min="0.010" max="0.080" step="0.0005" value="0.0545">
+            </div>
+
+            <div class="form-group">
+                <label>Kill Rate (k): <span id="valKill">0.0620</span></label>
+                <input type="range" id="cfgKill" min="0.045" max="0.070" step="0.0005" value="0.0620">
+            </div>
+
+            <div class="form-group">
+                <label>Chemical Stain Palette</label>
+                <select id="cfgPalette">
+                    <option value="emerald">Bioluminescent Emerald</option>
+                    <option value="plasma">Thermal Plasma</option>
+                    <option value="ocean">Abyssal Cyan</option>
+                </select>
+            </div>
+
+            <div class="section-title" style="margin-top:6px;"><span>Interactive Petri Dish Guide</span></div>
+            <p style="font-size:0.76rem; color:var(--sub); line-height:1.45;">
+                <strong>Tap or drag</strong> anywhere inside the Petri dish to inject Reagent V and watch organic Turing patterns self-assemble in real time.
+            </p>
+        </div>
+
+        <!-- Petri Dish Canvas -->
+        <div class="panel">
+            <div class="section-title"><span>Live Reaction-Diffusion Concentration Field (128 × 128)</span></div>
+            <div class="canvas-container">
+                <canvas id="petriCanvas" width="128" height="128"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal">
+            <h3>MorphoField Guide &amp; Shortcuts</h3>
+            <p style="font-size:0.85rem; color:var(--sub); line-height:1.4; margin-bottom:10px;">Real-time Gray-Scott two-chemical reaction-diffusion partial differential equation simulator.</p>
+            <div class="shortcut-grid">
+                <div class="shortcut-row"><span>Pause / Play</span> <kbd>Space</kbd></div>
+                <div class="shortcut-row"><span>Re-Seed Dish</span> <kbd>R</kbd></div>
+                <div class="shortcut-row"><span>Save State</span> <kbd>S</kbd></div>
+                <div class="shortcut-row"><span>Open State</span> <kbd>O</kbd></div>
+                <div class="shortcut-row"><span>Toggle Theme</span> <kbd>T</kbd></div>
+                <div class="shortcut-row"><span>Close Modal</span> <kbd>Esc</kbd></div>
+            </div>
+            <button id="closeHelpBtn" class="primary" style="width:100%; justify-content:center; margin-top:10px;">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Gray-Scott PDE Engine ---
+        const N = 128;
+        const size = N * N;
+        let u = new Float32Array(size);
+        let v = new Float32Array(size);
+        let nextU = new Float32Array(size);
+        let nextV = new Float32Array(size);
+
+        const dU = 1.0, dV = 0.5;
+        let feed = 0.0545;
+        let kill = 0.0620;
+        let palette = 'emerald';
+        let isPaused = false;
+        let stepCount = 0;
+
+        const PRESETS = {
+            coral: { name: 'Coral Reef', f: 0.0545, k: 0.0620 },
+            mitosis: { name: 'Mitosis', f: 0.0367, k: 0.0649 },
+            spots: { name: 'Leopard Spots', f: 0.0300, k: 0.0620 },
+            waves: { name: 'Soliton Waves', f: 0.0140, k: 0.0540 }
+        };
+
+        const canvas = document.getElementById('petriCanvas');
+        const ctx = canvas.getContext('2d');
+        const imgData = ctx.createImageData(N, N);
+
+        function injectSeed(cx, cy, radius = 5) {
+            for (let y = -radius; y <= radius; y++) {
+                for (let x = -radius; x <= radius; x++) {
+                    if (x * x + y * y <= radius * radius) {
+                        const px = (cx + x + N) % N;
+                        const py = (cy + y + N) % N;
+                        v[py * N + px] = 0.85;
+                    }
+                }
+            }
+        }
+
+        function seedPetriDish(warmupSteps = 650) {
+            u.fill(1.0);
+            v.fill(0.0);
+            stepCount = 0;
+
+            // Seed multi-node clusters for immediate visual beauty
+            const seeds = [[64, 64], [42, 46], [86, 82], [45, 84], [84, 44]];
+            seeds.forEach(([sx, sy]) => injectSeed(sx, sy, 5));
+
+            // Run fast warmup so pattern is already blooming on load
+            for (let s = 0; s < warmupSteps; s++) stepPDE();
+            renderField();
+        }
+
+        function stepPDE() {
+            for (let y = 0; y < N; y++) {
+                const ym = ((y - 1 + N) % N) * N;
+                const yc = y * N;
+                const yp = ((y + 1) % N) * N;
+
+                for (let x = 0; x < N; x++) {
+                    const xm = (x - 1 + N) % N;
+                    const xp = (x + 1) % N;
+                    const idx = yc + x;
+
+                    const cU = u[idx];
+                    const cV = v[idx];
+
+                    // 9-point Discrete Laplacian Convolution
+                    const lapU = (u[ym + x] + u[yp + x] + u[yc + xm] + u[yc + xp]) * 0.2 +
+                                 (u[ym + xm] + u[ym + xp] + u[yp + xm] + u[yp + xp]) * 0.05 - cU;
+                    const lapV = (v[ym + x] + v[yp + x] + v[yc + xm] + v[yc + xp]) * 0.2 +
+                                 (v[ym + xm] + v[ym + xp] + v[yp + xm] + v[yp + xp]) * 0.05 - cV;
+
+                    const uvv = cU * cV * cV;
+                    let nu = cU + (dU * lapU - uvv + feed * (1.0 - cU));
+                    let nv = cV + (dV * lapV + uvv - (kill + feed) * cV);
+
+                    nextU[idx] = nu < 0 ? 0 : (nu > 1 ? 1 : nu);
+                    nextV[idx] = nv < 0 ? 0 : (nv > 1 ? 1 : nv);
+                }
+            }
+            [u, nextU] = [nextU, u];
+            [v, nextV] = [nextV, v];
+            stepCount++;
+        }
+
+        function renderField() {
+            const data = imgData.data;
+            const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+
+            for (let i = 0; i < size; i++) {
+                const val = Math.min(1, Math.max(0, (u[i] - v[i])));
+                const chem = 1 - val;
+                const p = i * 4;
+
+                if (palette === 'emerald') {
+                    data[p] = isLight ? 245 - chem * 220 : 8 + chem * 20;
+                    data[p + 1] = isLight ? 248 - chem * 70 : 14 + chem * 210;
+                    data[p + 2] = isLight ? 250 - chem * 120 : 24 + chem * 145;
+                } else if (palette === 'plasma') {
+                    data[p] = isLight ? 250 - chem * 20 : 12 + chem * 235;
+                    data[p + 1] = isLight ? 245 - chem * 175 : 10 + chem * 85;
+                    data[p + 2] = isLight ? 245 - chem * 100 : 28 + chem * 155;
+                } else {
+                    data[p] = isLight ? 245 - chem * 220 : 8 + chem * 15;
+                    data[p + 1] = isLight ? 248 - chem * 90 : 15 + chem * 185;
+                    data[p + 2] = isLight ? 252 - chem * 20 : 30 + chem * 225;
+                }
+                data[p + 3] = 255;
+            }
+            ctx.putImageData(imgData, 0, 0);
+            document.getElementById('mSteps').innerText = stepCount.toLocaleString();
+        }
+
+        function loop() {
+            if (!isPaused) {
+                for (let i = 0; i < 8; i++) stepPDE();
+                renderField();
+            }
+            requestAnimationFrame(loop);
+        }
+
+        // --- Touch & Pointer Chemical Brush ---
+        let isPainting = false;
+
+        function paintFromEvent(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const gx = Math.floor(((clientX - rect.left) / rect.width) * N);
+            const gy = Math.floor(((clientY - rect.top) / rect.height) * N);
+            injectSeed(gx, gy, 4);
+            if (isPaused) renderField();
+        }
+
+        canvas.addEventListener('pointerdown', e => { isPainting = true; paintFromEvent(e); });
+        canvas.addEventListener('pointermove', e => { if (isPainting) paintFromEvent(e); });
+        window.addEventListener('pointerup', () => isPainting = false);
+
+        // --- Parameter Controls ---
+        document.getElementById('cfgPreset').addEventListener('change', e => {
+            const p = PRESETS[e.target.value];
+            feed = p.f;
+            kill = p.k;
+            syncControls(p.name);
+        });
+
+        document.getElementById('cfgFeed').addEventListener('input', e => {
+            feed = parseFloat(e.target.value);
+            syncControls('Custom');
+        });
+
+        document.getElementById('cfgKill').addEventListener('input', e => {
+            kill = parseFloat(e.target.value);
+            syncControls('Custom');
+        });
+
+        document.getElementById('cfgPalette').addEventListener('change', e => {
+            palette = e.target.value;
+            renderField();
+        });
+
+        function syncControls(label) {
+            document.getElementById('cfgFeed').value = feed;
+            document.getElementById('cfgKill').value = kill;
+            document.getElementById('valFeed').innerText = feed.toFixed(4);
+            document.getElementById('valKill').innerText = kill.toFixed(4);
+            document.getElementById('mFeed').innerText = feed.toFixed(4);
+            document.getElementById('mKill').innerText = kill.toFixed(4);
+            if (label) document.getElementById('mPreset').innerText = label;
+        }
+
+        // --- Actions & JSON Save/Open ---
+        function togglePause() {
+            isPaused = !isPaused;
+            document.getElementById('pauseBtn').innerText = isPaused ? '▶ Resume Reaction' : '⏸ Pause Reaction';
+        }
+
+        document.getElementById('pauseBtn').addEventListener('click', togglePause);
+        document.getElementById('seedBtn').addEventListener('click', () => seedPetriDish(500));
+        document.getElementById('saveBtn').addEventListener('click', exportJSON);
+        document.getElementById('openFile').addEventListener('change', importJSON);
+
+        function exportJSON() {
+            const payload = {
+                feed, kill, palette, stepCount,
+                u: Array.from(u, x => Number(x.toFixed(3))),
+                v: Array.from(v, x => Number(x.toFixed(3)))
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            a.setAttribute("download", `morphofield_state_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        function importJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = evt => {
+                try {
+                    const data = JSON.parse(evt.target.result);
+                    if (Array.isArray(data.u) && Array.isArray(data.v) && data.u.length === size) {
+                        u = Float32Array.from(data.u);
+                        v = Float32Array.from(data.v);
+                        feed = data.feed || 0.0545;
+                        kill = data.kill || 0.0620;
+                        palette = data.palette || 'emerald';
+                        stepCount = data.stepCount || 0;
+                        document.getElementById('cfgPalette').value = palette;
+                        syncControls('Imported');
+                        renderField();
+                    } else alert('Invalid MorphoField JSON state.');
+                } catch { alert('Error reading JSON file.'); }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Theme & Shortcuts (Zero Key Overlap) ---
+        const helpModal = document.getElementById('helpModal');
+        document.getElementById('helpBtn').addEventListener('click', () => helpModal.classList.add('open'));
+        document.getElementById('closeHelpBtn').addEventListener('click', () => helpModal.classList.remove('open'));
+        document.getElementById('themeBtn').addEventListener('click', () => {
+            const cur = document.documentElement.getAttribute('data-theme');
+            document.documentElement.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+            renderField();
+        });
+
+        // Space = Pause/Play, R = Re-Seed, S = Save JSON, O = Open JSON, T = Theme, Esc = Close Modal
+        window.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+            const k = e.key.toLowerCase();
+            if (e.code === 'Space') { e.preventDefault(); togglePause(); }
+            if (k === 'r') { e.preventDefault(); seedPetriDish(500); }
+            if (k === 's') { e.preventDefault(); exportJSON(); }
+            if (k === 'o') { e.preventDefault(); document.getElementById('openFile').click(); }
+            if (k === 't') { e.preventDefault(); document.getElementById('themeBtn').click(); }
+            if (e.key === 'Escape') helpModal.classList.remove('open');
+        });
+
+        // Pre-loaded 5-Second Impressive Demo State
+        seedPetriDish(700);
+        requestAnimationFrame(loop);
+    </script>
+</body>
+</html>

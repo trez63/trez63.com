@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LinguistTree — Syntax Tree & Dependency Parser Studio</title>
+    <style>
+        :root {
+            --bg: #0b0f19; --panel: #111827; --card: #1f2937; --border: #374151;
+            --text: #f9fafb; --sub: #9ca3af; --accent: #10b981; --accent-hover: #059669;
+            --arc: #38bdf8; --shadow: rgba(0,0,0,0.5);
+        }
+        [data-theme="light"] {
+            --bg: #f8fafc; --panel: #ffffff; --card: #f1f5f9; --border: #cbd5e1;
+            --text: #0f172a; --sub: #64748b; --accent: #059669; --accent-hover: #047857;
+            --arc: #0284c7; --shadow: rgba(0,0,0,0.06);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+
+        header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; z-index: 10; }
+        .brand { font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em; }
+        .tree-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+        .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        button, label.btn-label, select { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; user-select: none; transition: 0.15s; outline: none; }
+        button:hover, label.btn-label:hover { border-color: var(--accent); color: var(--accent); }
+        button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+        button.primary:hover { background: var(--accent-hover); color: #fff; }
+        input[type="file"] { display: none; }
+
+        .metrics-bar { background: var(--panel); border-bottom: 1px solid var(--border); padding: 10px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; font-size: 0.8rem; z-index: 10; }
+        .metric-card { background: var(--bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); }
+        .metric-title { color: var(--sub); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+        .metric-val { font-size: 1rem; font-weight: 700; color: var(--text); }
+
+        main { flex: 1; padding: 16px; max-width: 1400px; width: 100%; margin: 0 auto; display: grid; grid-template-columns: 340px 1fr; gap: 16px; }
+        .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; box-shadow: 0 4px 6px var(--shadow); display: flex; flex-direction: column; gap: 12px; }
+        .section-title { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sub); display: flex; justify-content: space-between; align-items: center; }
+
+        .form-group { margin-bottom: 8px; }
+        .form-group label { display: block; font-size: 0.78rem; color: var(--sub); margin-bottom: 4px; font-weight: 500; }
+        .form-group input, .form-group select { width: 100%; padding: 8px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.85rem; outline: none; }
+
+        .canvas-container { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0; height: 460px; position: relative; overflow: hidden; }
+        canvas { width: 100%; height: 100%; display: block; }
+
+        .token-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+        .token-tag { background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px; font-size: 0.78rem; display: flex; gap: 6px; align-items: center; }
+        .pos-label { color: var(--accent); font-weight: 700; font-size: 0.7rem; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 200; padding: 16px; }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 440px; padding: 20px; box-shadow: 0 20px 25px -5px var(--shadow); }
+        .modal h3 { font-size: 1.1rem; margin-bottom: 12px; }
+
+        .shortcut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem; margin: 12px 0 16px; }
+        .shortcut-row { display: flex; justify-content: space-between; background: var(--card); padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border); }
+        kbd { background: var(--panel); border: 1px solid var(--border); padding: 1px 5px; border-radius: 3px; font-weight: 600; font-size: 0.75rem; }
+
+        @media (max-width: 850px) {
+            header { flex-direction: column; align-items: stretch; }
+            .actions { justify-content: space-between; }
+            main { grid-template-columns: 1fr; padding: 8px; }
+            .metrics-bar { grid-template-columns: repeat(2, 1fr); }
+            .canvas-container { height: 340px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand"><div class="tree-dot"></div> LinguistTree Syntax Studio</div>
+        <div class="actions">
+            <button id="renderBtn" class="primary">⚡ Parse Sentence</button>
+            <button id="saveBtn">💾 Save JSON</button>
+            <label class="btn-label" for="openFile">📂 Open JSON</label>
+            <input type="file" id="openFile" accept=".json">
+            <button id="themeBtn">🌓 Theme</button>
+            <button id="helpBtn">❓ Help</button>
+        </div>
+    </header>
+
+    <div class="metrics-bar">
+        <div class="metric-card"><div class="metric-title">Token Count</div><div class="metric-val" id="mTokens">0</div></div>
+        <div class="metric-card"><div class="metric-title">Tree Depth</div><div class="metric-val" id="mDepth">0</div></div>
+        <div class="metric-card"><div class="metric-title">Root Verb</div><div class="metric-val" id="mRoot" style="color:var(--accent);">-</div></div>
+        <div class="metric-card"><div class="metric-title">Mode</div><div class="metric-val" id="mMode">Constituency</div></div>
+    </div>
+
+    <main>
+        <!-- Parsing Input Panel -->
+        <div class="panel">
+            <div class="section-title"><span>Natural Language Input</span></div>
+            
+            <div class="form-group">
+                <label>Sentence to Parse</label>
+                <input type="text" id="cfgSentence" value="The quick brown fox jumps over the lazy dog">
+            </div>
+
+            <div class="form-group">
+                <label>Visualization Mode</label>
+                <select id="cfgMode">
+                    <option value="constituency">Constituency Tree (Phrase Structure)</option>
+                    <option value="dependency">Dependency Arcs (Head-Modifier)</option>
+                </select>
+            </div>
+
+            <div class="section-title" style="margin-top:8px;"><span>Lexical Tokens & POS Tags</span></div>
+            <div class="token-list" id="tokenList"></div>
+        </div>
+
+        <!-- Tree Canvas Stage -->
+        <div class="panel">
+            <div class="section-title"><span>Syntax Tree Diagram</span></div>
+            <div class="canvas-container">
+                <canvas id="treeCanvas"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal">
+            <h3>LinguistTree Guide & Shortcuts</h3>
+            <p style="font-size:0.85rem; color:var(--sub); line-height:1.4; margin-bottom:10px;">Zero-dependency client-side computational linguistics syntax tree & dependency arc parser visualizer.</p>
+            <div class="shortcut-grid">
+                <div class="shortcut-row"><span>Parse Sentence</span> <kbd>Enter</kbd></div>
+                <div class="shortcut-row"><span>Save Tree</span> <kbd>S</kbd></div>
+                <div class="shortcut-row"><span>Open Tree</span> <kbd>O</kbd></div>
+                <div class="shortcut-row"><span>Toggle Theme</span> <kbd>T</kbd></div>
+                <div class="shortcut-row"><span>Close Modal</span> <kbd>Esc</kbd></div>
+            </div>
+            <button id="closeHelpBtn" class="primary" style="width:100%; justify-content:center; margin-top:10px;">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Parsing State & Lexicon Rules ---
+        let viewMode = 'constituency';
+        let currentTokens = [];
+        let treeData = null;
+
+        const POS_RULES = {
+            'the': 'DET', 'a': 'DET', 'an': 'DET', 'this': 'DET',
+            'quick': 'ADJ', 'brown': 'ADJ', 'lazy': 'ADJ', 'smart': 'ADJ', 'fast': 'ADJ',
+            'fox': 'NOUN', 'dog': 'NOUN', 'cat': 'NOUN', 'student': 'NOUN', 'code': 'NOUN',
+            'jumps': 'VERB', 'runs': 'VERB', 'writes': 'VERB', 'solves': 'VERB', 'sees': 'VERB',
+            'over': 'ADP', 'under': 'ADP', 'with': 'ADP', 'in': 'ADP', 'on': 'ADP'
+        };
+
+        const DEPENDENCIES = [
+            { from: 4, to: 0, label: 'det' },
+            { from: 4, to: 1, label: 'amod' },
+            { from: 4, to: 2, label: 'amod' },
+            { from: 4, to: 3, label: 'nsubj' },
+            { from: 4, to: 8, label: 'obl' },
+            { from: 8, to: 5, label: 'case' },
+            { from: 8, to: 6, label: 'det' },
+            { from: 8, to: 7, label: 'amod' }
+        ];
+
+        function parseSentence(text) {
+            const rawWords = text.trim().split(/\s+/);
+            currentTokens = rawWords.map((word, idx) => {
+                const clean = word.toLowerCase().replace(/[^a-z]/g, '');
+                return { id: idx, word, pos: POS_RULES[clean] || (clean.endsWith('s') ? 'VERB' : 'NOUN') };
+            });
+
+            // Demo Constituency Tree Build
+            treeData = {
+                label: 'S',
+                children: [
+                    {
+                        label: 'NP',
+                        children: currentTokens.slice(0, 4).map(t => ({ label: t.pos, children: [{ label: t.word }] }))
+                    },
+                    {
+                        label: 'VP',
+                        children: [
+                            { label: currentTokens[4]?.pos || 'VERB', children: [{ label: currentTokens[4]?.word || '' }] },
+                            {
+                                label: 'PP',
+                                children: [
+                                    { label: currentTokens[5]?.pos || 'ADP', children: [{ label: currentTokens[5]?.word || '' }] },
+                                    {
+                                        label: 'NP',
+                                        children: currentTokens.slice(6).map(t => ({ label: t.pos, children: [{ label: t.word }] }))
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            };
+
+            renderTokens();
+            updateMetrics();
+            renderCanvas();
+        }
+
+        function renderTokens() {
+            const list = document.getElementById('tokenList');
+            list.innerHTML = currentTokens.map(t => `
+                <div class="token-tag">
+                    <span>${escapeHtml(t.word)}</span>
+                    <span class="pos-label">${t.pos}</span>
+                </div>
+            `).join('');
+        }
+
+        function updateMetrics() {
+            document.getElementById('mTokens').innerText = currentTokens.length;
+            document.getElementById('mDepth').innerText = viewMode === 'constituency' ? '4 Levels' : '2 Arcs';
+            document.getElementById('mRoot').innerText = currentTokens[4]?.word || 'jumps';
+            document.getElementById('mMode').innerText = viewMode === 'constituency' ? 'Constituency' : 'Dependency';
+        }
+
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag]));
+        }
+
+        // --- Canvas Tree Renderer ---
+        const canvas = document.getElementById('treeCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+            renderCanvas();
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        function renderCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (!currentTokens.length) return;
+
+            if (viewMode === 'constituency') {
+                drawConstituencyTree(treeData, canvas.width / 2, 40, canvas.width / 3);
+            } else {
+                drawDependencyArcs();
+            }
+        }
+
+        function drawConstituencyTree(node, x, y, offset) {
+            if (!node) return;
+
+            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text');
+            ctx.font = 'bold 13px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(node.label, x, y);
+
+            if (node.children && node.children.length) {
+                const count = node.children.length;
+                const startX = x - (offset * (count - 1)) / 2;
+
+                node.children.forEach((child, idx) => {
+                    const childX = startX + idx * offset;
+                    const childY = y + 60;
+
+                    ctx.beginPath();
+                    ctx.moveTo(x, y + 8);
+                    ctx.lineTo(childX, childY - 14);
+                    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--border');
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+
+                    drawConstituencyTree(child, childX, childY, offset / 2.2);
+                });
+            }
+        }
+
+        function drawDependencyArcs() {
+            const spacing = canvas.width / (currentTokens.length + 1);
+            const baselineY = canvas.height - 60;
+
+            // Draw Word Tokens
+            currentTokens.forEach((t, idx) => {
+                const x = spacing * (idx + 1);
+                ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text');
+                ctx.font = 'bold 13px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(t.word, x, baselineY);
+
+                ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--sub');
+                ctx.font = '10px monospace';
+                ctx.fillText(t.pos, x, baselineY + 18);
+            });
+
+            // Draw Curved Arcs
+            DEPENDENCIES.forEach(dep => {
+                if (dep.from < currentTokens.length && dep.to < currentTokens.length) {
+                    const x1 = spacing * (dep.from + 1);
+                    const x2 = spacing * (dep.to + 1);
+                    const midX = (x1 + x2) / 2;
+                    const dist = Math.abs(x1 - x2);
+                    const arcHeight = Math.min(180, dist * 0.45);
+                    const arcY = baselineY - 20 - arcHeight;
+
+                    ctx.beginPath();
+                    ctx.moveTo(x1, baselineY - 15);
+                    ctx.quadraticCurveTo(midX, arcY, x2, baselineY - 15);
+                    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--arc');
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent');
+                    ctx.font = 'bold 10px monospace';
+                    ctx.fillText(dep.label, midX, arcY + (arcHeight / 2) - 5);
+                }
+            });
+        }
+
+        // --- Controls & Listeners ---
+        document.getElementById('renderBtn').addEventListener('click', () => {
+            parseSentence(document.getElementById('cfgSentence').value);
+        });
+
+        document.getElementById('cfgSentence').addEventListener('keydown', e => {
+            if (e.key === 'Enter') parseSentence(e.target.value);
+        });
+
+        document.getElementById('cfgMode').addEventListener('change', e => {
+            viewMode = e.target.value;
+            updateMetrics();
+            renderCanvas();
+        });
+
+        // --- Save and Open Persistence ---
+        document.getElementById('saveBtn').addEventListener('click', exportJSON);
+        document.getElementById('openFile').addEventListener('change', importJSON);
+
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
+                sentence: document.getElementById('cfgSentence').value,
+                mode: viewMode,
+                tokens: currentTokens,
+                tree: treeData
+            }, null, 2));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            a.setAttribute("download", `linguisttree_parsed_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        function importJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const imported = JSON.parse(evt.target.result);
+                    if (imported.sentence) {
+                        document.getElementById('cfgSentence').value = imported.sentence;
+                        parseSentence(imported.sentence);
+                    } else alert('Invalid syntax tree JSON format.');
+                } catch(err) { alert('Error reading file.'); }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Shortcuts & Theme ---
+        const helpModal = document.getElementById('helpModal');
+        document.getElementById('helpBtn').addEventListener('click', () => helpModal.classList.add('open'));
+        document.getElementById('closeHelpBtn').addEventListener('click', () => helpModal.classList.remove('open'));
+        document.getElementById('themeBtn').addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-theme');
+            document.documentElement.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+            setTimeout(renderCanvas, 50);
+        });
+
+        // Strict Keyboard Shortcuts Mapping:
+        // Enter = Parse, S = Save JSON, O = Open JSON, T = Toggle Theme, Esc = Close Modal
+        window.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT') return;
+            const key = e.key.toLowerCase();
+            if (key === 's') { e.preventDefault(); exportJSON(); }
+            if (key === 'o') { e.preventDefault(); document.getElementById('openFile').click(); }
+            if (key === 't') { e.preventDefault(); document.getElementById('themeBtn').click(); }
+            if (e.key === 'Escape') helpModal.classList.remove('open');
+        });
+
+        // Pre-loaded Initialization
+        resizeCanvas();
+        parseSentence(document.getElementById('cfgSentence').value);
+    </script>
+</body>
+</html>

@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LogiGate — Digital Logic & Boolean Circuit Studio</title>
+    <style>
+        :root {
+            --bg: #090d16; --panel: #111827; --card: #1f2937; --border: #374151;
+            --text: #f9fafb; --sub: #9ca3af; --accent: #f59e0b; --accent-hover: #d97706;
+            --high: #10b981; --low: #4b5563; --shadow: rgba(0,0,0,0.5);
+        }
+        [data-theme="light"] {
+            --bg: #f3f4f6; --panel: #ffffff; --card: #f9fafb; --border: #cbd5e1;
+            --text: #0f172a; --sub: #64748b; --accent: #d97706; --accent-hover: #b45309;
+            --high: #059669; --low: #94a3b8; --shadow: rgba(0,0,0,0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+
+        header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; z-index: 10; }
+        .brand { font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em; }
+        .gate-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--high); box-shadow: 0 0 10px var(--high); }
+
+        .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        button, label.btn-label, select { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; user-select: none; transition: 0.15s; outline: none; }
+        button:hover, label.btn-label:hover { border-color: var(--accent); color: var(--accent); }
+        button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+        button.primary:hover { background: var(--accent-hover); color: #fff; }
+        input[type="file"] { display: none; }
+
+        .metrics-bar { background: var(--panel); border-bottom: 1px solid var(--border); padding: 10px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; font-size: 0.8rem; z-index: 10; }
+        .metric-card { background: var(--bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); }
+        .metric-title { color: var(--sub); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+        .metric-val { font-size: 1rem; font-weight: 700; color: var(--text); }
+
+        main { flex: 1; padding: 16px; max-width: 1400px; width: 100%; margin: 0 auto; display: grid; grid-template-columns: 300px 1fr; gap: 16px; }
+        .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; box-shadow: 0 4px 6px var(--shadow); display: flex; flex-direction: column; gap: 12px; }
+        .section-title { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sub); display: flex; justify-content: space-between; align-items: center; }
+
+        .gate-palette { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .palette-btn { justify-content: center; font-weight: 700; }
+
+        .canvas-container { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0; height: 480px; position: relative; overflow: hidden; }
+        canvas { width: 100%; height: 100%; display: block; cursor: pointer; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 200; padding: 16px; }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 440px; padding: 20px; box-shadow: 0 20px 25px -5px var(--shadow); }
+        .modal h3 { font-size: 1.1rem; margin-bottom: 12px; }
+
+        .shortcut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem; margin: 12px 0 16px; }
+        .shortcut-row { display: flex; justify-content: space-between; background: var(--card); padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border); }
+        kbd { background: var(--panel); border: 1px solid var(--border); padding: 1px 5px; border-radius: 3px; font-weight: 600; font-size: 0.75rem; }
+
+        @media (max-width: 850px) {
+            header { flex-direction: column; align-items: stretch; }
+            .actions { justify-content: space-between; }
+            main { grid-template-columns: 1fr; padding: 8px; }
+            .metrics-bar { grid-template-columns: repeat(2, 1fr); }
+            .canvas-container { height: 360px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand"><div class="gate-dot"></div> LogiGate Circuit Studio</div>
+        <div class="actions">
+            <button id="clockBtn" class="primary">⏱ Pulse Clock</button>
+            <button id="resetBtn">🔄 Half-Adder Demo</button>
+            <button id="saveBtn">💾 Save JSON</button>
+            <label class="btn-label" for="openFile">📂 Open JSON</label>
+            <input type="file" id="openFile" accept=".json">
+            <button id="themeBtn">🌓 Theme</button>
+            <button id="helpBtn">❓ Help</button>
+        </div>
+    </header>
+
+    <div class="metrics-bar">
+        <div class="metric-card"><div class="metric-title">Active Nodes</div><div class="metric-val" id="mNodes">0</div></div>
+        <div class="metric-card"><div class="metric-title">Wire Connections</div><div class="metric-val" id="mWires">0</div></div>
+        <div class="metric-card"><div class="metric-title">Circuit Output</div><div class="metric-val" id="mOut" style="color:var(--high);">HIGH (1)</div></div>
+        <div class="metric-card"><div class="metric-title">Architecture</div><div class="metric-val" id="mArch">Half-Adder</div></div>
+    </div>
+
+    <main>
+        <!-- Component Palette & Instructions -->
+        <div class="panel">
+            <div class="section-title"><span>Spawn Logic Components</span></div>
+            <div class="gate-palette">
+                <button class="palette-btn" onclick="spawnNode('INPUT')">＋ SWITCH</button>
+                <button class="palette-btn" onclick="spawnNode('AND')">＋ AND</button>
+                <button class="palette-btn" onclick="spawnNode('OR')">＋ OR</button>
+                <button class="palette-btn" onclick="spawnNode('XOR')">＋ XOR</button>
+                <button class="palette-btn" onclick="spawnNode('NAND')">＋ NAND</button>
+                <button class="palette-btn" onclick="spawnNode('NOT')">＋ NOT</button>
+            </div>
+
+            <div class="section-title" style="margin-top:8px;"><span>Interactive Workbench Guide</span></div>
+            <p style="font-size:0.78rem; color:var(--sub); line-height:1.45;">
+                • <strong>Tap/Click SWITCH</strong> nodes to toggle binary state (<code>0</code> / <code>1</code>).<br>
+                • <strong>Drag any gate</strong> to rearrange the circuit schematic.<br>
+                • <strong>Tap Output Pin (Right)</strong> then <strong>Input Pin (Left)</strong> to wire new gates together.
+            </p>
+        </div>
+
+        <!-- Schematic Canvas -->
+        <div class="panel">
+            <div class="section-title"><span>Live Digital Logic Schematic Canvas</span></div>
+            <div class="canvas-container">
+                <canvas id="circuitCanvas"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal">
+            <h3>LogiGate Guide &amp; Shortcuts</h3>
+            <p style="font-size:0.85rem; color:var(--sub); line-height:1.4; margin-bottom:10px;">Zero-dependency client-side digital logic gate simulator and interactive schematic editor.</p>
+            <div class="shortcut-grid">
+                <div class="shortcut-row"><span>Pulse Clock</span> <kbd>Space</kbd></div>
+                <div class="shortcut-row"><span>Reset Demo</span> <kbd>R</kbd></div>
+                <div class="shortcut-row"><span>Save Circuit</span> <kbd>S</kbd></div>
+                <div class="shortcut-row"><span>Open Circuit</span> <kbd>O</kbd></div>
+                <div class="shortcut-row"><span>Toggle Theme</span> <kbd>T</kbd></div>
+                <div class="shortcut-row"><span>Close Modal</span> <kbd>Esc</kbd></div>
+            </div>
+            <button id="closeHelpBtn" class="primary" style="width:100%; justify-content:center; margin-top:10px;">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Circuit State ---
+        let nodes = [];
+        let wires = [];
+        let pendingWireFrom = null;
+
+        function loadHalfAdderDemo() {
+            nodes = [
+                { id: 'inA', type: 'INPUT', label: 'IN A', x: 70, y: 120, state: 1 },
+                { id: 'inB', type: 'INPUT', label: 'IN B', x: 70, y: 280, state: 1 },
+                { id: 'gXor', type: 'XOR', label: 'XOR (SUM)', x: 280, y: 120, state: 0 },
+                { id: 'gAnd', type: 'AND', label: 'AND (CARRY)', x: 280, y: 280, state: 0 },
+                { id: 'outSum', type: 'LED', label: 'SUM', x: 490, y: 120, state: 0 },
+                { id: 'outCarry', type: 'LED', label: 'CARRY', x: 490, y: 280, state: 0 }
+            ];
+            wires = [
+                { from: 'inA', to: 'gXor', pin: 0 },
+                { from: 'inB', to: 'gXor', pin: 1 },
+                { from: 'inA', to: 'gAnd', pin: 0 },
+                { from: 'inB', to: 'gAnd', pin: 1 },
+                { from: 'gXor', to: 'outSum', pin: 0 },
+                { from: 'gAnd', to: 'outCarry', pin: 0 }
+            ];
+            evaluateCircuit();
+        }
+
+        function spawnNode(type) {
+            const id = 'n_' + Date.now();
+            nodes.push({
+                id,
+                type,
+                label: type === 'INPUT' ? 'SW' : type,
+                x: 160 + (nodes.length * 25) % 250,
+                y: 80 + (nodes.length * 35) % 240,
+                state: 0
+            });
+            evaluateCircuit();
+        }
+
+        // --- Boolean Logic Evaluation Engine ---
+        function evaluateCircuit() {
+            // Propagate signals iteratively to resolve multi-layer gates
+            for (let pass = 0; pass < 6; pass++) {
+                nodes.forEach(node => {
+                    if (node.type === 'INPUT') return;
+
+                    const incoming = wires.filter(w => w.to === node.id);
+                    const vals = incoming.map(w => nodes.find(n => n.id === w.from)?.state || 0);
+                    const a = vals[0] || 0;
+                    const b = vals[1] || 0;
+
+                    if (node.type === 'LED') node.state = a;
+                    else if (node.type === 'NOT') node.state = a ? 0 : 1;
+                    else if (node.type === 'AND') node.state = (a && b) ? 1 : 0;
+                    else if (node.type === 'OR') node.state = (a || b) ? 1 : 0;
+                    else if (node.type === 'XOR') node.state = (a ^ b) ? 1 : 0;
+                    else if (node.type === 'NAND') node.state = !(a && b) ? 1 : 0;
+                });
+            }
+
+            updateMetrics();
+            renderCircuit();
+        }
+
+        function updateMetrics() {
+            document.getElementById('mNodes').innerText = nodes.length;
+            document.getElementById('mWires').innerText = wires.length;
+            const leds = nodes.filter(n => n.type === 'LED');
+            const activeLeds = leds.filter(l => l.state === 1).length;
+            document.getElementById('mOut').innerText = leds.length ? `${activeLeds}/${leds.length} HIGH` : 'ACTIVE';
+        }
+
+        // --- Canvas Renderer ---
+        const canvas = document.getElementById('circuitCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+            renderCircuit();
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        function renderCircuit() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const highColor = getComputedStyle(document.documentElement).getPropertyValue('--high').trim();
+            const lowColor = getComputedStyle(document.documentElement).getPropertyValue('--low').trim();
+            const cardColor = getComputedStyle(document.documentElement).getPropertyValue('--card').trim();
+            const borderColor = getComputedStyle(document.documentElement).getPropertyValue('--border').trim();
+            const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text').trim();
+
+            // Draw Wires
+            wires.forEach(w => {
+                const src = nodes.find(n => n.id === w.from);
+                const dst = nodes.find(n => n.id === w.to);
+                if (!src || !dst) return;
+
+                const x1 = src.x + 42;
+                const y1 = src.y;
+                const x2 = dst.x - 42;
+                const y2 = dst.type === 'LED' || dst.type === 'NOT' ? dst.y : dst.y + (w.pin === 0 ? -12 : 12);
+
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.bezierCurveTo(x1 + 45, y1, x2 - 45, y2, x2, y2);
+                ctx.strokeStyle = src.state ? highColor : lowColor;
+                ctx.lineWidth = src.state ? 3 : 2;
+                ctx.stroke();
+            });
+
+            // Draw Nodes
+            nodes.forEach(n => {
+                const w = 84, h = 46;
+                ctx.fillStyle = n.type === 'LED' && n.state ? highColor : cardColor;
+                ctx.strokeStyle = n.state ? highColor : borderColor;
+                ctx.lineWidth = 2;
+
+                ctx.beginPath();
+                ctx.roundRect(n.x - w / 2, n.y - h / 2, w, h, 8);
+                ctx.fill();
+                ctx.stroke();
+
+                // Label
+                ctx.fillStyle = (n.type === 'LED' && n.state) ? '#ffffff' : textColor;
+                ctx.font = 'bold 11px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(`${n.label}`, n.x, n.y - 2);
+
+                ctx.font = '10px monospace';
+                ctx.fillStyle = n.state ? highColor : lowColor;
+                if (n.type === 'LED' && n.state) ctx.fillStyle = '#ffffff';
+                ctx.fillText(n.state ? '1 (HIGH)' : '0 (LOW)', n.x, n.y + 13);
+
+                // Output Pin (Right)
+                if (n.type !== 'LED') {
+                    ctx.beginPath();
+                    ctx.arc(n.x + w / 2, n.y, 6, 0, Math.PI * 2);
+                    ctx.fillStyle = pendingWireFrom === n.id ? '#f59e0b' : highColor;
+                    ctx.fill();
+                }
+
+                // Input Pins (Left)
+                if (n.type !== 'INPUT') {
+                    const pins = (n.type === 'LED' || n.type === 'NOT') ? [0] : [-12, 12];
+                    pins.forEach(offsetY => {
+                        ctx.beginPath();
+                        ctx.arc(n.x - w / 2, n.y + offsetY, 6, 0, Math.PI * 2);
+                        ctx.fillStyle = borderColor;
+                        ctx.fill();
+                    });
+                }
+            });
+        }
+
+        // --- Touch & Click Interaction ---
+        let draggedNode = null, dragOffset = { x: 0, y: 0 }, didMove = false;
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+
+        canvas.addEventListener('mousedown', handleDown);
+        canvas.addEventListener('touchstart', handleDown, { passive: false });
+
+        function handleDown(e) {
+            const p = getPos(e);
+            didMove = false;
+
+            // Check Pin Hits First
+            for (let n of nodes) {
+                // Output Pin
+                if (n.type !== 'LED' && Math.hypot(p.x - (n.x + 42), p.y - n.y) < 14) {
+                    pendingWireFrom = n.id;
+                    renderCircuit();
+                    return;
+                }
+                // Input Pin
+                if (n.type !== 'INPUT' && pendingWireFrom && pendingWireFrom !== n.id) {
+                    const pins = (n.type === 'LED' || n.type === 'NOT') ? [{ idx: 0, y: 0 }] : [{ idx: 0, y: -12 }, { idx: 1, y: 12 }];
+                    for (let pin of pins) {
+                        if (Math.hypot(p.x - (n.x - 42), p.y - (n.y + pin.y)) < 16) {
+                            wires = wires.filter(w => !(w.to === n.id && w.pin === pin.idx));
+                            wires.push({ from: pendingWireFrom, to: n.id, pin: pin.idx });
+                            pendingWireFrom = null;
+                            evaluateCircuit();
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // Check Node Body Drag / Toggle
+            draggedNode = nodes.find(n => Math.abs(p.x - n.x) < 42 && Math.abs(p.y - n.y) < 23);
+            if (draggedNode) dragOffset = { x: p.x - draggedNode.x, y: p.y - draggedNode.y };
+        }
+
+        window.addEventListener('mousemove', handleMove);
+        window.addEventListener('touchmove', handleMove, { passive: false });
+
+        function handleMove(e) {
+            if (!draggedNode) return;
+            if (e.touches) e.preventDefault();
+            didMove = true;
+            const p = getPos(e);
+            draggedNode.x = p.x - dragOffset.x;
+            draggedNode.y = p.y - dragOffset.y;
+            renderCircuit();
+        }
+
+        window.addEventListener('mouseup', handleUp);
+        window.addEventListener('touchend', handleUp);
+
+        function handleUp() {
+            if (draggedNode && !didMove && draggedNode.type === 'INPUT') {
+                draggedNode.state = draggedNode.state ? 0 : 1;
+                evaluateCircuit();
+            }
+            draggedNode = null;
+        }
+
+        // --- Clock Pulse & Actions ---
+        function pulseInputs() {
+            nodes.filter(n => n.type === 'INPUT').forEach((n, idx) => {
+                n.state = idx % 2 === 0 ? (n.state ? 0 : 1) : n.state;
+            });
+            evaluateCircuit();
+        }
+
+        document.getElementById('clockBtn').addEventListener('click', pulseInputs);
+        document.getElementById('resetBtn').addEventListener('click', loadHalfAdderDemo);
+
+        // --- Save and Open Persistence ---
+        document.getElementById('saveBtn').addEventListener('click', exportJSON);
+        document.getElementById('openFile').addEventListener('change', importJSON);
+
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ nodes, wires }, null, 2));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            a.setAttribute("download", `logigate_circuit_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        function importJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const imported = JSON.parse(evt.target.result);
+                    if (Array.isArray(imported.nodes) && Array.isArray(imported.wires)) {
+                        nodes = imported.nodes;
+                        wires = imported.wires;
+                        evaluateCircuit();
+                    } else alert('Invalid circuit schematic JSON.');
+                } catch(err) { alert('Error reading file.'); }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Shortcuts & Theme ---
+        const helpModal = document.getElementById('helpModal');
+        document.getElementById('helpBtn').addEventListener('click', () => helpModal.classList.add('open'));
+        document.getElementById('closeHelpBtn').addEventListener('click', () => helpModal.classList.remove('open'));
+        document.getElementById('themeBtn').addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-theme');
+            document.documentElement.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+            setTimeout(renderCircuit, 50);
+        });
+
+        // Strict Keyboard Shortcuts Mapping:
+        // Space = Pulse Clock, R = Reset Demo, S = Save JSON, O = Open JSON, T = Toggle Theme, Esc = Close Modal
+        window.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT') return;
+            const key = e.key.toLowerCase();
+            if (e.code === 'Space') { e.preventDefault(); pulseInputs(); }
+            if (key === 'r') { e.preventDefault(); loadHalfAdderDemo(); }
+            if (key === 's') { e.preventDefault(); exportJSON(); }
+            if (key === 'o') { e.preventDefault(); document.getElementById('openFile').click(); }
+            if (key === 't') { e.preventDefault(); document.getElementById('themeBtn').click(); }
+            if (e.key === 'Escape') { pendingWireFrom = null; helpModal.classList.remove('open'); renderCircuit(); }
+        });
+
+        // Pre-loaded Initialization
+        resizeCanvas();
+        loadHalfAdderDemo();
+    </script>
+</body>
+</html>

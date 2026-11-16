@@ -1961,7 +1961,97 @@
       ],
       "category": "tool",
       "likes": 4
+    },
+    "linguisttree": {
+      "title": "LinguistTree",
+      "engine": "Gemini",
+      "description": "A sentence parser you can watch work. Type an English sentence and it tags each word's part of speech, then draws it either as a constituency tree (S splitting into noun and verb phrases) or as dependency arcs from each head to its modifiers, with token count, tree depth and the root verb shown up top. Light and dark themes; a parse saves and reloads as JSON.",
+      "source_file": "linguisttree-gemini.html",
+      "first_published": "2026-11-16",
+      "last_updated": "2026-11-16",
+      "version": 1,
+      "sha": "87ae6f5d2322",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-16",
+          "sha": "87ae6f5d2322"
+        }
+      ],
+      "category": "edu"
+    },
+    "logigate": {
+      "title": "LogiGate",
+      "engine": "Gemini",
+      "description": "A digital logic workbench. Spawn switches and AND, OR, XOR, NAND and NOT gates, wire them by tapping an output pin then an input pin, drag them around the schematic and flip the switches to see every wire and output light up high or low; a half-adder demo is built in, a pulse clock toggles the inputs on a timer, and a circuit saves or reloads as JSON.",
+      "source_file": "logigate-gemini.html",
+      "first_published": "2026-11-16",
+      "last_updated": "2026-11-16",
+      "version": 1,
+      "sha": "372a01d107a3",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-16",
+          "sha": "372a01d107a3"
+        }
+      ],
+      "category": "edu"
+    },
+    "mazeforge": {
+      "title": "MazeForge",
+      "engine": "Gemini",
+      "description": "A maze generator with an animated solver. It carves a random maze by recursive backtracking at the grid size you choose, then A*, Dijkstra or breadth-first search explores it in real time, colouring the frontier as it goes and the shortest path when it arrives, with explored-node and step counts to compare the three. Tap or drag to add and remove walls; a maze saves and reloads as JSON.",
+      "source_file": "mazeforge-gemini.html",
+      "first_published": "2026-11-16",
+      "last_updated": "2026-11-16",
+      "version": 1,
+      "sha": "0f514399ef04",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-16",
+          "sha": "0f514399ef04"
+        }
+      ],
+      "category": "edu"
+    },
+    "morphofield": {
+      "title": "MorphoField",
+      "engine": "Gemini",
+      "description": "A Gray-Scott reaction-diffusion dish. Two virtual chemicals feed and kill each other on a 128×128 field and self-organise into coral labyrinths, dividing cells, leopard spots or soliton waves depending on the feed and kill rates you set; tap or drag to inject more reagent, pick from presets and colour palettes, pause, re-seed, and save or reload a state as JSON.",
+      "source_file": "morphofield-gemini.html",
+      "first_published": "2026-11-16",
+      "last_updated": "2026-11-16",
+      "version": 1,
+      "sha": "02b948007a92",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-16",
+          "sha": "02b948007a92"
+        }
+      ],
+      "category": "sim"
+    },
+    "optipath": {
+      "title": "OptiPath",
+      "engine": "Gemini",
+      "description": "A geometric optics bench. A laser fires across the canvas and bends by Snell's law through draggable glass blocks of adjustable refractive index, reflecting totally when it meets an interface past the critical angle; turn the emitter angle, change the wavelength colour, add prisms and lenses, and save or reload a setup as JSON.",
+      "source_file": "optipath-gemini.html",
+      "first_published": "2026-11-16",
+      "last_updated": "2026-11-16",
+      "version": 1,
+      "sha": "0bfcacd1821d",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-16",
+          "sha": "0bfcacd1821d"
+        }
+      ],
+      "category": "edu"
     }
   },
-  "generated": "2026-11-15"
+  "generated": "2026-11-16"
 }

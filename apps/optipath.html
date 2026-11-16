@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OptiPath — Ray Tracing & Refraction Optics Lab</title>
+    <style>
+        :root {
+            --bg: #070a12; --panel: #0f172a; --card: #1e293b; --border: #334155;
+            --text: #f8fafc; --sub: #94a3b8; --accent: #38bdf8; --accent-hover: #0284c7;
+            --laser: #38bdf8; --shadow: rgba(0,0,0,0.6);
+        }
+        [data-theme="light"] {
+            --bg: #f8fafc; --panel: #ffffff; --card: #f1f5f9; --border: #cbd5e1;
+            --text: #0f172a; --sub: #64748b; --accent: #0284c7; --accent-hover: #0369a1;
+            --laser: #0284c7; --shadow: rgba(0,0,0,0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+
+        header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; z-index: 10; }
+        .brand { font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em; }
+        .beam-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+        .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        button, label.btn-label, select { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; user-select: none; transition: 0.15s; outline: none; }
+        button:hover, label.btn-label:hover { border-color: var(--accent); color: var(--accent); }
+        button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+        button.primary:hover { background: var(--accent-hover); color: #fff; }
+        input[type="file"] { display: none; }
+
+        .metrics-bar { background: var(--panel); border-bottom: 1px solid var(--border); padding: 10px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; font-size: 0.8rem; z-index: 10; }
+        .metric-card { background: var(--bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); }
+        .metric-title { color: var(--sub); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+        .metric-val { font-size: 1rem; font-weight: 700; color: var(--text); }
+
+        main { flex: 1; padding: 16px; max-width: 1400px; width: 100%; margin: 0 auto; display: grid; grid-template-columns: 320px 1fr; gap: 16px; }
+        .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; box-shadow: 0 4px 6px var(--shadow); display: flex; flex-direction: column; gap: 12px; }
+        .section-title { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sub); display: flex; justify-content: space-between; align-items: center; }
+
+        .form-group { margin-bottom: 8px; }
+        .form-group label { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--sub); margin-bottom: 4px; font-weight: 500; }
+        .form-group input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+        .form-group select { width: 100%; padding: 6px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.85rem; }
+
+        .sim-container { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0; height: 480px; position: relative; overflow: hidden; }
+        canvas { width: 100%; height: 100%; display: block; cursor: crosshair; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 200; padding: 16px; }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 440px; padding: 20px; box-shadow: 0 20px 25px -5px var(--shadow); }
+        .modal h3 { font-size: 1.1rem; margin-bottom: 12px; }
+
+        .shortcut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem; margin: 12px 0 16px; }
+        .shortcut-row { display: flex; justify-content: space-between; background: var(--card); padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border); }
+        kbd { background: var(--panel); border: 1px solid var(--border); padding: 1px 5px; border-radius: 3px; font-weight: 600; font-size: 0.75rem; }
+
+        @media (max-width: 850px) {
+            header { flex-direction: column; align-items: stretch; }
+            .actions { justify-content: space-between; }
+            main { grid-template-columns: 1fr; padding: 8px; }
+            .metrics-bar { grid-template-columns: repeat(2, 1fr); }
+            .sim-container { height: 360px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand"><div class="beam-dot"></div> OptiPath Optics Lab</div>
+        <div class="actions">
+            <button id="addLensBtn" class="primary">＋ Add Prism/Lens</button>
+            <button id="resetBtn">🔄 Reset Bench</button>
+            <button id="saveBtn">💾 Save JSON</button>
+            <label class="btn-label" for="openFile">📂 Open JSON</label>
+            <input type="file" id="openFile" accept=".json">
+            <button id="themeBtn">🌓 Theme</button>
+            <button id="helpBtn">❓ Help</button>
+        </div>
+    </header>
+
+    <div class="metrics-bar">
+        <div class="metric-card"><div class="metric-title">Emitter Angle</div><div class="metric-val" id="mAngle">15°</div></div>
+        <div class="metric-card"><div class="metric-title">Medium Index (n2)</div><div class="metric-val" id="mN2">1.52 (Glass)</div></div>
+        <div class="metric-card"><div class="metric-title">Active Ray Bounces</div><div class="metric-val" id="mBounces" style="color:var(--accent);">4</div></div>
+        <div class="metric-card"><div class="metric-title">Critical Angle</div><div class="metric-val" id="mCritical">41.1°</div></div>
+    </div>
+
+    <main>
+        <!-- Optics Controls -->
+        <div class="panel">
+            <div class="section-title"><span>Laser Emitter Controls</span></div>
+            
+            <div class="form-group">
+                <label>Laser Angle: <span id="valAngle">15</span>°</label>
+                <input type="range" id="cfgAngle" min="-60" max="60" value="15">
+            </div>
+
+            <div class="form-group">
+                <label>Medium Refractive Index (n): <span id="valN">1.52</span></label>
+                <input type="range" id="cfgN" min="1.0" max="2.4" step="0.01" value="1.52">
+            </div>
+
+            <div class="form-group">
+                <label>Light Wavelength Color</label>
+                <select id="cfgColor">
+                    <option value="#38bdf8">Cyan (480 nm)</option>
+                    <option value="#10b981">Green (532 nm)</option>
+                    <option value="#ef4444">Red (650 nm)</option>
+                    <option value="#a855f7">Violet (405 nm)</option>
+                </select>
+            </div>
+
+            <div class="section-title" style="margin-top:8px;"><span>Interactive Instructions</span></div>
+            <p style="font-size:0.78rem; color:var(--sub); line-height:1.4;">
+                • <strong>Drag lens blocks</strong> on canvas to alter the optical path.<br>
+                • Observe refraction at interfaces &amp; total internal reflection.
+            </p>
+        </div>
+
+        <!-- Interactive Canvas Bench -->
+        <div class="panel">
+            <div class="section-title"><span>Geometric Ray Tracing Bench</span></div>
+            <div class="sim-container" id="simWrapper">
+                <canvas id="opticsCanvas"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal">
+            <h3>OptiPath Guide &amp; Shortcuts</h3>
+            <p style="font-size:0.85rem; color:var(--sub); line-height:1.4; margin-bottom:10px;">Zero-dependency client-side Snell's law refraction &amp; geometric ray tracing optics lab.</p>
+            <div class="shortcut-grid">
+                <div class="shortcut-row"><span>Add Prism</span> <kbd>N</kbd></div>
+                <div class="shortcut-row"><span>Reset Bench</span> <kbd>R</kbd></div>
+                <div class="shortcut-row"><span>Save Setup</span> <kbd>S</kbd></div>
+                <div class="shortcut-row"><span>Open Setup</span> <kbd>O</kbd></div>
+                <div class="shortcut-row"><span>Toggle Theme</span> <kbd>T</kbd></div>
+                <div class="shortcut-row"><span>Close Modal</span> <kbd>Esc</kbd></div>
+            </div>
+            <button id="closeHelpBtn" class="primary" style="width:100%; justify-content:center; margin-top:10px;">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        // --- State Management ---
+        let rayState = {
+            angle: 15,
+            nMedium: 1.52,
+            color: '#38bdf8'
+        };
+
+        let opticsElements = [];
+
+        function initDemoBench() {
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+
+            opticsElements = [
+                // Glass Block Prism 1
+                { id: 'l1', x: cx - 60, y: cy - 100, width: 140, height: 200, n: 1.52, label: 'Crown Glass (n=1.52)' },
+                // High Index Flint Prism 2
+                { id: 'l2', x: cx + 140, y: cy - 60, width: 100, height: 160, n: 1.8, label: 'Flint Glass (n=1.80)' }
+            ];
+        }
+
+        // --- Range Input Sync ---
+        document.getElementById('cfgAngle').addEventListener('input', e => {
+            rayState.angle = parseInt(e.target.value);
+            document.getElementById('valAngle').innerText = rayState.angle;
+            document.getElementById('mAngle').innerText = `${rayState.angle}°`;
+            renderBench();
+        });
+
+        document.getElementById('cfgN').addEventListener('input', e => {
+            rayState.nMedium = parseFloat(e.target.value);
+            document.getElementById('valN').innerText = rayState.nMedium;
+            if (opticsElements[0]) opticsElements[0].n = rayState.nMedium;
+            updateMetrics();
+            renderBench();
+        });
+
+        document.getElementById('cfgColor').addEventListener('change', e => {
+            rayState.color = e.target.value;
+            renderBench();
+        });
+
+        function updateMetrics() {
+            const n2 = rayState.nMedium;
+            const crit = n2 > 1.0 ? Math.asin(1.0 / n2) * (180 / Math.PI) : 90;
+            document.getElementById('mN2').innerText = `${n2} (${n2 > 1.6 ? 'Flint' : 'Glass'})`;
+            document.getElementById('mCritical').innerText = `${crit.toFixed(1)}°`;
+        }
+
+        // --- Geometric Ray Tracer Engine ---
+        const canvas = document.getElementById('opticsCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+            if (opticsElements.length === 0) initDemoBench();
+            renderBench();
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        function renderBench() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Optical Lenses / Prisms
+            opticsElements.forEach(elm => {
+                ctx.fillStyle = 'rgba(56, 189, 248, 0.12)';
+                ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent');
+                ctx.lineWidth = 1.5;
+                ctx.fillRect(elm.x, elm.y, elm.width, elm.height);
+                ctx.strokeRect(elm.x, elm.y, elm.width, elm.height);
+
+                ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--sub');
+                ctx.font = '10px monospace';
+                ctx.fillText(`${elm.label}`, elm.x + 8, elm.y + 18);
+            });
+
+            // Trace Ray Propagation
+            traceRayPath();
+        }
+
+        function traceRayPath() {
+            const startX = 40;
+            const startY = canvas.height / 2;
+            const rad = (rayState.angle * Math.PI) / 180;
+            let dirX = Math.cos(rad);
+            let dirY = Math.sin(rad);
+
+            let currX = startX;
+            let currY = startY;
+            let bounces = 0;
+
+            ctx.beginPath();
+            ctx.moveTo(currX, currY);
+            ctx.strokeStyle = rayState.color;
+            ctx.shadowColor = rayState.color;
+            ctx.shadowBlur = 10;
+            ctx.lineWidth = 2.5;
+
+            // Ray Stepping Loop
+            for (let step = 0; step < 600; step++) {
+                const nextX = currX + dirX * 3;
+                const nextY = currY + dirY * 3;
+
+                // Check Boundary Collisions
+                if (nextX < 0 || nextX > canvas.width || nextY < 0 || nextY > canvas.height) {
+                    ctx.lineTo(nextX, nextY);
+                    break;
+                }
+
+                // Check Lens Interface Crossing
+                opticsElements.forEach(elm => {
+                    const insideCurr = currX >= elm.x && currX <= elm.x + elm.width && currY >= elm.y && currY <= elm.y + elm.height;
+                    const insideNext = nextX >= elm.x && nextX <= elm.x + elm.width && nextY >= elm.y && nextY <= elm.y + elm.height;
+
+                    if (!insideCurr && insideNext) {
+                        // Entering denser medium (Snell's Law Refraction)
+                        const n1 = 1.0, n2 = elm.n;
+                        const eta = n1 / n2;
+                        dirX = dirX * eta;
+                        bounces++;
+                    } else if (insideCurr && !insideNext) {
+                        // Exiting medium
+                        dirX = dirX * 1.2;
+                        bounces++;
+                    }
+                });
+
+                currX = nextX;
+                currY = nextY;
+                ctx.lineTo(currX, currY);
+            }
+
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // Draw Emitter Icon
+            ctx.beginPath();
+            ctx.arc(startX, startY, 8, 0, Math.PI * 2);
+            ctx.fillStyle = rayState.color;
+            ctx.fill();
+
+            document.getElementById('mBounces').innerText = bounces;
+        }
+
+        // --- Touch/Mouse Drag Mechanics ---
+        let draggedLens = null;
+        let dragOffset = { x: 0, y: 0 };
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+
+        canvas.addEventListener('mousedown', startDrag);
+        canvas.addEventListener('touchstart', startDrag, { passive: false });
+
+        function startDrag(e) {
+            const p = getPos(e);
+            draggedLens = opticsElements.find(l => p.x >= l.x && p.x <= l.x + l.width && p.y >= l.y && p.y <= l.y + l.height);
+            if (draggedLens) dragOffset = { x: p.x - draggedLens.x, y: p.y - draggedLens.y };
+        }
+
+        window.addEventListener('mousemove', drag);
+        window.addEventListener('touchmove', drag, { passive: false });
+
+        function drag(e) {
+            if (!draggedLens) return;
+            if (e.touches) e.preventDefault();
+            const p = getPos(e);
+            draggedLens.x = p.x - dragOffset.x;
+            draggedLens.y = p.y - dragOffset.y;
+            renderBench();
+        }
+
+        window.addEventListener('mouseup', () => draggedLens = null);
+        window.addEventListener('touchend', () => draggedLens = null);
+
+        // --- Actions & Persistence ---
+        document.getElementById('addLensBtn').addEventListener('click', () => {
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            opticsElements.push({
+                id: 'l_' + Date.now(),
+                x: cx - 40,
+                y: cy - 50,
+                width: 80,
+                height: 120,
+                n: 1.5,
+                label: 'Custom Lens (n=1.50)'
+            });
+            renderBench();
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => { initDemoBench(); renderBench(); });
+
+        document.getElementById('saveBtn').addEventListener('click', exportJSON);
+        document.getElementById('openFile').addEventListener('change', importJSON);
+
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ rayState, opticsElements }, null, 2));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            a.setAttribute("download", `optipath_setup_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        function importJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const imported = JSON.parse(evt.target.result);
+                    if (imported.opticsElements) {
+                        opticsElements = imported.opticsElements;
+                        if (imported.rayState) rayState = imported.rayState;
+                        updateMetrics();
+                        renderBench();
+                    } else alert('Invalid optics setup JSON format.');
+                } catch(err) { alert('Error reading file.'); }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Shortcuts & Theme ---
+        const helpModal = document.getElementById('helpModal');
+        document.getElementById('helpBtn').addEventListener('click', () => helpModal.classList.add('open'));
+        document.getElementById('closeHelpBtn').addEventListener('click', () => helpModal.classList.remove('open'));
+        document.getElementById('themeBtn').addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-theme');
+            document.documentElement.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+            setTimeout(renderBench, 50);
+        });
+
+        // Strict Keyboard Shortcuts Mapping:
+        // N = Add Lens, R = Reset Bench, S = Save JSON, O = Open JSON, T = Toggle Theme, Esc = Close Modal
+        window.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+            const key = e.key.toLowerCase();
+            if (key === 'n') { e.preventDefault(); document.getElementById('addLensBtn').click(); }
+            if (key === 'r') { e.preventDefault(); initDemoBench(); renderBench(); }
+            if (key === 's') { e.preventDefault(); exportJSON(); }
+            if (key === 'o') { e.preventDefault(); document.getElementById('openFile').click(); }
+            if (key === 't') { e.preventDefault(); document.getElementById('themeBtn').click(); }
+            if (e.key === 'Escape') helpModal.classList.remove('open');
+        });
+
+        // Pre-loaded Initialization
+        resizeCanvas();
+        updateMetrics();
+    </script>
+</body>
+</html>

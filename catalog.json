@@ -2105,7 +2105,8 @@
           "sha": "56384985817f"
         }
       ],
-      "category": "art"
+      "category": "art",
+      "likes": 1
     },
     "cipherlab": {
       "title": "CipherLab",
@@ -2417,7 +2418,8 @@
           "sha": "3f804f111181"
         }
       ],
-      "category": "sim"
+      "category": "sim",
+      "likes": 1
     },
     "poise": {
       "title": "Poise",

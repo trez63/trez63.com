@@ -46,3 +46,8 @@ The index groups apps under the day they were first published and shows 24 at a 
 
 Two layers. Google Analytics (GA4, a property used only by this site; the tag is in `build_index.py`) gives referrers, countries and devices, but ad blockers hide part of the audience from it. Underneath, as an unblocked baseline with no cookies, each page adds one to a few anonymous counters on the same counter service the like buttons use (keys `stat-v-DAY` page views, `stat-u-DAY` browsers seen that day, `stat-r-DAY` of those arriving from Reddit, `stat-o-DAY` app pages opened, `stat-open-<slug>` opens per app; days are Pacific time). `stats.html` (generated, unlinked, noindex) shows the last 7 days. Opening any page once with `?notrack=1` stops that browser being counted.
 
+## Experiments
+
+Engagement changes are tried on half of all browsers and compared, because traffic comes in spikes and before/after numbers mean nothing. A browser is put in bucket `a` or `b` on first visit (`?ab=a` / `?ab=b` forces one). Per-bucket counters are cumulative: `stat-ab1-<a|b>-u` browsers, `-o` app pages opened, `-h` main page views, `-l` like clicks, `-c` strip clicks. `stats.html` shows the comparison.
+
+- **Experiment 1 (2026-11-17): intro strip on app pages.** About four in five visitors land on an app page and never open the main page. Bucket `b` gets a strip under the app page's top bar: what the site is, the same day's apps from the other models, and a link to all apps. It can be dismissed. Judge it on app opens per visitor, main page views per visitor and likes per visitor.

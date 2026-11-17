@@ -32,6 +32,20 @@ body{display:flex;flex-direction:column;background:var(--bg);color:var(--fg);fon
 .desc{color:var(--mute);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:1;min-width:0}
 .raw{color:var(--mute);white-space:nowrap;font:11px "Courier New",monospace;letter-spacing:.5px} .raw:hover{color:var(--fg)}
 .back img{height:36px;width:auto;display:block}
+.intro{display:none;align-items:center;gap:9px;padding:7px 16px;background:var(--fg);color:#fff;font-size:12px;flex:none;overflow-x:auto;white-space:nowrap;scrollbar-width:none}
+html.b .intro{display:flex}
+.intro b{font-weight:700} .intro span{color:#c0c9d7}
+.intro a{color:#fff;text-decoration:none}
+.intro a.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid #ffffff38;border-radius:5px;padding:4px 8px;font-weight:700}
+.intro a.chip:hover{border-color:#fff}
+.intro .dot{width:7px;height:7px;border-radius:50%;flex:none;background:var(--other)}
+.dot.claude{background:var(--claude)}.dot.chatgpt{background:var(--chatgpt)}.dot.muse{background:var(--muse)}.dot.gemini{background:#7d9bff}.dot.grok{background:#c0c9d7}
+.intro a.all{background:var(--yellow);color:var(--fg);font-weight:700;border-radius:5px;padding:5px 9px}
+.intro button{margin-left:auto;background:none;border:0;color:#c0c9d7;cursor:pointer;font-size:17px;line-height:1;padding:2px 4px}
+@media (max-width:640px){.intro{flex-wrap:wrap;white-space:normal;overflow:visible;gap:6px 7px;padding:8px 34px 9px 10px;position:relative}
+  .intro b{flex:1 1 100%} .intro span{display:none} .intro a.chip:nth-of-type(n+3){display:none}
+  .intro button{position:absolute;top:4px;right:6px;margin:0}}
+.intro button:hover{color:#fff} .intro a:focus-visible,.intro button:focus-visible{outline:2px solid var(--yellow);outline-offset:2px}
 .step{display:inline-flex;align-items:center;height:30px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:#fff;font-weight:700;font-size:11px;white-space:nowrap}
 .step:hover{border-color:var(--acc);color:var(--acc)}
 .step.go{background:var(--fg);border-color:var(--fg);color:#fff} .step.go:hover{color:#fff;filter:brightness(1.25)}
@@ -50,6 +64,9 @@ button.like.on{background:var(--acc-soft,#eef2ff);border-color:var(--acc);color:
 button.like.on i{color:var(--acc)}
 
 </style>
+<script>(()=>{try{const L=localStorage,P=new URLSearchParams(location.search);let g=P.get('ab');
+if(g==='a'||g==='b')L.setItem('ab1',g);g=L.getItem('ab1');if(!g){g=Math.random()<.5?'a':'b';L.setItem('ab1',g);}
+window.AB=g;if(g==='b'&&!L.getItem('intro-off'))document.documentElement.classList.add('b');}catch(e){window.AB=''}})();</script>
 <script>try{if(new URLSearchParams(location.search).get('notrack')==='1'||(!new URLSearchParams(location.search).has('notrack')&&localStorage.getItem('notrack')))window['ga-disable-G-F4X7P9J00K']=true}catch(e){}</script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-F4X7P9J00K"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-F4X7P9J00K');</script>
@@ -66,6 +83,7 @@ button.like.on i{color:var(--acc)}
   <a class="step rnd" id="lucky" href="../" title="Open a random app">Surprise me</a>
   <a class="step go" href="veil.html" title="Next: Veil">Next app →</a>
 </div>
+<div class="intro" role="note"><b>104 apps. Five AI models, one prompt a day.</b><span>Claude built this on Oct 26. Same prompt, same day:</span><a class="chip" href="revision-room.html"><i class="dot chatgpt"></i>ChatGPT: Revision Room</a><a class="chip" href="chromawave.html"><i class="dot gemini"></i>Gemini: ChromaWave</a><a class="chip" href="turtleloom.html"><i class="dot grok"></i>Grok: TurtleLoom</a><a class="chip" href="meeting-meter.html"><i class="dot muse"></i>Muse: Meeting Meter</a><a class="all" href="../">Browse all 104 →</a><button type="button" id="introx" aria-label="Hide this strip" title="Hide">×</button></div>
 <iframe src="../apps/orrery-calude.html" title="Orrery" allow="clipboard-write; fullscreen; autoplay" allowfullscreen></iframe>
 <script>
 (function(){
@@ -130,8 +148,14 @@ button.like.on i{color:var(--acc)}
   if(slug){ hit('stat-o-'+day); hit('stat-open-'+slug); }
   if(localStorage.getItem('seen')!==day){ localStorage.setItem('seen',day); hit('stat-u-'+day);
     if(/reddit\.com|redd\.it/i.test(document.referrer)) hit('stat-r-'+day); }
+  if(window.AB){ const ab='stat-ab1-'+window.AB+'-';
+    if(!localStorage.getItem('ab1c')){ localStorage.setItem('ab1c','1'); hit(ab+'u'); }
+    hit(ab+(slug?'o':'h'));
+    document.addEventListener('click',e=>{ const t=e.target.closest&&e.target.closest('button.like:not(.on),.intro a');
+      if(t) hit(ab+(t.matches('button.like')?'l':'c')); },true); }
 }catch(e){} })();
 
+document.getElementById('introx').addEventListener('click',()=>{ try{localStorage.setItem('intro-off','1')}catch(e){} document.documentElement.classList.remove('b'); });
 document.getElementById('lucky').addEventListener('click',async e=>{ e.preventDefault();
   try{ const all=Object.keys((await (await fetch('../catalog.json')).json()).apps).filter(s=>s!=='orrery-calude');
     location.href=all[Math.floor(Math.random()*all.length)]+'.html'; }catch(x){ location.href='../'; } });

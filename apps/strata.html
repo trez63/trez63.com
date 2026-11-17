@@ -1,0 +1,554 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Daily Build 2026-11-08 — Strata</title>
+<style>
+:root{--bg:#eef1f6;--panel:#ffffff;--ink:#17202a;--mute:#66707f;--line:#d9dee8;--acc:#2f6fed;--acc2:#e6eeff;
+  --warn:#c2710a;--warn2:#fff3e0;--bad:#d12f2f;--card:#ffffff;--shadow:0 1px 3px rgba(20,30,50,.12);--link:#9aa5b8}
+:root[data-theme=dark]{--bg:#0e131a;--panel:#151c26;--ink:#e7ecf3;--mute:#8e99aa;--line:#26303f;--acc:#7aa7ff;--acc2:#1a2a48;
+  --warn:#f0a53c;--warn2:#3a2a12;--bad:#ff6b6b;--card:#1b2431;--shadow:0 1px 3px rgba(0,0,0,.5);--link:#4a5668}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);
+  display:flex;flex-direction:column;overflow:hidden;-webkit-tap-highlight-color:transparent}
+header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:calc(8px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) 8px calc(12px + env(safe-area-inset-left));
+  background:var(--panel);border-bottom:1px solid var(--line)}
+h1{font-size:18px;letter-spacing:.5px;font-weight:700;display:flex;align-items:center;gap:8px}
+h1 small{font-size:12px;font-weight:500;color:var(--mute)}
+#search{flex:1 1 180px;min-width:140px;height:44px;font-size:16px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+#search:focus{outline:2px solid var(--acc);outline-offset:-1px}
+.actions{display:flex;flex-wrap:wrap;gap:6px}
+button{min-height:44px;min-width:44px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);
+  font:inherit;font-weight:600;cursor:pointer;touch-action:manipulation}
+button:hover{border-color:var(--acc)}
+button.primary{background:var(--acc);border-color:var(--acc);color:#fff}
+button.small{padding:0 10px;font-weight:500;font-size:13px}
+main{flex:1;display:flex;min-height:0}
+#stage{flex:1;position:relative;overflow:hidden;touch-action:none;cursor:grab;background:
+  radial-gradient(circle at 1px 1px,var(--line) 1px,transparent 1.5px) 0 0/24px 24px}
+#stage.dragging{cursor:grabbing}
+svg{width:100%;height:100%;display:block;user-select:none;-webkit-user-select:none}
+#links{fill:none;stroke:var(--link);stroke-width:1.5}
+.node rect.box{fill:var(--card);stroke:var(--line);stroke-width:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.12))}
+.node:hover rect.box{stroke:var(--acc)}
+.node.sel rect.box{stroke:var(--acc);stroke-width:2.5}
+.node.moved rect.box{stroke:var(--acc);stroke-dasharray:5 3}
+.node.target rect.box{stroke:var(--acc);stroke-width:3;fill:var(--acc2)}
+.node.src{opacity:.4}
+.node.dim{opacity:.22}
+.node.hit rect.box{stroke:var(--warn);stroke-width:2.5}
+.node text{fill:var(--ink);font-family:inherit;pointer-events:none}
+.node .name{font-size:13px;font-weight:650}
+.node .title{font-size:11px;fill:var(--mute)}
+.node .badge{font-size:10.5px;font-weight:700;fill:#fff}
+.node .badgebg{fill:var(--acc)}
+.node .flag{font-size:12px}
+#panel{width:330px;background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;border:0;border-radius:0;background:none;color:var(--mute);border-bottom:2px solid transparent}
+.tabs button.on{color:var(--acc);border-bottom-color:var(--acc)}
+.tabs #minBtn{flex:0 0 44px;display:none}
+.tab{display:none;padding:12px;overflow:auto;flex:1;padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+.tab.on{display:block}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.stat{background:var(--bg);border-radius:10px;padding:10px}
+.stat b{display:block;font-size:22px;line-height:1.1}
+.stat span{font-size:12px;color:var(--mute)}
+h3{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--mute);margin:14px 0 8px}
+.bars{display:grid;grid-template-columns:48px 1fr 28px;gap:4px 8px;align-items:center;font-size:12px}
+.bar{height:14px;background:var(--acc2);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--acc)}
+.list{display:flex;flex-direction:column;gap:6px}
+.row{display:flex;align-items:center;gap:8px;text-align:left;min-height:44px;padding:6px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-weight:500}
+.row.warn{border-color:var(--warn);background:var(--warn2)}
+.row small{color:var(--mute);font-weight:400;display:block}
+.row .grow{flex:1;min-width:0}
+.swatch{width:12px;height:12px;border-radius:3px;flex:none}
+.btnrow{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.hint{color:var(--mute);font-size:12.5px;margin:6px 0}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--ink);padding:18px;max-width:min(560px,calc(100vw - 24px));width:100%;
+  box-shadow:0 20px 60px rgba(0,0,0,.35);margin:auto}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+dialog h2{font-size:18px;margin-bottom:8px}
+dialog p,dialog li{margin:6px 0;line-height:1.5}
+textarea{width:100%;min-height:180px;font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;font-size:16px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);resize:vertical}
+kbd{font:12px ui-monospace,monospace;background:var(--bg);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 6px}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:center;margin:10px 0}
+#ghost{position:absolute;pointer-events:none;display:none;padding:6px 10px;border-radius:8px;background:var(--acc);color:#fff;font-weight:600;font-size:13px;box-shadow:var(--shadow);transform:translate(-50%,-140%)}
+#toast{position:absolute;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:4px 14px;min-height:44px;border-radius:10px;
+  font-weight:500;display:none;align-items:center;gap:10px;max-width:calc(100% - 24px);box-shadow:var(--shadow);z-index:5}
+#toast button{min-height:44px;background:none;border-color:transparent;color:inherit;text-decoration:underline;padding:0 4px}
+#zoom{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px}
+#zoom button{width:44px;padding:0;font-size:18px}
+@media (max-width:760px){
+  main{flex-direction:column}
+  #panel{width:auto;border-left:0;border-top:1px solid var(--line);max-height:44vh}
+  #panel.min{max-height:none;flex:0 0 auto}
+  #panel.min .tab{display:none}
+  .tabs #minBtn{display:block}
+  .btnlabel{display:none}
+  h1 small{display:none}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Strata <small>org chart analytics &amp; reorg sandbox</small></h1>
+  <input id="search" type="search" placeholder="Search people, titles, teams" aria-label="Search" autocomplete="off">
+  <div class="actions">
+    <button id="dataBtn" title="Import / export data (D)">Data</button>
+    <button id="undoBtn" title="Undo (Ctrl+Z)">Undo</button>
+    <button id="saveBtn" title="Save state as JSON (Ctrl+S)">Save</button>
+    <button id="openBtn" title="Open a saved JSON (Ctrl+O)">Open</button>
+    <button id="themeBtn" title="Toggle theme (T)">Theme</button>
+    <button id="helpBtn" title="Help (Ctrl+/)" aria-label="Help">?</button>
+  </div>
+</header>
+<main>
+  <div id="stage">
+    <svg id="svg" xmlns="http://www.w3.org/2000/svg"><g id="view"><path id="links"/><g id="nodes"/></g></svg>
+    <div id="zoom"><button id="zin" aria-label="Zoom in">+</button><button id="zout" aria-label="Zoom out">−</button><button id="fitBtn" title="Fit to screen (F)" style="font-size:12px">Fit</button></div>
+    <div id="ghost"></div>
+    <div id="toast"><span id="toastMsg"></span><button id="toastAct"></button></div>
+  </div>
+  <aside id="panel">
+    <div class="tabs">
+      <button data-tab="metrics" class="on">Metrics</button>
+      <button data-tab="person">Selected</button>
+      <button data-tab="changes">Changes</button>
+      <button id="minBtn" aria-label="Minimize panel">▾</button>
+    </div>
+    <section class="tab on" id="tab-metrics"></section>
+    <section class="tab" id="tab-person"></section>
+    <section class="tab" id="tab-changes"></section>
+  </aside>
+</main>
+
+<dialog id="dataDlg">
+  <h2>Import people</h2>
+  <p class="hint">Paste a CSV with columns like <b>name, title, manager, team</b> (header names are detected; any order). Managers are referenced by name. Nothing leaves this page.</p>
+  <textarea id="csvText" spellcheck="false" placeholder="name,title,manager,team&#10;Ada Lovelace,CEO,,Exec&#10;Alan Turing,CTO,Ada Lovelace,Engineering"></textarea>
+  <div class="btnrow">
+    <button id="importBtn" class="primary">Import</button>
+    <button id="csvFileBtn">Choose CSV file…</button>
+    <button id="demoBtn">Load demo</button>
+    <button id="exportBtn">Export CSV</button>
+    <button id="dataClose">Close</button>
+  </div>
+</dialog>
+
+<dialog id="helpDlg">
+  <h2>Strata</h2>
+  <p>Paste any employee list and Strata draws the org chart, measures it (layers, span of control, lonely managers, deep chains) and flags bad data (unknown managers, reporting cycles). Then <b>drag a person onto a new manager</b> to try a reorg; every metric updates and the Changes tab keeps the diff.</p>
+  <p><b>Touch:</b> tap a card to select it, tap it again to collapse or expand its team, press-and-hold then drag to move someone, pinch to zoom, drag the background to pan.</p>
+  <div class="keys">
+    <kbd>Ctrl/⌘ /</kbd><span>Toggle this help</span>
+    <kbd>/</kbd><span>Focus search (Enter jumps to the first match)</span>
+    <kbd>F</kbd><span>Fit chart to screen</span>
+    <kbd>+</kbd> <span>Zoom in &nbsp;·&nbsp; <kbd>−</kbd> Zoom out</span>
+    <kbd>C</kbd><span>Collapse / expand the selected team</span>
+    <kbd>M</kbd><span>Move the selected person (then tap the new manager)</span>
+    <kbd>D</kbd><span>Import / export data</span>
+    <kbd>T</kbd><span>Toggle dark / light theme</span>
+    <kbd>Ctrl/⌘ Z</kbd><span>Undo the last move</span>
+    <kbd>Ctrl/⌘ S</kbd><span>Save state to a JSON file</span>
+    <kbd>Ctrl/⌘ O</kbd><span>Open a saved JSON file</span>
+    <kbd>Esc</kbd><span>Close dialogs, cancel a move, clear search</span>
+  </div>
+  <p class="hint">Save downloads a <code>strata-YYYY-MM-DD.json</code> file (people, collapsed teams, theme). Open restores it exactly. Downloads work when this file is opened directly in a browser; some embedded viewers block them.</p>
+  <div class="btnrow"><button id="helpClose" class="primary">Close</button></div>
+</dialog>
+<input type="file" id="openFile" accept=".json,application/json" hidden>
+<input type="file" id="csvFile" accept=".csv,text/csv,text/plain" hidden>
+
+<script>
+'use strict';
+// ---------- pure logic (no DOM) ----------
+const PURE = {
+  // RFC-4180-ish CSV parser: quotes, escaped quotes, CRLF. Tabs and semicolons also split.
+  parseCSV(text){
+    const rows=[];let row=[],cell='',q=false;
+    const sep=/\t/.test(text.split('\n')[0])?'\t':(text.split('\n')[0].split(';').length>text.split('\n')[0].split(',').length?';':',');
+    for(let i=0;i<text.length;i++){const c=text[i];
+      if(q){ if(c==='"'){ if(text[i+1]==='"'){cell+='"';i++;} else q=false; } else cell+=c; }
+      else if(c==='"') q=true;
+      else if(c===sep){row.push(cell);cell='';}
+      else if(c==='\n'||c==='\r'){ if(c==='\r'&&text[i+1]==='\n')i++; row.push(cell);rows.push(row);row=[];cell=''; }
+      else cell+=c;
+    }
+    if(cell!==''||row.length){row.push(cell);rows.push(row);}
+    return rows.filter(r=>r.some(c=>c.trim()));
+  },
+  // Detect which column holds what, from a header row. Falls back to positional order.
+  detectCols(header){
+    const h=header.map(s=>s.trim().toLowerCase());
+    const find=(...pats)=>h.findIndex(c=>pats.some(p=>c===p||c.includes(p)));
+    const cols={name:find('full name','employee','person','name'),title:find('title','role','position','job'),
+      manager:find('manager','reports to','reports_to','reportsto','supervisor','lead','boss'),team:find('team','department','dept','group','org','function')};
+    const hasHeader=cols.name>=0||cols.manager>=0||cols.title>=0;
+    if(!hasHeader) return {hasHeader:false,name:0,title:1,manager:2,team:3};
+    if(cols.name<0) cols.name=[0,1,2,3].find(i=>!Object.values(cols).includes(i));
+    return {hasHeader:true,...cols};
+  },
+  // Compact tidy-tree layout using subtree contours. kids(n) lets the caller hide collapsed teams.
+  // A manager whose visible reports are all leaves gets them as a vertical list (two columns from 6 up).
+  layout(roots,kids,W,H,HG,VG){
+    const RH=H+14;
+    const lay=n=>{const ks=kids(n);
+      ks.forEach(k=>{k.stack=false;k.dy=0;});
+      if(!ks.length){n.dx=0;n.lc=[0];n.rc=[0];return;}
+      if(ks.length>=3&&ks.every(k=>!kids(k).length)){
+        const cols=ks.length>=6?2:1,rows=Math.ceil(ks.length/cols),left=cols===2?-W/2-12:W/2+12;
+        ks.forEach((k,i)=>{k.stack=true;k.dx=W/2+(cols===2?(i%2?12:-12-W):12);k.dy=Math.floor(i/cols)*RH;k.lc=[0];k.rc=[0];});
+        const L=Math.ceil(rows*RH/(H+VG)),lo=left,hi=W/2+12;
+        n.dx=0;n.lc=[0,...Array(L).fill(lo)];n.rc=[0,...Array(L).fill(hi)];return;
+      }
+      let lc=null,rc=null;
+      for(const k of ks){lay(k);let s=0;
+        if(rc) for(let i=0;i<Math.min(rc.length,k.lc.length);i++) s=Math.max(s,rc[i]-k.lc[i]+W+HG);
+        k.dx=s;
+        if(!rc){lc=k.lc.slice();rc=k.rc.slice();}
+        else for(let i=0;i<k.lc.length;i++){ if(i<lc.length){lc[i]=Math.min(lc[i],k.lc[i]+s);rc[i]=Math.max(rc[i],k.rc[i]+s);} else {lc.push(k.lc[i]+s);rc.push(k.rc[i]+s);} }
+      }
+      const mid=(ks[0].dx+ks[ks.length-1].dx)/2;
+      ks.forEach(k=>k.dx-=mid);
+      n.dx=0;n.lc=[0,...lc.map(v=>v-mid)];n.rc=[0,...rc.map(v=>v-mid)];
+    };
+    const place=(n,x,d,dy)=>{n.x=x;n.y=d*(H+VG)+dy;kids(n).forEach(k=>place(k,x+k.dx,d+1,dy+k.dy));};
+    let x=0;
+    for(const r of roots){r.dy=0;lay(r);const minL=Math.min(...r.lc);place(r,x-minL,0,0);x+=Math.max(...r.rc)-minL+W+HG*3;}
+  },
+  // Build parent/child links from manager names; flags unknown managers, self-reports and cycles.
+  buildTree(people){
+    const byName=new Map(people.map(p=>[p.name.toLowerCase(),p]));
+    people.forEach(p=>{p.children=[];p.parent=null;p.flags=[];});
+    const roots=[];
+    for(const p of people){
+      if(!p.manager){roots.push(p);continue;}
+      const m=byName.get(p.manager.toLowerCase());
+      if(!m||m===p){p.flags.push(m?'Reports to self':`Manager “${p.manager}” not in list`);roots.push(p);continue;}
+      p.parent=m;m.children.push(p);
+    }
+    const seen=new Set();const mark=n=>{if(seen.has(n))return;seen.add(n);n.children.forEach(mark);};
+    roots.forEach(mark);
+    for(const p of people) if(!seen.has(p)){const m=p.parent;m.children=m.children.filter(c=>c!==p);p.parent=null;p.flags.push(`Reporting cycle via ${m.name}`);roots.push(p);mark(p);}
+    const walk=(n,d)=>{n.depth=d;n.total=0;for(const c of n.children){walk(c,d+1);n.total+=1+c.total;}};
+    roots.forEach(r=>walk(r,0));
+    return roots;
+  }
+};
+// ---------- end pure logic ----------
+
+const APP='Strata',VER=1,W=170,H=58,HG=16,VG=46;
+const $=s=>document.querySelector(s),NS='http://www.w3.org/2000/svg';
+const DEMO=`name,title,manager,team
+Maya Okafor,CEO,,Exec
+Leah Brennan,Chief of Staff,Maya Okafor,Exec
+Daniel Reyes,CTO,Maya Okafor,Engineering
+Priya Natarajan,COO,Maya Okafor,Operations
+Jonas Lindqvist,CFO,Maya Okafor,Finance
+Hana Sato,VP Product,Maya Okafor,Product
+Tom Achebe,VP Engineering,Daniel Reyes,Engineering
+Sofia Marin,Director Platform,Tom Achebe,Platform
+Ravi Kulkarni,Eng Manager Infra,Sofia Marin,Platform
+Ines Duarte,Staff SRE,Ravi Kulkarni,Platform
+Ken Watanabe,SRE,Ravi Kulkarni,Platform
+Lea Moreau,SRE Intern,Ken Watanabe,Platform
+Olu Adeyemi,Backend Engineer,Ravi Kulkarni,Platform
+Zoe Fischer,Eng Manager Data,Sofia Marin,Platform
+Mateo Rossi,Data Engineer,Zoe Fischer,Platform
+Grace Liu,Director Apps,Tom Achebe,Apps
+Amir Haddad,Tech Lead Mobile,Grace Liu,Apps
+Nora Petrov,iOS Engineer,Amir Haddad,Apps
+Sam Osei,Android Engineer,Amir Haddad,Apps
+Eli Cohen,Frontend Engineer,Grace Liu,Apps
+Yuki Tanaka,Frontend Engineer,Grace Liu,Apps
+Bea Santos,QA Engineer,Grace Liu,Apps
+Marcus Hill,Head of Customer Success,Priya Natarajan,Operations
+Aisha Bello,Support Lead,Priya Natarajan,Operations
+Chen Wei,Support Specialist,Priya Natarajan,Operations
+Diego Alvarez,Support Specialist,Priya Natarajan,Operations
+Emma Novak,Support Specialist,Priya Natarajan,Operations
+Farid Karimi,Logistics Manager,Priya Natarajan,Operations
+Gita Rao,Procurement,Priya Natarajan,Operations
+Hugo Berg,Facilities,Priya Natarajan,Operations
+Isla Murray,Office Manager,Priya Natarajan,Operations
+Jin Park,People Ops,Priya Natarajan,Operations
+Kai Lehmann,Recruiter,Priya Natarajan,Operations
+Noor Qureshi,Controller,Jonas Lindqvist,Finance
+Pavel Sokolov,FP&A Analyst,Jonas Lindqvist,Finance
+Rosa Delgado,Group PM,Hana Sato,Product
+Theo Williams,Product Manager,Rosa Delgado,Product
+Uma Krishnan,Product Manager,Rosa Delgado,Product
+Vik Sharma,Design Lead,Hana Sato,Product
+Wren Taylor,Product Designer,Vik Sharma,Product
+Ximena Cruz,UX Researcher,Vik Sharma,Product
+Carlos Mendes,Field Technician,Rita Alvarez,Operations`;
+
+let people=[],roots=[],byId=new Map(),teams=new Map(),collapsed=new Set(),selected=null,moveFrom=null,hist=[],original=new Map();
+const view={x:40,y:40,k:1};
+const stage=$('#stage'),svg=$('#svg'),viewG=$('#view'),linksP=$('#links'),nodesG=$('#nodes');
+
+// ----- data in / out -----
+function loadCSV(text,resetOriginal=true){
+  const rows=PURE.parseCSV(text);
+  if(!rows.length) throw new Error('No rows found');
+  const c=PURE.detectCols(rows[0]);
+  const used=new Set();
+  const list=rows.slice(c.hasHeader?1:0).map(r=>({name:(r[c.name]||'').trim(),title:(r[c.title]||'').trim(),manager:(r[c.manager]||'').trim(),team:(r[c.team]||'').trim()})).filter(p=>p.name);
+  if(!list.length) throw new Error('No people found — check the name column');
+  for(const p of list){let n=p.name,i=2;while(used.has(n.toLowerCase()))n=`${p.name} (${i++})`;p.name=n;used.add(n.toLowerCase());}
+  people=list.map((p,i)=>({id:'p'+i,...p}));
+  if(resetOriginal) original=new Map(people.map(p=>[p.name,p.manager]));
+  hist=[];collapsed.clear();selected=null;moveFrom=null;
+  rebuild();fit();
+}
+function toCSV(){const esc=s=>/[",\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s;
+  return ['name,title,manager,team',...people.map(p=>[p.name,p.title,p.manager,p.team].map(esc).join(','))].join('\n');}
+function download(name,text,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);}
+function today(){const d=new Date(),z=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;}
+function saveState(){
+  const data={app:APP,version:VER,saved:new Date().toISOString(),people:people.map(({name,title,manager,team})=>({name,title,manager,team})),
+    original:[...original],collapsed:[...collapsed].map(id=>byId.get(id).name),theme:document.documentElement.dataset.theme};
+  download(`strata-${today()}.json`,JSON.stringify(data,null,1),'application/json');toast('Saved strata-'+today()+'.json');
+}
+function openState(file){
+  file.text().then(t=>{let d;try{d=JSON.parse(t);}catch{throw new Error('Not a JSON file');}
+    if(d.app!==APP||typeof d.version!=='number'||!Array.isArray(d.people)) throw new Error('This file is not a Strata save (expected "app":"Strata")');
+    if(d.version>VER) throw new Error(`Saved by a newer Strata (v${d.version})`);
+    people=d.people.map((p,i)=>({id:'p'+i,name:String(p.name||''),title:String(p.title||''),manager:String(p.manager||''),team:String(p.team||'')})).filter(p=>p.name);
+    original=new Map(Array.isArray(d.original)?d.original:people.map(p=>[p.name,p.manager]));
+    hist=[];selected=null;moveFrom=null;
+    rebuild();
+    collapsed=new Set((d.collapsed||[]).map(n=>people.find(p=>p.name===n)?.id).filter(Boolean));
+    if(d.theme) setTheme(d.theme);
+    rebuild();fit();toast(`Opened ${file.name} — ${people.length} people`);
+  }).catch(e=>toast('Could not open: '+e.message));
+}
+
+// ----- model -----
+function rebuild(){
+  byId=new Map(people.map(p=>[p.id,p]));
+  roots=PURE.buildTree(people);
+  teams=new Map();people.forEach(p=>{const t=p.team||'—';if(!teams.has(t))teams.set(t,teams.size);});
+  PURE.layout(roots,kidsOf,W,H,HG,VG);
+  render();renderMetrics();renderPerson();renderChanges();
+}
+const kidsOf=n=>collapsed.has(n.id)?[]:n.children;
+const isDesc=(a,b)=>{for(let n=b;n;n=n.parent) if(n===a) return true;return false;}; // is b inside a's subtree (or a itself)
+function moveNode(id,targetId,record=true){
+  const p=byId.get(id),t=byId.get(targetId);
+  if(!p||!t||p===t) return;
+  if(isDesc(p,t)) return toast(`${t.name} is in ${p.name}'s own team`);
+  if(record) hist.push({id,from:p.manager});
+  p.manager=t.name;collapsed.delete(t.id);rebuild();
+  if(record) toast(`${p.name} → ${t.name}`,'Undo',undo);
+}
+function undo(){const h=hist.pop();if(!h) return toast('Nothing to undo');byId.get(h.id).manager=h.from;rebuild();}
+function teamColor(t){const i=teams.get(t||'—')||0;return `hsl(${(i*137.5)%360} 62% ${isDark()?62:46}%)`;}
+const isDark=()=>document.documentElement.dataset.theme==='dark';
+function matches(p,q){return q&&(p.name+' '+p.title+' '+p.team).toLowerCase().includes(q);}
+
+// ----- render chart -----
+const trunc=(s,n)=>s.length>n?s.slice(0,n-1)+'…':s;
+function el(tag,attrs,text){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(text!=null)e.textContent=text;return e;}
+function render(){
+  const q=$('#search').value.trim().toLowerCase();
+  nodesG.textContent='';let d='';
+  const visit=n=>{
+    if(n.parent){const px=n.parent.x+W/2,py=n.parent.y+H;
+      d+=n.stack?`M${px},${py}V${n.y+H/2}H${n.x<px?n.x+W:n.x}`:`M${px},${py}V${py+VG/2}H${n.x+W/2}V${n.y}`;}
+    const g=el('g',{class:'node',transform:`translate(${n.x} ${n.y})`});g.dataset.id=n.id;
+    if(n.id===selected) g.classList.add('sel');
+    if(original.has(n.name)&&original.get(n.name)!==n.manager) g.classList.add('moved');
+    if(q) g.classList.add(matches(n,q)?'hit':'dim');
+    g.append(el('rect',{class:'box',width:W,height:H,rx:9}),el('rect',{x:0,y:0,width:5,height:H,rx:2,fill:teamColor(n.team)}),
+      el('text',{class:'name',x:14,y:23},trunc(n.name,21)),el('text',{class:'title',x:14,y:41},trunc(n.title||n.team,27)));
+    if(n.flags.length) g.append(el('text',{class:'flag',x:W-18,y:18},'⚠'));
+    if(n.children.length){const col=collapsed.has(n.id),label=(col?'▸ ':'▾ ')+(col?n.total:n.children.length),bw=label.length*7+10;
+      g.append(el('rect',{class:'badgebg',x:W/2-bw/2,y:H-9,width:bw,height:18,rx:9}),el('text',{class:'badge',x:W/2,y:H+4,'text-anchor':'middle'},label));}
+    nodesG.append(g);kidsOf(n).forEach(visit);
+  };
+  roots.forEach(visit);linksP.setAttribute('d',d);applyView();
+}
+function applyView(){viewG.setAttribute('transform',`translate(${view.x} ${view.y}) scale(${view.k})`);}
+function bbox(){let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;const v=n=>{x0=Math.min(x0,n.x);y0=Math.min(y0,n.y);x1=Math.max(x1,n.x+W);y1=Math.max(y1,n.y+H+10);kidsOf(n).forEach(v);};roots.forEach(v);return{x0,y0,x1,y1};}
+// Fit the whole chart, but never below 55% zoom: a readable top-of-chart beats an unreadable overview.
+function fit(){const b=bbox(),r=svg.getBoundingClientRect(),pad=30;
+  const k=Math.min(1.6,(r.width-pad*2)/(b.x1-b.x0),(r.height-pad*2)/(b.y1-b.y0));
+  view.k=Math.max(k,.55);
+  if(k>=.55){view.x=(r.width-(b.x1-b.x0)*view.k)/2-b.x0*view.k;view.y=(r.height-(b.y1-b.y0)*view.k)/2-b.y0*view.k;}
+  else{const top=roots[0];view.x=r.width/2-(top.x+W/2)*view.k;view.y=pad-b.y0*view.k;}
+  applyView();}
+function zoomAt(cx,cy,f){const r=svg.getBoundingClientRect(),px=cx-r.left,py=cy-r.top,k2=Math.min(3,Math.max(.08,view.k*f)),g=k2/view.k;
+  view.x=px-(px-view.x)*g;view.y=py-(py-view.y)*g;view.k=k2;applyView();}
+function focusOn(p){for(let a=p.parent;a;a=a.parent) collapsed.delete(a.id);
+  selected=p.id;rebuild();const r=svg.getBoundingClientRect();view.k=Math.max(view.k,1);
+  view.x=r.width/2-(p.x+W/2)*view.k;view.y=r.height/2-(p.y+H/2)*view.k;applyView();}
+function select(id){selected=id;render();renderPerson();showTab('person');}
+
+// ----- panel -----
+function showTab(name){document.querySelectorAll('.tabs [data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===name));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.id==='tab-'+name));$('#panel').classList.remove('min');}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const personBtn=(p,extra='',cls='')=>`<button class="row ${cls}" data-go="${p.id}"><span class="swatch" style="background:${teamColor(p.team)}"></span><span class="grow">${esc(p.name)}<small>${esc(extra||p.title)}</small></span></button>`;
+function renderMetrics(){
+  const mgrs=people.filter(p=>p.children.length),spans=mgrs.map(m=>m.children.length).sort((a,b)=>a-b);
+  const avg=spans.length?(people.length-roots.length)/spans.length:0,med=spans.length?spans[spans.length>>1]:0;
+  const layers=Math.max(0,...people.map(p=>p.depth))+1;
+  const buckets=[['1',s=>s===1],['2',s=>s===2],['3–4',s=>s>=3&&s<=4],['5–7',s=>s>=5&&s<=7],['8+',s=>s>=8]].map(([l,f])=>[l,spans.filter(f).length]);
+  const mx=Math.max(1,...buckets.map(b=>b[1]));
+  const flags=[...people.filter(p=>p.flags.length).map(p=>[p,p.flags[0]]),
+    ...mgrs.filter(m=>m.children.length===1).map(m=>[m,'Only 1 direct report — layer without leverage']),
+    ...mgrs.filter(m=>m.children.length>=9).map(m=>[m,`${m.children.length} direct reports — stretched`]),
+    ...people.filter(p=>p.depth>=5&&!p.children.length).map(p=>[p,`${p.depth+1} layers from the top`])];
+  const teamRows=[...teams.keys()].map(t=>{const n=people.filter(p=>(p.team||'—')===t).length;return `<button class="row small" data-team="${esc(t)}"><span class="swatch" style="background:${teamColor(t)}"></span><span class="grow">${esc(t)}</span><small>${n}</small></button>`;}).join('');
+  $('#tab-metrics').innerHTML=`
+    <div class="grid"><div class="stat"><b>${people.length}</b><span>people</span></div><div class="stat"><b>${layers}</b><span>layers</span></div>
+    <div class="stat"><b>${avg.toFixed(1)}</b><span>avg span (median ${med})</span></div><div class="stat"><b>${mgrs.length}</b><span>managers · ${Math.round(100*(people.length-mgrs.length)/Math.max(1,people.length))}% ICs</span></div></div>
+    <div class="btnrow"><span class="hint" style="align-self:center">Show levels:</span>${[1,2,3].map(l=>`<button class="small" data-level="${l}">${l}</button>`).join('')}<button class="small" data-level="99">All</button></div>
+    <h3>Span of control</h3><div class="bars">${buckets.map(([l,n])=>`<span>${l}</span><div class="bar"><i style="width:${n/mx*100}%"></i></div><span>${n}</span>`).join('')}</div>
+    <h3>Flags (${flags.length})</h3><div class="list">${flags.length?flags.map(([p,f])=>personBtn(p,f,'warn')).join(''):'<p class="hint">Nothing to flag — a tidy org.</p>'}</div>
+    <h3>Teams</h3><div class="list">${teamRows}</div>`;
+}
+function renderPerson(){
+  const p=byId.get(selected);const box=$('#tab-person');
+  if(!p){box.innerHTML='<p class="hint">Tap a card to see details, collapse a team, or move someone. Press and hold a card (or just drag with a mouse) to drop it onto a new manager.</p>';return;}
+  const col=collapsed.has(p.id);
+  box.innerHTML=`<div class="stat" style="border-left:5px solid ${teamColor(p.team)}"><b style="font-size:18px">${esc(p.name)}</b><span>${esc(p.title)}${p.team?' · '+esc(p.team):''}</span></div>
+    <div class="grid" style="margin-top:8px"><div class="stat"><b>${p.children.length}</b><span>direct reports</span></div><div class="stat"><b>${p.total}</b><span>total reports</span></div>
+    <div class="stat"><b>${p.depth+1}</b><span>layer</span></div><div class="stat"><b>${original.has(p.name)&&original.get(p.name)!==p.manager?'moved':'as loaded'}</b><span>status</span></div></div>
+    ${p.flags.map(f=>`<div class="row warn">⚠ <span class="grow">${esc(f)}</span></div>`).join('')}
+    <div class="btnrow">${p.children.length?`<button id="colBtn">${col?'Expand':'Collapse'} team</button>`:''}<button id="moveBtn" class="${moveFrom?'primary':''}">${moveFrom?'Tap new manager…':'Move…'}</button><button id="focusBtn">Center</button></div>
+    <h3>Reports to</h3><div class="list">${p.parent?personBtn(p.parent):'<p class="hint">'+(p.manager?esc('“'+p.manager+'” — not found'):'Top of the chart')+'</p>'}</div>
+    ${p.children.length?`<h3>Direct reports</h3><div class="list">${p.children.map(c=>personBtn(c)).join('')}</div>`:''}`;
+  $('#colBtn')?.addEventListener('click',()=>toggleCollapse(p.id));
+  $('#moveBtn').addEventListener('click',()=>{moveFrom=moveFrom?null:p.id;renderPerson();toast(moveFrom?`Tap the new manager for ${p.name}`:'Move cancelled');});
+  $('#focusBtn').addEventListener('click',()=>focusOn(p));
+}
+function renderChanges(){
+  const moved=people.filter(p=>original.has(p.name)&&original.get(p.name)!==p.manager);
+  $('#tab-changes').innerHTML=`<p class="hint">${moved.length?`${moved.length} ${moved.length===1?'person has':'people have'} a new manager compared with the loaded data.`:'No changes yet. Drag someone onto a new manager to start a what-if reorg.'}</p>
+    <div class="list">${moved.map(p=>`<div class="row"><span class="swatch" style="background:${teamColor(p.team)}"></span><span class="grow">${esc(p.name)}<small>${esc(original.get(p.name)||'top')} → ${esc(p.manager||'top')}</small></span><button class="small" data-revert="${p.id}">Revert</button></div>`).join('')}</div>
+    ${moved.length?'<div class="btnrow"><button id="resetAll">Reset all</button><button id="exportBtn2">Export CSV</button></div>':''}`;
+  $('#resetAll')?.addEventListener('click',()=>{people.forEach(p=>{if(original.has(p.name))p.manager=original.get(p.name);});hist=[];rebuild();toast('Reverted to loaded data');});
+  $('#exportBtn2')?.addEventListener('click',()=>download(`strata-${today()}.csv`,toCSV(),'text/csv'));
+}
+function toggleCollapse(id){const p=byId.get(id);if(!p.children.length) return;collapsed.has(id)?collapsed.delete(id):collapsed.add(id);rebuild();}
+$('#panel').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b) return;
+  if(b.dataset.tab) showTab(b.dataset.tab);
+  else if(b.id==='minBtn') $('#panel').classList.toggle('min');
+  else if(b.dataset.go) focusOn(byId.get(b.dataset.go));
+  else if(b.dataset.team){$('#search').value=b.dataset.team;render();}
+  else if(b.dataset.level){const L=+b.dataset.level;collapsed=new Set(people.filter(p=>p.children.length&&p.depth>=L).map(p=>p.id));rebuild();fit();}
+  else if(b.dataset.revert){const p=byId.get(b.dataset.revert);hist.push({id:p.id,from:p.manager});p.manager=original.get(p.name);rebuild();}
+});
+
+// ----- pointer interaction: pan, pinch, tap, press-and-hold drag -----
+const ptrs=new Map();let gest=null,holdT=0;
+const dist=()=>{const [a,b]=[...ptrs.values()];return Math.hypot(a.x-b.x,a.y-b.y);};
+const mid=()=>{const [a,b]=[...ptrs.values()];return{x:(a.x+b.x)/2,y:(a.y+b.y)/2};};
+function startDrag(id){gest={type:'drag',id,target:null};stage.classList.add('dragging');const g=$('#ghost');g.textContent=byId.get(id).name;g.style.display='block';
+  nodesG.querySelector(`[data-id="${id}"]`)?.classList.add('src');}
+svg.addEventListener('pointerdown',e=>{
+  svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});clearTimeout(holdT);
+  if(ptrs.size===2){if(gest?.type==='drag') endDrag(false);const m=mid();gest={type:'pinch',d0:dist(),k0:view.k,m0:m,x0:view.x,y0:view.y};return;}
+  if(ptrs.size>2) return;
+  const node=e.target.closest('.node');
+  if(node){const id=node.dataset.id;gest={type:'pending',id,x0:e.clientX,y0:e.clientY,mouse:e.pointerType==='mouse'};
+    if(!gest.mouse) holdT=setTimeout(()=>{if(gest?.type==='pending'){startDrag(id);moveGhost(e.clientX,e.clientY);}},280);}
+  else gest={type:'pan',x0:e.clientX,y0:e.clientY,vx:view.x,vy:view.y};
+});
+function moveGhost(x,y){const r=stage.getBoundingClientRect(),g=$('#ghost');g.style.left=(x-r.left)+'px';g.style.top=(y-r.top)+'px';
+  nodesG.querySelector('.target')?.classList.remove('target');
+  const t=document.elementFromPoint(x,y)?.closest('.node');gest.target=null;
+  if(t&&t.dataset.id!==gest.id){t.classList.add('target');gest.target=t.dataset.id;}}
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId)||!gest) return;ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(gest.type==='pinch'&&ptrs.size===2){const m=mid(),k=Math.min(3,Math.max(.08,gest.k0*dist()/gest.d0)),g=k/gest.k0,r=svg.getBoundingClientRect();
+    const px=gest.m0.x-r.left,py=gest.m0.y-r.top;view.k=k;view.x=px-(px-gest.x0)*g+(m.x-gest.m0.x);view.y=py-(py-gest.y0)*g+(m.y-gest.m0.y);applyView();}
+  else if(gest.type==='pan'){view.x=gest.vx+e.clientX-gest.x0;view.y=gest.vy+e.clientY-gest.y0;applyView();}
+  else if(gest.type==='pending'&&Math.hypot(e.clientX-gest.x0,e.clientY-gest.y0)>8){clearTimeout(holdT);
+    if(gest.mouse){startDrag(gest.id);moveGhost(e.clientX,e.clientY);}
+    else{gest={type:'pan',x0:gest.x0,y0:gest.y0,vx:view.x,vy:view.y};view.x=gest.vx+e.clientX-gest.x0;view.y=gest.vy+e.clientY-gest.y0;applyView();}}
+  else if(gest.type==='drag') moveGhost(e.clientX,e.clientY);
+});
+function endDrag(drop){stage.classList.remove('dragging');$('#ghost').style.display='none';nodesG.querySelector('.src')?.classList.remove('src');nodesG.querySelector('.target')?.classList.remove('target');
+  if(drop&&gest.target) moveNode(gest.id,gest.target);}
+function endPointer(e){
+  clearTimeout(holdT);ptrs.delete(e.pointerId);if(!gest) return;
+  if(gest.type==='pending'){const id=gest.id;gest=null;
+    if(moveFrom){const from=moveFrom;moveFrom=null;moveNode(from,id);renderPerson();}
+    else if(selected===id) toggleCollapse(id); else select(id);return;}
+  if(gest.type==='drag') endDrag(e.type==='pointerup');
+  if(gest.type==='pinch'&&ptrs.size===1){const [p]=ptrs.values();gest={type:'pan',x0:p.x,y0:p.y,vx:view.x,vy:view.y};return;}
+  gest=null;
+}
+svg.addEventListener('pointerup',endPointer);svg.addEventListener('pointercancel',endPointer);
+stage.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.clientX,e.clientY,Math.exp(-e.deltaY*0.0015));},{passive:false});
+stage.addEventListener('dblclick',e=>{if(!e.target.closest('.node')) fit();});
+
+// ----- chrome -----
+let toastT=0;
+function toast(msg,label,fn){const t=$('#toast'),a=$('#toastAct');$('#toastMsg').textContent=msg;a.style.display=label?'':'none';a.textContent=label||'';a.onclick=()=>{fn?.();t.style.display='none';};
+  t.style.display='flex';clearTimeout(toastT);toastT=setTimeout(()=>t.style.display='none',3500);}
+function setTheme(t){document.documentElement.dataset.theme=t;try{localStorage.setItem('strata-theme',t);}catch{}render();renderMetrics();renderPerson();renderChanges();}
+const toggleDlg=d=>d.open?d.close():d.showModal();
+const typing=el=>el&&(/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)||el.isContentEditable);
+$('#themeBtn').onclick=()=>setTheme(isDark()?'light':'dark');
+$('#helpBtn').onclick=()=>toggleDlg($('#helpDlg'));$('#helpClose').onclick=()=>$('#helpDlg').close();
+$('#dataBtn').onclick=()=>{$('#csvText').value=toCSV();$('#dataDlg').showModal();};$('#dataClose').onclick=()=>$('#dataDlg').close();
+$('#importBtn').onclick=()=>{try{loadCSV($('#csvText').value);$('#dataDlg').close();toast(`Imported ${people.length} people`);}catch(e){toast(e.message);}};
+$('#demoBtn').onclick=()=>{loadCSV(DEMO);$('#dataDlg').close();toast('Demo loaded');};
+$('#exportBtn').onclick=()=>download(`strata-${today()}.csv`,toCSV(),'text/csv');
+$('#csvFileBtn').onclick=()=>$('#csvFile').click();
+$('#csvFile').onchange=e=>{const f=e.target.files[0];if(f) f.text().then(t=>{try{loadCSV(t);$('#dataDlg').close();toast(`Imported ${people.length} people from ${f.name}`);}catch(err){toast(err.message);}});e.target.value='';};
+$('#fitBtn').onclick=fit;$('#undoBtn').onclick=undo;$('#saveBtn').onclick=saveState;
+$('#openBtn').onclick=()=>$('#openFile').click();
+$('#openFile').onchange=e=>{const f=e.target.files[0];if(f) openState(f);e.target.value='';};
+$('#zin').onclick=()=>{const r=svg.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1.25);};
+$('#zout').onclick=()=>{const r=svg.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,.8);};
+$('#search').addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase(); // matches hidden inside collapsed teams are opened up
+  if(q) for(const p of people) if(matches(p,q)) for(let a=p.parent;a;a=a.parent) collapsed.delete(a.id);
+  rebuild();});
+$('#search').addEventListener('keydown',e=>{if(e.key==='Enter'){const q=e.target.value.trim().toLowerCase();const p=people.find(x=>matches(x,q));if(p) focusOn(p);else toast('No match');}});
+document.addEventListener('keydown',e=>{
+  const mod=e.ctrlKey||e.metaKey,k=e.key.toLowerCase();
+  if(mod&&e.key==='/'){e.preventDefault();toggleDlg($('#helpDlg'));return;}
+  if(mod&&!e.shiftKey&&k==='z'){e.preventDefault();undo();return;}
+  if(mod&&k==='s'){e.preventDefault();saveState();return;}
+  if(mod&&k==='o'){e.preventDefault();$('#openFile').click();return;}
+  if(e.key==='Escape'){if($('#helpDlg').open||$('#dataDlg').open) return; // dialogs close themselves
+    if(moveFrom){moveFrom=null;renderPerson();toast('Move cancelled');} else if($('#search').value){$('#search').value='';render();} else {selected=null;render();renderPerson();}
+    $('#search').blur();return;}
+  if(typing(e.target)||mod||e.altKey||$('#helpDlg').open||$('#dataDlg').open) return;
+  const sel=byId.get(selected);
+  switch(e.key){
+    case '/':e.preventDefault();$('#search').focus();break;
+    case 'f':fit();break;
+    case 't':setTheme(isDark()?'light':'dark');break;
+    case 'd':$('#dataBtn').click();break;
+    case 'c':if(sel) toggleCollapse(sel.id);break;
+    case 'm':if(sel){moveFrom=moveFrom?null:sel.id;renderPerson();toast(moveFrom?`Tap the new manager for ${sel.name}`:'Move cancelled');}break;
+    case '+':case '=':$('#zin').click();break;
+    case '-':$('#zout').click();break;
+  }
+});
+window.addEventListener('resize',()=>applyView());
+
+// ----- boot -----
+(function(){let t=null;try{t=localStorage.getItem('strata-theme');}catch{}
+  document.documentElement.dataset.theme=t||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');})();
+loadCSV(DEMO);
+if(innerWidth<760){collapsed=new Set(people.filter(p=>p.children.length&&p.depth>=1).map(p=>p.id));rebuild();fit();} // phones start at the top two layers
+window.Strata={PURE,get people(){return people;},get view(){return view;},get collapsed(){return collapsed;},moveNode,undo,fit,applyView};
+</script>
+</body>
+</html>
+
+</body></html>

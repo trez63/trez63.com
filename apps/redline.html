@@ -1,0 +1,387 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Daily Build 2026-11-07 — Redline</title>
+<style>
+:root{--bg:#f6f4ef;--panel:#fffdf8;--ink:#1d1b17;--mute:#6f6a60;--line:#e2ddd2;--accent:#b4452c;--accent-soft:#f7e6e1;--del:#b4452c;--del-bg:#fbe9e5;--ins:#1f5fa8;--ins-bg:#e4edf9;--mov:#7a5a00;--mov-bg:#fbf1cf;--hi:#b4452c;--md:#c98a1b;--lo:#6f6a60;--focus:#ffe9a8;--btn:#f0ece3;--btn-ink:#1d1b17;--shadow:0 1px 2px rgba(0,0,0,.06)}
+:root[data-theme="dark"]{--bg:#17161a;--panel:#201f24;--ink:#ece8e0;--mute:#9a958b;--line:#34323a;--accent:#e9826a;--accent-soft:#3a2622;--del:#f08a73;--del-bg:#3f241f;--ins:#7fb2f0;--ins-bg:#1e2c42;--mov:#e4c25a;--mov-bg:#3a3118;--hi:#f08a73;--md:#e0a93c;--lo:#9a958b;--focus:#4a4020;--btn:#2b2a30;--btn-ink:#ece8e0;--shadow:0 1px 2px rgba(0,0,0,.4)}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 Georgia,"Iowan Old Style","Palatino Linotype",serif;display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);overflow:hidden}
+button,select{font:inherit}
+header{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--panel);flex-wrap:wrap}
+.brand{font-weight:700;font-size:20px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
+.brand i{display:inline-block;width:22px;height:3px;background:var(--accent);box-shadow:0 7px 0 var(--ins),0 -7px 0 var(--ink)}
+.stats{display:flex;gap:6px;flex-wrap:wrap;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:var(--mute)}
+.stats b{color:var(--ink)}
+.stats span{background:var(--btn);padding:4px 8px;border-radius:999px}
+.tools{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+.btn{min-height:44px;min-width:44px;padding:0 12px;border:1px solid var(--line);background:var(--btn);color:var(--btn-ink);border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:var(--shadow)}
+.btn.primary{background:var(--accent);color:#fff;border-color:transparent}
+.btn kbd{font:11px ui-monospace,Menlo,monospace;color:var(--mute);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+.btn.primary kbd{color:#fff;border-color:rgba(255,255,255,.5)}
+.tabs{display:none;border-bottom:1px solid var(--line);background:var(--panel)}
+.tabs button{flex:1;min-height:44px;border:0;background:none;color:var(--mute);border-bottom:3px solid transparent;cursor:pointer}
+.tabs button.on{color:var(--ink);border-color:var(--accent);font-weight:700}
+.app{flex:1;min-height:0;display:grid;grid-template-columns:minmax(240px,.9fr) minmax(0,1.6fr) minmax(260px,1fr)}
+.pane{display:flex;flex-direction:column;min-height:0;min-width:0;border-right:1px solid var(--line)}
+.pane:last-child{border-right:0}
+.pane h2{margin:0;padding:10px 12px 6px;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-family:ui-monospace,Menlo,monospace;display:flex;justify-content:space-between;align-items:center}
+.inputs{flex:1;display:flex;flex-direction:column;min-height:0}
+.inputs label{flex:1;display:flex;flex-direction:column;min-height:0;padding:0 12px 10px}
+.inputs span{font-size:12px;color:var(--mute);font-family:ui-monospace,Menlo,monospace;padding:4px 0}
+textarea{flex:1;min-height:120px;width:100%;resize:none;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);font:16px/1.45 Georgia,serif;padding:10px;outline:none}
+textarea:focus{border-color:var(--accent)}
+.scroll{flex:1;overflow:auto;min-height:0;padding:0 14px 40px;-webkit-overflow-scrolling:touch}
+#redline p{margin:0 0 14px;max-width:72ch;scroll-margin-top:12px;border-radius:6px;padding:2px 6px;margin-left:-6px;transition:background .3s}
+#redline p.focus{background:var(--focus)}
+#redline p.head{font-weight:700;margin-top:8px}
+#redline p.gone{opacity:.85}
+#redline del{color:var(--del);background:var(--del-bg);text-decoration:line-through;text-decoration-thickness:1.5px;border-radius:3px;padding:0 2px}
+#redline ins{color:var(--ins);background:var(--ins-bg);text-decoration:underline;text-decoration-thickness:1.5px;border-radius:3px;padding:0 2px}
+.tag{display:inline-block;font:11px ui-monospace,Menlo,monospace;border-radius:4px;padding:1px 6px;margin:0 4px 2px 0;background:var(--btn);color:var(--mute);vertical-align:middle}
+.tag.mov{background:var(--mov-bg);color:var(--mov)}
+.tag.hi{background:var(--del-bg);color:var(--hi)}
+.tag.md{background:var(--mov-bg);color:var(--md)}
+.filters{display:flex;gap:6px;padding:0 12px 8px;flex-wrap:wrap}
+.chip{min-height:44px;min-width:44px;padding:0 10px;border-radius:999px;border:1px solid var(--line);background:var(--btn);color:var(--mute);cursor:pointer;font-size:13px}
+.chip.on{color:var(--ink);border-color:var(--accent);background:var(--accent-soft)}
+.chg{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);padding:10px 14px 10px 26px;cursor:pointer;position:relative;min-height:44px;font:inherit}
+.chg:before{content:"";position:absolute;left:10px;top:17px;width:9px;height:9px;border-radius:50%;background:var(--lo)}
+.chg.hi:before{background:var(--hi)}.chg.md:before{background:var(--md)}
+.chg.cur{background:var(--focus)}
+.chg .sec{font:12px ui-monospace,Menlo,monospace;color:var(--mute)}
+.chg .snip{font-size:14px;color:var(--mute);margin-top:2px}
+.chg .snip del{color:var(--del);text-decoration:line-through}.chg .snip ins{color:var(--ins);text-decoration:underline}
+.empty{padding:24px 14px;color:var(--mute);font-style:italic}
+#help{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:16px;z-index:9}
+#help.open{display:flex}
+#help .card{background:var(--panel);color:var(--ink);border-radius:12px;max-width:560px;width:100%;max-height:90vh;overflow:auto;padding:20px 22px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+#help h3{margin:0 0 6px}#help table{width:100%;border-collapse:collapse;margin-top:10px}#help td{padding:5px 0;border-top:1px solid var(--line);vertical-align:top}#help kbd{font:12px ui-monospace,Menlo,monospace;border:1px solid var(--line);border-radius:4px;padding:1px 6px;background:var(--btn)}
+#toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;opacity:0;transition:opacity .3s;pointer-events:none;max-width:90vw}
+#toast.show{opacity:1}
+@media (max-width:900px){.tabs{display:flex}.app{grid-template-columns:1fr}.pane{display:none;border-right:0}.pane.active{display:flex}.stats{display:none}.btn .lbl{display:none}.btn kbd{display:none}header{gap:6px}.brand{font-size:18px}}
+@media print{header,.tabs,#inputs,#changes,#help,#toast{display:none!important}.app{display:block}#redlinePane{display:block!important}body{overflow:visible;padding:0;background:#fff;color:#000}.scroll{overflow:visible;padding:0}#redline del{color:#a00;background:none}#redline ins{color:#036;background:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><i></i>Redline</div>
+  <div class="stats" id="stats"></div>
+  <div class="tools">
+    <button class="btn" id="copyBtn" title="Copy material-change summary (C)">📋 <span class="lbl">Copy summary</span><kbd>C</kbd></button>
+    <button class="btn" id="printBtn" title="Print redline (P)">🖨 <span class="lbl">Print</span><kbd>P</kbd></button>
+    <button class="btn" id="saveBtn" title="Save as JSON (S)">💾 <span class="lbl">Save</span><kbd>S</kbd></button>
+    <button class="btn" id="openBtn" title="Open a saved JSON (O)">📂 <span class="lbl">Open</span><kbd>O</kbd></button>
+    <input type="file" id="file" accept=".json,application/json" hidden>
+    <button class="btn" id="themeBtn" title="Toggle theme (D)">◐</button>
+    <button class="btn" id="helpBtn" title="Help (Ctrl+/)">?</button>
+  </div>
+</header>
+<nav class="tabs" id="tabs"><button data-pane="inputs">Texts</button><button data-pane="redlinePane" class="on">Redline</button><button data-pane="changes">Changes</button></nav>
+<main class="app">
+  <section class="pane" id="inputs">
+    <h2>Texts <span id="swapWrap"><button class="chip" id="swapBtn" title="Swap original and revised">⇅ swap</button></span></h2>
+    <div class="inputs">
+      <label><span>ORIGINAL</span><textarea id="a" spellcheck="false" placeholder="Paste the original contract…"></textarea></label>
+      <label><span>REVISED</span><textarea id="b" spellcheck="false" placeholder="Paste the counterparty's revision…"></textarea></label>
+    </div>
+  </section>
+  <section class="pane active" id="redlinePane">
+    <h2>Redline <span><button class="chip" id="prevBtn" title="Previous change (K)">↑</button> <button class="chip" id="nextBtn" title="Next change (J)">↓</button></span></h2>
+    <div class="scroll" id="redline"></div>
+  </section>
+  <section class="pane" id="changes">
+    <h2>What changed</h2>
+    <div class="filters" id="filters"><button class="chip on" data-f="all">All</button><button class="chip" data-f="hi">Material</button><button class="chip" data-f="md">Notable</button><button class="chip" data-f="lo">Wording</button></div>
+    <div class="scroll" id="list" style="padding:0"></div>
+  </section>
+</main>
+<div id="help"><div class="card">
+  <h3>Redline</h3>
+  <p>Paste two versions of a contract. Redline aligns the paragraphs (even when they moved), marks every word that changed, and reads each change for what it <em>means</em>: amounts and durations that shifted, obligations that went from <em>shall</em> to <em>may</em>, carve-outs that were added, clauses that vanished. Material changes are red, notable ones amber. Nothing leaves the page.</p>
+  <table>
+    <tr><td><kbd>J</kbd> / <kbd>K</kbd></td><td>Next / previous change</td></tr>
+    <tr><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></td><td>Show Texts / Redline / Changes (phone tabs)</td></tr>
+    <tr><td><kbd>F</kbd></td><td>Cycle the change filter</td></tr>
+    <tr><td><kbd>C</kbd></td><td>Copy a Markdown summary of material changes</td></tr>
+    <tr><td><kbd>P</kbd></td><td>Print the redline (or save as PDF)</td></tr>
+    <tr><td><kbd>S</kbd> / <kbd>O</kbd></td><td>Save / Open both texts as JSON (Save downloads when the file is opened directly; artifact viewers block downloads)</td></tr>
+    <tr><td><kbd>D</kbd></td><td>Toggle dark / light</td></tr>
+    <tr><td><kbd>Ctrl</kbd>+<kbd>/</kbd> or <kbd>?</kbd></td><td>This help &nbsp;·&nbsp; <kbd>Esc</kbd> closes</td></tr>
+  </table>
+  <p style="color:var(--mute);font-size:13px">Shortcuts pause while you type in a text box. Every action is also a button.</p>
+  <button class="btn primary" id="closeHelp">Got it</button>
+</div></div>
+<div id="toast"></div>
+<script>
+'use strict';
+const $ = s => document.querySelector(s), esc = s => s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const APP = 'Redline', VERSION = 1;
+
+/* ---------- diff engine ---------- */
+const paras = t => t.replace(/\r/g, '').split(/\n+/).map(s => s.trim()).filter(Boolean);
+const words = s => s.split(/\s+/);
+const bag = s => new Set(s.toLowerCase().match(/[a-z0-9]+/g) || []);
+function sim(A, B) {                       // Sørensen–Dice similarity of two word sets
+  if (!A.size || !B.size) return 0;
+  let n = 0; for (const w of A) if (B.has(w)) n++;
+  return 2 * n / (A.size + B.size);
+}
+const NUM = /^(?:Section|Article)?\s*\d+(?:\.\d+)*[.)]?\s+/i;             // "7.2 " / "Section 3. " numbering prefix
+const title = p => { const h = headOf(p); return h && h.replace(NUM, '').toLowerCase(); };
+// Longest-common-subsequence over two token arrays -> list of [op, token] (op: 0 same, -1 del, 1 ins)
+function lcsDiff(a, b, eq) {
+  const n = a.length, m = b.length, L = Array.from({length: n + 1}, () => new Uint16Array(m + 1));
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--)
+    L[i][j] = eq(a[i], b[j]) ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+  const out = []; let i = 0, j = 0;
+  while (i < n && j < m) {
+    if (eq(a[i], b[j])) out.push([0, a[i]]), i++, j++;
+    else if (L[i + 1][j] >= L[i][j + 1]) out.push([-1, a[i++]]);
+    else out.push([1, b[j++]]);
+  }
+  while (i < n) out.push([-1, a[i++]]); while (j < m) out.push([1, b[j++]]);
+  return out;
+}
+// Align paragraphs: dynamic program that maximises summed similarity, then rescue moved paragraphs.
+function align(A, B) {
+  const SA = A.map(bag), SB = B.map(bag), TA = A.map(title), TB = B.map(title), n = A.length, m = B.length, T = 0.4;
+  const S = Array.from({length: n + 1}, () => new Float64Array(m + 1));
+  const score = (i, j) => TA[i] && TA[i] === TB[j] ? Math.max(0.9, sim(SA[i], SB[j])) : sim(SA[i], SB[j]); // same heading = same clause
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) {
+    const s = score(i, j);
+    S[i][j] = Math.max(S[i + 1][j], S[i][j + 1], s >= T ? S[i + 1][j + 1] + s : 0);
+  }
+  const units = []; let i = 0, j = 0;
+  while (i < n && j < m) {
+    const s = score(i, j);
+    if (s >= T && S[i][j] === S[i + 1][j + 1] + s) units.push({a: i, b: j}), i++, j++;
+    else if (S[i + 1][j] >= S[i][j + 1]) units.push({a: i++, b: -1});
+    else units.push({a: -1, b: j++});
+  }
+  while (i < n) units.push({a: i++, b: -1}); while (j < m) units.push({a: -1, b: j++});
+  // moved: a deleted paragraph that strongly resembles an inserted one elsewhere
+  for (const u of units) if (u.a >= 0 && u.b < 0) {
+    let best = null, bs = 0.55;
+    for (const v of units) if (v.b >= 0 && v.a < 0 && !v.moved) { const s = score(u.a, v.b); if (s > bs) bs = s, best = v; }
+    if (best) { best.a = u.a; best.moved = true; u.drop = true; }
+  }
+  return units.filter(u => !u.drop);
+}
+
+/* ---------- meaning: what did the change do? ---------- */
+const RX = {
+  money: /(\$|€|£)\s?[\d,]+(\.\d+)?|\b\d+(\.\d+)?\s?(%|percent)/i,
+  time: /\b(\d+|one|two|three|four|five|six|seven|eight|nine|ten|twelve|thirty|forty|sixty|ninety)\b[^.]{0,12}\b(day|month|year|hour|week|quarter)s?\b/i,
+  date: /\b(\d{1,2}\/\d{1,2}\/\d{2,4}|(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.? \d{1,2},? \d{4})\b/i,
+  strong: /\b(shall|must|will|required|obligated)\b/i,
+  weak: /\b(may|should|endeavou?r|reasonable efforts|best efforts|commercially reasonable|attempt|discretion)\b/i,
+  carve: /\b(except|excluding|exclude|other than|notwithstanding|provided that|unless|solely|limited to|to the extent|subject to)\b/i,
+  party: /\b(customer|provider|vendor|supplier|licensor|licensee|client|contractor|(?:either|neither|each|both) part(?:y|ies))\b/gi,
+  risky: /\b(liab|indemn|warrant|terminat|confidential|exclusiv|non-?compet|non-?solicit|assign|insurance|audit|governing law|jurisdiction|renew|data|security|breach|damages|fees?|payment)/i,
+};
+// Changed tokens of one side, plus up to three unchanged neighbours, so "twelve (12)" is read as "twelve (12) months".
+function ctx(diff, op) {
+  const seq = diff.filter(d => d[0] === op || d[0] === 0), keep = new Set();
+  seq.forEach((d, k) => { if (d[0] === op) for (let q = Math.max(0, k - 3); q <= Math.min(seq.length - 1, k + 3); q++) keep.add(q); });
+  const idx = [...keep].sort((x, y) => x - y), out = [];
+  idx.forEach((q, i) => { if (i && q !== idx[i - 1] + 1) out.push('…'); out.push(seq[q][1]); });
+  return out.join(' ');
+}
+const parties = s => new Set((s.toLowerCase().match(RX.party) || []).map(w => w.replace(/^(either|neither|each|both) /, '')));
+function classify(unit, diff, section) {
+  const del = diff.filter(d => d[0] < 0).map(d => d[1]).join(' '), ins = diff.filter(d => d[0] > 0).map(d => d[1]).join(' ');
+  const cDel = ctx(diff, -1), cIns = ctx(diff, 1), both = cDel + ' ' + cIns;
+  const tags = [], sev = {v: 0}, add = (t, s) => { tags.push(t); sev.v = Math.max(sev.v, s); };
+  if (unit.a < 0) add('Clause added', RX.risky.test(ins) ? 2 : 1);
+  else if (unit.b < 0) add('Clause removed', 2);
+  if (unit.moved) add('Moved', 0);
+  if (unit.a >= 0 && unit.b >= 0) {
+    if (RX.money.test(both)) add('Amount', 2);
+    if (RX.time.test(both)) add('Timing', 2);
+    if (RX.date.test(both)) add('Date', 1);
+    const weakIn = RX.weak.test(ins) && !RX.weak.test(del), strongIn = RX.strong.test(ins) && !RX.strong.test(del);
+    if ((RX.strong.test(del) && RX.weak.test(ins)) || (weakIn && RX.strong.test(cIns))) add('Obligation weakened', 2);
+    else if ((RX.weak.test(del) && RX.strong.test(ins)) || (strongIn && RX.weak.test(cIns))) add('Obligation strengthened', 1);
+    if (RX.carve.test(ins) && !RX.carve.test(del)) add('Carve-out added', 2);
+    else if (RX.carve.test(del) && !RX.carve.test(ins)) add('Carve-out removed', 2);
+    else if (RX.carve.test(both)) add('Exception rescoped', 2);
+    const pd = parties(del), pi = parties(ins);
+    if (pd.size && pi.size && [...pd].join() !== [...pi].join()) add('Who is bound', 2);
+    if (/governing law|jurisdiction|venue|\bcourts?\b/i.test(section + ' ' + both)) add('Jurisdiction', 2);
+    if (!tags.length) add('Wording', RX.risky.test(both) ? 1 : 0);
+  }
+  return {tags, sev: ['lo', 'md', 'hi'][sev.v], del: unit.a >= 0 && unit.b >= 0 ? cDel : del, ins: unit.a >= 0 && unit.b >= 0 ? cIns : ins};
+}
+const headOf = p => { const m = p.match(/^((?:Section|Article)?\s*\d+(?:\.\d+)*[.)]?)\s+([A-Z][^.:;]{0,40})/); return m ? (m[1] + ' ' + m[2]).trim() : null; };
+const isHead = p => words(p).length <= 8 && !/[.;]$/.test(p);
+
+/* ---------- compare + render ---------- */
+let state = {changes: [], cur: -1, filter: 'all'};
+function compare() {
+  const A = paras($('#a').value), B = paras($('#b').value), units = align(A, B);
+  const red = $('#redline'), list = $('#list'); red.innerHTML = list.innerHTML = '';
+  state.changes = []; state.cur = -1;
+  let section = '', wAdd = 0, wDel = 0, changed = 0;
+  units.forEach((u, idx) => {
+    const src = u.b >= 0 ? B[u.b] : A[u.a], h = headOf(src);
+    if (h) section = h; else if (isHead(src)) section = src;
+    let diff;
+    if (u.a >= 0 && u.b >= 0) {            // renumbering is not a change: diff the bodies, keep the new number
+      const na = A[u.a].match(NUM), nb = B[u.b].match(NUM), both = na && nb;
+      diff = lcsDiff(words(both ? A[u.a].slice(na[0].length) : A[u.a]), words(both ? B[u.b].slice(nb[0].length) : B[u.b]), (x, y) => x === y);
+      if (both) diff.unshift([0, nb[0].trim()]);
+    } else diff = words(src).map(w => [u.a < 0 ? 1 : -1, w]);
+    const html = diff.map(([op, w], k) => {        // merge runs of same op for clean markup
+      const prev = diff[k - 1], next = diff[k + 1], tag = op < 0 ? 'del' : 'ins';
+      let s = esc(w);
+      if (op) { if (!prev || prev[0] !== op) s = `<${tag}>` + s; if (!next || next[0] !== op) s += `</${tag}>`; }
+      return s;
+    }).join(' ');
+    const p = document.createElement('p'); p.id = 'u' + idx; p.innerHTML = html;
+    if (isHead(src)) p.classList.add('head'); if (u.b < 0) p.classList.add('gone');
+    red.appendChild(p);
+    const dirty = diff.some(d => d[0]);
+    if (!dirty) return;
+    changed++; diff.forEach(d => d[0] > 0 ? wAdd++ : d[0] < 0 ? wDel++ : 0);
+    const c = classify(u, diff, section); c.id = idx; c.section = section || 'Preamble';
+    c.snip = c.del && c.ins ? `<del>${esc(clip(c.del))}</del> → <ins>${esc(clip(c.ins))}</ins>` : esc(clip(c.del || c.ins));
+    p.insertAdjacentHTML('afterbegin', c.tags.map(t => `<span class="tag ${t === 'Moved' ? 'mov' : c.sev}">${t}</span>`).join(''));
+    state.changes.push(c);
+  });
+  const hi = state.changes.filter(c => c.sev === 'hi').length;
+  $('#stats').innerHTML = `<span><b>${changed}</b>/${units.length} ¶ changed</span><span><b>${hi}</b> material</span><span><ins style="text-decoration:none;color:var(--ins)">+${wAdd}</ins> <del style="text-decoration:none;color:var(--del)">−${wDel}</del> words</span>`;
+  document.querySelector('#tabs [data-pane="changes"]').textContent = `Changes (${state.changes.length})`;
+  renderList();
+  if (!A.length && !B.length) red.innerHTML = '<div class="empty">Paste an original and a revised text to begin.</div>';
+}
+const clip = (s, n = 70) => s.length > n ? s.slice(0, n - 1) + '…' : s;
+function renderList() {
+  const list = $('#list'), shown = state.changes.filter(c => state.filter === 'all' || c.sev === state.filter);
+  list.innerHTML = shown.map(c => `<button class="chg ${c.sev}" data-id="${c.id}"><div class="sec">${esc(c.section)}</div><div>${c.tags.join(' · ')}</div><div class="snip">${c.snip}</div></button>`).join('')
+    || `<div class="empty">${state.changes.length ? 'Nothing in this filter.' : 'The two texts are identical.'}</div>`;
+}
+function goTo(id, fromList) {
+  const idx = state.changes.findIndex(c => c.id === id); if (idx < 0) return;
+  state.cur = idx;
+  document.querySelectorAll('#redline p.focus').forEach(e => e.classList.remove('focus'));
+  document.querySelectorAll('.chg.cur').forEach(e => e.classList.remove('cur'));
+  const p = $('#u' + id); p.classList.add('focus'); p.scrollIntoView({behavior: 'smooth', block: 'center'});
+  const row = document.querySelector(`.chg[data-id="${id}"]`); if (row) { row.classList.add('cur'); if (!fromList) row.scrollIntoView({block: 'nearest'}); }
+  if (fromList && innerWidth <= 900) showPane('redlinePane');
+}
+function step(d) {
+  const vis = state.changes.filter(c => state.filter === 'all' || c.sev === state.filter); if (!vis.length) return;
+  let i = vis.findIndex(c => state.changes.indexOf(c) === state.cur);
+  i = i < 0 ? (d > 0 ? 0 : vis.length - 1) : (i + d + vis.length) % vis.length;
+  goTo(vis[i].id);
+}
+function showPane(id) {
+  document.querySelectorAll('.pane').forEach(p => p.classList.toggle('active', p.id === id));
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.pane === id));
+}
+
+/* ---------- actions ---------- */
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 2200); }
+function summary() {
+  const mat = state.changes.filter(c => c.sev !== 'lo');
+  const line = c => `- **${c.section}** — ${c.tags.join(', ')}: ${c.del && c.ins ? `"${clip(c.del, 120)}" → "${clip(c.ins, 120)}"` : `"${clip(c.del || c.ins, 160)}"`}`;
+  return `## Redline summary — ${mat.length} material or notable changes (${state.changes.length} total)\n\n${mat.map(line).join('\n') || '_No material changes._'}\n`;
+}
+async function copySummary() {
+  const text = summary();
+  try { await navigator.clipboard.writeText(text); toast('Summary copied as Markdown'); }
+  catch { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast('Summary copied'); }
+}
+function save() {
+  const data = {app: APP, version: VERSION, saved: new Date().toISOString(), original: $('#a').value, revised: $('#b').value, filter: state.filter, theme: document.documentElement.dataset.theme || ''};
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'}));
+  a.download = `redline-${new Date().toISOString().slice(0, 10)}.json`; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000); toast('Saved ' + a.download);
+}
+function openFile(file) {
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const d = JSON.parse(r.result);
+      if (d.app !== APP || typeof d.version !== 'number') throw new Error('That file is not a Redline save (expected "app": "Redline").');
+      if (d.version > VERSION) throw new Error(`Saved by a newer Redline (v${d.version}); this page reads v${VERSION}.`);
+      $('#a').value = d.original || ''; $('#b').value = d.revised || '';
+      if (d.filter) setFilter(d.filter); if (d.theme) setTheme(d.theme);
+      compare(); toast('Opened ' + file.name);
+    } catch (e) { toast('Could not open: ' + e.message); }
+  };
+  r.readAsText(file);
+}
+function setFilter(f) { state.filter = f; document.querySelectorAll('#filters .chip').forEach(c => c.classList.toggle('on', c.dataset.f === f)); renderList(); }
+function setTheme(t) { document.documentElement.dataset.theme = t; try { localStorage.setItem('redline-theme', t); } catch {} }
+function toggleTheme() { setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'); }
+
+/* ---------- wiring ---------- */
+let timer; const schedule = () => { clearTimeout(timer); timer = setTimeout(compare, 250); };
+$('#a').addEventListener('input', schedule); $('#b').addEventListener('input', schedule);
+$('#swapBtn').onclick = () => { const a = $('#a').value; $('#a').value = $('#b').value; $('#b').value = a; compare(); };
+$('#list').addEventListener('click', e => { const b = e.target.closest('.chg'); if (b) goTo(+b.dataset.id, true); });
+$('#redline').addEventListener('click', e => { const p = e.target.closest('p'); if (p && state.changes.some(c => 'u' + c.id === p.id)) goTo(+p.id.slice(1)); });
+$('#filters').addEventListener('click', e => { const c = e.target.closest('.chip'); if (c) setFilter(c.dataset.f); });
+$('#tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) showPane(b.dataset.pane); });
+$('#nextBtn').onclick = () => step(1); $('#prevBtn').onclick = () => step(-1);
+$('#copyBtn').onclick = copySummary; $('#printBtn').onclick = () => print(); $('#saveBtn').onclick = save;
+$('#openBtn').onclick = () => $('#file').click(); $('#file').onchange = e => { if (e.target.files[0]) openFile(e.target.files[0]); e.target.value = ''; };
+$('#themeBtn').onclick = toggleTheme;
+const help = o => $('#help').classList.toggle('open', o);
+$('#helpBtn').onclick = () => help(true); $('#closeHelp').onclick = () => help(false); $('#help').onclick = e => { if (e.target.id === 'help') help(false); };
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === '/') { e.preventDefault(); help(!$('#help').classList.contains('open')); return; }
+  if (e.key === 'Escape') { help(false); return; }
+  const t = e.target, typing = t.matches('input,textarea,select,[contenteditable]'); if (typing || e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key.toLowerCase(), map = {j: () => step(1), k: () => step(-1), d: toggleTheme, c: copySummary, p: () => print(), s: save, o: () => $('#file').click(),
+    f: () => setFilter(['all', 'hi', 'md', 'lo'][(['all', 'hi', 'md', 'lo'].indexOf(state.filter) + 1) % 4]),
+    '?': () => help(true), 1: () => showPane('inputs'), 2: () => showPane('redlinePane'), 3: () => showPane('changes')};
+  if (map[k]) { e.preventDefault(); map[k](); }
+});
+(() => { let t = ''; try { t = localStorage.getItem('redline-theme') || ''; } catch {} setTheme(t || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')); })();
+
+/* ---------- demo: a counterparty's turn of an MSA ---------- */
+$('#a').value = `MASTER SERVICES AGREEMENT
+This Master Services Agreement (the "Agreement") is entered into as of January 15, 2027 between Halden Systems, Inc. ("Provider") and Meridian Health Partners LLC ("Customer").
+1. Services. Provider shall perform the services described in each Statement of Work ("SOW") executed by the parties. Provider shall perform the Services in a professional and workmanlike manner consistent with industry standards.
+2. Fees and Payment. Customer shall pay all undisputed invoices within thirty (30) days of receipt. Late payments accrue interest at 1.0% per month or the maximum rate permitted by law, whichever is less.
+3. Term. This Agreement commences on the Effective Date and continues for an initial term of two (2) years.
+4. Termination for Convenience. Either party may terminate this Agreement for convenience upon ninety (90) days' written notice to the other party.
+5. Confidentiality. Each party shall protect the other party's Confidential Information using at least the same degree of care it uses for its own, and no less than reasonable care. The obligations in this Section survive for five (5) years after termination.
+6. Data Security. Provider shall maintain an information security program with administrative, physical and technical safeguards appropriate to the sensitivity of Customer Data, and shall notify Customer of any Security Incident within forty-eight (48) hours of discovery.
+7. Warranties. Provider warrants that the Deliverables will materially conform to the applicable SOW for ninety (90) days after acceptance.
+8. Indemnification. Provider shall defend, indemnify and hold harmless Customer from third-party claims alleging that the Services infringe any intellectual property right.
+9. Limitation of Liability. Except for breaches of Section 5, indemnification obligations, or gross negligence or willful misconduct, neither party's aggregate liability shall exceed the fees paid or payable under the applicable SOW in the twelve (12) months preceding the claim.
+10. Insurance. Provider shall maintain commercial general liability insurance of at least $2,000,000 per occurrence and cyber liability insurance of at least $5,000,000 per claim.
+11. Audit. Customer may audit Provider's compliance with this Agreement once per calendar year upon thirty (30) days' written notice.
+12. Assignment. Neither party may assign this Agreement without the prior written consent of the other party, which consent shall not be unreasonably withheld.
+13. Governing Law. This Agreement is governed by the laws of the State of New York, and the parties consent to the exclusive jurisdiction of the state and federal courts located in New York County.
+14. Entire Agreement. This Agreement, including all SOWs, constitutes the entire agreement between the parties and supersedes all prior proposals and understandings.`;
+$('#b').value = `MASTER SERVICES AGREEMENT
+This Master Services Agreement (the "Agreement") is entered into as of February 1, 2027 between Halden Systems, Inc. ("Provider") and Meridian Health Partners LLC ("Customer").
+1. Services. Provider shall perform the services described in each Statement of Work ("SOW") executed by the parties. Provider shall use commercially reasonable efforts to perform the Services in a professional and workmanlike manner.
+2. Fees and Payment. Customer shall pay all invoices within forty-five (45) days of receipt. Late payments accrue interest at 1.5% per month or the maximum rate permitted by law, whichever is less.
+3. Term. This Agreement commences on the Effective Date and continues for an initial term of three (3) years, and thereafter renews automatically for successive one (1) year periods unless either party gives written notice of non-renewal at least ninety (90) days before the end of the then-current term.
+4. Termination for Convenience. Customer may terminate this Agreement for convenience upon one hundred eighty (180) days' written notice to Provider and payment of all fees that would have become due during the remainder of the then-current term.
+5. Confidentiality. Each party shall protect the other party's Confidential Information using at least the same degree of care it uses for its own, and no less than reasonable care. The obligations in this Section survive for two (2) years after termination, except that obligations with respect to trade secrets survive for so long as they remain trade secrets.
+6. Data Security. Provider shall maintain an information security program with administrative, physical and technical safeguards appropriate to the sensitivity of Customer Data, and shall notify Customer of any Security Incident within seventy-two (72) hours of confirmation.
+7. Warranties. Provider warrants that the Deliverables will materially conform to the applicable SOW for thirty (30) days after delivery.
+8. Indemnification. Provider shall defend, indemnify and hold harmless Customer from third-party claims alleging that the Services infringe any United States patent or copyright, excluding claims arising from Customer's specifications or from combination of the Services with items not supplied by Provider.
+9. Limitation of Liability. Except for gross negligence or willful misconduct, neither party's aggregate liability shall exceed the fees paid under the applicable SOW in the six (6) months preceding the claim.
+10. Assignment. Neither party may assign this Agreement without the prior written consent of the other party, except that Provider may assign this Agreement without consent to an affiliate or to a successor in connection with a merger or sale of substantially all of its assets.
+11. Governing Law. This Agreement is governed by the laws of the State of Delaware, and the parties consent to the exclusive jurisdiction of the state and federal courts located in New Castle County.
+12. Insurance. Provider shall maintain commercial general liability insurance of at least $1,000,000 per occurrence and cyber liability insurance of at least $2,000,000 per claim.
+13. Non-Solicitation. During the term and for twelve (12) months thereafter, Customer shall not solicit for employment any Provider personnel who performed Services under this Agreement.
+14. Entire Agreement. This Agreement, including all SOWs, constitutes the entire agreement between the parties and supersedes all prior proposals and understandings.`;
+compare();
+</script>
+</body>
+</html>
+
+</body></html>

@@ -16,8 +16,9 @@ One small single-page app a day, built by AI (Claude, ChatGPT, Gemini, Grok, Mus
 ## Daily flow
 
 1. The AI engines drop their finished app into the connected source folder (filename convention: `<name>-<engine>.html`; a re-saved file with the same name is treated as a new version).
-2. A scheduled Claude task stages that folder, runs `python3 scripts/publish.py --source <folder>`, writes a one-line description for anything new, and pushes to `main`.
-3. GitHub Pages rebuilds within a minute.
+2. A scheduled Claude task stages that folder, runs `python3 scripts/publish.py --source <folder> --dates <list>`, writes a one-line description for anything new, and pushes to `main`.
+3. Apps are dated by the day they were made, not the day they were published: `--dates` takes a list of `<date>|<file name>` lines produced on the computer that holds the folder (staged copies lose their mtime), and a `Daily Build YYYY-MM-DD` in an app's `<title>` counts too. A catalog date later than the file's is pulled back; nothing is ever moved later.
+4. GitHub Pages rebuilds within a minute.
 
 Each app has an optional `category` in the catalog (tool, art, game, audio, sim, image, finance, dev, focus, text, edu) that drives the filter chips.
 

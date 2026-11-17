@@ -1,0 +1,732 @@
+<!doctype html>
+<!-- Moonpost | 2026-11-13 (America/Los_Angeles)
+Purpose: Deliver parcels across lunar outposts and collect a postage stamp for each precision flight.
+Interaction: Set a launch angle and speed, fire over the crater, compare the last flight, and thread the beacon before landing on the receiving pad.
+Visual approach: A screenprinted lunar postal broadside with citron dispatch controls, violet crater profiles, hot-orange ink and perforated route stamps.
+Distinct from Belfry, Paper Cinema, Tideglass and Crosslight: a ballistic delivery challenge with persistent route-by-route flight records. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#eaf46d">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Moonpost · Lunar parcel routes</title>
+<style>
+:root {
+  color-scheme:light;
+  --ink:#292237;--ink-soft:#574f61;--paper:#f6f2e6;--paper-light:#fffbef;
+  --citron:#ebf46f;--orange:#ff703f;--lilac:#cabde6;--line:#afa89e;
+  --body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --display:"Archivo Black","Arial Black","Arial",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;
+  font-family:var(--body);color:var(--ink);background:var(--paper)
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:linear-gradient(to bottom,var(--citron) 0 9px,transparent 9px),var(--paper)}
+[hidden]{display:none!important}h1,h2,h3,p,ol{margin:0}svg{display:block}
+button,input,textarea,select{font:inherit}button,select,.toggle{touch-action:manipulation}
+button,select,input[type=text],textarea{color:var(--ink);background:var(--paper-light);border:1.4px solid var(--ink);border-radius:4px}
+button,select{min-height:44px;cursor:pointer}button{font-weight:700;line-height:1.15;padding:9px 14px}
+button:disabled,input:disabled,select:disabled{opacity:.52;cursor:default}button:not(:disabled):active{transform:translateY(1px)}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #266fa7;outline-offset:3px}
+select{font-size:16px;min-width:0;max-width:100%;padding:6px 28px 6px 10px}
+input[type=range]{accent-color:var(--ink);min-height:44px;min-width:0;margin:0;width:100%;cursor:pointer}
+textarea{display:block;width:100%;font:16px/1.42 var(--mono);padding:9px;resize:vertical}
+.frame{max-width:1376px;margin:auto;padding:clamp(17px,2.8vw,38px) clamp(15px,4vw,66px) 42px;
+  padding-top:max(clamp(17px,2.8vw,38px),env(safe-area-inset-top));
+  padding-right:max(clamp(15px,4vw,66px),env(safe-area-inset-right));
+  padding-bottom:max(42px,env(safe-area-inset-bottom));
+  padding-left:max(clamp(15px,4vw,66px),env(safe-area-inset-left))}
+.mast{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:0 0 18px;border-bottom:3px solid var(--ink);margin-bottom:18px}
+.brand{display:flex;gap:clamp(9px,1.25vw,18px);align-items:center;min-width:0}
+.brandmark{flex:none;width:clamp(56px,7.4vw,91px);height:auto;color:var(--ink)}
+.brand h1{font:900 italic clamp(2.95rem,6.2vw,5.6rem)/.91 var(--display);letter-spacing:-.075em;margin-left:-.06em}
+.brand p{font:650 clamp(.74rem,1.1vw,.95rem)/1.25 var(--mono);text-transform:uppercase;letter-spacing:.13em;margin-top:9px}
+.file-nav,.actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.file-nav button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-width:58px}
+.file-nav svg,.actions svg{height:17px;width:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.file-nav #save,.actions .primary{background:var(--ink);color:var(--paper-light)}
+.file-nav #help{border-color:transparent;background:transparent}
+.flight-deck{display:grid;grid-template-columns:minmax(0,2.35fr) minmax(275px,1fr);align-items:start;gap:clamp(12px,2vw,26px)}
+.chart,.console,.collection,.record{min-width:0}
+.chart{overflow:hidden;border:2px solid var(--ink);border-radius:6px;background:var(--ink);color:var(--paper-light)}
+.chart-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:13px clamp(12px,2vw,22px);color:var(--ink);background:var(--paper-light)}
+.route-name{min-width:0}.route-name h2{font:800 clamp(1.25rem,2.4vw,2.15rem)/1.12 var(--display);letter-spacing:-.048em;overflow-wrap:anywhere}
+.route-picker{display:flex;align-items:center;gap:7px;min-width:0;max-width:100%;font-size:.82rem;font-weight:700}.route-picker select{background:#f5f1e4;max-width:200px}
+.scene{position:relative;isolation:isolate;display:grid;place-items:center;width:100%;aspect-ratio:1000/540;background:#221e32;border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);overflow:hidden}
+#scene>svg{display:block;width:100%;height:auto;max-width:100%}
+.chart-foot{padding:12px clamp(12px,2vw,22px);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:2px 14px;background:var(--paper-light);color:var(--ink)}
+#brief{font-size:.92rem;line-height:1.42;flex:5 1 200px}
+.toggle{display:inline-flex;align-items:center;gap:7px;min-height:44px;white-space:nowrap;font-weight:650;font-size:.85rem;cursor:pointer}
+.toggle input{width:20px;height:20px;margin:0;accent-color:var(--ink);cursor:pointer}
+.console{border:2px solid var(--ink);border-radius:6px;background:var(--citron);padding:clamp(14px,2vw,25px)}
+.console h2,.section-title{font:800 clamp(1.35rem,2.5vw,2rem)/1.1 var(--display);letter-spacing:-.055em}
+.console-intro{font-size:.93rem;line-height:1.42;margin:8px 0 17px;max-width:34ch}
+.control{padding-block:9px 12px;border-top:1px solid #696e41}
+.meter-label{display:flex;align-items:baseline;justify-content:space-between;gap:7px;font-weight:750;font-size:.93rem}
+.readout{font:650 clamp(1.23rem,2vw,1.63rem)/1.2 var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.06em}
+.stepper{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;gap:10px;margin-top:6px}
+.stepper button{height:44px;width:44px;font:650 1.3rem/1 var(--mono);padding:0;background:transparent;border:1px solid #716e42;border-radius:50%}
+.launch-row{display:flex;align-items:stretch;gap:7px;margin:7px 0 0}
+.launch-row #launch{flex:1 1 auto;min-height:49px;background:var(--ink);color:#fffbe5;font-size:1rem}
+.launch-row #reset{background:transparent;font-size:.87rem;padding-inline:11px}
+#status{min-height:1.45em;font-size:.9rem;line-height:1.45;font-weight:600;overflow-wrap:anywhere;margin-top:13px}
+.ledger{margin-top:clamp(16px,2.4vw,29px);display:grid;grid-template-columns:minmax(0,2.35fr) minmax(275px,1fr);gap:clamp(12px,2vw,26px);align-items:start}
+.collection,.record{border-top:3px solid var(--ink);padding-top:13px}
+.section-head{display:flex;gap:8px;align-items:baseline;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px}
+.section-title{font-size:clamp(1.22rem,2vw,1.62rem)}#albumCount{font:650 .78rem/1.3 var(--mono);color:var(--ink-soft)}
+#album{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(106px,100%),1fr));gap:9px}
+#album button{display:grid;align-content:start;justify-items:center;gap:6px;min-width:0;width:100%;min-height:66px;padding:8px 6px 11px;text-align:center;overflow-wrap:anywhere;
+  background:var(--paper-light);color:var(--ink);border:1.3px dashed #807788;border-bottom-width:3px;font-size:.81rem;line-height:1.25}
+#album button[aria-current=true],#album button[aria-current=page],#album button[aria-pressed=true]{outline:2px solid var(--ink);outline-offset:-2px}
+#album button[data-earned=true]{border-color:var(--ink);background:#e9e1ee}
+#album button:focus-visible{outline:3px solid #266fa7;outline-offset:2px}
+#album button>svg{max-width:100%;height:63px;width:auto;display:block}#album button>span,#album button>strong{max-width:100%}
+#log{list-style:none;padding:0;color:var(--ink-soft);font-size:.9rem;line-height:1.42;overflow-wrap:anywhere}
+#log li{border-bottom:1px solid #cac3ba;padding:7px 1px}#log li:first-child{padding-top:0}
+dialog{width:min(440px,calc(100% - max(26px,env(safe-area-inset-left) + env(safe-area-inset-right))));min-width:0;color:var(--ink);background:var(--paper-light);border:2px solid var(--ink);border-top:8px solid var(--orange);border-radius:5px;padding:22px;
+  max-height:calc(100vh - 24px);max-height:calc(100dvh - max(24px,env(safe-area-inset-top) + env(safe-area-inset-bottom)));overflow:auto;overscroll-behavior:contain;box-shadow:5px 5px 0 #221a3460}
+dialog::backdrop{background:#211a35ba}dialog h2{font:850 1.65rem/1.12 var(--display);letter-spacing:-.055em;margin-bottom:12px}
+dialog p,dialog li{font-size:.93rem;line-height:1.5;overflow-wrap:anywhere}dialog p+p{margin-top:8px}dialog ol{padding-left:1.2em}dialog li+li{margin-top:7px}
+dialog .actions{margin-top:14px}#manual{margin-top:13px}#manual label{display:block;font-size:.84rem;font-weight:700;margin-bottom:4px}#selectText{margin-top:5px}
+@media(hover:hover){button:enabled:hover{filter:brightness(.93)}#album button:hover{border-color:var(--ink)}}
+@media(max-width:820px){.frame{padding-inline:max(15px,env(safe-area-inset-left)) max(15px,env(safe-area-inset-right))}.flight-deck,.ledger{grid-template-columns:minmax(0,1.75fr) minmax(245px,1fr)}.console{padding:13px}.route-picker{gap:4px}.chart-head{gap:5px}.route-picker select{max-width:177px}}
+@media(max-width:680px){.mast{margin-bottom:12px;padding-bottom:12px;flex-wrap:wrap}.brandmark{width:54px}.brand h1{font-size:clamp(2.8rem,10vw,3.75rem)}.brand p{font-size:.69rem;letter-spacing:.08em;margin-top:5px}.file-nav{gap:5px}.file-nav button{padding-inline:10px}
+  .flight-deck,.ledger{grid-template-columns:minmax(0,1fr);gap:13px}.chart-head,.chart-foot{padding:9px 11px}.route-name h2{font-size:1.45rem}.route-picker select{max-width:170px}.chart-foot{gap:0}.chart-foot #brief{flex-basis:100%}.console{padding:13px}.console h2{font-size:1.43rem}.console-intro{margin:4px 0 10px;max-width:unset}
+  .sliders{display:grid;grid-template-columns:1fr 1fr;gap:14px}.stepper{gap:5px}.launch-row #launch{min-height:46px}.ledger{margin-top:19px}.section-head{margin-bottom:10px}#album{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:470px){.sliders{grid-template-columns:minmax(0,1fr);gap:0}.control{display:grid;grid-template-columns:minmax(76px,.43fr) minmax(0,1fr);align-items:center;gap:9px;padding:6px 0}.meter-label{align-items:flex-start;flex-direction:column;gap:1px}.readout{font-size:1.08rem}.stepper{margin-top:0}.file-nav svg{display:none}.file-nav button{min-width:44px}.chart-head{align-items:flex-start;flex-direction:column}.route-picker{width:100%;justify-content:space-between}.route-picker select{flex:auto;max-width:75%}}
+@media(max-width:355px){.frame{padding-inline:max(9px,env(safe-area-inset-left)) max(9px,env(safe-area-inset-right))}.brandmark{width:44px}.mast{gap:7px}.file-nav{gap:2px}.file-nav button{padding-inline:7px}.stepper{gap:3px}#album{gap:6px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main class="frame">
+ <header class="mast">
+  <div class="brand">
+   <svg class="brandmark" viewBox="0 0 92 73" aria-hidden="true" focusable="false">
+    <path fill="#ff703f" stroke="currentColor" stroke-width="2.2" d="M20 11 83 2l-9 59-61 10z"/>
+    <g transform="rotate(-8 47 35)" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+     <path d="M15 46h22M10 40h19M4 35h19" fill="none" stroke-width="3"/>
+     <path d="m31 30 21-11 18 8v19L49 56l-18-9z" fill="#fcf7df" stroke-width="2.4"/>
+     <path d="m32 30 18 8 20-11M50 38l-1 17m-6-30 18 8v6" fill="none" stroke-width="2"/>
+     <path d="m71 11 1.4 3.2 3.5 1.1-3.5 1.4-1.4 3-1.3-3-3.4-1.4 3.4-1.1z" fill="#292237" stroke-width=".5"/>
+    </g>
+   </svg>
+   <div><h1>Moonpost</h1><p>Lunar parcel service</p></div>
+  </div>
+  <nav class="file-nav" aria-label="Flight files and help">
+   <button id="open" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18V6h7l2 2h8v3M3 18l3-6.5h15l-3 8H3z"/></svg>Open</button>
+   <button id="save" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 17v3h16v-3"/></svg>Save</button>
+   <button id="help" type="button" aria-haspopup="dialog">Guide</button>
+  </nav>
+  <input id="file" type="file" accept=".json,application/json" hidden>
+ </header>
+ <div class="flight-deck">
+  <section class="chart" aria-labelledby="routeName">
+   <div class="chart-head"><div class="route-name"><h2 id="routeName">Lunar route</h2></div><label class="route-picker" for="route">Route <select id="route"></select></label></div>
+   <div id="scene" class="scene"></div>
+   <div class="chart-foot"><p id="brief"></p><label class="toggle" for="ghost"><input type="checkbox" id="ghost">Last flight trail</label></div>
+  </section>
+  <section class="console" aria-labelledby="aim-title">
+   <h2 id="aim-title">Launch desk</h2><p class="console-intro">Land on the striped green pad to collect its stamp. Fly through the orange ring on the way for a gold postmark.</p>
+   <div class="sliders">
+    <div class="control"><label class="meter-label" for="angle">Angle <output class="readout" id="angleText" for="angle"></output></label>
+     <div class="stepper"><button id="angleDown" type="button" aria-label="Decrease launch angle">−</button><input id="angle" type="range" min="18" max="78" step="1" value="45"><button id="angleUp" type="button" aria-label="Increase launch angle">+</button></div></div>
+    <div class="control"><label class="meter-label" for="speed">Speed <output class="readout" id="speedText" for="speed"></output></label>
+     <div class="stepper"><button id="speedDown" type="button" aria-label="Decrease launch speed">−</button><input id="speed" type="range" min="150" max="340" step="1" value="230"><button id="speedUp" type="button" aria-label="Increase launch speed">+</button></div></div>
+   </div>
+   <div class="launch-row"><button id="launch" type="button">Launch parcel</button><button id="reset" type="button">Reset aim</button></div>
+   <p id="status" role="status" aria-live="polite" aria-atomic="true"></p>
+  </section>
+ </div>
+ <div class="ledger">
+  <section class="collection" aria-labelledby="album-title"><div class="section-head"><h2 id="album-title" class="section-title">Stamp album</h2><p id="albumCount"></p></div><div id="album" role="group" aria-label="Route stamps"></div></section>
+  <section class="record" aria-labelledby="log-title"><div class="section-head"><h2 id="log-title" class="section-title">Flight log</h2></div><ol id="log"></ol></section>
+ </div>
+</main>
+<dialog id="guideDialog" aria-labelledby="guide-title">
+ <h2 id="guide-title">Your first delivery</h2>
+ <ol><li>Choose a route. Find the launch site, orange ring and striped green receiving pad in the landscape.</li><li>Adjust angle and speed, then press <strong>Launch parcel</strong>. Watch where it lands. Turn on <strong>Last flight trail</strong> to compare your next shot.</li><li>Land on the pad to collect its stamp. For a gold postmark, fly through the orange ring and land on the pad in the same flight.</li></ol>
+ <p style="margin-top:12px"><strong>Save</strong> downloads a local flight file. <strong>Open</strong> restores your settings, flights and collected stamps.</p>
+ <div class="actions"><button type="button" data-close class="primary">Back to the route</button></div>
+</dialog>
+<dialog id="fileDialog" aria-labelledby="fileHeading">
+ <h2 id="fileHeading">Save flight file</h2><p id="fileInfo"></p>
+ <div class="actions"><button id="share" type="button">Share or save to Files</button><button id="again" type="button">Download again</button></div>
+ <div id="manual" hidden><label for="fileText">Flight file JSON</label><textarea id="fileText" rows="4" readonly spellcheck="false"></textarea><button type="button" id="selectText">Select text</button></div>
+ <div class="actions"><button type="button" data-close class="primary">Done</button></div>
+</dialog>
+<dialog id="confirmDialog" aria-labelledby="confirm-title">
+ <h2 id="confirm-title">Replace this flight file?</h2><p id="confText"></p>
+ <div class="actions"><button type="button" id="keep" class="primary" autofocus>Keep current flights</button><button type="button" id="replace">Replace</button></div>
+</dialog>
+<script>
+(() => { 'use strict';
+// World coordinates increase east and upward. A parcel is a point mass.
+const MOON_GRAVITY = 105;
+const STAMP_RADIUS = 22;
+const ROUTES = [
+  {
+    id:'milk-sea', name:'Milk Sea', landmark:'Harbor Nine', color:'#f1a772',
+    brief:'Cross the low dunes and drop the first letter at Harbor Nine.',
+    start:[70,44], pad:[633,707], beacon:[275,165], defaultAngle:39, defaultSpeed:235,
+    terrain:[[0,35],[116,35],[163,48],[193,46],[246,74],[281,71],[326,83],[401,55],[463,65],[510,39],[565,50],[615,42],[740,42],[775,59],[805,54],[876,89],[912,63],[1000,70]]
+  },
+  {
+    id:'twin-spires', name:'Twin Spires', landmark:'Needle Station', color:'#db8da2',
+    brief:'Lift the letter over both needles. The receiving deck sits in the valley beyond.',
+    start:[65,72], pad:[765,820], beacon:[190,209], defaultAngle:52, defaultSpeed:263,
+    terrain:[[0,63],[114,63],[150,82],[181,51],[229,66],[303,248],[338,115],[378,128],[421,270],[471,122],[523,103],[567,72],[613,86],[675,50],[724,42],[845,42],[904,94],[945,110],[1000,92]]
+  },
+  {
+    id:'sleet-shelf', name:'Sleet Shelf', landmark:'South Icehouse', color:'#8fd4d5',
+    brief:'Thread the stamp above a shallow shelf. The icehouse waits below its far lip.',
+    start:[60,41], pad:[710,765], beacon:[280,157], defaultAngle:45, defaultSpeed:282,
+    terrain:[[0,32],[110,32],[175,51],[238,39],[295,67],[326,105],[380,105],[412,133],[479,133],[499,109],[556,109],[582,85],[621,85],[656,56],[687,42],[795,42],[826,74],[884,74],[917,100],[1000,100]]
+  },
+  {
+    id:'crown-crater', name:'Crown Crater', landmark:'Crown Observatory', color:'#b6a0e4',
+    brief:'Send the parcel high enough to clear the crater rim on the way to the observatory.',
+    start:[75,75], pad:[757,801], beacon:[225,305], defaultAngle:58, defaultSpeed:287,
+    terrain:[[0,66],[119,66],[159,104],[208,153],[251,253],[287,226],[330,139],[382,99],[442,90],[489,112],[523,180],[560,293],[595,236],[643,157],[701,81],[738,42],[828,42],[884,96],[928,120],[1000,103]]
+  },
+  {
+    id:'terminus', name:'The Terminus', landmark:'Last Light Depot', color:'#e8b77f',
+    brief:'Make the long crossing to the last depot. Catch the high postmark before the descent.',
+    start:[64,61], pad:[910,954], beacon:[574,286], defaultAngle:49, defaultSpeed:297,
+    terrain:[[0,52],[115,52],[172,82],[216,55],[263,95],[308,172],[352,134],[393,180],[437,167],[479,204],[520,187],[572,229],[603,199],[648,217],[677,178],[716,173],[753,129],[800,143],[835,99],[863,107],[895,42],[973,42],[1000,64]]
+  }
+];
+
+function moonVelocity(angle, speed) {
+  const radians = angle * Math.PI / 180;
+  return [speed * Math.cos(radians), speed * Math.sin(radians)];
+}
+
+function pointAt(route, angle, speed, t) {
+  const [vx,vy] = moonVelocity(angle,speed);
+  return [route.start[0]+vx*t, route.start[1]+vy*t-MOON_GRAVITY*t*t/2];
+}
+
+function passesBeacon(route, vx, vy, endTime) {
+  // Only the interval inside the beacon's horizontal span can intersect it.
+  const dx = route.start[0] - route.beacon[0];
+  const dy = route.start[1] - route.beacon[1];
+  const lo = Math.max(0, (-dx - STAMP_RADIUS) / vx);
+  const hi = Math.min(endTime, (-dx + STAMP_RADIUS) / vx);
+  if (lo > hi) return false;
+  const g = MOON_GRAVITY;
+  function inside(t) {
+    return (dx+vx*t)**2 + (dy+vy*t-g*t*t/2)**2 <= STAMP_RADIUS**2 + 1e-8;
+  }
+  if (inside(lo) || inside(hi)) return true;
+  // Half the derivative of squared distance is a cubic. Partition it at its
+  // turning points, then isolate each minimum of distance to the exact arc.
+  const a = g*g/2, b = -1.5*g*vy, c = vx*vx+vy*vy-g*dy, d = dx*vx+dy*vy;
+  const slope = t => ((a*t+b)*t+c)*t+d;
+  const cuts = [lo];
+  const disc = b*b-3*a*c;
+  if (disc > 0) {
+    const root = Math.sqrt(disc);
+    for (const t of [(-b-root)/(3*a),(-b+root)/(3*a)]) {
+      if (lo < t && t < hi) cuts.push(t);
+    }
+  }
+  cuts.push(hi);
+  for (let i=1; i<cuts.length; i++) {
+    let left=cuts[i-1], right=cuts[i];
+    if (slope(left)>0 || slope(right)<0) continue;
+    for (let step=0; step<42; step++) {
+      const mid=(left+right)/2;
+      if (slope(mid)<0) left=mid;
+      else right=mid;
+    }
+    if (inside((left+right)/2)) return true;
+  }
+  return false;
+}
+
+function flight(route, angle, speed) {
+  const [sx,sy] = route.start;
+  const [vx,vy] = moonVelocity(angle,speed);
+  let time = (1000-sx)/vx;
+  let x = 1000, y = sy+vy*time-MOON_GRAVITY*time*time/2;
+  for (let i=1; i<route.terrain.length; i++) {
+    const [x0,y0]=route.terrain[i-1], [x1,y1]=route.terrain[i];
+    if (x1 <= sx) continue;
+    const incline = (y1-y0)/(x1-x0);
+    const intercept = sy-y0-incline*(sx-x0);
+    const rise = vy-incline*vx;
+    const discriminant = rise*rise+2*MOON_GRAVITY*intercept;
+    if (discriminant<0) continue;
+    // The downward intersection is the first possible contact from above.
+    const t = (rise+Math.sqrt(discriminant))/MOON_GRAVITY;
+    const hitX = sx+vx*t;
+    if (t<0 || hitX<Math.max(x0,sx)-1e-8 || hitX>x1+1e-8) continue;
+    time=t; x=Math.max(x0,Math.min(x1,hitX)); y=y0+incline*(x-x0); break;
+  }
+  const outcome = x < route.pad[0]-1e-8 ? 'short' : x > route.pad[1]+1e-8 ? 'long' : 'delivered';
+  const highTime = Math.min(time,vy/MOON_GRAVITY);
+  return {
+    outcome, stamped:passesBeacon(route,vx,vy,time), time, x, y,
+    apex:sy+vy*highTime-MOON_GRAVITY*highTime*highTime/2,
+    miss:outcome==='delivered'?0:Math.min(Math.abs(x-route.pad[0]),Math.abs(x-route.pad[1]))
+  };
+}
+
+const FILE_LIMIT = 64000;
+const ATTEMPT_LIMIT = 8;
+function freshPassport() {
+  const book = {};
+  for (const r of ROUTES) book[r.id] = {angle:r.defaultAngle,speed:r.defaultSpeed,attempts:[],delivered:null,stamped:null};
+  return {route:ROUTES[0].id,ghost:true,book};
+}
+function exactKeys(obj,keys) {
+  return obj !== null && typeof obj === 'object' && !Array.isArray(obj)
+    && Object.keys(obj).length===keys.length && keys.every(key=>Object.prototype.hasOwnProperty.call(obj,key));
+}
+function validAim(angle,speed) {
+  return Number.isInteger(angle) && angle>=18 && angle<=78 && Number.isInteger(speed) && speed>=150 && speed<=340;
+}
+function validShot(shot) {
+  return Array.isArray(shot) && shot.length===2 && validAim(shot[0],shot[1]);
+}
+function checkPassport(work) {
+  const ids=ROUTES.map(r=>r.id);
+  if (!exactKeys(work,['route','ghost','book']) || !ids.includes(work.route) || typeof work.ghost!=='boolean' || !exactKeys(work.book,ids))
+    throw Error('The routes or settings in this passport are incomplete.');
+  for (const r of ROUTES) {
+    const entry=work.book[r.id];
+    if (!exactKeys(entry,['angle','speed','attempts','delivered','stamped']) || !validAim(entry.angle,entry.speed)
+       || !Array.isArray(entry.attempts) || entry.attempts.length>ATTEMPT_LIMIT || !entry.attempts.every(validShot))
+      throw Error('Invalid launch settings or history for '+r.name+'.');
+    for (const key of ['delivered','stamped']) {
+      const proof=entry[key];
+      if (proof===null) continue;
+      if (!validShot(proof)) throw Error('An earned postage mark is damaged.');
+      const result=flight(r,...proof);
+      if (result.outcome!=='delivered' || (key==='stamped' && !result.stamped))
+        throw Error('A postage mark does not match its flight.');
+    }
+    if (entry.stamped && !entry.delivered) throw Error('A gold postmark requires a delivery.');
+    if (entry.attempts.some(shot=>{
+      const result=flight(r,...shot);
+      return result.outcome==='delivered' && (!entry.delivered || (result.stamped && !entry.stamped));
+    })) throw Error('A delivery is missing from the passport.');
+  }
+  return work;
+}
+function serializeSession(work) {
+  return JSON.stringify({app:'moonpost',version:1,workspace:checkPassport(work)},null,2)+'\n';
+}
+function readSession(source) {
+  if (typeof source!=='string' || source.length>FILE_LIMIT || new TextEncoder().encode(source).length>FILE_LIMIT)
+    throw Error('Choose a Moonpost JSON file of 64 KB or less.');
+  let doc;
+  try { doc=JSON.parse(source.replace(/^\uFEFF/,'')); }
+  catch {throw Error('This file contains invalid JSON.');}
+  if (!exactKeys(doc,['app','version','workspace']) || doc.app!=='moonpost' || doc.version!==1)
+    throw Error('Choose a version 1 Moonpost passport.');
+  return checkPassport(doc.workspace);
+}
+
+function stampArt(index, level) {
+  const inks = [
+    ['#713f37','#e8a675','#fae2b8'],
+    ['#543a55','#d397b4','#fadbbb'],
+    ['#294952','#8cc2c1','#e0e4c4'],
+    ['#49405c','#b4a0c7','#eed9b3'],
+    ['#674333','#d79c65','#f5deb0']
+  ];
+  const [dark,mid,light] = level==='empty' ? ['#736f69','#b0aaa0','#dbd6c9'] : inks[index];
+  const paper = level==='empty' ? '#ddd8ca' : '#fff1cf';
+  const stars = '<path d="M29 22v4m-2-2h4m47-6v4m-2-2h4m25 12v4m-2-2h4" fill="none" stroke-width="1.1"/><circle cx="53" cy="26" r="1"/><circle cx="97" cy="20" r="1"/>';
+  const scenes = [
+    // A crowded harbor crane holds a parcel over the landing apron.
+    `<path d="M12 54Q36 38 61 52T113 49Q124 45 138 49V77H12Z" fill="${mid}"/>
+      <path d="M12 65Q40 58 60 65T100 65Q114 60 138 63V78H12Z" fill="${light}"/>
+      <path d="M49 67h35v2H49zm10-2V33h3v32zm-6-32 7-7 29 9-2 3-28-6-6 4z" fill="${dark}" stroke="${light}" stroke-width="1.2"/>
+      <path d="M60 40l8 23M83 37v12" fill="none" stroke="${mid}" stroke-width="1.7"/>
+      <rect x="78" y="49" width="10" height="8" rx="1" fill="${dark}" stroke="${light}" stroke-width=".9"/><path d="M80 50h6" stroke="${light}"/>
+      <path d="M89 64v-6l5-4 5 4v6zm13 0v-9h10v9z" fill="${dark}"/> `,
+    // Two sharp peaks frame a cliffside antenna.
+    `<path d="M12 64l18-16 12 7 22-36 15 37 18-32 15 31 11-7 15 14v16H12Z" fill="${mid}"/>
+      <path d="m42 55 22-36-4 22-8 4zm38 1 17-32-3 17-7 3z" fill="${light}"/>
+      <path d="m12 72 21-10 17 5 23-6 13 9 21-11 14 4 17-8v22H12Z" fill="${dark}"/>
+      <path d="M110 59v-8l4-3 4 3v10m-5-13v-6" fill="none" stroke="${dark}" stroke-width="2"/>
+      <path d="m23 68 9-3m33 1 7-2m43 3 6 1" fill="none" stroke="${mid}" stroke-width="1.2"/> `,
+    // A block-built icehouse sits on the edge of stepped horizontal ice shelves.
+    `<path d="M12 58h14v-5h17v-5h24v5h21v5h17v-7h21v-7h12v33H12Z" fill="${mid}"/>
+      <path d="M12 69h24v-6h18v-5h37v8h23v-4h24v15H12Z" fill="${light}"/>
+      <path d="M52 57v-7a20 20 0 0 1 40 0v7z" fill="${dark}" stroke="${light}" stroke-width="1.3"/>
+      <g fill="none" stroke="${light}" stroke-width="1.3"><path d="M54 44h36m-37 7h38m-32-13h27M65 39v5m11-5v5m-16 1v6m11-6v6m11-6v6m-19 1v4"/></g>
+      <path d="M75 57v-5a5 5 0 0 1 10 0v5" fill="${mid}"/>
+      <path d="M18 72h16m6-5h9m48 3h13m8-4h13" fill="none" stroke="${dark}"/> `,
+    // The observatory dome follows the arc of the crater below.
+    `<path d="M12 43l14-10 20 16q20 21 42 12l21-13 17-17 12 6v40H12Z" fill="${mid}"/>
+      <path d="M12 56q29-3 53 12 20 10 42-3l31-17v29H12Z" fill="${light}"/>
+      <path d="M34 56v-5h4a18 18 0 0 1 36 0h4v5h-4v9l-5-2V55H42v4zm22-29v4" fill="${dark}" stroke="${light}" stroke-width="1.15"/>
+      <path d="M44 49q4-13 13-15m2 1q-1 6-6 13" fill="none" stroke="${light}" stroke-width="1.6"/>
+      <path d="M91 68q11-2 19-7m-12 10 8-3" fill="none" stroke="${mid}"/> `,
+    // The last tower shines into space across a long, jagged dark ridge.
+    `<path d="m12 57 16-7 9 4 19-11 13 5 11-4 19 11 20-6 19 4v26H12Z" fill="${mid}"/>
+      <path d="M12 69l20-3 13 3 23-9 16 2 13-5 16 4 9-2 16 5v13H12Z" fill="${light}"/>
+      <path d="m62 38-36-6 37 15 8-5 42-16-43 8z" fill="${light}"/>
+      <path d="m58 65 5-19h8l5 19zm2-21h15v3H60zm2-10 5-5 6 5zm1 1h2v8h-2zm7 0h2v8h-2z" fill="${dark}" stroke="${mid}" stroke-width="1.1"/>
+      <path d="M67 29v-6m-13 43h26" stroke="${dark}" stroke-width="2"/>
+      <circle cx="67.5" cy="39" r="2.1" fill="${light}"/><path d="m101 68 12-3m-2 7 9-2" fill="none" stroke="${mid}"/> `
+  ];
+  // The repeated notches cut into the silhouette, exposing the page below.
+  let edge='M3 3';
+  for (let x=3;x<147;x+=8) edge+='h2a2 2 0 0 0 4 0h2';
+  for (let y=3;y<91;y+=8) edge+='v2a2 2 0 0 0 0 4v2';
+  for (let x=147;x>3;x-=8) edge+='h-2a2 2 0 0 0 -4 0h-2';
+  for (let y=91;y>3;y-=8) edge+='v-2a2 2 0 0 0 0 -4v-2';
+  const seal = level==='gold' ? `<circle cx="122" cy="27" r="9" fill="#efca6c" stroke="${dark}" stroke-width="1.2"/><path d="m122 20 1.8 4.5 4.8.3-3.8 3 1.4 4.5-4.2-2.6-4.2 2.6 1.4-4.5-3.8-3 4.8-.3z" fill="${dark}"/>` :
+    `<circle cx="122" cy="26" r="6" fill="${mid}"/><circle cx="120" cy="24" r="1.4" fill="${dark}" opacity=".45"/>`;
+  return `<svg viewBox="0 0 150 95" aria-hidden="true" focusable="false"><path d="${edge}z" fill="${paper}" stroke="${mid}" stroke-width=".9"/>
+    <rect x="9" y="10" width="132" height="74" rx="1" fill="none" stroke="${mid}" stroke-width=".9"/>
+    <rect x="12" y="13" width="126" height="65" fill="${dark}"/>
+    <g fill="${light}" stroke="${light}">${stars}</g>${scenes[index]}${seal}
+    <path d="M15 81h36m4 0h8m28 0h10m4 0h30" fill="none" stroke="${mid}" stroke-width="1.15"/></svg>`;
+}
+
+// The height scale keeps even the highest legal throw on the postcard.
+const sceneY = y => +(514-.71*y).toFixed(2);
+const fix = x => +x.toFixed(2);
+function arcPath(route,angle,speed,time) {
+  // A quadratic Bézier represents a constant-gravity flight exactly.
+  const [x0,y0]=route.start, [x1,y1]=pointAt(route,angle,speed,time);
+  const [,vy]=moonVelocity(angle,speed);
+  return 'M'+x0+' '+sceneY(y0)+' Q'+fix((x0+x1)/2)+' '+sceneY(y0+vy*time/2)+' '+fix(x1)+' '+sceneY(y1);
+}
+function skyArt(index,accent) {
+  const stars=[];
+  for (let i=0;i<62;i++) {
+    const x=(i*239+index*107+i*i*7)%1000, y=(i*89+index*11+i*i*9)%355+15;
+    if (i%11===0) stars.push(`<path d="M${x-4} ${y}h8m-4-4v8" stroke="#f5e6d7" stroke-width="1.5"/>`);
+    else stars.push(`<circle cx="${x}" cy="${y}" r="${(i%3+1)*.66}" fill="${i%4?'#d7bfe1':'#f4bc9f'}"/>`);
+  }
+  const cx=[736,725,760,725,705][index], cy=[138,122,156,110,127][index], rad=63+index*3;
+  const bands=[];
+  for (let k=0;k<6;k++) {
+    const y=cy-rad+16+k*21;
+    bands.push(`<path d="M${cx-rad-10} ${y}q55 20 95 2t95 1" fill="none" stroke="${k%2?'#895986':'#e5abb6'}" stroke-width="${k%3+2}" opacity=".7"/>`);
+  }
+  return `<defs>
+    <linearGradient id="night" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="#1c1935"/><stop offset=".58" stop-color="#373154"/><stop offset="1" stop-color="#78607b"/></linearGradient>
+    <clipPath id="planet-edge"><circle cx="${cx}" cy="${cy}" r="${rad}"/></clipPath>
+    <pattern id="soil" width="9" height="9" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.05" fill="#1a182a" opacity=".28"/></pattern>
+  </defs><rect width="1000" height="540" fill="url(#night)"/>${stars.join('')}
+  <g transform="rotate(-16 ${cx} ${cy})">
+  <ellipse cx="${cx}" cy="${cy}" rx="${rad*1.66}" ry="13" stroke="#d8aacb" stroke-width="2.2" fill="none"/>
+  <circle cx="${cx}" cy="${cy}" r="${rad}" fill="${accent}"/>
+  <g clip-path="url(#planet-edge)">${bands.join('')}<path d="M${cx-54} ${cy+rad}Q${cx+74} ${cy+40} ${cx+14} ${cy-rad-6}q93 12 73 110t-141 40" fill="#523d67" opacity=".52"/></g>
+  <path d="M${cx-rad*1.66} ${cy}a${rad*1.66} 13 0 0 0 ${rad*3.32} 0" stroke="#edc4cc" stroke-width="3.5" fill="none"/></g>`;
+}
+function landscape(route,index) {
+  const colors=[['#bb897d','#946c72','#715567'],['#be8b99','#946f87','#705772'],['#9cc3c6','#769ca8','#587c8b'],['#afa0ca','#877da3','#68627e'],['#c7a078','#a67c6d','#795c65']][index];
+  const mountains = (base,amp,seed) => {
+    let path='M0 540';
+    for(let x=0;x<=1000;x+=20) {
+      const y=base+amp*(.45*Math.sin(x*.008+seed)+.34*Math.cos(x*.021+seed)+.21*Math.sin(x*.053+seed));
+      path+=' L'+x+' '+fix(y);
+    }
+    return path+' V540Z';
+  };
+  const rim=route.terrain.map(([x,y],i)=>(i?'L':'M')+x+' '+sceneY(y)).join(' ');
+  const planes=[];
+  for(let i=1;i<route.terrain.length;i++){
+    const [x,y]=route.terrain[i], [last,old]=route.terrain[i-1];
+    const shade=y>old?colors[0]:colors[2];
+    planes.push(`<path d="M${last} ${sceneY(old)}L${x} ${sceneY(y)}l${fix((last-x)*.46)} ${fix(14+Math.abs(y-old)*.31)}Z" fill="${shade}" opacity=".7"/>`);
+  }
+  const marks=[];
+  for(let i=0;i<23;i++){
+    const x=(i*157+index*211)%980+10;
+    const right=route.terrain.findIndex(v=>v[0]>=x);
+    const [x0,y0]=route.terrain[right-1], [x1,y1]=route.terrain[right];
+    const top=sceneY(y0+(y1-y0)*(x-x0)/(x1-x0)), y=Math.min(538,top+19+(i*13)%49), r=3+(i*11)%20;
+    marks.push(`<path d="M${x-r} ${y}q${r} -6 ${2*r} 0q-${r} 2 -${2*r} 0" fill="${colors[2]}"/>`);
+  }
+  return `<path d="${mountains(381,46,index*2.3)}" fill="#716584"/><path d="${mountains(424,39,index+3)}" fill="#524969"/>
+  <path d="${rim} V540H0Z" fill="${colors[1]}"/>${planes.join('')}<path d="${rim} V540H0Z" fill="url(#soil)"/>
+  <path d="${rim}" fill="none" stroke="${colors[0]}" stroke-width="3" stroke-linejoin="round"/>${marks.join('')}`;
+}
+function depotArt(index,padStart,padEnd,y) {
+  // Keep the building behind the pad. The bright stripe is its landing surface.
+  const motifs=[
+    '<path d="M-12 0v-28h5v28m-7-27 29-9v4L-10-23M8-33v14m-3 0h6v6H5z"/><path d="M3-6h12v6H3z"/>',
+    '<path d="M-14 0l6-29 6 29m2 0 6-38 6 38M-9-13H8"/><circle cx="6" cy="-39" r="2"/>',
+    '<path d="M-17 0v-14h7v-9H5v7h10V0ZM-12-9h22M-3-22v8m-4 5v7m8-14v7"/>',
+    '<path d="M-14 0v-11h29V0Zm-1-13a15 15 0 0 1 30 0Zm13-1 8-13"/><path d="M0-29l13-11 3 4-13 11z"/>',
+    '<path d="M-9 0l7-27h6l8 27m-15-13h11M-5-28v-8H7v8zM-8-36l8-7 9 7z"/><path d="m-11-34-6-2m27 2 7-2"/>'
+  ];
+  const x=padEnd<923?padEnd+23:padStart-24;
+  return `<g transform="translate(${x} ${y-1})" stroke="#b9aec7" fill="#353045" stroke-width="1.7" stroke-linejoin="round">${motifs[index]}</g>`;
+}
+function fullScene(route,entry,ghost) {
+  const index=ROUTES.indexOf(route),[sx,sy]=route.start,[bx,by]=route.beacon,[p0,p1]=route.pad;
+  const ground=route.terrain.find((p,i)=>i<route.terrain.length-1 && p[0]<=p0 && route.terrain[i+1][0]>=p0);
+  const padY=sceneY(ground[1]), beaconY=sceneY(by);
+  const previous=entry.attempts[entry.attempts.length-1];
+  let trail='';
+  if(ghost && previous) {
+    const result=flight(route,...previous);
+    trail=`<path d="${arcPath(route,...previous,result.time)}" fill="none" stroke="#eddbed" stroke-width="2.6" stroke-dasharray="4 8" opacity=".75"/><path d="M${fix(result.x)-5} ${sceneY(result.y)-5}l10 10m0-10 -10 10" stroke="#fff1e4" stroke-width="2.5"/>`;
+  }
+  const guide=Math.min(.52,flight(route,entry.angle,entry.speed).time);
+  const [hx,hy]=pointAt(route,entry.angle,entry.speed,guide);
+  const deck=`<g transform="translate(${p0} ${padY})"><path d="M0 -3H${p1-p0}" stroke="#252437" stroke-width="9"/><path d="M0 -3H${p1-p0}" stroke="#e1f581" stroke-width="7" stroke-dasharray="6 3"/>
+    <path d="M${p1-p0} -3v-39l-18 4 18 7" stroke="#dcf496" fill="#dcf496" stroke-width="2.5"/><path d="M3 -9v-8m-4 2h8" stroke="#f4f4ae" stroke-width="2"/></g>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 540" role="img" aria-label="${route.name}. Launch from the left, pass through the orange mail ring, and land on the striped green pad at ${route.landmark}.">
+    ${skyArt(index,route.color)}${landscape(route,index)}${trail}
+    <g transform="translate(${bx} ${beaconY})"><ellipse rx="${STAMP_RADIUS}" ry="${STAMP_RADIUS*.71}" stroke="#ffaf80" stroke-width="3.2" stroke-dasharray="6 4" fill="#ffb475" fill-opacity=".11"/>
+      <path d="M-7 -4h14v8H-7z M-7 -4l7 5 7-5" stroke="#ffe2b2" stroke-width="1.6" fill="none"/></g>
+    ${depotArt(index,p0,p1,padY)}${deck}<path d="${arcPath(route,entry.angle,entry.speed,guide)}" fill="none" stroke="#eafb90" stroke-width="3.4" stroke-dasharray="5 6"/>
+    <circle cx="${fix(hx)}" cy="${sceneY(hy)}" r="3.2" fill="#ecffb3"/>
+    <g transform="translate(${sx} ${sceneY(sy)})"><path d="M-26 7h40m-32-1 7-13h11l6 13" stroke="#282336" stroke-width="5" fill="#e99169"/>
+    <g transform="rotate(-${fix(Math.atan(.71*Math.tan(entry.angle*Math.PI/180))*180/Math.PI)})"><path d="M-11 -4h26v7h-26z" fill="#f19878" stroke="#292538" stroke-width="2.6"/></g></g>
+    <path id="activeTrace" fill="none" stroke="#faffbf" stroke-width="3.5" stroke-linecap="round"/>
+    <g id="parcel" display="none"><rect x="-9" y="-6" width="18" height="12" rx="2" fill="#f8faaf" stroke="#252235" stroke-width="2.3"/><path d="m-8 -5 8 6 8-6" stroke="#373143" fill="none" stroke-width="1.6"/></g>
+  </svg>`;
+}
+
+const get=id=>document.getElementById(id);
+const routeById=id=>ROUTES.find(r=>r.id===id);
+let state=freshPassport(), baseline=JSON.stringify(state), active=null;
+const stampButtons=[];
+const say=text=>{get('status').textContent=text;};
+function describe(result) {
+  if(result.outcome==='delivered') return result.stamped?'Delivered with a gold postmark':'Delivered on the striped pad';
+  return Math.max(1,Math.round(result.miss))+' m '+(result.outcome==='short'?'short of':'beyond')+' the pad';
+}
+function paintAim() {
+  const route=routeById(state.route),entry=state.book[route.id];
+  for(const [key,min,max] of [['angle',18,78],['speed',150,340]]) {
+    const value=entry[key], suffix=key==='angle'?'°':' m/s';
+    get(key).value=String(value); get(key).disabled=!!active;
+    get(key+'Text').textContent=value+suffix;
+    get(key).setAttribute('aria-valuetext',key==='angle'?value+' degrees':value+' meters per second');
+    get(key+'Down').disabled=!!active||value===min; get(key+'Up').disabled=!!active||value===max;
+  }
+  get('reset').disabled=!!active||(entry.angle===route.defaultAngle && entry.speed===route.defaultSpeed);
+  get('ghost').checked=state.ghost;
+  get('ghost').disabled=!!active;
+}
+function paintScene() {
+  const route=routeById(state.route);
+  get('scene').innerHTML=fullScene(route,state.book[route.id],state.ghost);
+}
+function paintAlbum() {
+  let deliveries=0,golds=0;
+  ROUTES.forEach((r,index)=>{
+    const record=state.book[r.id];
+    const level=record.stamped?'gold':record.delivered?'delivered':'empty';
+    const label=record.stamped?'Gold postmark':record.delivered?'Delivered':'Unsent';
+    const button=stampButtons[index];
+    if(button.getAttribute('data-level')!==level) {
+      button.innerHTML=stampArt(index,level)+'<strong>'+r.name+'</strong><span>'+label+'</span>';
+      button.setAttribute('data-level',level); button.setAttribute('data-earned',String(!!record.delivered));
+      button.setAttribute('aria-label',r.name+', '+label+'. Select route.');
+    }
+    button.setAttribute('aria-current',String(r.id===state.route));
+    if(record.delivered) deliveries++;
+    if(record.stamped) golds++;
+  });
+  get('albumCount').textContent=deliveries+'/'+ROUTES.length+' delivered · '+golds+' gold';
+}
+function paintLog() {
+  const route=routeById(state.route),entry=state.book[route.id],log=get('log');
+  log.replaceChildren();
+  if(!entry.attempts.length) {
+    const empty=document.createElement('li'); empty.textContent='Your first landing will appear here.'; log.append(empty);
+    return;
+  }
+  for(const aim of entry.attempts.slice().reverse()) {
+    const row=document.createElement('li'), result=flight(route,...aim);
+    const settings=document.createElement('strong');
+    settings.textContent=aim[0]+'° · '+aim[1]+' m/s';
+    row.append(settings,' — '+describe(result)+'.'); log.append(row);
+  }
+}
+function paint() {
+  const route=routeById(state.route);
+  get('routeName').textContent=route.landmark; get('route').value=route.id; get('brief').textContent=route.brief;
+  get('launch').textContent=active?'Skip to landing':'Launch parcel';
+  paintAim(); paintScene(); paintAlbum(); paintLog();
+}
+function selectRoute(id) {
+  if(!routeById(id) || id===state.route) return;
+  finishFlight();
+  state.route=id; paint(); say(routeById(id).landmark+' ready for dispatch.');
+}
+ROUTES.forEach(r=>{
+  const option=document.createElement('option'); option.value=r.id; option.textContent=r.name; get('route').append(option);
+  const button=document.createElement('button'); button.type='button';
+  button.addEventListener('click',()=>selectRoute(r.id));
+  get('album').append(button); stampButtons.push(button);
+});
+get('route').addEventListener('change',()=>selectRoute(get('route').value));
+function changeAim(key,value) {
+  if(active) return;
+  const entry=state.book[state.route];
+  if(!validAim(key==='angle'?value:entry.angle,key==='speed'?value:entry.speed)) return;
+  entry[key]=value; paintAim(); paintScene(); say('');
+}
+for(const key of ['angle','speed']){
+  get(key).addEventListener('input',()=>changeAim(key,Number(get(key).value)));
+  for (const [suffix,step] of [['Up',1],['Down',-1]]) {
+    get(key+suffix).addEventListener('click',()=>changeAim(key,state.book[state.route][key]+step));
+  }
+}
+get('reset').addEventListener('click',()=>{
+  if(active) return;
+  const r=routeById(state.route), e=state.book[r.id];
+  e.angle=r.defaultAngle;e.speed=r.defaultSpeed;paintAim();paintScene();say('Starting angle and speed restored.');
+});
+get('ghost').addEventListener('change',()=>{state.ghost=get('ghost').checked;paintScene();});
+
+function finishFlight() {
+  if(!active) return;
+  const shot=active; active=null; clearTimeout(shot.timer);
+  const entry=state.book[shot.route.id], aim=[shot.angle,shot.speed], result=shot.result;
+  entry.attempts.push(aim);
+  if(entry.attempts.length>ATTEMPT_LIMIT) entry.attempts.shift();
+  let message=describe(result)+'.';
+  if(result.outcome==='delivered') {
+    if(!entry.delivered) {entry.delivered=aim;message+=' '+shot.route.name+' stamp collected.';}
+    if(result.stamped && !entry.stamped) {entry.stamped=aim;message+=' Gold added to your album.';}
+    else if(!result.stamped) message+=' Try passing through the orange ring on a delivery for gold.';
+  } else {
+    if(result.stamped) message+=' The parcel cleared the ring.';
+    if(result.x===1000 && result.y>shot.route.terrain[shot.route.terrain.length-1][1]+.01) message+=' It flew off the map.';
+  }
+  paint();say(message);
+}
+function launch() {
+  if(active) {finishFlight();return;}
+  const route=routeById(state.route), {angle,speed}=state.book[state.route];
+  const result=flight(route,angle,speed);
+  const reduced=typeof matchMedia==='function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const shot={route,angle,speed,result,timer:null};
+  active=shot;
+  if(reduced) {finishFlight();return;}
+  const parcel=get('parcel'),trail=get('activeTrace');
+  if(!parcel||!trail) {finishFlight();return;}
+  get('launch').textContent='Skip to landing'; paintAim();say('Parcel in flight.');
+  parcel.setAttribute('display','inline');
+  const start=performance.now(), duration=Math.max(850,Math.min(3300,result.time*650));
+  function advance() {
+    if(active!==shot) return;
+    const p=Math.min(1,(performance.now()-start)/duration);
+    const time=result.time*p, [x,y]=pointAt(route,angle,speed,time);
+    const [vx,vy]=moonVelocity(angle,speed);
+    const tilt=fix(-Math.atan2(.71*(vy-MOON_GRAVITY*time),vx)*180/Math.PI);
+    parcel.setAttribute('transform','translate('+fix(x)+' '+sceneY(y)+') rotate('+tilt+')');
+    trail.setAttribute('d',arcPath(route,angle,speed,time));
+    if(p===1) finishFlight();
+    else shot.timer=setTimeout(advance,24);
+  }
+  advance();
+}
+get('launch').addEventListener('click',launch);
+document.addEventListener('visibilitychange',()=>{if(document.hidden) finishFlight();});
+
+let pending=null, reading=false, download=null;
+const opener=new Map();
+function showDialog(id,origin) {
+  opener.set(id,origin); get(id).showModal();
+}
+for(const d of document.querySelectorAll('dialog')) d.addEventListener('close',()=>{
+  if(d.id==='fileDialog') {download=null;get('fileText').value='';}
+  if(d.id==='confirmDialog') pending=null;
+  const button=get(opener.get(d.id));
+  if(button && !button.disabled) button.focus();
+});
+for(const b of document.querySelectorAll('[data-close]')) b.addEventListener('click',()=>b.closest('dialog').close());
+get('help').addEventListener('click',()=>{finishFlight();showDialog('guideDialog','help');});
+function applyPassport(next) {
+  state=next; baseline=JSON.stringify(state);paint();say('Passport opened at '+routeById(state.route).landmark+'.');
+}
+get('keep').addEventListener('click',()=>{pending=null;get('confirmDialog').close();say('Current passport kept.');});
+get('confirmDialog').addEventListener('cancel',()=>{pending=null;});
+get('replace').addEventListener('click',()=>{
+  const next=pending;pending=null;get('confirmDialog').close();
+  if(next) applyPassport(next);
+});
+function readLocalText(file) {
+  if(typeof file.text==='function') return file.text();
+  if(typeof FileReader==='undefined') throw Error('This browser could not read the file.');
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();reader.onload=()=>resolve(reader.result);
+    reader.onerror=reader.onabort=()=>reject(Error('The file could not be read.'));
+    reader.readAsText(file);
+  });
+}
+get('open').addEventListener('click',()=>{
+  if(reading) return;
+  finishFlight();get('file').value='';
+  try {get('file').click();} catch {say('The file picker is unavailable in this browser.');}
+});
+get('file').addEventListener('cancel',()=>say('Open canceled. Current passport kept.'));
+get('file').addEventListener('change',async()=>{
+  const file=get('file').files?.[0];if(!file||reading) return;
+  reading=true;get('open').disabled=true;
+  try {
+    if(file.size>FILE_LIMIT) throw Error('Choose a Moonpost JSON file of 64 KB or less.');
+    const next=readSession(await readLocalText(file));
+    if(['fileDialog','guideDialog','confirmDialog'].some(id=>get(id).open)) throw Error('Close the dialog and choose the file again.');
+    finishFlight();
+    if(JSON.stringify(state)===baseline) applyPassport(next);
+    else {
+      pending=next;
+      get('confText').textContent='Open the selected passport in place of your current flights and stamps? Choose Keep to save them first.';
+      showDialog('confirmDialog','open');get('keep').focus();
+    }
+  } catch(error) {say(error.message+' Current passport kept.');}
+  finally {reading=false;get('open').disabled=false;get('file').value='';}
+});
+function downloadPassport() {
+  if(!download) return;
+  const a=document.createElement('a'); let url;
+  try {
+    try {if(download.blob) url=URL.createObjectURL(download.blob);} catch {}
+    a.href=url || 'data:application/json;charset=utf-8,'+encodeURIComponent(download.text);
+    a.download=download.name;document.body.append(a);a.click();
+    get('fileInfo').textContent='Download requested for '+download.name+'.'+(download.shareFile?' On iPhone, Share also offers Save to Files.':'');
+  } catch {get('fileInfo').textContent='Copy the complete passport text below and save it as '+download.name+'.';}
+  finally {a.remove();if(url) setTimeout(()=>URL.revokeObjectURL(url),60000);}
+}
+get('save').addEventListener('click',()=>{
+  finishFlight();
+  const text=serializeSession(state), name='moonpost-'+state.route+'.json', type='application/json';
+  download={text,name,blob:null,shareFile:null};
+  try {
+    download.blob=new Blob([text],{type});
+    const f=new File([download.blob],name,{type});
+    if(navigator.share && navigator.canShare?.({files:[f]})) download.shareFile=f;
+  } catch {}
+  get('fileHeading').textContent='Save passport';get('share').hidden=!download.shareFile;
+  get('fileText').value=text;get('manual').hidden=false;
+  downloadPassport();showDialog('fileDialog','save');
+});
+get('again').addEventListener('click',downloadPassport);
+get('share').addEventListener('click',async()=>{
+  const saved=download;if(!saved?.shareFile) return;
+  try {
+    await navigator.share({files:[saved.shareFile]});
+    if(serializeSession(state)===saved.text) baseline=JSON.stringify(state);
+    if(download===saved) get('fileInfo').textContent='Share sheet completed.';
+  } catch(error) {
+    if(download===saved) get('fileInfo').textContent=error.name==='AbortError'?'Sharing canceled. Your passport is still open.':'Use Download again or copy the passport text.';
+  }
+});
+get('selectText').addEventListener('click',()=>{get('fileText').focus();get('fileText').select();});
+paint();
+
+})();
+</script>
+</body>
+</html>

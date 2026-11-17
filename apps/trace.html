@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trace</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: process map on the left, a scrolling analyst column on the right; one column on phones. */
+:root{
+  --bg:#eef1f5; --panel:#ffffff; --fg:#17202b; --muted:#5f6c7b; --line:#d3dbe5;
+  --accent:#0f7b86; --accent-soft:#d9eef0; --warn:#c98a1d; --crit:#c3432f;
+  --node:#ffffff; --node-line:#9db0c4; --edge:#8da0b5;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1319; --panel:#171d26; --fg:#e4e9ef; --muted:#8c99aa; --line:#27313f;
+  --accent:#3fc6cf; --accent-soft:#11343a; --warn:#e2a64c; --crit:#f06c58;
+  --node:#1c2430; --node-line:#3c4a5c; --edge:#5c6d82; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#0e1319; --panel:#171d26; --fg:#e4e9ef; --muted:#8c99aa; --line:#27313f;
+  --accent:#3fc6cf; --accent-soft:#11343a; --warn:#e2a64c; --crit:#f06c58;
+  --node:#1c2430; --node-line:#3c4a5c; --edge:#5c6d82; color-scheme:dark;}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 var(--sans);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 24px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+button{font:inherit;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:10px;min-height:44px;min-width:44px;padding:0 14px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+h1{font-size:22px;margin:0;letter-spacing:-.01em}
+h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 10px;font-weight:600}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-block:12px}
+.brand{display:flex;align-items:baseline;gap:10px}
+.tag{color:var(--muted);font-size:13px}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+main{display:grid;gap:14px;grid-template-areas:"tiles" "graph" "side";grid-template-columns:minmax(0,1fr)}
+@media (min-width:900px){main{grid-template-columns:minmax(0,1fr) 380px;grid-template-areas:"graph tiles" "graph side";align-items:start}
+  .graph-card{position:sticky;top:76px;height:calc(100vh - 100px)}}
+.tiles{grid-area:tiles;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
+.tile b{display:block;font:600 20px/1.2 var(--mono);font-variant-numeric:tabular-nums}
+.tile span{color:var(--muted);font-size:12px}
+.graph-card{grid-area:graph;background:var(--panel);border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;height:62vh;min-height:420px;overflow:hidden}
+.graph-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted);flex-wrap:wrap}
+.legend{display:flex;align-items:center;gap:6px;font-size:12px}
+.grad{width:70px;height:8px;border-radius:4px;background:linear-gradient(90deg,var(--edge),var(--warn),var(--crit))}
+.stage{position:relative;flex:1;min-height:0}
+svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
+svg:active{cursor:grabbing}
+.node rect{fill:var(--node);stroke:var(--node-line);stroke-width:1.5}
+.node text{fill:var(--fg);text-anchor:middle;font-family:var(--sans);font-size:13px;pointer-events:none}
+.node .cnt{fill:var(--muted);font-family:var(--mono);font-size:11px}
+.node.term rect{fill:var(--accent-soft);stroke:var(--accent)}
+.node.sel rect{stroke:var(--accent);stroke-width:3}
+.edge .hit{stroke:transparent;stroke-width:18;fill:none;pointer-events:stroke}
+.edge .vis{fill:none}
+.edge .lbl{font-family:var(--mono);font-size:11px;fill:var(--fg);text-anchor:middle;paint-order:stroke;stroke:var(--panel);stroke-width:4px;pointer-events:none}
+.edge.sel .vis{stroke:var(--accent)!important}
+.edge.sel .head{fill:var(--accent)!important}
+.dim{opacity:.18}
+.zoom{position:absolute;right:10px;bottom:10px;display:flex;gap:6px}
+.zoom button{padding:0 10px}
+.empty{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);text-align:center;padding:20px}
+.sliders{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:8px 14px 12px;border-top:1px solid var(--line)}
+.sliders label{display:block;font-size:12px;color:var(--muted)}
+.sliders output{float:right;font-family:var(--mono);color:var(--fg)}
+.sliders input{width:100%;height:44px;margin:0;accent-color:var(--accent)}
+.side{grid-area:side;display:grid;gap:14px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;min-width:0}
+.detail h3{margin:0 0 6px;font-size:16px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13px}
+.kv dt{color:var(--muted)}.kv dd{margin:0;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.flow{list-style:none;padding:0;margin:8px 0 0;display:grid;gap:4px;font-size:13px}
+.flow li{display:flex;justify-content:space-between;gap:8px}.flow li span:last-child{font-family:var(--mono);color:var(--muted)}
+.bn{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line);min-height:44px;cursor:pointer}
+.bn:first-of-type{border-top:0}
+.bn i{width:10px;height:10px;border-radius:50%;flex:none}
+.bn b{font-family:var(--mono);font-weight:500;margin-left:auto;white-space:nowrap}
+ol.variants{list-style:none;padding:0;margin:0}
+ol.variants button{display:block;width:100%;text-align:left;border:0;border-top:1px solid var(--line);border-radius:0;padding:8px 0;background:none;min-height:44px}
+ol.variants li:first-child button{border-top:0}
+ol.variants button.sel{color:var(--accent)}
+.vhead{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);font-family:var(--mono)}
+.vbar{height:4px;background:var(--line);border-radius:2px;margin:4px 0}.vbar i{display:block;height:100%;background:var(--accent);border-radius:2px}
+.vseq{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+textarea{width:100%;min-height:180px;font:16px/1.4 var(--mono);background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:10px;resize:vertical}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.hint,.msg{font-size:12px;color:var(--muted);margin:0 0 8px}
+.msg.err{color:var(--crit)}
+.overlay{position:fixed;inset:0;background:rgba(10,14,20,.55);display:grid;place-items:center;z-index:20;padding:16px}
+.sheet{background:var(--panel);color:var(--fg);border-radius:16px;padding:20px;max-width:560px;width:100%;max-height:90vh;overflow:auto}
+.sheet h2{font-size:18px;text-transform:none;letter-spacing:0;color:var(--fg)}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13px;margin:12px 0}
+kbd{font:12px var(--mono);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:1px 6px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;z-index:30;font-size:13px;max-width:90vw}
+@media (prefers-reduced-motion:no-preference){.node rect,.edge .vis{transition:opacity .2s}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><h1>Trace</h1><span class="tag">process mining from any event log, offline</span></div>
+  <div class="tools">
+    <button id="btnData" title="Jump to the event log (D)">Data</button>
+    <button id="btnSave" title="Save session as JSON (S)">Save</button>
+    <button id="btnOpen" title="Open a saved session (O)">Open</button>
+    <button id="btnTheme" aria-label="Toggle dark or light theme" title="Theme (T)">◐</button>
+    <button id="btnHelp" aria-label="Help" title="Help (Ctrl+/)">?</button>
+  </div>
+</header>
+<main>
+  <section class="tiles" id="tiles" aria-label="Summary"></section>
+  <section class="graph-card" aria-label="Process map">
+    <div class="graph-head"><span id="graphTitle">Discovering…</span><span class="legend">quick hand-off <i class="grad"></i> slow</span></div>
+    <div class="stage">
+      <svg id="svg" viewBox="0 0 800 600" role="img" aria-label="Discovered process map"></svg>
+      <div class="empty" id="empty" hidden></div>
+      <div class="zoom"><button id="zFit" title="Fit (F)">Fit</button><button id="zIn" aria-label="Zoom in">+</button><button id="zOut" aria-label="Zoom out">−</button></div>
+    </div>
+    <div class="sliders">
+      <label>Activities <output id="actsOut">100%</output><input type="range" id="acts" min="10" max="100" step="5" value="100" aria-label="Share of activities shown"></label>
+      <label>Paths <output id="pathsOut">60%</output><input type="range" id="paths" min="5" max="100" step="5" value="60" aria-label="Share of paths shown"></label>
+    </div>
+  </section>
+  <aside class="side">
+    <section class="card detail" id="detail" aria-live="polite"></section>
+    <section class="card"><h2>Variants</h2><ol class="variants" id="variants"></ol></section>
+    <section class="card" id="dataCard">
+      <h2>Event log</h2>
+      <p class="hint">Paste a CSV export with case, activity and timestamp columns (comma, tab or semicolon). Any ERP, ticketing or CRM history export works. Nothing leaves this page.</p>
+      <textarea id="csv" spellcheck="false" aria-label="Event log CSV"></textarea>
+      <div class="row">
+        <button id="btnImport">Import CSV</button>
+        <button id="btnDemo">Reset demo</button>
+        <span class="msg" id="parseMsg"></span>
+      </div>
+    </section>
+  </aside>
+</main>
+<div class="overlay" id="help" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <h2 id="helpTitle">Trace</h2>
+    <p>Trace discovers the real process hidden in an event log. Every case (order, ticket, invoice) is sorted by time, consecutive steps become arrows, and the map shows how often each path was taken and how long each hand-off waited. Red arrows are the bottlenecks. The Paths slider hides rare routes; the Activities slider hides rare steps. Tap any step, arrow or variant for detail.</p>
+    <div class="keys">
+      <kbd>Ctrl / ⌘ + /</kbd><span>This help</span>
+      <kbd>T</kbd><span>Toggle theme</span>
+      <kbd>S</kbd><span>Save session (.json)</span>
+      <kbd>O</kbd><span>Open a saved session</span>
+      <kbd>D</kbd><span>Jump to the event log</span>
+      <kbd>F</kbd><span>Fit the map</span>
+      <kbd>[ ]</kbd><span>Fewer / more paths</span>
+      <kbd>, .</kbd><span>Fewer / more activities</span>
+      <kbd>Esc</kbd><span>Clear selection, close help</span>
+    </div>
+    <p class="hint">Drag to pan, pinch or scroll to zoom. Save downloads a JSON file with the log and settings; Open restores it. Downloads work when this file is opened directly in a browser (the artifact viewer blocks them).</p>
+    <button class="primary" id="helpClose">Close</button>
+  </div>
+</div>
+<input type="file" id="fileJson" accept=".json,application/json" hidden>
+<input type="file" id="fileCsv" accept=".csv,.txt,text/csv,text/plain" hidden>
+<script>
+'use strict';
+const APP='Trace', VERSION=1, START='\u0000start', END='\u0000end';
+const $=s=>document.querySelector(s);
+const K=(a,b)=>a+'\u0001'+b;
+const label=id=>id===START?'Start':id===END?'End':id;
+
+/* ---------- demo log: a procure-to-pay process with a rework loop ---------- */
+function mulberry32(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function demoCSV(){
+  const g=mulberry32(20261106);
+  const norm=()=>{let u=0,v=0;while(!u)u=g();while(!v)v=g();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)};
+  const wait=h=>h*Math.exp(.45*norm())*36e5;              // typical hours until the next step, log-normal spread
+  const W={'Create PR':4,'Approve PR':30,'Create PO':6,'Send PO':2,'Receive Goods':120,'Receive Invoice':72,'Match Invoice':8,'Resolve Mismatch':110,'Approve Payment':40,'Pay Invoice':0,'Reject PR':0};
+  const std=['Create PR','Approve PR','Create PO','Send PO','Receive Goods','Receive Invoice','Match Invoice','Approve Payment','Pay Invoice'];
+  const rows=['case,activity,timestamp'], t0=Date.UTC(2026,8,1,8);
+  for(let i=1;i<=90;i++){
+    const r=g(); let seq;
+    if(r<.55) seq=std.slice();
+    else if(r<.73){seq=std.slice(0,7);for(let k=0,n=g()<.3?2:1;k<n;k++)seq.push('Resolve Mismatch','Match Invoice');seq.push('Approve Payment','Pay Invoice')}
+    else if(r<.83){seq=std.slice();[seq[4],seq[5]]=[seq[5],seq[4]]}  // invoice before goods
+    else if(r<.92) seq=std.slice(2);                                     // maverick buying: no requisition
+    else seq=['Create PR','Reject PR'];
+    let t=t0+g()*45*864e5; const id='P2P-'+(1000+i);
+    for(const a of seq){rows.push(id+','+a+','+new Date(t).toISOString().slice(0,16).replace('T',' '));t+=wait(W[a])}
+  }
+  return rows.join('\n');
+}
+
+/* ---------- parsing ---------- */
+function splitLine(line,d){const o=[];let c='',q=false;for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'){if(q&&line[i+1]==='"'){c+='"';i++}else q=!q}else if(ch===d&&!q){o.push(c);c=''}else c+=ch}o.push(c);return o.map(s=>s.trim())}
+function parseTime(s){
+  if(!s||s.length<6) return NaN;
+  if(/^\d{9,13}$/.test(s)) return s.length<=10? +s*1000 : +s;      // epoch seconds or ms
+  let t=Date.parse(s);
+  if(isNaN(t)&&/^\d{4}-\d{2}-\d{2} \d/.test(s)) t=Date.parse(s.replace(' ','T'));
+  return t;
+}
+function parseLog(text){
+  const lines=text.split(/\r?\n/).filter(l=>l.trim());
+  if(!lines.length) return {events:[],skipped:0,error:'The log is empty.'};
+  const d=[',','\t',';','|'].map(c=>[c,lines[0].split(c).length]).sort((a,b)=>b[1]-a[1])[0][0];
+  const first=splitLine(lines[0],d), low=first.map(s=>s.toLowerCase());
+  const hasHeader=!first.some(c=>!isNaN(parseTime(c)));
+  let ci=0,ai=1,ti=2;
+  if(hasHeader){
+    const find=(re,def)=>{const i=low.findIndex(h=>re.test(h));return i<0?def:i};
+    ci=find(/case|^id$|ticket|order|instance|trace|invoice|incident/,0);
+    ai=find(/activ|event|task|step|action|status|stage|state/,1);
+    ti=find(/time|date|stamp|start|complet|when/,2);
+    if(new Set([ci,ai,ti]).size<3) [ci,ai,ti]=[0,1,2];
+  }
+  const events=[]; let skipped=0;
+  for(let i=hasHeader?1:0;i<lines.length;i++){
+    const c=splitLine(lines[i],d); if(c.length<3){skipped++;continue}
+    const t=parseTime(c[ti]); if(isNaN(t)||!c[ci]||!c[ai]){skipped++;continue}
+    events.push({c:c[ci],a:c[ai],t});
+  }
+  return {events,skipped,error:events.length?null:'No rows had a case, an activity and a readable timestamp.'};
+}
+
+/* ---------- discovery: directly-follows graph, variants, filters ---------- */
+function mine(events,actsPct,pathsPct){
+  const byCase=new Map(), actCount=new Map();
+  for(const e of events){(byCase.get(e.c)||byCase.set(e.c,[]).get(e.c)).push(e);actCount.set(e.a,(actCount.get(e.a)||0)+1)}
+  const ranked=[...actCount].sort((a,b)=>b[1]-a[1]);
+  const kept=new Set(ranked.slice(0,Math.max(1,Math.round(ranked.length*actsPct/100))).map(x=>x[0]));
+  const nodes=new Map(), edges=new Map(), variants=new Map(), caseDur=[]; let rework=0;
+  const node=id=>nodes.get(id)||nodes.set(id,{id,count:0,cases:new Set(),waits:[]}).get(id);
+  const link=(a,b,w,c)=>{const e=edges.get(K(a,b))||edges.set(K(a,b),{from:a,to:b,count:0,waits:[],cases:new Set()}).get(K(a,b));e.count++;e.waits.push(w);e.cases.add(c);if(a!==START)node(a).waits.push(w)};
+  node(START);node(END);
+  for(const [c,evs] of byCase){
+    evs.sort((a,b)=>a.t-b.t);
+    caseDur.push(evs[evs.length-1].t-evs[0].t);
+    if(new Set(evs.map(e=>e.a)).size<evs.length) rework++;
+    const tr=evs.filter(e=>kept.has(e.a)); if(!tr.length) continue;
+    const key=tr.map(e=>e.a).join('\u0001');
+    const v=variants.get(key)||variants.set(key,{seq:tr.map(e=>e.a),count:0,cases:[],durs:[]}).get(key);
+    v.count++;v.cases.push(c);v.durs.push(tr[tr.length-1].t-tr[0].t);
+    let prev=START,pt=tr[0].t; const s=node(START); s.count++; s.cases.add(c);
+    for(const e of tr){const n=node(e.a);n.count++;n.cases.add(c);link(prev,e.a,e.t-pt,c);prev=e.a;pt=e.t}
+    link(prev,END,0,c); const en=node(END); en.count++; en.cases.add(c);
+  }
+  // Path filter: always keep each node's strongest in- and out-arrow so the map stays connected, then add arrows by frequency.
+  const sorted=[...edges.values()].sort((a,b)=>b.count-a.count), must=new Set();
+  for(const n of nodes.values()){
+    const bo=sorted.find(e=>e.from===n.id), bi=sorted.find(e=>e.to===n.id);
+    if(bo) must.add(bo); if(bi) must.add(bi);
+  }
+  const shown=new Set(must), target=Math.max(must.size,Math.round(sorted.length*pathsPct/100));
+  for(const e of sorted){if(shown.size>=target)break;shown.add(e)}
+  return {nodes,edges:[...shown],allEdges:sorted,variants:[...variants.values()].sort((a,b)=>b.count-a.count),caseDur,rework,nCases:byCase.size,nEvents:events.length,nActs:actCount.size};
+}
+const median=a=>{if(!a.length)return 0;const s=[...a].sort((x,y)=>x-y),m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2};
+const mean=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:0;
+function fmtDur(ms){if(ms<6e4)return '<1 min';if(ms<36e5)return Math.round(ms/6e4)+' min';if(ms<864e5)return (ms/36e5).toFixed(1)+' h';return (ms/864e5).toFixed(1)+' d'}
+const pct=(a,b)=>b?Math.round(100*a/b)+'%':'0%';
+
+/* ---------- layered layout (Sugiyama-style, top to bottom) ---------- */
+const nodeW=id=>Math.max(id===START||id===END?84:96,Math.round(label(id).length*7.6)+28), NH=44, GX=34, GY=88;
+function layout(nodes,edges,horiz){
+  const ids=[...nodes.keys()], out=new Map(ids.map(i=>[i,[]])), inn=new Map(ids.map(i=>[i,[]]));
+  for(const e of edges){out.get(e.from).push(e.to);inn.get(e.to).push(e.from)}
+  const st=new Map(), back=new Set();                      // DFS marks arrows that point upstream (loops)
+  const dfs=u=>{st.set(u,1);for(const v of out.get(u)){if(v===u||st.get(v)===1)back.add(K(u,v));else if(!st.has(v))dfs(v)}st.set(u,2)};
+  dfs(START); ids.forEach(i=>{if(!st.has(i))dfs(i)});
+  const fwd=edges.filter(e=>!back.has(K(e.from,e.to)));
+  const indeg=new Map(ids.map(i=>[i,0])), layer=new Map(ids.map(i=>[i,0]));
+  fwd.forEach(e=>indeg.set(e.to,indeg.get(e.to)+1));
+  const q=ids.filter(i=>!indeg.get(i));
+  while(q.length){const u=q.shift();for(const e of fwd)if(e.from===u){layer.set(e.to,Math.max(layer.get(e.to),layer.get(u)+1));indeg.set(e.to,indeg.get(e.to)-1);if(!indeg.get(e.to))q.push(e.to)}}
+  let maxL=0; for(const [i,l] of layer) if(i!==END) maxL=Math.max(maxL,l); layer.set(END,maxL+1);
+  const L=[]; ids.forEach(i=>(L[layer.get(i)]??=[]).push(i)); for(let l=0;l<L.length;l++) L[l]??=[];
+  const pos=new Map(), setPos=()=>L.forEach(a=>a.forEach((id,k)=>pos.set(id,k))); setPos();
+  for(let it=0;it<8;it++){                                 // barycenter sweeps reduce crossings
+    const down=it%2===0;
+    for(let l=down?1:L.length-2;down?l<L.length:l>=0;l+=down?1:-1){
+      const nb=id=>(down?inn:out).get(id).filter(n=>layer.get(n)===(down?l-1:l+1));
+      const bc=new Map(L[l].map(id=>[id,nb(id).length?mean(nb(id).map(n=>pos.get(n))):pos.get(id)]));
+      L[l].sort((a,b)=>bc.get(a)-bc.get(b)); setPos();
+    }
+  }
+  // Flow runs top-to-bottom or left-to-right; render() keeps whichever fits the screen larger.
+  const xy=new Map();
+  if(!horiz) L.forEach((arr,l)=>{const total=arr.reduce((s,id)=>s+nodeW(id),0)+GX*(arr.length-1);let x=-total/2;for(const id of arr){const w=nodeW(id);xy.set(id,{x:x+w/2,y:l*GY,w,h:NH});x+=w+GX}});
+  else{let cx=0;L.forEach(arr=>{const cw=Math.max(...arr.map(nodeW),0),total=arr.length*NH+30*(arr.length-1);let y=-total/2;for(const id of arr){xy.set(id,{x:cx+cw/2,y:y+NH/2,w:nodeW(id),h:NH});y+=NH+30}cx+=cw+70})}
+  const ps=[...xy.values()], bbox={x0:Math.min(...ps.map(p=>p.x-p.w/2))-50,x1:Math.max(...ps.map(p=>p.x+p.w/2))+(horiz?50:140),y0:Math.min(...ps.map(p=>p.y))-50,y1:Math.max(...ps.map(p=>p.y))+(horiz?130:50)};
+  return {xy,back,bbox,horiz};
+}
+function edgeGeom(e,xy,back){
+  const a=xy.get(e.from), b=xy.get(e.to), isBack=back.has(K(e.from,e.to)); let p;
+  if(e.from===e.to){const x=horiz?a.x:a.x+a.w/2,y=horiz?a.y+a.h/2:a.y;p=horiz?[[x-12,y],[x-30,y+44],[x+30,y+44],[x+12,y]]:[[x,y-12],[x+44,y-30],[x+44,y+30],[x,y+12]]}
+  else if(!isBack&&!horiz){const y1=a.y+a.h/2,y2=b.y-b.h/2,my=(y1+y2)/2;p=[[a.x,y1],[a.x,my],[b.x,my],[b.x,y2]]}
+  else if(!isBack){const x1=a.x+a.w/2,x2=b.x-b.w/2,mx=(x1+x2)/2;p=[[x1,a.y],[mx,a.y],[mx,b.y],[x2,b.y]]}
+  else if(!horiz){const off=Math.max(a.x+a.w/2,b.x+b.w/2)+50+Math.abs(a.y-b.y)/5;p=[[a.x+a.w/2,a.y],[off,a.y],[off,b.y],[b.x+b.w/2,b.y]]}
+  else{const off=Math.max(a.y,b.y)+NH/2+40+Math.abs(a.x-b.x)/5;p=[[a.x,a.y+a.h/2],[a.x,off],[b.x,off],[b.x,b.y+b.h/2]]}
+  const at=t=>{const u=1-t;return [0,1].map(i=>u*u*u*p[0][i]+3*u*u*t*p[1][i]+3*u*t*t*p[2][i]+t*t*t*p[3][i])};
+  const end=p[3], tan=[p[3][0]-p[2][0],p[3][1]-p[2][1]], ang=Math.atan2(tan[1],tan[0]);
+  return {d:`M${p[0]} C${p[1]} ${p[2]} ${p[3]}`,mid:at(.5),end,ang};
+}
+
+/* ---------- rendering ---------- */
+const svg=$('#svg'); let model=null, geo=null, vb={x:0,y:0,w:800,h:600}, selected=null, horiz=false;
+function bestLayout(nodes,edges){
+  const r=svg.getBoundingClientRect(), scale=g=>Math.min(r.width/(g.bbox.x1-g.bbox.x0),r.height/(g.bbox.y1-g.bbox.y0));
+  const v=layout(nodes,edges,false), h=layout(nodes,edges,true);
+  return scale(h)>scale(v)*1.05?h:v;
+}
+const cssVar=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const hex=c=>[1,3,5].map(i=>parseInt(c.slice(i,i+2),16));
+const mix=(c1,c2,t)=>'rgb('+hex(c1).map((v,i)=>Math.round(v+(hex(c2)[i]-v)*t)).join(',')+')';
+function heat(t){const a=cssVar('--edge'),w=cssVar('--warn'),c=cssVar('--crit');return t<.5?mix(a,w,t*2):mix(w,c,(t-.5)*2)}
+function render(keepView){
+  const {nodes,edges}=model; geo=bestLayout(nodes,edges); horiz=geo.horiz;
+  const maxC=Math.max(...edges.map(e=>e.count)), meds=edges.map(e=>median(e.waits)), maxM=Math.max(1,...meds);
+  const esc=s=>s.replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+  let out='';
+  edges.forEach((e,i)=>{
+    const g=edgeGeom(e,geo.xy,geo.back), col=heat(Math.sqrt(meds[i]/maxM)), w=1.5+6*e.count/maxC;
+    const h=7+w, c=Math.cos(g.ang), s=Math.sin(g.ang), [x,y]=g.end;
+    const head=[[x,y],[x-h*c+h*.45*s,y-h*s-h*.45*c],[x-h*c-h*.45*s,y-h*s+h*.45*c]].map(p=>p.map(v=>v.toFixed(1))).join(' ');
+    out+=`<g class="edge" data-edge="${esc(e.from)}|${esc(e.to)}"><path class="hit" d="${g.d}"/><path class="vis" d="${g.d}" stroke="${col}" stroke-width="${w.toFixed(1)}"/><polygon class="head" points="${head}" fill="${col}"/><text class="lbl" x="${g.mid[0].toFixed(1)}" y="${(g.mid[1]+4).toFixed(1)}">${e.count}${e.from===START||e.to===END?'':' · '+fmtDur(meds[i])}</text></g>`;
+  });
+  for(const n of nodes.values()){
+    const p=geo.xy.get(n.id), term=n.id===START||n.id===END;
+    out+=`<g class="node${term?' term':''}" data-node="${esc(n.id)}" transform="translate(${(p.x-p.w/2).toFixed(1)},${(p.y-p.h/2).toFixed(1)})"><rect width="${p.w}" height="${p.h}" rx="${term?22:10}"/><text class="lbl" x="${p.w/2}" y="${term?27:19}">${esc(label(n.id))}</text>${term?'':`<text class="cnt" x="${p.w/2}" y="35">${n.count}</text>`}</g>`;
+  }
+  svg.innerHTML=out;
+  if(!keepView) fit();
+  applySelection();
+}
+function fit(){
+  const {x0,x1,y0,y1}=geo.bbox; vb={x:x0,y:y0,w:x1-x0,h:y1-y0}; setVB();
+}
+const setVB=()=>svg.setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+function zoomAt(f,cx,cy){const r=svg.getBoundingClientRect(),px=vb.x+(cx-r.left)/r.width*vb.w,py=vb.y+(cy-r.top)/r.height*vb.h;vb={x:px-(px-vb.x)*f,y:py-(py-vb.y)*f,w:vb.w*f,h:vb.h*f};setVB()}
+
+/* pan, pinch and tap with Pointer Events */
+const ptrs=new Map(); let downAt=null, moved=false, hitEl=null;
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});if(ptrs.size===1){downAt={x:e.clientX,y:e.clientY};moved=false;hitEl=e.target.closest('[data-node],[data-edge]')}});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId)) return;
+  const prev=ptrs.get(e.pointerId), r=svg.getBoundingClientRect(), k=vb.w/r.width;
+  if(ptrs.size===1){vb.x-=(e.clientX-prev.x)*k;vb.y-=(e.clientY-prev.y)*k;setVB()}
+  else if(ptrs.size===2){const [a,b]=[...ptrs.values()],o=ptrs.get(e.pointerId);const other=o===a?b:a;const d0=Math.hypot(a.x-b.x,a.y-b.y),d1=Math.hypot(e.clientX-other.x,e.clientY-other.y);if(d0>0&&d1>0)zoomAt(d0/d1,(e.clientX+other.x)/2,(e.clientY+other.y)/2)}
+  ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(downAt&&Math.hypot(e.clientX-downAt.x,e.clientY-downAt.y)>6) moved=true;
+});
+const up=e=>{ptrs.delete(e.pointerId);if(!ptrs.size&&downAt){if(!moved){if(hitEl?.dataset.node)select({type:'node',id:hitEl.dataset.node});else if(hitEl?.dataset.edge){const [f,t]=hitEl.dataset.edge.split('|');select({type:'edge',from:f,to:t})}else select(null)}downAt=null}};
+svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY>0?1.15:1/1.15,e.clientX,e.clientY)},{passive:false});
+$('#zFit').onclick=fit;
+$('#zIn').onclick=()=>{const r=svg.getBoundingClientRect();zoomAt(1/1.3,r.left+r.width/2,r.top+r.height/2)};
+$('#zOut').onclick=()=>{const r=svg.getBoundingClientRect();zoomAt(1.3,r.left+r.width/2,r.top+r.height/2)};
+
+/* ---------- selection and the detail panel ---------- */
+function select(s){selected=s;applySelection()}
+function applySelection(){
+  const nodesEl=svg.querySelectorAll('.node'), edgesEl=svg.querySelectorAll('.edge');
+  nodesEl.forEach(el=>el.classList.remove('dim','sel')); edgesEl.forEach(el=>el.classList.remove('dim','sel'));
+  document.querySelectorAll('ol.variants button').forEach(b=>b.classList.remove('sel'));
+  if(selected?.type==='node'){
+    const id=selected.id, nb=new Set([id]);
+    edgesEl.forEach(el=>{const [f,t]=el.dataset.edge.split('|');if(f===id||t===id){el.classList.add('sel');nb.add(f);nb.add(t)}else el.classList.add('dim')});
+    nodesEl.forEach(el=>{if(el.dataset.node===id)el.classList.add('sel');else if(!nb.has(el.dataset.node))el.classList.add('dim')});
+  }else if(selected?.type==='edge'){
+    edgesEl.forEach(el=>el.classList.add(el.dataset.edge===selected.from+'|'+selected.to?'sel':'dim'));
+    nodesEl.forEach(el=>{if(el.dataset.node!==selected.from&&el.dataset.node!==selected.to)el.classList.add('dim')});
+  }else if(selected?.type==='variant'){
+    const v=model.variants[selected.i]; if(!v){selected=null;return applySelection()}
+    const seq=[START,...v.seq,END], ns=new Set(seq), es=new Set(seq.slice(1).map((b,i)=>seq[i]+'|'+b));
+    nodesEl.forEach(el=>{if(!ns.has(el.dataset.node))el.classList.add('dim')});
+    edgesEl.forEach(el=>el.classList.add(es.has(el.dataset.edge)?'sel':'dim'));
+    document.querySelectorAll('ol.variants button')[selected.i]?.classList.add('sel');
+  }
+  renderDetail();
+}
+function renderDetail(){
+  const d=$('#detail'), esc=s=>s.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])), n=model.nCases;
+  const kv=rows=>`<dl class="kv">${rows.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>`;
+  const stats=w=>[['median wait',fmtDur(median(w))],['mean wait',fmtDur(mean(w))],['longest wait',fmtDur(Math.max(0,...w))]];
+  if(selected?.type==='node'){
+    const nd=model.nodes.get(selected.id), io=dir=>model.allEdges.filter(e=>e[dir]===selected.id).slice(0,4);
+    const list=(title,arr,dir)=>arr.length?`<h2 style="margin-top:12px">${title}</h2><ul class="flow">${arr.map(e=>`<li><span>${esc(label(e[dir]))}</span><span>${e.count} · ${fmtDur(median(e.waits))}</span></li>`).join('')}</ul>`:'';
+    d.innerHTML=`<h3>${esc(label(nd.id))}</h3>${kv([['events',nd.count],['cases',`${nd.cases.size} (${pct(nd.cases.size,n)})`],...(nd.waits.length?stats(nd.waits):[])])}${list('Comes from',io('to'),'from')}${list('Goes to',io('from'),'to')}`;
+  }else if(selected?.type==='edge'){
+    const e=model.allEdges.find(x=>x.from===selected.from&&x.to===selected.to); if(!e) return d.innerHTML='';
+    d.innerHTML=`<h3>${esc(label(e.from))} → ${esc(label(e.to))}</h3>${kv([['taken',`${e.count}× in ${e.cases.size} cases (${pct(e.cases.size,n)})`],...(e.from===START||e.to===END?[]:stats(e.waits))])}`;
+  }else if(selected?.type==='variant'){
+    const v=model.variants[selected.i];
+    d.innerHTML=`<h3>Variant ${selected.i+1}</h3>${kv([['cases',`${v.count} (${pct(v.count,n)})`],['steps',v.seq.length],['median duration',fmtDur(median(v.durs))]])}<ol class="flow" style="margin-top:10px">${v.seq.map(a=>`<li><span>${esc(a)}</span></li>`).join('')}</ol><p class="hint" style="margin:10px 0 0">e.g. ${esc(v.cases.slice(0,3).join(', '))}</p>`;
+  }else{
+    const slow=model.allEdges.filter(e=>e.from!==START&&e.to!==END&&e.count>=Math.max(2,n*.03)).map(e=>({e,m:median(e.waits)})).sort((a,b)=>b.m-a.m).slice(0,4);
+    const maxM=slow[0]?.m||1;
+    d.innerHTML=`<h2>Bottlenecks</h2>${slow.map(({e,m})=>`<div class="bn" role="button" tabindex="0" data-from="${esc(e.from)}" data-to="${esc(e.to)}"><i style="background:${heat(Math.sqrt(m/maxM))}"></i><span>${esc(label(e.from))} → ${esc(label(e.to))}</span><b>${fmtDur(m)}</b></div>`).join('')||'<p class="hint">No repeated hand-offs yet.</p>'}<p class="hint" style="margin:10px 0 0">Median wait between the two steps. Tap a step, an arrow or a variant for detail.</p>`;
+    d.querySelectorAll('.bn').forEach(el=>{const go=()=>select({type:'edge',from:el.dataset.from,to:el.dataset.to});el.onclick=go;el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}}});
+  }
+}
+function renderSide(){
+  const m=model, tile=(v,l)=>`<div class="tile"><b>${v}</b><span>${l}</span></div>`;
+  $('#tiles').innerHTML=tile(m.nCases,'cases')+tile(m.nEvents,'events')+tile(m.nActs,'activities')+tile(m.variants.length,'variants')+tile(fmtDur(median(m.caseDur)),'median case')+tile(pct(m.rework,m.nCases),'with rework');
+  $('#graphTitle').textContent=`${m.nodes.size-2} of ${m.nActs} activities · ${m.edges.length} of ${m.allEdges.length} paths`;
+  const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  $('#variants').innerHTML=m.variants.slice(0,12).map((v,i)=>`<li><button data-i="${i}"><div class="vhead"><span>#${i+1} · ${v.count} cases · ${pct(v.count,m.nCases)}</span><span>${fmtDur(median(v.durs))}</span></div><div class="vbar"><i style="width:${pct(v.count,m.variants[0].count)}"></i></div><div class="vseq">${esc(v.seq.join(' › '))}</div></button></li>`).join('');
+  $('#variants').querySelectorAll('button').forEach(b=>b.onclick=()=>select(selected?.type==='variant'&&selected.i===+b.dataset.i?null:{type:'variant',i:+b.dataset.i}));
+}
+
+/* ---------- wiring ---------- */
+let events=[];
+function rebuild(fromData){
+  const acts=+$('#acts').value, paths=+$('#paths').value;
+  $('#actsOut').textContent=acts+'%'; $('#pathsOut').textContent=paths+'%';
+  if(!events.length){svg.innerHTML='';$('#empty').hidden=false;$('#tiles').innerHTML='';$('#variants').innerHTML='';$('#detail').innerHTML='';$('#graphTitle').textContent='No process yet';return}
+  $('#empty').hidden=true;
+  model=mine(events,acts,paths);
+  if(fromData) selected=null;
+  render(false); renderSide();
+}
+function loadText(text){
+  $('#csv').value=text;
+  const r=parseLog(text); events=r.events;
+  const msg=$('#parseMsg'); msg.classList.toggle('err',!!r.error);
+  msg.textContent=r.error||`${r.events.length} events${r.skipped?` · ${r.skipped} rows skipped (no readable timestamp)`:''}`;
+  $('#empty').textContent=r.error||'';
+  rebuild(true);
+}
+let deb; $('#csv').addEventListener('input',()=>{clearTimeout(deb);deb=setTimeout(()=>loadText($('#csv').value),350)});
+$('#acts').addEventListener('input',()=>rebuild(false)); $('#paths').addEventListener('input',()=>rebuild(false));
+$('#btnDemo').onclick=()=>{$('#acts').value=100;$('#paths').value=60;loadText(demoCSV());toast('Demo log restored')};
+$('#btnData').onclick=()=>{$('#dataCard').scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>$('#csv').focus({preventScroll:true}),400)};
+$('#btnImport').onclick=()=>$('#fileCsv').click();
+$('#fileCsv').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{loadText(t);toast(`Imported ${f.name}`)});e.target.value=''};
+
+function toast(msg,err){const t=document.createElement('div');t.className='toast';t.textContent=msg;if(err)t.style.background=cssVar('--crit');document.body.appendChild(t);setTimeout(()=>t.remove(),2600)}
+const effectiveTheme=()=>document.documentElement.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+function setTheme(t){if(t)document.documentElement.dataset.theme=t;else delete document.documentElement.dataset.theme;if(model)render(true)}
+$('#btnTheme').onclick=()=>setTheme(effectiveTheme()==='dark'?'light':'dark');
+
+function save(){
+  const data={app:APP,version:VERSION,savedAt:new Date().toISOString(),csv:$('#csv').value,settings:{acts:+$('#acts').value,paths:+$('#paths').value,theme:document.documentElement.dataset.theme||null,selected}};
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,1)],{type:'application/json'}));
+  a.download=`trace-${new Date().toISOString().slice(0,10)}.json`; document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500); toast('Saved '+a.download);
+}
+function openFile(file){
+  file.text().then(t=>{
+    let d; try{d=JSON.parse(t)}catch{return toast('That file is not JSON.',true)}
+    if(!d||d.app!==APP||typeof d.version!=='number'||typeof d.csv!=='string') return toast('Not a Trace file: expected {"app":"Trace","version":1,…}',true);
+    if(d.version>VERSION) return toast(`This file was saved by a newer Trace (v${d.version}).`,true);
+    const s=d.settings||{}; if(s.acts)$('#acts').value=s.acts; if(s.paths)$('#paths').value=s.paths; setTheme(s.theme||null);
+    loadText(d.csv); if(s.selected){selected=s.selected;applySelection()} toast('Opened '+file.name);
+  });
+}
+$('#btnSave').onclick=save; $('#btnOpen').onclick=()=>$('#fileJson').click();
+$('#fileJson').onchange=e=>{if(e.target.files[0])openFile(e.target.files[0]);e.target.value=''};
+
+const help=$('#help'); const toggleHelp=on=>{help.hidden=on===undefined?!help.hidden:!on};
+$('#btnHelp').onclick=()=>toggleHelp(); $('#helpClose').onclick=()=>toggleHelp(false);
+help.addEventListener('click',e=>{if(e.target===help)toggleHelp(false)});
+const nudge=(id,delta)=>{const el=$(id);el.value=Math.min(+el.max,Math.max(+el.min,+el.value+delta));rebuild(false)};
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='/'){e.preventDefault();return toggleHelp()}
+  if(e.key==='Escape'){if(!help.hidden)return toggleHelp(false);return select(null)}
+  const t=e.target; if(t.matches('input,textarea,select')||t.isContentEditable||e.ctrlKey||e.metaKey||e.altKey) return;
+  const map={t:()=>$('#btnTheme').click(),s:save,o:()=>$('#fileJson').click(),d:()=>$('#btnData').click(),f:fit,'[':()=>nudge('#paths',-5),']':()=>nudge('#paths',5),',':()=>nudge('#acts',-5),'.':()=>nudge('#acts',5),'?':()=>toggleHelp()};
+  const fn=map[e.key.toLowerCase()]||map[e.key]; if(fn){e.preventDefault();fn()}
+});
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(model)render(true)});
+new ResizeObserver(()=>{if(!geo)return;if(bestLayout(model.nodes,model.edges).horiz!==horiz)render(false);else setVB()}).observe(svg);
+loadText(demoCSV());
+</script>
+</body>
+</html>

@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ImpactForge — Priority Matrix</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap');
+
+/* ng Design System tokens (light default) */
+:root, [data-theme="light"] {
+  --ng-navy: #00036a;
+  --ng-navy-deep: #000247;
+  --ng-navy-soft: #1a1d7a;
+  --wave-blue: #3458ac;
+  --wave-blue-light: #598ab7;
+  --ng-orange: #ec6624;
+  --ng-orange-deep: #c44d12;
+  --ink: #1a1a1a;
+  --slate-900: #1f2433;
+  --slate-700: #333333;
+  --slate-500: #4d4d4d;
+  --slate-400: #707684;
+  --slate-300: #b8bcc8;
+  --slate-200: #e1e1e1;
+  --slate-100: #eef0f5;
+  --slate-50: #f7f8fb;
+  --white: #ffffff;
+  --success: #1f9d55;
+  --warning: #d97706;
+  --danger: #c0392b;
+
+  --bg: var(--white);
+  --bg-subtle: var(--slate-50);
+  --bg-muted: var(--slate-100);
+  --card: var(--white);
+  --fg: var(--ink);
+  --fg-muted: var(--slate-500);
+  --fg-subtle: var(--slate-400);
+  --border: var(--slate-200);
+  --border-strong: var(--slate-300);
+  --accent: var(--ng-navy);
+  --accent-hover: var(--ng-navy-deep);
+  --muted: var(--slate-400);
+
+  /* Quadrant colors — light mode */
+  --q1: #e8f6ee;
+  --q2: #e8f0fa;
+  --q3: #fef4e8;
+  --q4: #fdeaea;
+  --do: var(--success);
+  --sched: var(--wave-blue);
+  --del: var(--warning);
+  --elim: var(--danger);
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-serif: 'Source Serif 4', Georgia, serif;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 2px 4px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.12), 0 4px 8px rgba(15, 23, 42, 0.06);
+}
+
+[data-theme="dark"] {
+  --bg: #0c1020;
+  --bg-subtle: #141a2e;
+  --bg-muted: #1c2340;
+  --card: #161d35;
+  --fg: #e8eaf2;
+  --fg-muted: #a0a8c0;
+  --fg-subtle: #6e7898;
+  --border: #2a3358;
+  --border-strong: #3a4570;
+  --accent: #5b7cff;
+  --accent-hover: #7b95ff;
+  --muted: #6e7898;
+  --q1: #1a3d2e;
+  --q2: #1a2d4a;
+  --q3: #3d2e1a;
+  --q4: #3d1a1a;
+  --do: #3ecf8e;
+  --sched: #5b7cff;
+  --del: #f5a623;
+  --elim: #ff6b6b;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--fg);font-family:var(--font-sans);overflow:hidden;-webkit-font-smoothing:antialiased}
+body{display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+
+header{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;background:var(--card);box-shadow:var(--shadow-xs,0 1px 2px rgba(15,23,42,.04))}
+header h1{font-family:var(--font-serif);font-size:1.35rem;font-weight:700;flex:1;min-width:140px;outline:none;border-radius:var(--radius-sm);padding:2px 8px;color:var(--accent);letter-spacing:-0.02em}
+header h1:focus{background:var(--bg-muted);border:1px solid var(--accent)}
+
+button,input,textarea,select{
+  background:var(--card);color:var(--fg);border:1px solid var(--border-strong);
+  border-radius:var(--radius-md);padding:8px 14px;font-size:0.875rem;font-family:inherit;
+  transition:border-color .15s, box-shadow .15s, background .15s;
+}
+button{cursor:pointer;user-select:none;font-weight:500;line-height:1.2}
+button:hover{border-color:var(--accent)}
+button:active{transform:scale(0.98)}
+button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+button.primary:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+button.danger{background:var(--danger);color:#fff;border-color:var(--danger)}
+button.danger:hover{filter:brightness(1.08)}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent)}
+
+.main{display:flex;flex:1;overflow:hidden;min-height:0}
+.matrix-wrap{flex:1;position:relative;margin:12px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;touch-action:none;box-shadow:var(--shadow-sm)}
+.matrix{position:absolute;inset:0}
+.axis-label{position:absolute;font-size:0.8rem;opacity:0.8;pointer-events:auto;cursor:text;padding:2px 6px;border-radius:var(--radius-sm);outline:none;white-space:nowrap;color:var(--fg-muted);font-weight:500}
+.axis-label:focus{background:var(--bg-muted);border:1px solid var(--accent);opacity:1}
+.axis-x{bottom:8px;left:50%;transform:translateX(-50%)}
+.axis-y{top:50%;left:10px;transform:translateY(-50%) rotate(-90deg);transform-origin:left center}
+.quad-label{position:absolute;font-size:0.68rem;opacity:0.7;pointer-events:auto;cursor:text;font-weight:600;letter-spacing:0.06em;padding:2px 6px;border-radius:var(--radius-sm);outline:none;white-space:nowrap;text-transform:uppercase}
+.quad-label:focus{background:var(--bg-muted);border:1px solid var(--accent);opacity:1}
+.q-do{top:12px;right:12px;color:var(--do)}
+.q-sched{top:12px;left:12px;color:var(--sched)}
+.q-del{bottom:32px;right:12px;color:var(--del)}
+.q-elim{bottom:32px;left:12px;color:var(--elim)}
+.cross{position:absolute;background:var(--border);pointer-events:none}
+.cross-h{left:0;right:0;height:1px;top:50%}
+.cross-v{top:0;bottom:0;width:1px;left:50%}
+.matrix.corner .cross{display:none}
+.matrix.corner::before,
+.matrix.corner::after{content:'';position:absolute;background:var(--border);pointer-events:none}
+.matrix.corner::before{left:0;right:0;bottom:0;height:1px}
+.matrix.corner::after{top:0;bottom:0;left:0;width:1px}
+.matrix.corner .axis-x{bottom:6px;left:14px;transform:none}
+.matrix.corner .axis-y{top:30%;left:12px;bottom:auto;transform:translateY(-50%) rotate(-90deg);transform-origin:left center;writing-mode:horizontal-tb}
+.matrix.corner .quad-label.q-elim{bottom:40px}
+.matrix.corner .quad-label.q-del{bottom:40px}
+
+.task{position:absolute;min-width:100px;max-width:160px;padding:6px 10px;border-radius:var(--radius-md);font-size:0.78rem;cursor:grab;user-select:none;border:2px solid transparent;box-shadow:var(--shadow-sm);touch-action:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;font-weight:500}
+.task.selected{border-color:var(--accent);z-index:10;box-shadow:0 0 0 2px color-mix(in srgb, var(--accent) 40%, transparent)}
+
+.sidebar{width:300px;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;background:var(--bg-subtle)}
+.sidebar h2{font-size:0.8rem;padding:12px 14px;border-bottom:1px solid var(--border);font-weight:600;display:flex;justify-content:space-between;align-items:center;letter-spacing:0.04em;text-transform:uppercase;color:var(--fg-muted)}
+.list{flex:1;overflow-y:auto;padding:8px}
+.list-item{padding:10px 12px;margin:4px 0;background:var(--card);border-radius:var(--radius-md);border:1px solid var(--border);font-size:0.82rem;cursor:pointer;display:flex;flex-direction:column;gap:2px;box-shadow:var(--shadow-xs,0 1px 2px rgba(15,23,42,.04));transition:border-color .15s, box-shadow .15s}
+.list-item:hover{border-color:var(--border-strong)}
+.list-item.active{border-color:var(--accent);background:color-mix(in srgb, var(--accent) 8%, var(--card));box-shadow:0 0 0 1px var(--accent)}
+.list-item .name{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.list-item .meta{font-size:0.72rem;color:var(--muted);display:flex;justify-content:space-between}
+.score{font-weight:700;color:var(--accent)}
+
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;z-index:100;padding:16px;backdrop-filter:blur(4px)}
+.overlay.show{display:flex}
+.modal{background:var(--card);border-radius:var(--radius-lg);padding:24px;max-width:440px;width:100%;max-height:85vh;overflow-y:auto;border:1px solid var(--border);box-shadow:var(--shadow-lg)}
+.modal h3{margin-bottom:16px;font-size:1.15rem;font-family:var(--font-serif);color:var(--accent);font-weight:700}
+.modal label{display:block;font-size:0.78rem;margin:12px 0 4px;opacity:0.9;font-weight:500;color:var(--fg-muted);letter-spacing:0.02em}
+.modal input[type=text],.modal textarea,.modal input[type=range],.modal select{width:100%;margin-bottom:4px}
+.modal textarea{min-height:70px;resize:vertical}
+.modal .row{display:flex;gap:8px;margin-top:18px}
+.modal .row button{flex:1}
+.slider-val{font-size:0.75rem;color:var(--muted);float:right}
+footer{padding:8px 16px;font-size:0.72rem;opacity:0.6;text-align:center;border-top:1px solid var(--border);flex-shrink:0;color:var(--fg-muted)}
+
+@media(max-width:740px){
+  .main{flex-direction:column}
+  .sidebar{width:100%;border-left:none;border-top:1px solid var(--border);height:42%}
+  .matrix-wrap{height:58%;margin:8px}
+  header h1{font-size:1.15rem}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="projectName" contenteditable="true" title="Click to edit project name">Untitled Project</h1>
+  <button id="btnNew" title="New Project">New Project</button>
+  <button id="btnAdd" title="Add Task (A)" class="primary">+ Task</button>
+  <button id="btnTheme" title="Theme (T)">☀/☾</button>
+  <button id="btnHelp" title="Help (?)">?</button>
+  <button id="btnSave" title="Save Project (S)">Save</button>
+  <button id="btnOpen" title="Open Project (O)">Open</button>
+  <input type="file" id="fileOpen" accept=".json" hidden>
+</header>
+<div class="main">
+  <div class="matrix-wrap" id="matrixWrap">
+    <div class="matrix" id="matrix">
+      <div class="cross cross-h"></div>
+      <div class="cross cross-v"></div>
+      <div class="axis-label axis-x" id="xAxisLabel" contenteditable="true" title="Click to edit X axis">Effort →</div>
+      <div class="axis-label axis-y" id="yAxisLabel" contenteditable="true" title="Click to edit Y axis">Impact →</div>
+      <div class="quad-label q-do" id="qDo" contenteditable="true" title="Click to edit">DO NOW</div>
+      <div class="quad-label q-sched" id="qSched" contenteditable="true" title="Click to edit">SCHEDULE</div>
+      <div class="quad-label q-del" id="qDel" contenteditable="true" title="Click to edit">DELEGATE</div>
+      <div class="quad-label q-elim" id="qElim" contenteditable="true" title="Click to edit">ELIMINATE</div>
+    </div>
+  </div>
+  <aside class="sidebar">
+    <h2>Ranked by Density <span id="taskCount" style="font-weight:400;opacity:0.6;font-size:0.75rem"></span></h2>
+    <div class="list" id="list"></div>
+  </aside>
+</div>
+<footer>Drag tasks · Double-click or Edit to modify · Score = Impact / (Effort + 0.1) · Project is what gets saved</footer>
+
+<!-- Task CRUD Modal -->
+<div class="overlay" id="taskModal">
+  <div class="modal">
+    <h3 id="modalTitle">Add Task</h3>
+    <label>Name</label>
+    <input type="text" id="taskName" placeholder="Task name" autocomplete="off">
+    <label>Description (optional)</label>
+    <textarea id="taskDesc" placeholder="Notes, context, owner…"></textarea>
+    <label>Impact <span class="slider-val" id="yVal">50%</span></label>
+    <input type="range" id="taskY" min="0" max="1" step="0.01" value="0.5">
+    <label>Effort <span class="slider-val" id="xVal">50%</span></label>
+    <input type="range" id="taskX" min="0" max="1" step="0.01" value="0.5">
+    <div class="row">
+      <button id="cancelTask">Cancel</button>
+      <button id="deleteTask" class="danger" style="display:none">Delete</button>
+      <button id="saveTask" class="primary">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Project Modal -->
+<div class="overlay" id="newModal">
+  <div class="modal">
+    <h3>New Project</h3>
+    <label>Project Name</label>
+    <input type="text" id="newProjName" placeholder="My Project" autocomplete="off">
+    <label>Axis Origin</label>
+    <select id="newOrigin">
+      <option value="corner" selected>Positive only — (0,0) at bottom-left</option>
+      <option value="center">Centered — midpoint cross (relative high/low)</option>
+    </select>
+    <p style="font-size:0.75rem;opacity:0.7;margin:4px 0 10px">Use positive-only when values can't be negative (e.g. Effort). Centered is the classic Eisenhower-style matrix.</p>
+    <label>Initial Tasks (one per line — you can drag them later)</label>
+    <textarea id="newTasks" placeholder="Fix login bug&#10;Write Q4 roadmap&#10;Research competitors&#10;..." rows="8"></textarea>
+    <div class="row">
+      <button id="cancelNew">Cancel</button>
+      <button id="createNew" class="primary">Create Project</button>
+    </div>
+  </div>
+</div>
+
+<!-- Help -->
+<div class="overlay" id="helpOverlay">
+  <div class="modal">
+    <h3>ImpactForge Help</h3>
+    <p>A <strong>Project</strong> holds your tasks and axis labels. Save/Open works on the whole project.</p>
+    <p>Place tasks by drag (or arrows when selected). High Impact + Low Effort = Do Now.</p>
+    <p>Full CRUD: + Task / double-click / sidebar to edit name, description, and exact Impact/Effort. Delete from the edit modal or Del key.</p>
+    <p>Axis labels and the four quadrant names are editable — click them. Defaults are Impact / Effort and Do Now / Schedule / Delegate / Eliminate.</p>
+    <p>When creating a project you choose the axis origin: <strong>Centered</strong> (midpoint cross) or <strong>Positive only</strong> with (0,0) at the bottom-left.</p>
+    <p><kbd>A</kbd> Add &nbsp; <kbd>N</kbd> New Project &nbsp; <kbd>Del</kbd> Delete selected &nbsp; <kbd>T</kbd> Theme</p>
+    <p><kbd>S</kbd> Save &nbsp; <kbd>O</kbd> Open &nbsp; <kbd>?</kbd> Help &nbsp; <kbd>Esc</kbd> Close modal</p>
+    <p><kbd>↑↓←→</kbd> Nudge selected &nbsp; <kbd>Enter</kbd> Edit selected</p>
+    <button id="closeHelp" style="margin-top:12px;width:100%">Close</button>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const matrix = $('#matrix');
+const listEl = $('#list');
+const projectNameEl = $('#projectName');
+const xAxisLabel = $('#xAxisLabel');
+const yAxisLabel = $('#yAxisLabel');
+
+let project = {
+  name: "Untitled Project",
+  xAxis: "Effort",
+  yAxis: "Impact",
+  origin: "corner",
+  qDo: "DO NOW",
+  qSched: "SCHEDULE",
+  qDel: "DELEGATE",
+  qElim: "ELIMINATE",
+  tasks: []
+};
+let selectedId = null;
+let drag = null;
+let editingId = null; // null = adding
+
+const DEMO = [
+  {id:1,name:"Fix prod outage",x:0.15,y:0.92,description:"Critical — users can't log in"},
+  {id:2,name:"Ship Q4 feature",x:0.65,y:0.78,description:"Promised to enterprise"},
+  {id:3,name:"Refactor auth",x:0.45,y:0.55,description:""},
+  {id:4,name:"Update docs",x:0.25,y:0.30,description:"Stale API docs"},
+  {id:5,name:"Explore AI idea",x:0.80,y:0.40,description:"Spike only"},
+  {id:6,name:"Delete dead code",x:0.10,y:0.20,description:""},
+  {id:7,name:"Customer interview",x:0.35,y:0.85,description:"Validate pricing"},
+  {id:8,name:"Perf audit",x:0.55,y:0.68,description:""}
+];
+
+function loadTheme(){
+  const t = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', t);
+}
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', cur);
+  localStorage.setItem('theme', cur);
+}
+
+function quadrant(x,y){
+  if(y>0.5 && x<0.5) return 'do';
+  if(y>0.5 && x>=0.5) return 'sched';
+  if(y<=0.5 && x<0.5) return 'del';
+  return 'elim';
+}
+
+// Continuous color based on position (bilinear between the four corner colors)
+function lerp(a,b,t){ return a+(b-a)*t; }
+function lerpRgb(c1,c2,t){
+  return [
+    Math.round(lerp(c1[0],c2[0],t)),
+    Math.round(lerp(c1[1],c2[1],t)),
+    Math.round(lerp(c1[2],c2[2],t))
+  ];
+}
+function bilinear(x,y, c00,c10,c01,c11){
+  const bot = lerpRgb(c00,c10,x);
+  const top = lerpRgb(c01,c11,x);
+  return lerpRgb(bot, top, y);
+}
+function taskStyle(x,y){
+  const dark = document.documentElement.getAttribute('data-theme')==='dark';
+  const bg = dark ? {
+    del:[61,46,26], elim:[61,26,26], do:[26,61,46], sched:[26,45,74]
+  } : {
+    del:[254,244,232], elim:[253,234,234], do:[232,246,238], sched:[232,240,250]
+  };
+  const fg = dark ? {
+    del:[245,166,35], elim:[255,107,107], do:[62,207,142], sched:[91,124,255]
+  } : {
+    del:[217,119,6], elim:[192,57,43], do:[31,157,85], sched:[52,88,172]
+  };
+  // c00=lowx lowy (del), c10=highx lowy (elim), c01=lowx highy (do), c11=highx highy (sched)
+  const b = bilinear(x,y, bg.del, bg.elim, bg.do, bg.sched);
+  const f = bilinear(x,y, fg.del, fg.elim, fg.do, fg.sched);
+  return { background:`rgb(${b.join(',')})`, color:`rgb(${f.join(',')})` };
+}
+function score(t){ return t.y / (t.x + 0.1); }
+
+function saveLocal(){
+  localStorage.setItem('impactforge-project', JSON.stringify(project));
+}
+function loadLocal(){
+  try{
+    const raw = localStorage.getItem('impactforge-project');
+    if(raw){
+      const p = JSON.parse(raw);
+      if(p && Array.isArray(p.tasks)){
+        project = {...project, ...p};
+        return true;
+      }
+    }
+  }catch(e){}
+  return false;
+}
+
+function updateAxisLabels(){
+  xAxisLabel.textContent = (project.xAxis || 'Effort') + ' →';
+  yAxisLabel.textContent = (project.yAxis || 'Impact') + ' →';
+  projectNameEl.textContent = project.name || 'Untitled Project';
+  $('#qDo').textContent = project.qDo || 'DO NOW';
+  $('#qSched').textContent = project.qSched || 'SCHEDULE';
+  $('#qDel').textContent = project.qDel || 'DELEGATE';
+  $('#qElim').textContent = project.qElim || 'ELIMINATE';
+  applyOrigin();
+}
+
+function applyOrigin(){
+  const isCorner = (project.origin || 'center') === 'corner';
+  matrix.classList.toggle('corner', isCorner);
+  matrix.classList.toggle('center', !isCorner);
+}
+
+function render(){
+  // tasks on matrix
+  matrix.querySelectorAll('.task').forEach(el => el.remove());
+  project.tasks.forEach(t => {
+    const el = document.createElement('div');
+    el.className = 'task' + (t.id===selectedId?' selected':'');
+    el.textContent = t.name;
+    el.dataset.id = t.id;
+    el.title = t.description || t.name;
+    el.style.left = (t.x*100)+'%';
+    el.style.top = ((1-t.y)*100)+'%';
+    el.style.transform = 'translate(-50%,-50%)';
+    const s = taskStyle(t.x, t.y);
+    el.style.background = s.background;
+    el.style.color = s.color;
+    matrix.appendChild(el);
+  });
+
+  // ranked list
+  const qMap = {do: project.qDo||'DO NOW', sched: project.qSched||'SCHEDULE', del: project.qDel||'DELEGATE', elim: project.qElim||'ELIMINATE'};
+  const sorted = [...project.tasks].sort((a,b)=>score(b)-score(a));
+  listEl.innerHTML = sorted.map(t => {
+    const s = taskStyle(t.x, t.y);
+    return `<div class="list-item ${t.id===selectedId?'active':''}" data-id="${t.id}">
+      <div class="name">${escapeHtml(t.name)}</div>
+      <div class="meta">
+        <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:${s.background};border:1px solid ${s.color}"></span>${escapeHtml(qMap[quadrant(t.x,t.y)] || '')}</span>
+        <span class="score">${score(t).toFixed(1)}</span>
+      </div>
+    </div>`;
+  }).join('');
+  $('#taskCount').textContent = project.tasks.length ? `(${project.tasks.length})` : '';
+  saveLocal();
+}
+
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&','<':'<','>':'>','"':'"',"'":'&#39;'}[c])); }
+
+function select(id){
+  selectedId = id;
+  render();
+}
+
+function openTaskModal(task=null){
+  editingId = task ? task.id : null;
+  $('#modalTitle').textContent = task ? 'Edit Task' : 'Add Task';
+  $('#taskName').value = task ? task.name : '';
+  $('#taskDesc').value = task ? (task.description||'') : '';
+  const y = task ? task.y : 0.5;
+  const x = task ? task.x : 0.5;
+  $('#taskY').value = y;
+  $('#taskX').value = x;
+  $('#yVal').textContent = Math.round(y*100)+'%';
+  $('#xVal').textContent = Math.round(x*100)+'%';
+  $('#deleteTask').style.display = task ? 'inline-block' : 'none';
+  $('#taskModal').classList.add('show');
+  setTimeout(()=>$('#taskName').focus(), 50);
+}
+
+function closeTaskModal(){
+  $('#taskModal').classList.remove('show');
+  editingId = null;
+}
+
+function saveTaskFromModal(){
+  const name = $('#taskName').value.trim() || 'Untitled';
+  const description = $('#taskDesc').value.trim();
+  const y = parseFloat($('#taskY').value);
+  const x = parseFloat($('#taskX').value);
+  if(editingId){
+    const t = project.tasks.find(t=>t.id===editingId);
+    if(t){ t.name=name; t.description=description; t.y=y; t.x=x; }
+  } else {
+    const id = Date.now() + Math.floor(Math.random()*1000);
+    project.tasks.push({id, name, description, x, y});
+    selectedId = id;
+  }
+  closeTaskModal();
+  render();
+}
+
+function deleteTask(id){
+  if(!confirm('Delete this task?')) return;
+  project.tasks = project.tasks.filter(t=>t.id!==id);
+  if(selectedId===id) selectedId=null;
+  closeTaskModal();
+  render();
+}
+
+function moveSelected(dx,dy){
+  const t = project.tasks.find(t=>t.id===selectedId);
+  if(!t) return;
+  t.x = Math.max(0.02,Math.min(0.98,t.x+dx));
+  t.y = Math.max(0.02,Math.min(0.98,t.y+dy));
+  render();
+}
+
+function saveJSON(){
+  const blob = new Blob([JSON.stringify(project, null, 2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (project.name || 'impactforge').replace(/[^a-z0-9]/gi,'_').toLowerCase() + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function openJSON(file){
+  const reader = new FileReader();
+  reader.onload = e => {
+    try{
+      const data = JSON.parse(e.target.result);
+      if(data && Array.isArray(data.tasks)){
+        project = {
+          name: data.name || 'Imported Project',
+          xAxis: data.xAxis || 'Effort',
+          yAxis: data.yAxis || 'Impact',
+          origin: data.origin || 'center',
+          qDo: data.qDo || 'DO NOW',
+          qSched: data.qSched || 'SCHEDULE',
+          qDel: data.qDel || 'DELEGATE',
+          qElim: data.qElim || 'ELIMINATE',
+          tasks: data.tasks.map(t=>({
+            id: t.id || Date.now()+Math.random(),
+            name: t.name || 'Untitled',
+            x: typeof t.x==='number'?t.x:0.5,
+            y: typeof t.y==='number'?t.y:0.5,
+            description: t.description || ''
+          }))
+        };
+        selectedId = null;
+        updateAxisLabels();
+        render();
+      } else alert('Invalid project file');
+    }catch(err){ alert('Invalid JSON'); }
+  };
+  reader.readAsText(file);
+}
+
+function showHelp(show=true){ $('#helpOverlay').classList.toggle('show',show); }
+
+// Axis & project name editing
+function bindEditable(el, key, defaultVal){
+  el.addEventListener('blur', () => {
+    let val = el.textContent.replace(/→/g,'').trim();
+    if(!val) val = defaultVal || 'Label';
+    project[key] = val;
+    updateAxisLabels();
+    saveLocal();
+  });
+  el.addEventListener('keydown', e => {
+    if(e.key==='Enter'){ e.preventDefault(); el.blur(); }
+  });
+}
+bindEditable(xAxisLabel, 'xAxis', 'Effort');
+bindEditable(yAxisLabel, 'yAxis', 'Impact');
+bindEditable($('#qDo'), 'qDo', 'DO NOW');
+bindEditable($('#qSched'), 'qSched', 'SCHEDULE');
+bindEditable($('#qDel'), 'qDel', 'DELEGATE');
+bindEditable($('#qElim'), 'qElim', 'ELIMINATE');
+projectNameEl.addEventListener('blur', () => {
+  project.name = projectNameEl.textContent.trim() || 'Untitled Project';
+  projectNameEl.textContent = project.name;
+  saveLocal();
+});
+projectNameEl.addEventListener('keydown', e => {
+  if(e.key==='Enter'){ e.preventDefault(); projectNameEl.blur(); }
+});
+
+// Slider live labels
+$('#taskY').oninput = e => $('#yVal').textContent = Math.round(e.target.value*100)+'%';
+$('#taskX').oninput = e => $('#xVal').textContent = Math.round(e.target.value*100)+'%';
+
+// Events
+$('#btnAdd').onclick = () => openTaskModal();
+$('#btnTheme').onclick = toggleTheme;
+$('#btnHelp').onclick = () => showHelp(true);
+$('#closeHelp').onclick = () => showHelp(false);
+$('#btnSave').onclick = saveJSON;
+$('#btnOpen').onclick = () => $('#fileOpen').click();
+$('#fileOpen').onchange = e => { if(e.target.files[0]) openJSON(e.target.files[0]); e.target.value=''; };
+
+$('#btnNew').onclick = () => {
+  if(project.tasks.length && !confirm('Start a new project? Current project will be replaced (save first if needed).')) return;
+  $('#newProjName').value = '';
+  $('#newTasks').value = '';
+  $('#newModal').classList.add('show');
+  setTimeout(()=>$('#newProjName').focus(), 50);
+};
+$('#cancelNew').onclick = () => $('#newModal').classList.remove('show');
+$('#createNew').onclick = () => {
+  const name = $('#newProjName').value.trim() || 'New Project';
+  const origin = $('#newOrigin').value || 'corner';
+  const lines = $('#newTasks').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  project = {
+    name,
+    xAxis: 'Effort',
+    yAxis: 'Impact',
+    origin,
+    qDo: 'DO NOW',
+    qSched: 'SCHEDULE',
+    qDel: 'DELEGATE',
+    qElim: 'ELIMINATE',
+    tasks: lines.map((n,i)=>({
+      id: Date.now() + i,
+      name: n,
+      x: 0.3 + (i%4)*0.08,
+      y: 0.4 + (i%3)*0.08,
+      description: ''
+    }))
+  };
+  selectedId = project.tasks[0]?.id || null;
+  updateAxisLabels();
+  $('#newModal').classList.remove('show');
+  render();
+};
+
+$('#cancelTask').onclick = closeTaskModal;
+$('#saveTask').onclick = saveTaskFromModal;
+$('#deleteTask').onclick = () => { if(editingId) deleteTask(editingId); };
+
+listEl.onclick = e => {
+  const item = e.target.closest('.list-item');
+  if(item){
+    select(+item.dataset.id);
+  }
+};
+listEl.ondblclick = e => {
+  const item = e.target.closest('.list-item');
+  if(item){
+    const t = project.tasks.find(t=>t.id===+item.dataset.id);
+    if(t) openTaskModal(t);
+  }
+};
+
+matrix.addEventListener('pointerdown', e => {
+  const el = e.target.closest('.task');
+  if(!el) return;
+  select(+el.dataset.id);
+  const t = project.tasks.find(t=>t.id===selectedId);
+  const rect = matrix.getBoundingClientRect();
+  drag = {id:selectedId, startX:e.clientX, startY:e.clientY, ox:t.x, oy:t.y, rect};
+  el.setPointerCapture(e.pointerId);
+});
+window.addEventListener('pointermove', e => {
+  if(!drag) return;
+  const dx = (e.clientX - drag.startX) / drag.rect.width;
+  const dy = (e.clientY - drag.startY) / drag.rect.height;
+  const t = project.tasks.find(t=>t.id===drag.id);
+  t.x = Math.max(0.02,Math.min(0.98, drag.ox + dx));
+  t.y = Math.max(0.02,Math.min(0.98, drag.oy - dy));
+  // live update without full re-render for smoothness? but simple is fine
+  const el = matrix.querySelector(`.task[data-id="${t.id}"]`);
+  if(el){
+    el.style.left = (t.x*100)+'%';
+    el.style.top = ((1-t.y)*100)+'%';
+    const s = taskStyle(t.x, t.y);
+    el.style.background = s.background;
+    el.style.color = s.color;
+  }
+});
+window.addEventListener('pointerup', () => {
+  if(drag){
+    drag=null;
+    render(); // sync list scores
+  }
+});
+matrix.addEventListener('dblclick', e => {
+  const el = e.target.closest('.task');
+  if(!el) return;
+  const t = project.tasks.find(t=>t.id===+el.dataset.id);
+  if(t) openTaskModal(t);
+});
+
+document.addEventListener('keydown', e => {
+  if(e.target.matches('input,textarea,[contenteditable]')) return;
+  if($('#taskModal').classList.contains('show') || $('#newModal').classList.contains('show') || $('#helpOverlay').classList.contains('show')){
+    if(e.key==='Escape'){
+      closeTaskModal();
+      $('#newModal').classList.remove('show');
+      showHelp(false);
+    }
+    return;
+  }
+  const k = e.key.toLowerCase();
+  if(k==='?' || k==='h'){ showHelp(true); e.preventDefault(); }
+  else if(k==='t') toggleTheme();
+  else if(k==='a'){ openTaskModal(); e.preventDefault(); }
+  else if(k==='n'){ $('#btnNew').click(); e.preventDefault(); }
+  else if(k==='delete' || k==='backspace'){
+    if(selectedId) deleteTask(selectedId);
+    e.preventDefault();
+  }
+  else if(k==='s'){ saveJSON(); e.preventDefault(); }
+  else if(k==='o'){ $('#fileOpen').click(); e.preventDefault(); }
+  else if(k==='escape') showHelp(false);
+  else if(k==='enter' && selectedId){
+    const t = project.tasks.find(t=>t.id===selectedId);
+    if(t) openTaskModal(t);
+    e.preventDefault();
+  }
+  else if(k==='arrowup'){ moveSelected(0,0.03); e.preventDefault(); }
+  else if(k==='arrowdown'){ moveSelected(0,-0.03); e.preventDefault(); }
+  else if(k==='arrowleft'){ moveSelected(-0.03,0); e.preventDefault(); }
+  else if(k==='arrowright'){ moveSelected(0.03,0); e.preventDefault(); }
+});
+
+// Init
+loadTheme();
+if(!loadLocal()){
+  project = {
+    name: "Demo Project",
+    xAxis: "Effort",
+    yAxis: "Impact",
+    origin: "center",
+    qDo: "DO NOW",
+    qSched: "SCHEDULE",
+    qDel: "DELEGATE",
+    qElim: "ELIMINATE",
+    tasks: DEMO.map(d=>({...d, description: d.description||''}))
+  };
+}
+updateAxisLabels();
+render();
+</script>
+</body>
+</html>

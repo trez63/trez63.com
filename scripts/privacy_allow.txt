@@ -47,3 +47,16 @@ careers@global-talent-hiring.com
 10.5.694
 10.001.003.001
 10.142.67
+
+# moonpost — digits inside an inline SVG path ("m-6-32 7-7 29 9-2 3-28-6-6"), not a card number. Approved by Tan 2026-11-16.
+6-32 7-7 29 9-2 3-28-6-6
+
+# regexpulse — the regex tester's built-in sample corpus (555 numbers, an invalid 000- SSN, textbook private IPs,
+# invented example addresses). Approved by Tan 2026-11-16.
+support@devpulse.io
+sales-team@enterprise.org
+192.168.1.100
+10.0.0.1
+(555) 234-5678
+800-555-0199
+000-12-3456

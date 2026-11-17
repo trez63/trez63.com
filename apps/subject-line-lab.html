@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subject Line Lab — score &amp; test email subject lines</title>
+<style>
+  /* ---------- 1. Base & palette ---------- */
+  :root{
+    --cream:#faf3ea; --paper:#fffdf9; --ink:#23201e; --muted:#6f675e;
+    --coral:#e85d3d; --coral-dark:#c74326; --gold:#e9a13b; --teal:#2f7d6d;
+    --line:#e8ddd0; --bad:#c0392b; --ok:#2f7d6d; --warn:#b7791f;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--cream); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.5;
+  }
+  .wrap{max-width:1020px;margin:0 auto;padding:18px 16px 48px}
+  h1{font-size:28px;line-height:1.15;margin:4px 0 2px;letter-spacing:-.5px}
+  h1 .lab{color:var(--coral)}
+  .sub{color:var(--muted);margin:0 0 18px;font-size:15px}
+  h2{font-size:16px;margin:0 0 10px;letter-spacing:.2px}
+  h3{font-size:14px;margin:0 0 8px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+  .card{
+    background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px;margin-bottom:16px;
+  }
+  /* ---------- 2. Layout ---------- */
+  .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;align-items:start}
+  @media (max-width:760px){ .grid{grid-template-columns:1fr} h1{font-size:24px} }
+  /* ---------- 3. Composer ---------- */
+  label{display:block;font-weight:600;font-size:14px;margin:12px 0 5px}
+  label .hint{font-weight:400;color:var(--muted);font-size:12px}
+  input[type=text]{
+    width:100%;font-size:16px;padding:12px 12px;border:2px solid var(--line);
+    border-radius:10px;background:#fff;color:var(--ink);font-family:inherit;
+  }
+  input[type=text]:focus{outline:none;border-color:var(--coral)}
+  .count{font-size:12px;color:var(--muted);text-align:right;margin-top:4px}
+  .btnrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  button{
+    font-family:inherit;font-size:15px;font-weight:600;border-radius:10px;
+    border:1px solid var(--line);background:#fff;color:var(--ink);
+    padding:11px 16px;min-height:44px;cursor:pointer;
+  }
+  button:active{transform:translateY(1px)}
+  .btn-primary{background:var(--coral);border-color:var(--coral);color:#fff}
+  .btn-primary:hover{background:var(--coral-dark)}
+  .btn-ghost{background:transparent}
+  /* ---------- 4. Score ring ---------- */
+  .scorezone{display:flex;gap:18px;align-items:center;margin-top:6px}
+  .ring{flex:0 0 auto;width:120px;height:120px}
+  .ring .track{fill:none;stroke:var(--line);stroke-width:11}
+  .ring .val{fill:none;stroke:var(--coral);stroke-width:11;stroke-linecap:round;
+    transform:rotate(-90deg);transform-origin:60px 60px;transition:stroke-dashoffset .35s ease}
+  .ring .num{font-size:30px;font-weight:800;fill:var(--ink)}
+  .ring .of{font-size:12px;fill:var(--muted)}
+  .verdict{font-size:19px;font-weight:800;margin:0 0 4px}
+  .verdict small{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-top:2px}
+  /* ---------- 5. Checks list ---------- */
+  .checks{list-style:none;margin:14px 0 0;padding:0}
+  .checks li{
+    display:flex;gap:10px;align-items:flex-start;padding:9px 2px;
+    border-top:1px solid var(--line);font-size:14px;
+  }
+  .checks li:first-child{border-top:none}
+  .dot{flex:0 0 auto;width:22px;height:22px;border-radius:50%;text-align:center;
+    line-height:22px;font-size:13px;font-weight:800;color:#fff;margin-top:1px}
+  .dot.pass{background:var(--ok)} .dot.warn{background:var(--warn)} .dot.fail{background:var(--bad)}
+  .checks .why{color:var(--muted);font-size:13px}
+  /* ---------- 6. Inbox preview ---------- */
+  .phone{
+    border:2px solid var(--ink);border-radius:26px;padding:10px;background:#fff;
+    max-width:340px;margin:0 auto;
+  }
+  .phone .notch{width:90px;height:6px;border-radius:3px;background:var(--line);margin:2px auto 10px}
+  .mailrow{display:flex;gap:10px;padding:10px 6px;border-bottom:1px solid var(--line)}
+  .mailrow:last-child{border-bottom:none}
+  .avatar{flex:0 0 auto;width:38px;height:38px;border-radius:50%;background:var(--coral);
+    color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:15px}
+  .mailbody{min-width:0;flex:1}
+  .mailtop{display:flex;justify-content:space-between;gap:8px;font-size:13px}
+  .mailtop b{font-size:14px}
+  .mailtop span{color:var(--muted);flex:0 0 auto}
+  .mailsubj{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mailpre{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cutnote{font-size:12px;color:var(--warn);margin:8px 0 0}
+  /* ---------- 7. Saved lines ---------- */
+  .saved{list-style:none;margin:0;padding:0}
+  .saved li{
+    display:flex;gap:10px;align-items:flex-start;padding:11px 2px;
+    border-top:1px solid var(--line);
+  }
+  .saved li:first-child{border-top:none}
+  .badge{flex:0 0 auto;min-width:44px;text-align:center;font-weight:800;font-size:14px;
+    border-radius:8px;padding:5px 6px;color:#fff;background:var(--teal)}
+  .badge.mid{background:var(--gold)} .badge.low{background:var(--bad)}
+  .saved .txt{flex:1;min-width:0;font-size:14px;word-wrap:break-word}
+  .saved .txt small{display:block;color:var(--muted);font-size:12px}
+  .saved .mini{flex:0 0 auto;padding:7px 10px;min-height:36px;font-size:13px}
+  .empty{color:var(--muted);font-size:14px;margin:6px 0}
+  /* ---------- 8. Status & footer ---------- */
+  .status{font-size:13px;color:var(--muted);min-height:20px;margin-top:10px}
+  .status.err{color:var(--bad);font-weight:600}
+  footer{color:var(--muted);font-size:12px;margin-top:8px}
+  kbd{background:#fff;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;
+    padding:1px 6px;font-family:inherit;font-size:12px}
+  @media (prefers-reduced-motion:reduce){
+    .ring .val{transition:none} button:active{transform:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Subject Line <span class="lab">Lab</span></h1>
+  <p class="sub">Type a subject line, get an instant score, see exactly how it lands in an inbox — and keep your winners.</p>
+
+  <div class="grid">
+    <!-- ============ LEFT: composer + score ============ -->
+    <div>
+      <section class="card" aria-label="Composer">
+        <h2>Write it</h2>
+        <label for="subject">Subject line <span class="hint">— press <kbd>/</kbd> to jump here, <kbd>Enter</kbd> to save it</span></label>
+        <input type="text" id="subject" maxlength="140" autocomplete="off"
+               placeholder="e.g. Your Lawson archive is ready — here's how to open it" aria-describedby="subjCount">
+        <div class="count" id="subjCount">0 characters</div>
+
+        <label for="preheader">Preheader <span class="hint">— the grey preview text after the subject (optional)</span></label>
+        <input type="text" id="preheader" maxlength="140" autocomplete="off"
+               placeholder="e.g. No login needed — your data is searchable in seconds">
+        <div class="count" id="preCount">0 characters</div>
+
+        <div class="btnrow">
+          <button class="btn-primary" id="saveLineBtn" type="button">Save this line</button>
+          <button id="sampleBtn" type="button">Try a sample</button>
+          <button id="copyBtn" type="button">Copy subject</button>
+        </div>
+
+        <div class="scorezone">
+          <svg class="ring" viewBox="0 0 120 120" role="img" aria-label="Score ring">
+            <circle class="track" cx="60" cy="60" r="52"></circle>
+            <circle class="val" id="ringVal" cx="60" cy="60" r="52"></circle>
+            <text class="num" id="scoreNum" x="60" y="63" text-anchor="middle">–</text>
+            <text class="of" x="60" y="82" text-anchor="middle">/ 100</text>
+          </svg>
+          <div>
+            <p class="verdict" id="verdict">Type a subject line</p>
+            <p class="sub" id="verdictNote" style="margin:0">Your score and checklist appear as you type.</p>
+          </div>
+        </div>
+
+        <ul class="checks" id="checks"></ul>
+      </section>
+    </div>
+
+    <!-- ============ RIGHT: preview + saved ============ -->
+    <div>
+      <section class="card" aria-label="Inbox preview">
+        <h2>Inbox preview</h2>
+        <h3>Phone — what most readers see first</h3>
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="mailrow">
+            <div class="avatar">N</div>
+            <div class="mailbody">
+              <div class="mailtop"><b>Apple</b><span>9:41 AM</span></div>
+              <div class="mailsubj" id="prevSubj">Your Data archive is ready — here's how to open it</div>
+              <div class="mailpre" id="prevPre">No login needed — your data is searchable in seconds</div>
+            </div>
+          </div>
+          <div class="mailrow">
+            <div class="avatar" style="background:var(--teal)">A</div>
+            <div class="mailbody">
+              <div class="mailtop"><b>Acme Corp</b><span>Yesterday</span></div>
+              <div class="mailsubj">Invoice #1042 is due Friday</div>
+              <div class="mailpre">Pay online or reply to this email with questions…</div>
+            </div>
+          </div>
+        </div>
+        <p class="cutnote" id="cutNote"></p>
+      </section>
+
+      <section class="card" aria-label="Saved lines">
+        <h2>Saved lines <span id="savedCount" style="color:var(--muted);font-weight:400"></span></h2>
+        <ul class="saved" id="savedList"></ul>
+        <p class="empty" id="savedEmpty">Nothing saved yet — write a line you like and hit “Save this line”.</p>
+        <div class="btnrow">
+          <button id="saveJsonBtn" type="button">Save JSON</button>
+          <button id="openJsonBtn" type="button">Open JSON</button>
+          <button class="btn-ghost" id="clearSavedBtn" type="button">Clear saved</button>
+          <input type="file" id="fileInput" accept=".json,application/json" hidden>
+        </div>
+        <p class="status" id="status" role="status"></p>
+      </section>
+
+      <footer>
+        Scores are a writing aid, not a guarantee — inbox placement depends on your sender
+        reputation and list quality too. Everything runs locally; nothing leaves your device.
+        Keyboard: <kbd>/</kbd> focuses the subject box, <kbd>Enter</kbd> in that box saves the line.
+      </footer>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ================================================================
+   SUBJECT LINE LAB — score & test email subject lines
+   Sections: 1. Word lists  2. Scoring  3. State & storage
+             4. Rendering  5. Events  6. Save/Open JSON  7. Init
+   ================================================================ */
+
+/* ---------- 1. Word lists ---------- */
+const SPAM_WORDS = [
+  "free","win","winner","won","guaranteed","urgent","act now","cash","prize",
+  "click here","buy now","limited time","no cost","risk-free","make money",
+  "double your","earn $","congratulations","you've been selected","selected",
+  "amazing deal","once in a lifetime","no obligation","100% free","order now",
+  "save big","cheap","miracle","secret","shocking","don't miss","expires today"
+];
+const POWER_WORDS = [
+  "exclusive","proven","how to","quick","simple","easy","new","inside","your",
+  "discover","announcing","introducing","results","guide","checklist","ready",
+  "invitation","welcome","thank you","update","reminder","preview"
+];
+const SAMPLES = [
+  {subject:"Your Lawson archive is ready — here's how to open it",
+   preheader:"No login needed — your data is searchable in seconds"},
+  {subject:"3 ways to cut month-end close from 5 days to 1",
+   preheader:"The checklist our finance team actually uses"},
+  {subject:"{First name}, your proposal expires Friday",
+   preheader:"The pricing in your SOW holds until the 30th"},
+  {subject:"Quick question about your Q1 renewal",
+   preheader:"Two minutes, one decision — no meeting needed"},
+  {subject:"FREE!!! WIN A PRIZE — ACT NOW, LIMITED TIME ONLY!!!",
+   preheader:"Click here now to claim your guaranteed cash prize"},
+  {subject:"Inside: the onboarding checklist new clients love",
+   preheader:"Seven steps, one page, zero guesswork"}
+];
+
+/* ---------- 2. Scoring (pure function — testable) ---------- */
+function scoreSubject(subject, preheader){
+  const s = (subject || "").trim();
+  const p = (preheader || "").trim();
+  const checks = [];
+  let score = 50; // neutral starting point; checks move it up or down
+
+  function add(status, title, why, delta){
+    checks.push({status, title, why});
+    score += delta;
+  }
+
+  // Length — mobile inboxes show ~30-45 chars; 30-50 is the sweet spot.
+  const len = [...s].length;
+  if (len === 0) {
+    add("warn", "Length", "Nothing typed yet.", 0);
+  } else if (len >= 30 && len <= 50) {
+    add("pass", "Length: " + len + " characters", "Right in the mobile sweet spot (30–50).", 18);
+  } else if (len >= 21 && len <= 60) {
+    add("warn", "Length: " + len + " characters", "Readable, but 30–50 characters tends to perform best.", 8);
+  } else if (len < 21) {
+    add("fail", "Length: " + len + " characters", "Very short — hard to say anything specific.", -4);
+  } else {
+    add("fail", "Length: " + len + " characters", "Long — most of it will be cut off on a phone.", -10);
+  }
+
+  // Spam triggers
+  const low = s.toLowerCase();
+  const foundSpam = SPAM_WORDS.filter(w => low.includes(w));
+  if (foundSpam.length === 0 && len > 0) {
+    add("pass", "No spam triggers", "None of the common filter words found.", 10);
+  } else if (foundSpam.length === 0) {
+    add("warn", "No spam triggers", "Nothing typed yet.", 0);
+  } else {
+    add("fail", "Spam triggers: " + foundSpam.join(", "),
+        foundSpam.length + " trigger word(s) — spam filters and readers both dislike these.", -10 * foundSpam.length);
+  }
+
+  // Power words
+  const foundPower = POWER_WORDS.filter(w => low.includes(w));
+  if (foundPower.length > 0) {
+    add("pass", "Power words: " + foundPower.join(", "),
+        "Words that tend to earn opens.", Math.min(10, 5 * foundPower.length));
+  } else if (len > 0) {
+    add("warn", "No power words", "Try one of: exclusive, proven, how to, quick, simple, inside, guide.", 0);
+  }
+
+  // Personalization token
+  if (/\{[^}]+\}|\[first name\]|\[name\]/i.test(s)) {
+    add("pass", "Personalized", "A merge token like {First name} lifts opens.", 8);
+  } else if (len > 0) {
+    add("warn", "Not personalized", "A {First name} token usually helps, if your list supports it.", 0);
+  }
+
+  // Numbers
+  if (/\d/.test(s)) {
+    add("pass", "Contains a number", "Numbers catch the eye and set a concrete expectation.", 5);
+  }
+
+  // Question
+  if (s.includes("?")) {
+    add("pass", "Asks a question", "Questions invite the reader to open for the answer.", 4);
+  }
+
+  // Emoji — one is fine, a pile looks like spam
+  const emojiCount = (s.match(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu) || []).length;
+  if (emojiCount === 1) {
+    add("pass", "One emoji", "A single emoji can stand out in a crowded inbox.", 3);
+  } else if (emojiCount > 1) {
+    add("fail", emojiCount + " emojis", "More than one reads as spammy — keep it to one or none.", -6);
+  }
+
+  // Shouting — mostly capital letters
+  const letters = s.replace(/[^A-Za-z]/g, "");
+  const caps = (s.match(/[A-Z]/g) || []).length;
+  if (letters.length >= 4 && caps / letters.length > 0.5) {
+    add("fail", "Mostly capital letters", "Reads as shouting and trips spam filters.", -12);
+  }
+
+  // Exclamation marks
+  const bangs = (s.match(/!/g) || []).length;
+  if (bangs >= 2) {
+    add("fail", bangs + " exclamation marks", "Multiple !!! is a classic spam signal.", -6);
+  } else if (bangs === 1) {
+    add("warn", "One exclamation mark", "Fine in moderation — just the one.", 0);
+  }
+
+  // Fake reply trick
+  if (/^(re|fwd)\s*:/i.test(s)) {
+    add("fail", "Starts with Re: / Fwd:", "Faking a reply thread erodes trust when readers notice.", -8);
+  }
+
+  // Preheader present and sensibly sized
+  const plen = [...p].length;
+  if (plen === 0) {
+    add("warn", "No preheader", "Add one — it is free extra space in the inbox.", 0);
+  } else if (plen >= 30 && plen <= 90) {
+    add("pass", "Preheader: " + plen + " characters", "Good length — it will show fully on most phones.", 5);
+  } else {
+    add("warn", "Preheader: " + plen + " characters", "Aim for 30–90 characters so it is not cut off.", 2);
+  }
+
+  score = Math.max(0, Math.min(100, Math.round(score)));
+  const grade = score >= 90 ? ["A", "Send it — this is a strong line."]
+    : score >= 75 ? ["B", "Good — fix the warnings above to push it higher."]
+    : score >= 60 ? ["C", "Workable, but the failures are worth fixing."]
+    : score >= 40 ? ["D", "Weak — rewrite around one clear idea."]
+    : ["F", "Rewrite — this will likely be ignored or filtered."];
+  return {score, checks, grade: grade[0], gradeNote: grade[1], length: len};
+}
+
+/* ---------- 3. State & storage ---------- */
+const LS_KEY = "subject-line-lab-v1";
+let state = {subject:"", preheader:"", saved:[]}; // saved: [{subject, preheader, score, savedAt}]
+
+function loadLocal(){
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (data && typeof data === "object" && Array.isArray(data.saved)) {
+      state.subject = typeof data.subject === "string" ? data.subject : "";
+      state.preheader = typeof data.preheader === "string" ? data.preheader : "";
+      state.saved = data.saved.filter(isValidSavedLine);
+    }
+  } catch (e) { /* corrupted local copy: keep defaults */ }
+}
+function saveLocal(){
+  try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) { /* storage full/blocked */ }
+}
+function isValidSavedLine(x){
+  return x && typeof x === "object"
+    && typeof x.subject === "string" && x.subject.trim().length > 0 && x.subject.length <= 200
+    && (typeof x.preheader === "string" ? x.preheader.length <= 200 : false)
+    && typeof x.score === "number" && x.score >= 0 && x.score <= 100;
+}
+
+/* ---------- 4. Rendering ---------- */
+const $ = id => document.getElementById(id);
+const RING_C = 2 * Math.PI * 52; // circumference of the r=52 ring
+
+function render(){
+  const subject = $("subject").value;
+  const preheader = $("preheader").value;
+  const r = scoreSubject(subject, preheader);
+
+  $("subjCount").textContent = [...subject].length + " characters";
+  $("preCount").textContent = [...preheader].length + " characters";
+
+  // Ring + verdict
+  $("ringVal").style.strokeDasharray = RING_C.toFixed(1);
+  $("ringVal").style.strokeDashoffset = (RING_C * (1 - r.score / 100)).toFixed(1);
+  $("ringVal").style.stroke = r.score >= 75 ? "var(--teal)" : r.score >= 60 ? "var(--gold)" : "var(--coral)";
+  $("scoreNum").textContent = subject.trim() ? r.score : "–";
+  $("verdict").textContent = subject.trim()
+    ? "Grade " + r.grade + " — " + r.score + "/100"
+    : "Type a subject line";
+  $("verdictNote").textContent = subject.trim() ? r.gradeNote : "Your score and checklist appear as you type.";
+
+  // Checklist
+  $("checks").innerHTML = r.checks.map(c =>
+    '<li><span class="dot ' + c.status + '">' + (c.status === "pass" ? "✓" : c.status === "warn" ? "!" : "×") +
+    '</span><span><b>' + esc(c.title) + '</b><br><span class="why">' + esc(c.why) + "</span></span></li>"
+  ).join("");
+
+  // Inbox preview
+  $("prevSubj").textContent = subject.trim() || "Your subject line appears here";
+  $("prevPre").textContent = preheader.trim() || "Your preheader appears here";
+  $("cutNote").textContent = r.length > 45
+    ? "Heads up: phones cut the subject at about 45 characters — the rest is hidden until the email is opened."
+    : "";
+
+  // Saved list
+  $("savedCount").textContent = state.saved.length ? "(" + state.saved.length + ")" : "";
+  $("savedEmpty").style.display = state.saved.length ? "none" : "block";
+  $("savedList").innerHTML = state.saved.map((line, i) => {
+    const cls = line.score >= 75 ? "" : line.score >= 60 ? "mid" : "low";
+    return '<li><span class="badge ' + cls + '">' + line.score + '</span>' +
+      '<span class="txt">' + esc(line.subject) +
+      (line.preheader ? '<small>' + esc(line.preheader) + "</small>" : "") + "</span>" +
+      '<button class="mini" type="button" data-copy="' + i + '">Copy</button>' +
+      '<button class="mini" type="button" data-load="' + i + '">Reuse</button>' +
+      '<button class="mini" type="button" data-del="' + i + '">Delete</button></li>';
+  }).join("");
+}
+function esc(str){
+  return String(str).replace(/[&<>"']/g, ch =>
+    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+}
+function setStatus(msg, isErr){
+  const el = $("status");
+  el.textContent = msg;
+  el.classList.toggle("err", !!isErr);
+}
+
+/* ---------- 5. Events ---------- */
+let sampleIdx = 0;
+$("subject").addEventListener("input", () => { state.subject = $("subject").value; render(); saveLocal(); });
+$("preheader").addEventListener("input", () => { state.preheader = $("preheader").value; render(); saveLocal(); });
+
+$("sampleBtn").addEventListener("click", () => {
+  const s = SAMPLES[sampleIdx % SAMPLES.length]; sampleIdx++;
+  $("subject").value = s.subject; $("preheader").value = s.preheader;
+  state.subject = s.subject; state.preheader = s.preheader;
+  render(); saveLocal();
+  setStatus("Sample loaded — edit it or save it as your own.");
+});
+
+$("saveLineBtn").addEventListener("click", saveCurrentLine);
+function saveCurrentLine(){
+  const subject = $("subject").value.trim();
+  if (!subject) { setStatus("Type a subject line first — there is nothing to save yet.", true); return; }
+  const r = scoreSubject(subject, $("preheader").value);
+  state.saved.unshift({subject, preheader: $("preheader").value.trim(),
+    score: r.score, savedAt: new Date().toISOString()});
+  render(); saveLocal();
+  setStatus("Saved — grade " + r.grade + " (" + r.score + "/100).");
+}
+
+$("copyBtn").addEventListener("click", () => {
+  const text = $("subject").value;
+  if (!text.trim()) { setStatus("Nothing to copy yet.", true); return; }
+  const done = () => setStatus("Subject copied to clipboard.");
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done));
+  } else fallbackCopy(text, done);
+});
+function fallbackCopy(text, done){
+  const ta = document.createElement("textarea");
+  ta.value = text; document.body.appendChild(ta); ta.select();
+  try { document.execCommand("copy"); done(); }
+  catch (e) { setStatus("Copy failed — select the text manually.", true); }
+  document.body.removeChild(ta);
+}
+
+$("savedList").addEventListener("click", ev => {
+  const btn = ev.target.closest("button"); if (!btn) return;
+  if (btn.dataset.copy !== undefined) {
+    const line = state.saved[+btn.dataset.copy];
+    const done = () => setStatus("Copied: “" + line.subject + "”");
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(line.subject).then(done, () => fallbackCopy(line.subject, done));
+    } else fallbackCopy(line.subject, done);
+  } else if (btn.dataset.load !== undefined) {
+    const line = state.saved[+btn.dataset.load];
+    $("subject").value = line.subject; $("preheader").value = line.preheader || "";
+    state.subject = line.subject; state.preheader = line.preheader || "";
+    render(); saveLocal(); setStatus("Loaded back into the composer — edit and re-score it.");
+  } else if (btn.dataset.del !== undefined) {
+    state.saved.splice(+btn.dataset.del, 1);
+    render(); saveLocal(); setStatus("Deleted.");
+  }
+});
+
+$("clearSavedBtn").addEventListener("click", () => {
+  if (!state.saved.length) { setStatus("Saved list is already empty."); return; }
+  state.saved = []; render(); saveLocal(); setStatus("Saved lines cleared.");
+});
+
+// Keyboard: "/" focuses the subject box; Enter inside it saves the line.
+// Each key has exactly one function.
+document.addEventListener("keydown", ev => {
+  if (ev.key === "/" && document.activeElement !== $("subject") && document.activeElement !== $("preheader")) {
+    ev.preventDefault(); $("subject").focus();
+  }
+});
+$("subject").addEventListener("keydown", ev => {
+  if (ev.key === "Enter") { ev.preventDefault(); saveCurrentLine(); }
+});
+
+/* ---------- 6. Save / Open JSON ---------- */
+$("saveJsonBtn").addEventListener("click", () => {
+  const data = {app:"subject-line-lab", version:1,
+    subject: $("subject").value, preheader: $("preheader").value, saved: state.saved};
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "subject-lines.json";
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  setStatus("Saved subject-lines.json with " + state.saved.length + " saved line(s).");
+});
+
+$("openJsonBtn").addEventListener("click", () => $("fileInput").click());
+$("fileInput").addEventListener("change", () => {
+  const file = $("fileInput").files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    let data;
+    try { data = JSON.parse(reader.result); }
+    catch (e) { setStatus("That file is not valid JSON — your current lines are untouched.", true); $("fileInput").value = ""; return; }
+    // Full validation BEFORE replacing anything.
+    if (!data || typeof data !== "object" || data.app !== "subject-line-lab" || data.version !== 1
+        || !Array.isArray(data.saved) || !data.saved.every(isValidSavedLine)
+        || (data.subject !== undefined && typeof data.subject !== "string")
+        || (data.preheader !== undefined && typeof data.preheader !== "string")) {
+      setStatus("That file is not a Subject Line Lab save — your current lines are untouched.", true);
+      $("fileInput").value = ""; return;
+    }
+    state.saved = data.saved;
+    if (typeof data.subject === "string") { $("subject").value = data.subject; state.subject = data.subject; }
+    if (typeof data.preheader === "string") { $("preheader").value = data.preheader; state.preheader = data.preheader; }
+    render(); saveLocal();
+    setStatus("Loaded " + state.saved.length + " saved line(s) from " + file.name + ".");
+    $("fileInput").value = "";
+  };
+  reader.onerror = () => { setStatus("Could not read that file — your current lines are untouched.", true); $("fileInput").value = ""; };
+  reader.readAsText(file);
+});
+
+/* ---------- 7. Init ---------- */
+loadLocal();
+$("subject").value = state.subject || SAMPLES[0].subject;
+$("preheader").value = state.preheader || SAMPLES[0].preheader;
+state.subject = $("subject").value; state.preheader = $("preheader").value;
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RegexPulse Studio — Visual Pattern Workbench</title>
+    <style>
+        :root {
+            --bg: #0b0f19; --panel: #111827; --card: #1f2937; --border: #374151;
+            --text: #f9fafb; --sub: #9ca3af; --accent: #06b6d4; --accent-hover: #0891b2;
+            --match-bg: rgba(6, 182, 212, 0.25); --match-border: #06b6d4; --shadow: rgba(0,0,0,0.5);
+        }
+        [data-theme="light"] {
+            --bg: #f3f4f6; --panel: #ffffff; --card: #f9fafb; --border: #e5e7eb;
+            --text: #111827; --sub: #6b7280; --accent: #0891b2; --accent-hover: #0e7490;
+            --match-bg: rgba(8, 145, 178, 0.2); --match-border: #0891b2; --shadow: rgba(0,0,0,0.06);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+
+        header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .brand { font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em; }
+        .regex-icon { width: 10px; height: 10px; border-radius: 2px; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+        .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        button, label.btn-label, select { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 6px 10px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; user-select: none; transition: 0.15s; outline: none; }
+        button:hover, label.btn-label:hover { border-color: var(--accent); color: var(--accent); }
+        button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+        button.primary:hover { background: var(--accent-hover); color: #fff; }
+        input[type="file"] { display: none; }
+
+        main { flex: 1; padding: 16px; max-width: 1300px; width: 100%; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; box-shadow: 0 4px 6px var(--shadow); display: flex; flex-direction: column; gap: 12px; }
+        .section-title { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sub); display: flex; justify-content: space-between; align-items: center; }
+
+        /* Pattern Library Bar */
+        .library-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .library-select { flex: 1; min-width: 200px; background: var(--bg); border: 1px solid var(--border); }
+
+        /* Regex Input Box */
+        .regex-bar { display: flex; gap: 8px; background: var(--bg); border: 1px solid var(--border); padding: 6px 10px; border-radius: 8px; align-items: center; }
+        .regex-input { flex: 1; background: transparent; border: none; color: var(--accent); font-size: 0.95rem; font-weight: 600; outline: none; }
+        .flag-box { display: flex; gap: 4px; font-size: 0.78rem; color: var(--sub); }
+        .flag-box label { cursor: pointer; user-select: none; }
+
+        /* Visual Builder Tokens */
+        .builder-tokens { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
+        .token-btn { background: var(--card); border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; color: var(--sub); cursor: pointer; }
+        .token-btn:hover { border-color: var(--accent); color: var(--text); }
+
+        /* Text Editor & Highlight Canvas */
+        .editor-container { position: relative; min-height: 180px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+        .editor-textarea, .editor-backdrop { width: 100%; height: 100%; min-height: 180px; padding: 12px; font-size: 0.88rem; line-height: 1.5; white-space: pre-wrap; word-break: break-all; border: none; outline: none; background: transparent; position: absolute; top: 0; left: 0; }
+        .editor-textarea { color: transparent; caret-color: var(--text); z-index: 2; resize: vertical; }
+        .editor-backdrop { color: var(--text); z-index: 1; pointer-events: none; }
+        .match-highlight { background: var(--match-bg); border-bottom: 2px solid var(--match-border); border-radius: 2px; }
+
+        /* Match Results & Code */
+        .match-list { display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; }
+        .match-card { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; font-size: 0.82rem; display: flex; justify-content: space-between; align-items: center; }
+        .match-val { font-weight: 600; color: var(--accent); }
+        .code-box { background: var(--bg); border: 1px solid var(--border); padding: 10px; border-radius: 6px; font-size: 0.8rem; color: var(--sub); overflow-x: auto; white-space: pre; }
+
+        /* Modals */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 200; padding: 16px; }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 440px; padding: 20px; box-shadow: 0 20px 25px -5px var(--shadow); }
+        .modal h3 { font-size: 1.1rem; margin-bottom: 12px; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 0.78rem; color: var(--sub); margin-bottom: 4px; }
+        .form-group input { width: 100%; padding: 8px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.85rem; outline: none; }
+
+        .shortcut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem; margin: 12px 0 16px; }
+        .shortcut-row { display: flex; justify-content: space-between; background: var(--card); padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border); }
+        kbd { background: var(--panel); border: 1px solid var(--border); padding: 1px 5px; border-radius: 3px; font-weight: 600; font-size: 0.75rem; }
+
+        @media (max-width: 768px) {
+            header { flex-direction: column; align-items: stretch; }
+            .actions { justify-content: space-between; }
+            main { grid-template-columns: 1fr; padding: 8px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand"><div class="regex-icon"></div> RegexPulse Studio</div>
+        <div class="actions">
+            <button id="copySnippetBtn" class="primary">📋 Copy Code Snippet</button>
+            <button id="saveBtn">💾 Save Bank JSON</button>
+            <label class="btn-label" for="openFile">📂 Open Bank JSON</label>
+            <input type="file" id="openFile" accept=".json">
+            <button id="themeBtn">🌓 Theme</button>
+            <button id="helpBtn">❓ Help</button>
+        </div>
+    </header>
+
+    <main>
+        <!-- Left Panel: Pattern Library, Builder & Pattern Input -->
+        <div class="panel">
+            <div class="section-title">
+                <span>Preset Pattern Library</span>
+                <button id="addPatternBtn" style="padding:2px 8px; font-size:0.75rem;">+ Add Current to Bank</button>
+            </div>
+            <div class="library-bar">
+                <select id="presetSelect" class="library-select"></select>
+            </div>
+
+            <div class="section-title" style="margin-top:4px;"><span>Visual Pattern Builder</span></div>
+            <div class="builder-tokens">
+                <button class="token-btn" onclick="appendToken('\\d+')">+ Digits (1+)</button>
+                <button class="token-btn" onclick="appendToken('[a-zA-Z]+')">+ Words</button>
+                <button class="token-btn" onclick="appendToken('\\s+')">+ Space</button>
+                <button class="token-btn" onclick="appendToken('.')">+ Any Char</button>
+                <button class="token-btn" onclick="appendToken('([a-zA-Z0-9]+)')">+ Capture Group</button>
+                <button class="token-btn" onclick="appendToken('^')">+ Start (^)</button>
+                <button class="token-btn" onclick="appendToken('$')">+ End ($)</button>
+                <button class="token-btn" onclick="appendToken('\\b')">+ Word Boundary</button>
+                <button class="token-btn" onclick="appendToken('{2,4}')">+ Quantifier {2,4}</button>
+            </div>
+
+            <div class="section-title" style="margin-top:4px;"><span>Active Regex Pattern</span></div>
+            <div class="regex-bar">
+                <span style="color:var(--sub); font-weight:700;">/</span>
+                <input type="text" id="regexInput" class="regex-input">
+                <span style="color:var(--sub); font-weight:700;">/</span>
+                <div class="flag-box">
+                    <label><input type="checkbox" id="flagG" checked>g</label>
+                    <label><input type="checkbox" id="flagI">i</label>
+                    <label><input type="checkbox" id="flagM">m</label>
+                </div>
+            </div>
+
+            <div class="section-title" style="margin-top:4px;"><span>Test Corpus</span></div>
+            <div class="editor-container">
+                <div class="editor-backdrop" id="backdrop"></div>
+                <textarea id="testCorpus" class="editor-textarea" spellcheck="false"></textarea>
+            </div>
+        </div>
+
+        <!-- Right Panel: Match Output & Code Export -->
+        <div class="panel">
+            <div class="section-title">
+                <span>Live Matches & Captures</span>
+                <span id="matchStats" style="font-size:0.75rem; color:var(--sub);">0 matches</span>
+            </div>
+            <div class="match-list" id="matchList"></div>
+
+            <div class="section-title" style="margin-top: 10px;"><span>JavaScript Integration Snippet</span></div>
+            <div class="code-box" id="codeSnippet"></div>
+        </div>
+    </main>
+
+    <!-- Modal to Add Custom Pattern -->
+    <div class="modal-overlay" id="addModal">
+        <div class="modal">
+            <h3>Add Custom Pattern to Bank</h3>
+            <div class="form-group"><label>Pattern Name</label><input type="text" id="customNameInput" placeholder="e.g., Custom Order SKU"></div>
+            <div class="form-group"><label>Regex Expression</label><input type="text" id="customRegexInput" placeholder="^SKU-\\d{5}$"></div>
+            <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px;">
+                <button id="cancelModalBtn">Cancel</button>
+                <button id="saveCustomBtn" class="primary">Save Pattern</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal">
+            <h3>RegexPulse Studio Guide</h3>
+            <p style="font-size:0.85rem; color:var(--sub); line-height:1.4; margin-bottom:10px;">Zero-dependency client-side Regex builder, preset library, capture inspector, and JSON bank manager.</p>
+            <div class="shortcut-grid">
+                <div class="shortcut-row"><span>Copy Code</span> <kbd>C</kbd></div>
+                <div class="shortcut-row"><span>Save Bank</span> <kbd>S</kbd></div>
+                <div class="shortcut-row"><span>Open Bank</span> <kbd>O</kbd></div>
+                <div class="shortcut-row"><span>Toggle Theme</span> <kbd>T</kbd></div>
+                <div class="shortcut-row"><span>Close Modal</span> <kbd>Esc</kbd></div>
+            </div>
+            <button id="closeHelpBtn" class="primary" style="width:100%; justify-content:center; margin-top:10px;">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Built-in Preset Bank ---
+        let patternBank = [
+            { name: "Email Address", pattern: "([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})", corpus: "Contact support@devpulse.io or sales-team@enterprise.org for questions." },
+            { name: "URL / Web Link", pattern: "https?://[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}(/[\\w.-]*)*/?", corpus: "Visit https://google.com or http://dev.local/api/v1 for documentation." },
+            { name: "Currency Amount", pattern: "\\$\\d+(?:\\.\\d{2})?", corpus: "The total cost is $149.99, down from $200." },
+            { name: "ISO Date (YYYY-MM-DD)", pattern: "\\b\\d{4}-\\d{2}-\\d{2}\\b", corpus: "Project milestone on 2026-10-30 and final release on 2026-12-15." },
+            { name: "Time Format (12h/24h)", pattern: "\\b(?:[01]?\\d|2[0-3]):[0-5]\\d(?:\\s?[AP]M)?\\b", corpus: "Meeting starts at 09:30 AM and concludes at 17:00." },
+            { name: "IPv4 & IPv6 Address", pattern: "\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b", corpus: "Server IP is 192.168.1.100 while gateway is 10.0.0.1." },
+            { name: "US Phone Number", pattern: "\\b\\(?\\d{3}\\)?[\\s.-]?\\d{3}[\\s.-]?\\d{4}\\b", corpus: "Call (555) 234-5678 or 800-555-0199 for assistance." },
+            { name: "US Social Security (SSN)", pattern: "\\b\\d{3}-\\d{2}-\\d{4}\\b", corpus: "Identifier recorded as 000-12-3456 on file." },
+            { name: "Zip Code (US)", pattern: "\\b\\d{5}(?:-\\d{4})?\\b", corpus: "Mailing address in Beverly Hills 90210 or 90210-1234." },
+            { name: "Repeated Words", pattern: "\\b(\\w+)\\s+\\1\\b", corpus: "This is is a test string with repeated words in in it." },
+            { name: "HTML Tag", pattern: "<([a-z1-6]+)(?:\\s+[^>]*>|>).*?</\\1>", corpus: "Render <div class=\"main\">Hello World</div> and <span>Text</span>." }
+        ];
+
+        const presetSelect = document.getElementById('presetSelect');
+        const regexInput = document.getElementById('regexInput');
+        const testCorpus = document.getElementById('testCorpus');
+
+        function populatePresets() {
+            presetSelect.innerHTML = patternBank.map((p, idx) => `<option value="${idx}">${p.name}</option>`).join('');
+        }
+
+        function loadPreset(idx) {
+            const preset = patternBank[idx];
+            if (preset) {
+                regexInput.value = preset.pattern;
+                testCorpus.value = preset.corpus;
+                runEngine();
+            }
+        }
+
+        presetSelect.addEventListener('change', e => loadPreset(e.target.value));
+
+        function appendToken(tokenStr) {
+            regexInput.value += tokenStr;
+            runEngine();
+        }
+
+        // --- Core Match Engine ---
+        function runEngine() {
+            const patternStr = regexInput.value;
+            const flags = (document.getElementById('flagG').checked ? 'g' : '') +
+                          (document.getElementById('flagI').checked ? 'i' : '') +
+                          (document.getElementById('flagM').checked ? 'm' : '');
+            
+            const corpus = testCorpus.value;
+            const backdrop = document.getElementById('backdrop');
+            const matchList = document.getElementById('matchList');
+            const stats = document.getElementById('matchStats');
+
+            if (!patternStr) {
+                backdrop.innerHTML = escapeHtml(corpus);
+                matchList.innerHTML = '<div style="font-size:0.8rem; color:var(--sub);">No pattern entered.</div>';
+                stats.innerText = '0 matches';
+                updateCode(patternStr, flags);
+                return;
+            }
+
+            try {
+                const startTime = performance.now();
+                const regex = new RegExp(patternStr, flags);
+                let matches = [];
+                let match;
+
+                if (flags.includes('g')) {
+                    while ((match = regex.exec(corpus)) !== null) {
+                        matches.push(match);
+                        if (match.index === regex.lastIndex) regex.lastIndex++;
+                    }
+                } else {
+                    match = regex.exec(corpus);
+                    if (match) matches.push(match);
+                }
+                const execTime = (performance.now() - startTime).toFixed(2);
+
+                let highlightedHtml = '';
+                let lastIdx = 0;
+
+                matches.forEach(m => {
+                    highlightedHtml += escapeHtml(corpus.slice(lastIdx, m.index));
+                    highlightedHtml += `<mark class="match-highlight">${escapeHtml(m[0])}</mark>`;
+                    lastIdx = m.index + m[0].length;
+                });
+                highlightedHtml += escapeHtml(corpus.slice(lastIdx));
+                backdrop.innerHTML = highlightedHtml;
+
+                stats.innerText = `${matches.length} matches (${execTime}ms)`;
+                matchList.innerHTML = matches.map((m, idx) => `
+                    <div class="match-card">
+                        <div>
+                            <span class="match-val">Match ${idx + 1}: "${escapeHtml(m[0])}"</span>
+                            <div style="font-size:0.72rem; color:var(--sub);">Index: ${m.index} • Groups: ${m.length - 1}</div>
+                        </div>
+                    </div>
+                `).join('') || '<div style="font-size:0.8rem; color:var(--sub);">No matches found.</div>';
+
+                updateCode(patternStr, flags);
+
+            } catch (err) {
+                backdrop.innerHTML = escapeHtml(corpus);
+                matchList.innerHTML = `<div style="font-size:0.8rem; color:var(--match-border);">Regex Error: ${escapeHtml(err.message)}</div>`;
+                stats.innerText = 'Syntax Error';
+            }
+        }
+
+        function updateCode(pattern, flags) {
+            document.getElementById('codeSnippet').innerText = `const regex = /${pattern}/${flags};\nconst text = \`...\`;\nlet match;\nwhile ((match = regex.exec(text)) !== null) {\n  console.log("Found:", match[0]);\n}`;
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag]));
+        }
+
+        // --- Add Custom Pattern Modal ---
+        const addModal = document.getElementById('addModal');
+        document.getElementById('addPatternBtn').addEventListener('click', () => {
+            document.getElementById('customRegexInput').value = regexInput.value;
+            addModal.classList.add('open');
+        });
+        document.getElementById('cancelModalBtn').addEventListener('click', () => addModal.classList.remove('open'));
+
+        document.getElementById('saveCustomBtn').addEventListener('click', () => {
+            const name = document.getElementById('customNameInput').value.trim() || 'Custom Pattern';
+            const pattern = document.getElementById('customRegexInput').value.trim();
+            if (!pattern) return alert('Pattern cannot be empty.');
+
+            patternBank.push({ name, pattern, corpus: testCorpus.value });
+            populatePresets();
+            presetSelect.value = patternBank.length - 1;
+            addModal.classList.remove('open');
+        });
+
+        // --- Save and Open Bank JSON ---
+        document.getElementById('saveBtn').addEventListener('click', exportBank);
+        document.getElementById('openFile').addEventListener('change', importBank);
+
+        function exportBank() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(patternBank, null, 2));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            a.setAttribute("download", `regexpulse_bank_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        function importBank(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const imported = JSON.parse(evt.target.result);
+                    if (Array.isArray(imported)) {
+                        patternBank = imported;
+                        populatePresets();
+                        loadPreset(0);
+                    } else alert('Invalid bank structure.');
+                } catch(err) { alert('Error parsing file.'); }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Listeners & Shortcuts ---
+        regexInput.addEventListener('input', runEngine);
+        testCorpus.addEventListener('input', runEngine);
+        document.getElementById('flagG').addEventListener('change', runEngine);
+        document.getElementById('flagI').addEventListener('change', runEngine);
+        document.getElementById('flagM').addEventListener('change', runEngine);
+
+        document.getElementById('copySnippetBtn').addEventListener('click', () => {
+            navigator.clipboard.writeText(document.getElementById('codeSnippet').innerText);
+            alert('JavaScript snippet copied!');
+        });
+
+        const helpModal = document.getElementById('helpModal');
+        document.getElementById('helpBtn').addEventListener('click', () => helpModal.classList.add('open'));
+        document.getElementById('closeHelpBtn').addEventListener('click', () => helpModal.classList.remove('open'));
+        document.getElementById('themeBtn').addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-theme');
+            document.documentElement.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+        });
+
+        // Keyboard shortcuts mapping:
+        // C = Copy Code, S = Save Bank, O = Open Bank, T = Toggle Theme, Esc = Close Modal
+        window.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            const key = e.key.toLowerCase();
+            if (key === 'c') { e.preventDefault(); document.getElementById('copySnippetBtn').click(); }
+            if (key === 's') { e.preventDefault(); exportBank(); }
+            if (key === 'o') { e.preventDefault(); document.getElementById('openFile').click(); }
+            if (key === 't') { e.preventDefault(); document.getElementById('themeBtn').click(); }
+            if (e.key === 'Escape') { addModal.classList.remove('open'); helpModal.classList.remove('open'); }
+        });
+
+        // Init
+        populatePresets();
+        loadPreset(0);
+    </script>
+</body>
+</html>

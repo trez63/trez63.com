@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Story Dice — roll a story only you could write</title>
+<style>
+/* ============ 1. Palette & base ============ */
+:root{
+  --paper:#f7f1e3; --paper2:#fffdf6; --ink:#2b2620; --ink-soft:#6b6156;
+  --crimson:#b3392e; --crimson-dark:#8f2a22;
+  --hero:#c96a2e; --place:#2e7d6b; --object:#b98a1d; --trouble:#7a4a8a; --twist:#3e6b9e;
+  --line:#e2d7c0; --gold:#c99a2e;
+  --radius:14px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:Georgia,"Iowan Old Style","Times New Roman",serif;
+  font-size:17px; line-height:1.5;
+}
+button{font:inherit; cursor:pointer; -webkit-tap-highlight-color:transparent}
+button:focus-visible, [tabindex]:focus-visible{outline:3px solid var(--gold); outline-offset:2px}
+
+/* ============ 2. Layout shell ============ */
+.wrap{max-width:860px; margin:0 auto; padding:20px 16px 48px}
+header{text-align:center; margin:6px 0 4px}
+h1{font-size:clamp(30px,7vw,44px); margin:0; letter-spacing:.02em}
+h1 .die-glyph{color:var(--crimson)}
+.sub{color:var(--ink-soft); font-style:italic; margin:6px 0 0}
+.rule{border:0; border-top:2px solid var(--line); margin:18px 0}
+
+/* ============ 3. Dice ============ */
+.dice{
+  display:grid; gap:12px;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+}
+.die{
+  position:relative; background:var(--paper2);
+  border:2px solid var(--line); border-top:6px solid var(--die-color,#888);
+  border-radius:var(--radius); padding:12px 12px 14px; min-height:132px;
+  text-align:left; display:flex; flex-direction:column; gap:6px;
+  transition:transform .12s ease, box-shadow .12s ease;
+}
+.die:hover{transform:translateY(-2px); box-shadow:0 6px 16px rgba(43,38,32,.14)}
+.die .cat{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--die-color,#888);
+}
+.die .face{font-size:19px; line-height:1.3; flex:1}
+.die .lock{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:13px; color:var(--ink-soft); display:flex; justify-content:space-between; align-items:center;
+}
+.die.locked{border-color:var(--die-color,#888); background:#fdf6e3}
+.die.locked .lock{color:var(--crimson); font-weight:700}
+.die .reroll{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:13px; font-weight:700; color:var(--die-color,#888);
+  background:none; border:1.5px solid var(--die-color,#888); border-radius:999px;
+  padding:2px 10px; min-height:30px;
+}
+.die.tumbling .face{opacity:.35}
+
+/* ============ 4. Controls ============ */
+.controls{display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:20px 0 8px}
+.btn{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:16px; font-weight:700; min-height:48px; padding:12px 20px;
+  border-radius:999px; border:2px solid var(--ink); background:var(--paper2); color:var(--ink);
+}
+.btn.primary{background:var(--crimson); border-color:var(--crimson); color:#fff}
+.btn.primary:active{background:var(--crimson-dark)}
+.btn.ghost{border-color:var(--line); color:var(--ink-soft)}
+.status{text-align:center; color:var(--ink-soft); font-size:14px; min-height:20px; margin:4px 0 0}
+
+/* ============ 5. Spark line ============ */
+.spark{
+  background:var(--paper2); border:2px solid var(--line); border-left:6px solid var(--crimson);
+  border-radius:var(--radius); padding:18px 20px; margin:18px 0 6px;
+}
+.spark .label{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--crimson);
+}
+.spark p{font-size:clamp(19px,4.6vw,23px); line-height:1.45; margin:8px 0 0}
+.spark p em{font-style:normal; border-bottom:2px solid var(--gold)}
+
+/* ============ 6. Saved sparks ============ */
+section h2{font-size:20px; margin:26px 0 4px}
+.hint{color:var(--ink-soft); font-size:14px; margin:0 0 12px}
+.saved-list{display:flex; flex-direction:column; gap:10px; list-style:none; margin:0; padding:0}
+.saved-list li{
+  background:var(--paper2); border:2px solid var(--line); border-radius:var(--radius);
+  padding:12px 14px; display:flex; gap:10px; align-items:flex-start;
+}
+.saved-list .text{flex:1; font-size:16px; line-height:1.4}
+.saved-list .meta{font-size:12px; color:var(--ink-soft); margin-top:4px;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.mini{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:13px; font-weight:700; min-height:40px; padding:6px 12px;
+  border-radius:999px; border:1.5px solid var(--line); background:var(--paper2); flex-shrink:0;
+}
+.mini.danger{color:var(--crimson); border-color:var(--crimson)}
+.empty{
+  border:2px dashed var(--line); border-radius:var(--radius); padding:18px;
+  text-align:center; color:var(--ink-soft); font-style:italic;
+}
+
+/* ============ 7. Footer & toast ============ */
+footer{margin-top:28px; text-align:center}
+.keys{font-size:13px; color:var(--ink-soft); margin-top:14px;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.keys kbd{background:var(--paper2); border:1px solid var(--line); border-bottom-width:2px;
+  border-radius:5px; padding:1px 6px; font-family:inherit}
+.toast{
+  position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(80px);
+  background:var(--ink); color:#fff; padding:12px 20px; border-radius:999px;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; font-size:15px;
+  opacity:0; transition:transform .25s ease, opacity .25s ease; pointer-events:none;
+  max-width:92vw; text-align:center; z-index:10;
+}
+.toast.show{transform:translateX(-50%) translateY(0); opacity:1}
+.toast.error{background:var(--crimson)}
+#fileInput{display:none}
+
+/* ============ 8. Motion & small screens ============ */
+@media (prefers-reduced-motion:reduce){
+  *{transition:none !important; animation:none !important}
+}
+@media (max-width:560px){
+  body{font-size:16px}
+  .dice{grid-template-columns:repeat(2,1fr)}
+  .die{min-height:148px}
+  .die .face{font-size:18px}
+  .controls .btn{flex:1 1 44%}
+  .saved-list li{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1><span class="die-glyph">⚄</span> STORY DICE</h1>
+    <p class="sub">Roll five dice. Get a story only you could write.</p>
+  </header>
+  <hr class="rule">
+
+  <!-- Dice row: tap a die to lock it, tap its ↻ to re-roll just that die -->
+  <div class="dice" id="dice" role="group" aria-label="Story dice"></div>
+
+  <div class="controls">
+    <button class="btn primary" id="rollBtn" type="button">🎲 Roll the dice</button>
+    <button class="btn" id="keepBtn" type="button">✎ Keep this spark</button>
+    <button class="btn" id="copyBtn" type="button">⧉ Copy spark</button>
+  </div>
+  <p class="status" id="status" aria-live="polite">Tap any die to lock it — locked dice stay put on the next roll.</p>
+
+  <!-- The generated story spark -->
+  <div class="spark" aria-live="polite">
+    <span class="label">Your story spark</span>
+    <p id="sparkText"></p>
+  </div>
+
+  <!-- Saved sparks -->
+  <section aria-labelledby="savedHeading">
+    <h2 id="savedHeading">Kept sparks <span id="savedCount"></span></h2>
+    <p class="hint">Sparks you keep live here — and in this browser — until you delete them.</p>
+    <ul class="saved-list" id="savedList"></ul>
+    <div class="empty" id="savedEmpty">No sparks kept yet. Roll the dice, then tap “Keep this spark”.</div>
+  </section>
+
+  <footer>
+    <hr class="rule">
+    <div class="controls">
+      <button class="btn" id="saveBtn" type="button">↓ Save JSON</button>
+      <button class="btn" id="openBtn" type="button">↑ Open JSON</button>
+      <button class="btn ghost" id="clearBtn" type="button">Clear kept sparks</button>
+    </div>
+    <p class="keys">
+      <kbd>R</kbd> roll &nbsp; <kbd>K</kbd> keep spark &nbsp; <kbd>C</kbd> copy spark &nbsp;
+      <kbd>S</kbd> save &nbsp; <kbd>O</kbd> open
+    </p>
+    <input type="file" id="fileInput" accept="application/json,.json">
+  </footer>
+
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+"use strict";
+/* =====================================================================
+   STORY DICE — roll five story dice, get a writing prompt.
+   Sections: 1 Data · 2 State · 3 Rendering · 4 Rolling · 5 Sparks
+             6 Save/Open · 7 Toast · 8 Wiring · 9 Boot
+   ===================================================================== */
+
+/* ---------- 1. Data: five dice, six faces each ---------- */
+var DICE = [
+  { key:"hero",    label:"Hero",    glyph:"🧑", color:"var(--hero)",
+    faces:["a retired lighthouse keeper","a runaway cartographer","a night-shift baker",
+           "a thief with a conscience","a botanist who talks to seeds","a disgraced starship pilot"] },
+  { key:"place",   label:"Place",   glyph:"🗺️", color:"var(--place)",
+    faces:["a town that only appears in fog","an abandoned observatory","a market that sells memories",
+           "a library under the sea","a train that never stops","a lighthouse on a cliff of glass"] },
+  { key:"object",  label:"Object",  glyph:"🔑", color:"var(--object)",
+    faces:["a brass key that hums","a letter addressed to the future","a map with a moving coastline",
+           "a pocket watch that runs backwards","a jar of bottled thunder","a photograph of someone not yet born"] },
+  { key:"trouble", label:"Trouble", glyph:"⚡", color:"var(--trouble)",
+    faces:["the tide is coming in early","someone is erasing the town's name","the last light has gone out",
+           "a storm that remembers everything","the rain has been sold","the clocks all stopped at midnight"] },
+  { key:"twist",   label:"Twist",   glyph:"↻", color:"var(--twist)",
+    faces:["the hero caused it","it was all a rehearsal","the object chooses its owner",
+           "time loops every midnight","the villain is trying to help","the town already knows"] }
+];
+var MAX_SAVED = 30;
+var STORE_KEY = "story-dice-v1";
+var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------- 2. State ---------- */
+var state = {
+  roll: [0,0,0,0,0],          // face index per die
+  locked: [false,false,false,false,false],
+  saved: []                    // {text, ts}
+};
+
+/* ---------- 3. Rendering ---------- */
+var diceEl = document.getElementById("dice");
+var sparkEl = document.getElementById("sparkText");
+var statusEl = document.getElementById("status");
+var savedListEl = document.getElementById("savedList");
+var savedEmptyEl = document.getElementById("savedEmpty");
+var savedCountEl = document.getElementById("savedCount");
+
+function buildDice(){
+  diceEl.innerHTML = "";
+  DICE.forEach(function(die, i){
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "die";
+    btn.style.setProperty("--die-color", die.color);
+    btn.dataset.index = String(i);
+    btn.setAttribute("aria-label", die.label + " die: " + die.faces[state.roll[i]] +
+      (state.locked[i] ? " (locked)" : " (unlocked, tap to lock)"));
+    btn.innerHTML =
+      '<span class="cat">' + die.glyph + " " + die.label + "</span>" +
+      '<span class="face">' + escapeHtml(die.faces[state.roll[i]]) + "</span>" +
+      '<span class="lock"><span class="lock-state">' + (state.locked[i] ? "🔒 Locked" : "🔓 Tap to lock") + "</span>" +
+      '<span class="reroll" role="button" tabindex="0" data-reroll="' + i + '" aria-label="Re-roll the ' + die.label + ' die only">↻</span></span>';
+    diceEl.appendChild(btn);
+  });
+}
+
+function renderSpark(){
+  var f = currentFaces();
+  sparkEl.innerHTML =
+    "Write about <em>" + escapeHtml(f.hero) + "</em> in <em>" + escapeHtml(f.place) + "</em>, " +
+    "carrying <em>" + escapeHtml(f.object) + "</em> — when <em>" + escapeHtml(f.trouble) + "</em>. " +
+    "And remember: <em>" + escapeHtml(f.twist) + "</em>.";
+}
+
+function renderSaved(){
+  savedListEl.innerHTML = "";
+  savedCountEl.textContent = state.saved.length ? "(" + state.saved.length + ")" : "";
+  savedEmptyEl.style.display = state.saved.length ? "none" : "block";
+  state.saved.forEach(function(s, i){
+    var li = document.createElement("li");
+    var when = new Date(s.ts);
+    li.innerHTML =
+      '<span class="text">' + escapeHtml(s.text) +
+        '<span class="meta">' + when.toLocaleDateString() + " · " + when.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}) + "</span></span>" +
+      '<button class="mini" type="button" data-copy="' + i + '">Copy</button>' +
+      '<button class="mini danger" type="button" data-del="' + i + '">Delete</button>';
+    savedListEl.appendChild(li);
+  });
+}
+
+function renderAll(){
+  buildDice();
+  renderSpark();
+  renderSaved();
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+  });
+}
+
+/* ---------- 4. Rolling ---------- */
+function currentFaces(){
+  var out = {};
+  DICE.forEach(function(die, i){ out[die.key] = die.faces[state.roll[i]]; });
+  return out;
+}
+function sparkText(){
+  var f = currentFaces();
+  return "Write about " + f.hero + " in " + f.place + ", carrying " + f.object +
+    " — when " + f.trouble + ". And remember: " + f.twist + ".";
+}
+function randomFace(){ return Math.floor(Math.random() * 6); }
+
+function rollAll(){
+  if (state.locked.every(Boolean)){
+    // No-fail rule: an all-locked hand still rolls — it becomes a fresh hand.
+    state.locked = [false,false,false,false,false];
+    setStatus("All dice were locked, so this is a fresh hand — every die rolled.");
+  } else {
+    setStatus("Rolled the unlocked dice. Tap a die to lock it before the next roll.");
+  }
+  for (var i = 0; i < 5; i++){
+    if (!state.locked[i]) state.roll[i] = randomFace();
+  }
+  tumble();
+  renderAll();
+  persist();
+}
+
+function rollOne(i){
+  state.roll[i] = randomFace();
+  tumble(i);
+  renderAll();
+  persist();
+  setStatus("Re-rolled the " + DICE[i].label + " die.");
+}
+
+function toggleLock(i){
+  state.locked[i] = !state.locked[i];
+  renderAll();
+  persist();
+  setStatus(state.locked[i]
+    ? "Locked the " + DICE[i].label + " die — it will stay put on the next roll."
+    : "Unlocked the " + DICE[i].label + " die.");
+}
+
+/* Brief tumble: cycle faces quickly, then settle. Skipped under reduced motion. */
+function tumble(onlyIndex){
+  if (REDUCED) return;
+  var targets = onlyIndex === undefined ? [0,1,2,3,4] : [onlyIndex];
+  targets.forEach(function(i){
+    if (state.locked[i] && onlyIndex === undefined) return;
+    var dieBtn = diceEl.children[i];
+    if (!dieBtn) return;
+    dieBtn.classList.add("tumbling");
+    var faceEl = dieBtn.querySelector(".face");
+    var ticks = 0;
+    var iv = setInterval(function(){
+      faceEl.textContent = DICE[i].faces[Math.floor(Math.random() * 6)];
+      if (++ticks >= 6){
+        clearInterval(iv);
+        faceEl.textContent = DICE[i].faces[state.roll[i]];
+        dieBtn.classList.remove("tumbling");
+      }
+    }, 60);
+  });
+}
+
+/* ---------- 5. Kept sparks ---------- */
+function keepSpark(){
+  var text = sparkText();
+  if (state.saved.some(function(s){ return s.text === text; })){
+    showToast("That spark is already kept.", false);
+    return;
+  }
+  state.saved.unshift({ text: text, ts: Date.now() });
+  if (state.saved.length > MAX_SAVED) state.saved.length = MAX_SAVED;
+  renderSaved();
+  persist();
+  showToast("Spark kept ✓", false);
+}
+function deleteSpark(i){
+  state.saved.splice(i, 1);
+  renderSaved();
+  persist();
+}
+function clearSaved(){
+  if (!state.saved.length){ showToast("Nothing to clear — no sparks kept yet.", false); return; }
+  state.saved = [];
+  renderSaved();
+  persist();
+  showToast("Kept sparks cleared.", false);
+}
+function copyText(text, okMsg){
+  var done = function(){ showToast(okMsg, false); };
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done, function(){ fallbackCopy(text); done(); });
+  } else { fallbackCopy(text); done(); }
+}
+function fallbackCopy(text){
+  var ta = document.createElement("textarea");
+  ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand("copy"); } catch (e) { /* clipboard unavailable */ }
+  document.body.removeChild(ta);
+}
+
+/* ---------- 6. Save / Open (JSON, fully validated) ---------- */
+function exportData(){
+  return { version: 1, app: "story-dice",
+    current: { roll: state.roll.slice(), locked: state.locked.slice() },
+    saved: state.saved.map(function(s){ return { text: s.text, ts: s.ts }; }) };
+}
+function validateSave(data){
+  if (!data || typeof data !== "object" || Array.isArray(data)) return "Not a Story Dice file (expected an object).";
+  if (data.version !== 1) return "Unsupported file version.";
+  if (data.app !== "story-dice") return "Not a Story Dice file.";
+  var c = data.current;
+  if (!c || typeof c !== "object" || Array.isArray(c)) return "Missing current roll.";
+  if (!Array.isArray(c.roll) || c.roll.length !== 5 ||
+      c.roll.some(function(n){ return !Number.isInteger(n) || n < 0 || n > 5; }))
+    return "Current roll is invalid (five face numbers 0–5 expected).";
+  if (!Array.isArray(c.locked) || c.locked.length !== 5 ||
+      c.locked.some(function(b){ return typeof b !== "boolean"; }))
+    return "Lock flags are invalid (five true/false values expected).";
+  if (!Array.isArray(data.saved)) return "Saved sparks must be a list.";
+  if (data.saved.length > MAX_SAVED) return "Too many saved sparks (max " + MAX_SAVED + ").";
+  for (var i = 0; i < data.saved.length; i++){
+    var s = data.saved[i];
+    if (!s || typeof s !== "object" || Array.isArray(s)) return "Saved spark #" + (i + 1) + " is invalid.";
+    if (typeof s.text !== "string" || !s.text.trim() || s.text.length > 600)
+      return "Saved spark #" + (i + 1) + " has no text.";
+    if (!Number.isInteger(s.ts) || s.ts < 0) return "Saved spark #" + (i + 1) + " has a bad date.";
+  }
+  return null; // valid
+}
+function applySave(data){
+  state.roll = data.current.roll.slice();
+  state.locked = data.current.locked.slice();
+  state.saved = data.saved.map(function(s){ return { text: s.text, ts: s.ts }; });
+  renderAll();
+  persist();
+}
+function saveFile(){
+  var blob = new Blob([JSON.stringify(exportData(), null, 2)], { type: "application/json" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "story-dice.json";
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  showToast("Saved story-dice.json ✓", false);
+}
+function openFile(file){
+  var reader = new FileReader();
+  reader.onload = function(){
+    var data;
+    try { data = JSON.parse(reader.result); }
+    catch (e){ showToast("That file is not valid JSON — nothing changed.", true); return; }
+    var err = validateSave(data);
+    if (err){ showToast("Could not open that file: " + err + " Nothing changed.", true); return; }
+    applySave(data);
+    showToast("Opened ✓ — your dice and kept sparks are restored.", false);
+  };
+  reader.onerror = function(){ showToast("Could not read that file — nothing changed.", true); };
+  reader.readAsText(file);
+}
+
+/* ---------- 7. Toast & status ---------- */
+var toastEl = document.getElementById("toast");
+var toastTimer = null;
+function showToast(msg, isError){
+  toastEl.textContent = msg;
+  toastEl.classList.toggle("error", !!isError);
+  toastEl.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ toastEl.classList.remove("show"); }, 3200);
+}
+function setStatus(msg){ statusEl.textContent = msg; }
+
+/* ---------- 8. Persistence (browser autosave) ---------- */
+function persist(){
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(exportData())); } catch (e) { /* storage unavailable */ }
+}
+function restore(){
+  try {
+    var raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return;
+    var data = JSON.parse(raw);
+    if (!validateSave(data)) applySave(data);
+  } catch (e) { /* corrupt autosave is ignored; defaults stand */ }
+}
+
+/* ---------- 9. Wiring ---------- */
+diceEl.addEventListener("click", function(ev){
+  var rr = ev.target.closest("[data-reroll]");
+  if (rr){ rollOne(Number(rr.dataset.reroll)); return; }
+  var die = ev.target.closest(".die");
+  if (die) toggleLock(Number(die.dataset.index));
+});
+diceEl.addEventListener("keydown", function(ev){
+  var rr = ev.target.closest("[data-reroll]");
+  if (rr && (ev.key === "Enter" || ev.key === " ")){
+    ev.preventDefault(); rollOne(Number(rr.dataset.reroll));
+  }
+});
+savedListEl.addEventListener("click", function(ev){
+  var cp = ev.target.closest("[data-copy]");
+  if (cp){ copyText(state.saved[Number(cp.dataset.copy)].text, "Spark copied ✓"); return; }
+  var del = ev.target.closest("[data-del]");
+  if (del){ deleteSpark(Number(del.dataset.del)); showToast("Spark deleted.", false); }
+});
+document.getElementById("rollBtn").addEventListener("click", rollAll);
+document.getElementById("keepBtn").addEventListener("click", keepSpark);
+document.getElementById("copyBtn").addEventListener("click", function(){
+  copyText(sparkText(), "Spark copied ✓");
+});
+document.getElementById("saveBtn").addEventListener("click", saveFile);
+document.getElementById("openBtn").addEventListener("click", function(){
+  document.getElementById("fileInput").click();
+});
+document.getElementById("clearBtn").addEventListener("click", clearSaved);
+document.getElementById("fileInput").addEventListener("change", function(ev){
+  if (ev.target.files && ev.target.files[0]) openFile(ev.target.files[0]);
+  ev.target.value = "";
+});
+
+/* Keyboard: each key does exactly one thing.
+   R roll · K keep spark · C copy spark · S save · O open */
+document.addEventListener("keydown", function(ev){
+  if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
+  if (ev.target && (ev.target.tagName === "INPUT" || ev.target.tagName === "TEXTAREA")) return;
+  var k = ev.key.toLowerCase();
+  if (k === "r"){ ev.preventDefault(); rollAll(); }
+  else if (k === "k"){ keepSpark(); }
+  else if (k === "c"){ copyText(sparkText(), "Spark copied ✓"); }
+  else if (k === "s"){ ev.preventDefault(); saveFile(); }
+  else if (k === "o"){ document.getElementById("fileInput").click(); }
+});
+
+/* ---------- 10. Boot: a finished roll on load, never a blank screen ---------- */
+restore();
+if (!localStorage.getItem(STORE_KEY)){
+  state.roll = [randomFace(), randomFace(), randomFace(), randomFace(), randomFace()];
+}
+renderAll();
+
+/* Test hook (harmless in the browser): exposes pure logic for the offline test harness. */
+window.__storyDice = { DICE: DICE, validateSave: validateSave, sparkText: sparkText,
+  state: state, rollAll: rollAll, rollOne: rollOne, toggleLock: toggleLock,
+  keepSpark: keepSpark, deleteSpark: deleteSpark, applySave: applySave, exportData: exportData };
+</script>
+</body>
+</html>

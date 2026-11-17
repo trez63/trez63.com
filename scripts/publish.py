@@ -4,6 +4,7 @@ trez63.com publisher.
 
 Usage:
   python3 scripts/publish.py --source <dir-with-html-files> [--no-thumbs] [--force-thumbs slug,slug]
+                            [--picks FILE] [--terms FILE] [--dates FILE]
 
 What it does, per *.html in --source:
   1. Derives a slug + engine from the filename  (carve-claude.html -> slug "carve", engine "Claude")
@@ -11,7 +12,10 @@ What it does, per *.html in --source:
      Unchanged -> skipped.
   3. Screenshots new/changed apps with headless Chromium into thumbs/<slug>.webp
      (per-app interaction recipe lives in catalog.json under "thumb"; a generic poke is the default).
-  4. Updates catalog.json (title, description, engine, versions, dates).
+  4. Updates catalog.json (title, description, engine, versions, dates). With --dates (one `<date>|<file name>`
+     line per source file, from the computer that holds the folder) an app is dated by the day its file was
+     saved rather than the day it was published, and an already-published app whose catalog date is later
+     than its file is pulled back to the file date.
   5. Regenerates index.html from catalog.json via scripts/build_index.py.
 
 Anything that is not *.html (save-game .json files, .lnk shortcuts) is ignored on purpose.
@@ -49,6 +53,45 @@ def slug_and_engine(filename: str):
 
 def sha(p: Path):
     return hashlib.sha256(p.read_bytes()).hexdigest()[:12]
+
+# ---------------------------------------------------------------- dates
+def load_dates(path: str):
+    """Save dates of the source files, from a text file with one `<date>|<file name>` line each
+    (the date may carry a time: 2026-10-25T16:42|Aether-Grok.html). Staging copies lose their
+    mtime, so the daily task produces this list on the computer that holds the folder
+    (stat -c '%Y|%n' *.html, converted to local dates). Missing or unreadable -> {}."""
+    out = {}
+    if not path or not Path(path).exists(): return out
+    for l in Path(path).read_text(encoding="utf-8-sig", errors="ignore").splitlines():
+        if "|" not in l or l.lstrip().startswith("#"): continue
+        d, name = l.split("|", 1)
+        m = re.match(r"\s*(\d{4}-\d{2}-\d{2})", d)
+        if m: out[name.strip()] = m.group(1)
+    return out
+
+def build_date(html: str):
+    """Claude's apps carry their build day in the title ("Daily Build 2026-11-07 — Redline"); a file saved
+    later than that was still made on that day. Returns the ISO date or None."""
+    t = re.search(r"<title>(.*?)</title>", html, re.S | re.I)
+    m = re.search(r"Daily Build (\d{4}-\d{2}-\d{2})", t.group(1)) if t else None
+    return m.group(1) if m else None
+
+def realign_dates(entry, fdate, h):
+    """An app cannot be newer than the file it came from, so a catalog date later than the file's
+    save date is pulled back to it. Applies to the versions whose content is this file (sha match),
+    then to first_published / last_updated. Returns True if anything moved."""
+    moved = False
+    for v in entry.get("versions", []):
+        if v.get("sha") == h and fdate < v.get("date", fdate):
+            v["date"] = fdate; moved = True
+    vdates = [v["date"] for v in entry.get("versions", []) if v.get("date")]
+    first = min([entry.get("first_published", fdate)] + vdates)
+    if first != entry.get("first_published"):
+        entry["first_published"] = first; moved = True
+    last = max(vdates) if vdates else entry.get("last_updated")
+    if last and last != entry.get("last_updated"):
+        entry["last_updated"] = last; moved = True
+    return moved
 
 def strip_markup(html: str):
     html = re.sub(r"<(style|script)[^>]*>.*?</\1>", "", html, flags=re.S | re.I)
@@ -171,10 +214,13 @@ def main():
     ap.add_argument("--force-thumbs", default="", help="comma list of slugs to re-screenshot")
     ap.add_argument("--picks", default="", help="editor's-choice file: one app title, slug or file name per line")
     ap.add_argument("--terms", default="", help="private-terms file for scripts/privacy_check.py (kept outside the repo)")
+    ap.add_argument("--dates", default="", help="save dates of the source files, one `<date>|<file name>` per line; an app is dated by its file, never later")
     args = ap.parse_args()
     src = Path(args.source)
     today = date.today().isoformat()
     force = set(filter(None, args.force_thumbs.split(",")))
+    dates = load_dates(args.dates)
+    redated = []
 
     catalog = json.loads(CATALOG.read_text()) if CATALOG.exists() else {"apps": {}}
     apps = catalog["apps"]
@@ -185,6 +231,11 @@ def main():
         slug, engine = slug_and_engine(f.name)
         h = sha(f)
         entry = apps.get(slug)
+        fdate = min(dates.get(f.name, today), today)  # the file's save date: the app is at least this old
+        bdate = build_date(f.read_text(encoding="utf-8", errors="ignore"))
+        if bdate: fdate = min(fdate, bdate)
+        if entry and any(v.get("sha") == h for v in entry.get("versions", [])) and (f.name in dates or bdate):
+            if realign_dates(entry, fdate, h): redated.append(slug)
         if entry and entry.get("sha") == h:
             print(f"= {slug}: unchanged")
             continue
@@ -216,19 +267,19 @@ def main():
         if entry is None:
             apps[slug] = entry = {
                 "title": title or slug, "engine": engine or "Unknown", "description": desc,
-                "source_file": f.name, "first_published": today, "last_updated": today,
-                "version": 1, "sha": h, "versions": [{"v": 1, "date": today, "sha": h}],
+                "source_file": f.name, "first_published": fdate, "last_updated": fdate,
+                "version": 1, "sha": h, "versions": [{"v": 1, "date": fdate, "sha": h}],
             }
             print(f"+ {slug}: new  [{entry['engine']}]  {entry['title']}")
         else:
             entry["version"] += 1
-            entry["last_updated"] = today
+            entry["last_updated"] = max(fdate, entry.get("last_updated", fdate))
             entry["sha"] = h
             entry["source_file"] = f.name
             if engine and entry.get("engine") in (None, "Unknown"): entry["engine"] = engine
             # The catalog title is authoritative once set (same rule as the description): a re-saved file whose
             # <title> reads differently, e.g. "Daily Build 2026-11-14 — Trill", must not rename a published app.
-            entry["versions"].append({"v": entry["version"], "date": today, "sha": h})
+            entry["versions"].append({"v": entry["version"], "date": fdate, "sha": h})
             print(f"^ {slug}: updated -> v{entry['version']}")
         changed.append(slug)
 
@@ -249,6 +300,8 @@ def main():
     CATALOG.write_text(json.dumps(catalog, indent=2, ensure_ascii=False) + "\n")
     subprocess.run([sys.executable, str(ROOT / "scripts" / "build_index.py")], check=True)
     print(f"\n{len(changed)} new/updated: {', '.join(changed) or '-'}")
+    if redated:
+        print(f"redated to the file's save date: {', '.join(redated)}")
     if blocked:
         print(f"BLOCKED (not published): {', '.join(blocked)}")
     # final sweep of everything that is about to be committed

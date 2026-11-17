@@ -3,68 +3,68 @@
   <title>trez63 — one small app a day</title>
   <link>https://trez63.com/</link>
   <description>Every day ChatGPT, Claude, Gemini, Grok and Muse each build a single-page app from the same one-line prompt. Play them all.</description>
-  <lastBuildDate>Mon, 16 Nov 2026 12:00:00 +0000</lastBuildDate>
+  <lastBuildDate>Tue, 17 Nov 2026 12:00:00 +0000</lastBuildDate>
   <item>
-    <title>LinguistTree (Gemini)</title>
-    <link>https://trez63.com/p/linguisttree.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/linguisttree.html</guid>
+    <title>Gradus (Claude)</title>
+    <link>https://trez63.com/p/gradus.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/gradus.html</guid>
     <pubDate>Mon, 16 Nov 2026 12:00:00 +0000</pubDate>
-    <description>A sentence parser you can watch work. Type an English sentence and it tags each word&#x27;s part of speech, then draws it either as a constituency tree (S splitting into noun and verb phrases) or as dependency arcs from each head to its modifiers, with token count, tree depth and the root verb shown up top. Light and dark themes; a parse saves and reloads as JSON.</description>
+    <description>First-species counterpoint after Fux. Pick a cantus firmus, let it compose a counterpoint that obeys the rules, or drag the notes yourself and watch every broken rule get named. Plays back and exports MIDI.</description>
   </item>
   <item>
-    <title>LogiGate (Gemini)</title>
-    <link>https://trez63.com/p/logigate.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/logigate.html</guid>
+    <title>Pattern Lab (Grok)</title>
+    <link>https://trez63.com/p/pattern-lab.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/pattern-lab.html</guid>
     <pubDate>Mon, 16 Nov 2026 12:00:00 +0000</pubDate>
-    <description>A digital logic workbench. Spawn switches and AND, OR, XOR, NAND and NOT gates, wire them by tapping an output pin then an input pin, drag them around the schematic and flip the switches to see every wire and output light up high or low; a half-adder demo is built in, a pulse clock toggles the inputs on a timer, and a circuit saves or reloads as JSON.</description>
+    <description>Gray-Scott reaction-diffusion on a canvas. Pick spots, stripes, worms or mitosis, nudge the feed and kill rates, and paint catalyst with the mouse to see the pattern grow around it.</description>
   </item>
   <item>
-    <title>MazeForge (Gemini)</title>
-    <link>https://trez63.com/p/mazeforge.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/mazeforge.html</guid>
+    <title>Story Dice (Muse)</title>
+    <link>https://trez63.com/p/story-dice.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/story-dice.html</guid>
     <pubDate>Mon, 16 Nov 2026 12:00:00 +0000</pubDate>
-    <description>A maze generator with an animated solver. It carves a random maze by recursive backtracking at the grid size you choose, then A*, Dijkstra or breadth-first search explores it in real time, colouring the frontier as it goes and the shortest path when it arrives, with explored-node and step counts to compare the three. Tap or drag to add and remove walls; a maze saves and reloads as JSON.</description>
+    <description>Roll five dice and get a story spark only that combination could produce. Lock the dice you like, roll the rest, and keep the sparks worth writing.</description>
   </item>
   <item>
-    <title>MorphoField (Gemini)</title>
-    <link>https://trez63.com/p/morphofield.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/morphofield.html</guid>
+    <title>Trace (Claude)</title>
+    <link>https://trez63.com/p/trace.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/trace.html</guid>
     <pubDate>Mon, 16 Nov 2026 12:00:00 +0000</pubDate>
-    <description>A Gray-Scott reaction-diffusion dish. Two virtual chemicals feed and kill each other on a 128×128 field and self-organise into coral labyrinths, dividing cells, leopard spots or soliton waves depending on the feed and kill rates you set; tap or drag to inject more reagent, pick from presets and colour palettes, pause, re-seed, and save or reload a state as JSON.</description>
+    <description>Process mining from any event log. Paste a CSV of cases, activities and timestamps and it discovers the real process map, shows how often each path is taken and which hand-offs are the bottlenecks.</description>
   </item>
   <item>
-    <title>OptiPath (Gemini)</title>
-    <link>https://trez63.com/p/optipath.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/optipath.html</guid>
+    <title>WaveForge (Gemini)</title>
+    <link>https://trez63.com/p/waveforge.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/waveforge.html</guid>
     <pubDate>Mon, 16 Nov 2026 12:00:00 +0000</pubDate>
-    <description>A geometric optics bench. A laser fires across the canvas and bends by Snell&#x27;s law through draggable glass blocks of adjustable refractive index, reflecting totally when it meets an interface past the critical angle; turn the emitter angle, change the wavelength colour, add prisms and lenses, and save or reload a setup as JSON.</description>
+    <description>Fourier harmonic synthesis. Drag sixteen harmonic bars to sculpt a waveform, watch the oscilloscope and spectrum respond, pick sawtooth, square or organ presets and audition the tone.</description>
   </item>
   <item>
     <title>Crank (Claude)</title>
     <link>https://trez63.com/p/crank.html</link>
     <guid isPermaLink="true">https://trez63.com/p/crank.html</guid>
-    <pubDate>Mon, 16 Nov 2026 12:00:00 +0000</pubDate>
+    <pubDate>Sun, 15 Nov 2026 12:00:00 +0000</pubDate>
     <description>A planar linkage laboratory. Place joints, pin some to the ground, connect them with rigid bars and make one bar the crank; every frame each free joint is solved as the intersection of two circles, so you can build a four-bar, a Chebyshev straight-line linkage, Hoeken&#x27;s walker or a Jansen Strandbeest leg from the presets or from scratch, trace any joint&#x27;s path over a revolution (coloured by speed), see in red where the mechanism binds, and save or reload the whole thing as JSON.</description>
   </item>
   <item>
     <title>Symmetry Loom (Grok)</title>
     <link>https://trez63.com/p/symmetry-loom.html</link>
     <guid isPermaLink="true">https://trez63.com/p/symmetry-loom.html</guid>
-    <pubDate>Mon, 16 Nov 2026 12:00:00 +0000</pubDate>
+    <pubDate>Sun, 15 Nov 2026 12:00:00 +0000</pubDate>
     <description>A mandala drawing pad. Every freehand stroke is mirrored and rotated into 2, 3, 6, 8 or 12-fold symmetry around the centre as you draw; pick a colour and brush size, toggle the mirror, undo, set the finished design pulsing, and save or reload all the strokes as JSON.</description>
   </item>
   <item>
     <title>CipherLab (Gemini)</title>
     <link>https://trez63.com/p/cipherlab.html</link>
     <guid isPermaLink="true">https://trez63.com/p/cipherlab.html</guid>
-    <pubDate>Mon, 16 Nov 2026 12:00:00 +0000</pubDate>
+    <pubDate>Sun, 15 Nov 2026 12:00:00 +0000</pubDate>
     <description>An Enigma machine and cryptanalysis bench. Type a message and it passes through a three-rotor Enigma M3 with reflector and plugboard (or a Vigenère or Caesar shift), with the rotor windows stepping as you go; a live letter-frequency chart against the English baseline, index of coincidence and Shannon entropy show how well the cipher hides the text, swap input and output to decrypt, and save or reload a key setup as JSON.</description>
   </item>
   <item>
     <title>Labyrinth (Muse)</title>
     <link>https://trez63.com/p/labyrinth.html</link>
     <guid isPermaLink="true">https://trez63.com/p/labyrinth.html</guid>
-    <pubDate>Mon, 16 Nov 2026 12:00:00 +0000</pubDate>
+    <pubDate>Sun, 15 Nov 2026 12:00:00 +0000</pubDate>
     <description>A maze you solve by hand. Each one is carved fresh by a recursive backtracker at 9×9, 13×13 or 19×19 and always has an exit; steer with swipes, arrow keys, WASD or the on-screen pad against a timer and move counter, leave a trail, ask for the hint path, and keep best times per size, with a maze saved or reloaded as JSON.</description>
   </item>
   <item>
@@ -73,69 +73,6 @@
     <guid isPermaLink="true">https://trez63.com/p/trill.html</guid>
     <pubDate>Sun, 15 Nov 2026 12:00:00 +0000</pubDate>
     <description>A modem made of birdsong. Type a message and it plays as a short melody of 32 pure tones that another phone (or the same one) decodes from its microphone, with a live waterfall of what the decoder hears; Reed–Solomon coding repairs up to two wrong tones in every fifteen, the receiver locks onto slow, normal or fast sends on its own, a self-test routes a message through simulated room noise, and a message can be exported as a WAV to send by email or decoded back from a recording. Drafts and the inbox save as JSON.</description>
-  </item>
-  <item>
-    <title>Ebru (Claude)</title>
-    <link>https://trez63.com/p/ebru.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/ebru.html</guid>
-    <pubDate>Sat, 14 Nov 2026 12:00:00 +0000</pubDate>
-    <description>A paper-marbling bath. Tap to float ink drops that push the earlier ones aside, then drag a rake, comb, wave or swirl through them; every gesture is an exact closed-form deformation, so pictures replay perfectly from the saved gesture list, and you can start from stone, gelgit, nonpareil, bouquet, peacock or vortex presets, switch palettes and paper, undo, and export a 2000-px PNG.</description>
-  </item>
-  <item>
-    <title>Nash (Claude)</title>
-    <link>https://trez63.com/p/nash.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/nash.html</guid>
-    <pubDate>Sat, 14 Nov 2026 12:00:00 +0000</pubDate>
-    <description>Hex against a computer opponent you can watch think. You connect left to right, Nash connects top to bottom, and while it searches the board glows with where its Monte-Carlo tree search is spending attention; pick a 7, 9 or 11 board, quick to deep thinking time, ask for a hint, undo, and save or open games as JSON.</description>
-  </item>
-  <item>
-    <title>Belfry (ChatGPT)</title>
-    <link>https://trez63.com/p/belfry.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/belfry.html</guid>
-    <pubDate>Sat, 14 Nov 2026 12:00:00 +0000</pubDate>
-    <description>A change-ringing studio for six synthesised bells. Tap a bell to hear it, play a score row by row at a chosen strikes-per-minute, follow one bell’s path through the diagram, edit which neighbouring positions swap on each row or build your own method and return it to rounds, choose a bronze or glass voice, and save the score as JSON or export the performance as a WAV.</description>
-  </item>
-  <item>
-    <title>Drift (Muse)</title>
-    <link>https://trez63.com/p/drift-soundscape.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/drift-soundscape.html</guid>
-    <pubDate>Sat, 14 Nov 2026 12:00:00 +0000</pubDate>
-    <description>An ambient soundscape mixer. Rain, ocean, wind, fire and birdsong are synthesised live from filtered noise and scheduled chirps and crackles, with no recordings; blend them with sliders, start from presets like Rainy Night or Forest Dawn, set a sleep timer, and save or open a mix as JSON.</description>
-  </item>
-  <item>
-    <title>Dropzone (Muse)</title>
-    <link>https://trez63.com/p/dropzone.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/dropzone.html</guid>
-    <pubDate>Sat, 14 Nov 2026 12:00:00 +0000</pubDate>
-    <description>A Galton board. Tap along the top to drop a ball, or release ten, a hundred or a steady rain, and watch them bounce through 5 to 12 rows of pegs into bins while a histogram fills in against the ideal binomial curve; live stats show the count, mean, spread and bell match, and results save and reopen as JSON.</description>
-  </item>
-  <item>
-    <title>Lathe (Claude)</title>
-    <link>https://trez63.com/p/lathe.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/lathe.html</guid>
-    <pubDate>Sat, 14 Nov 2026 12:00:00 +0000</pubDate>
-    <description>A pottery wheel in one file. The pot is a solid of revolution rendered in software on a 2D canvas; drag on the wall to pull it out or push it in, smooth out lumps, set brush width and height, start from vase, bowl, bottle, cup or plate presets, pick glazes and camera tilt, then save the pot as JSON or export a watertight OBJ with real wall thickness for 3D printing.</description>
-  </item>
-  <item>
-    <title>Paper Cinema (ChatGPT)</title>
-    <link>https://trez63.com/p/paper-cinema.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/paper-cinema.html</guid>
-    <pubDate>Sat, 14 Nov 2026 12:00:00 +0000</pubDate>
-    <description>A barrier-grid animation studio. Draw four 40×24 pixel frames with ink and erase tools, play them back or scrub a virtual shutter across the interlaced plate, and export a print kit with the plate and the slitted shutter at actual size so the animation works on paper; films save and reopen as JSON.</description>
-  </item>
-  <item>
-    <title>Passphrase Forge (Muse)</title>
-    <link>https://trez63.com/p/passphrase-forge.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/passphrase-forge.html</guid>
-    <pubDate>Sat, 14 Nov 2026 12:00:00 +0000</pubDate>
-    <description>A password and passphrase generator. Forge a memorable multi-word passphrase or a random character password from the browser’s secure random source, tune words, separators, capitals, length and character sets, and see the entropy in bits with estimated offline and online crack times; recent results are kept for copying and settings save as JSON.</description>
-  </item>
-  <item>
-    <title>Swiftread (Muse)</title>
-    <link>https://trez63.com/p/swiftread.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/swiftread.html</guid>
-    <pubDate>Sat, 14 Nov 2026 12:00:00 +0000</pubDate>
-    <description>An RSVP speed reader. Paste any text and press play to see it one word (or two or three) at a time with the focal letter highlighted so your eyes stay still; set the words per minute live, skip or jump along the progress bar, and save or open your text and position as JSON.</description>
   </item>
   <item>
     <title>CA Sonifier (Grok)</title>
@@ -166,32 +103,116 @@
     <description>An AWS architecture diagram editor. Drag services from a searchable palette of embedded AWS Architecture Icons (or upload your own), nest them in cloud, account, region, AZ, VPC, subnet and security-group boundaries, draw labelled elbow or straight connectors, add notes and extra pages, then step through the flow in Present mode with animated traffic dots; save as JSON, copy a share link, or export PNG, vector PDF, SVG or an animated GIF. Unlike the others, this one took several rounds of prompting rather than a single pass, and the PDF and GIF exporters are pulled from a CDN on demand instead of being inlined.</description>
   </item>
   <item>
+    <title>LinguistTree (Gemini)</title>
+    <link>https://trez63.com/p/linguisttree.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/linguisttree.html</guid>
+    <pubDate>Sat, 14 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A sentence parser you can watch work. Type an English sentence and it tags each word&#x27;s part of speech, then draws it either as a constituency tree (S splitting into noun and verb phrases) or as dependency arcs from each head to its modifiers, with token count, tree depth and the root verb shown up top. Light and dark themes; a parse saves and reloads as JSON.</description>
+  </item>
+  <item>
+    <title>LogiGate (Gemini)</title>
+    <link>https://trez63.com/p/logigate.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/logigate.html</guid>
+    <pubDate>Sat, 14 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A digital logic workbench. Spawn switches and AND, OR, XOR, NAND and NOT gates, wire them by tapping an output pin then an input pin, drag them around the schematic and flip the switches to see every wire and output light up high or low; a half-adder demo is built in, a pulse clock toggles the inputs on a timer, and a circuit saves or reloads as JSON.</description>
+  </item>
+  <item>
+    <title>MazeForge (Gemini)</title>
+    <link>https://trez63.com/p/mazeforge.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/mazeforge.html</guid>
+    <pubDate>Sat, 14 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A maze generator with an animated solver. It carves a random maze by recursive backtracking at the grid size you choose, then A*, Dijkstra or breadth-first search explores it in real time, colouring the frontier as it goes and the shortest path when it arrives, with explored-node and step counts to compare the three. Tap or drag to add and remove walls; a maze saves and reloads as JSON.</description>
+  </item>
+  <item>
+    <title>MorphoField (Gemini)</title>
+    <link>https://trez63.com/p/morphofield.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/morphofield.html</guid>
+    <pubDate>Sat, 14 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A Gray-Scott reaction-diffusion dish. Two virtual chemicals feed and kill each other on a 128×128 field and self-organise into coral labyrinths, dividing cells, leopard spots or soliton waves depending on the feed and kill rates you set; tap or drag to inject more reagent, pick from presets and colour palettes, pause, re-seed, and save or reload a state as JSON.</description>
+  </item>
+  <item>
+    <title>OptiPath (Gemini)</title>
+    <link>https://trez63.com/p/optipath.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/optipath.html</guid>
+    <pubDate>Sat, 14 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A geometric optics bench. A laser fires across the canvas and bends by Snell&#x27;s law through draggable glass blocks of adjustable refractive index, reflecting totally when it meets an interface past the critical angle; turn the emitter angle, change the wavelength colour, add prisms and lenses, and save or reload a setup as JSON.</description>
+  </item>
+  <item>
+    <title>Belfry (ChatGPT)</title>
+    <link>https://trez63.com/p/belfry.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/belfry.html</guid>
+    <pubDate>Fri, 13 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A change-ringing studio for six synthesised bells. Tap a bell to hear it, play a score row by row at a chosen strikes-per-minute, follow one bell’s path through the diagram, edit which neighbouring positions swap on each row or build your own method and return it to rounds, choose a bronze or glass voice, and save the score as JSON or export the performance as a WAV.</description>
+  </item>
+  <item>
+    <title>Drift (Muse)</title>
+    <link>https://trez63.com/p/drift-soundscape.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/drift-soundscape.html</guid>
+    <pubDate>Fri, 13 Nov 2026 12:00:00 +0000</pubDate>
+    <description>An ambient soundscape mixer. Rain, ocean, wind, fire and birdsong are synthesised live from filtered noise and scheduled chirps and crackles, with no recordings; blend them with sliders, start from presets like Rainy Night or Forest Dawn, set a sleep timer, and save or open a mix as JSON.</description>
+  </item>
+  <item>
+    <title>Dropzone (Muse)</title>
+    <link>https://trez63.com/p/dropzone.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/dropzone.html</guid>
+    <pubDate>Fri, 13 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A Galton board. Tap along the top to drop a ball, or release ten, a hundred or a steady rain, and watch them bounce through 5 to 12 rows of pegs into bins while a histogram fills in against the ideal binomial curve; live stats show the count, mean, spread and bell match, and results save and reopen as JSON.</description>
+  </item>
+  <item>
+    <title>Lathe (Claude)</title>
+    <link>https://trez63.com/p/lathe.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/lathe.html</guid>
+    <pubDate>Fri, 13 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A pottery wheel in one file. The pot is a solid of revolution rendered in software on a 2D canvas; drag on the wall to pull it out or push it in, smooth out lumps, set brush width and height, start from vase, bowl, bottle, cup or plate presets, pick glazes and camera tilt, then save the pot as JSON or export a watertight OBJ with real wall thickness for 3D printing.</description>
+  </item>
+  <item>
+    <title>Passphrase Forge (Muse)</title>
+    <link>https://trez63.com/p/passphrase-forge.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/passphrase-forge.html</guid>
+    <pubDate>Fri, 13 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A password and passphrase generator. Forge a memorable multi-word passphrase or a random character password from the browser’s secure random source, tune words, separators, capitals, length and character sets, and see the entropy in bits with estimated offline and online crack times; recent results are kept for copying and settings save as JSON.</description>
+  </item>
+  <item>
+    <title>Swiftread (Muse)</title>
+    <link>https://trez63.com/p/swiftread.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/swiftread.html</guid>
+    <pubDate>Fri, 13 Nov 2026 12:00:00 +0000</pubDate>
+    <description>An RSVP speed reader. Paste any text and press play to see it one word (or two or three) at a time with the focal letter highlighted so your eyes stay still; set the words per minute live, skip or jump along the progress bar, and save or open your text and position as JSON.</description>
+  </item>
+  <item>
+    <title>Moonpost (ChatGPT)</title>
+    <link>https://trez63.com/p/moonpost.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/moonpost.html</guid>
+    <pubDate>Fri, 13 Nov 2026 12:00:00 +0000</pubDate>
+    <description>Lunar parcel delivery. Choose a route, set angle and speed, launch the parcel across low-gravity terrain and land on the striped pad to collect its stamp; thread the orange ring for a gold postmark.</description>
+  </item>
+  <item>
+    <title>Ebru (Claude)</title>
+    <link>https://trez63.com/p/ebru.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/ebru.html</guid>
+    <pubDate>Thu, 12 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A paper-marbling bath. Tap to float ink drops that push the earlier ones aside, then drag a rake, comb, wave or swirl through them; every gesture is an exact closed-form deformation, so pictures replay perfectly from the saved gesture list, and you can start from stone, gelgit, nonpareil, bouquet, peacock or vortex presets, switch palettes and paper, undo, and export a 2000-px PNG.</description>
+  </item>
+  <item>
+    <title>Nash (Claude)</title>
+    <link>https://trez63.com/p/nash.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/nash.html</guid>
+    <pubDate>Wed, 11 Nov 2026 12:00:00 +0000</pubDate>
+    <description>Hex against a computer opponent you can watch think. You connect left to right, Nash connects top to bottom, and while it searches the board glows with where its Monte-Carlo tree search is spending attention; pick a 7, 9 or 11 board, quick to deep thinking time, ask for a hint, undo, and save or open games as JSON.</description>
+  </item>
+  <item>
+    <title>Paper Cinema (ChatGPT)</title>
+    <link>https://trez63.com/p/paper-cinema.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/paper-cinema.html</guid>
+    <pubDate>Wed, 11 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A barrier-grid animation studio. Draw four 40×24 pixel frames with ink and erase tools, play them back or scrub a virtual shutter across the interlaced plate, and export a print kit with the plate and the slitted shutter at actual size so the animation works on paper; films save and reopen as JSON.</description>
+  </item>
+  <item>
     <title>Umbra (Claude)</title>
     <link>https://trez63.com/p/umbra.html</link>
     <guid isPermaLink="true">https://trez63.com/p/umbra.html</guid>
-    <pubDate>Wed, 11 Nov 2026 12:00:00 +0000</pubDate>
+    <pubDate>Tue, 10 Nov 2026 12:00:00 +0000</pubDate>
     <description>A sun and shadow planner for a 50 m site. Place buildings and trees, set a date, city or latitude and longitude and the map rotation, then scrub or play through the day to watch the shadows move; a colour map shows how many hours of direct sun each patch of ground gets, and scenes save and reopen as JSON.</description>
-  </item>
-  <item>
-    <title>Fourier Epicycles Studio (Grok)</title>
-    <link>https://trez63.com/p/fourier-epicycles-studio.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/fourier-epicycles-studio.html</guid>
-    <pubDate>Tue, 10 Nov 2026 12:00:00 +0000</pubDate>
-    <description>Draw any closed shape and watch it redrawn by a chain of rotating circles. The app takes the discrete Fourier transform of your path and traces it back with epicycles; slide the number of terms up and down to see the reconstruction sharpen or blur, change the speed, and save or reload a drawing as JSON.</description>
-  </item>
-  <item>
-    <title>Breathe (Muse)</title>
-    <link>https://trez63.com/p/breathe.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/breathe.html</guid>
-    <pubDate>Tue, 10 Nov 2026 12:00:00 +0000</pubDate>
-    <description>A guided breathing pacer. Pick box, 4-7-8, coherent or deep-slow breathing and a session length and follow the circle as it grows and shrinks, or switch to hold mode and press the circle to breathe in and let go to breathe out; sessions are logged on the device and can be saved as JSON.</description>
-  </item>
-  <item>
-    <title>CelestialTrace (Gemini)</title>
-    <link>https://trez63.com/p/celestialtrace.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/celestialtrace.html</guid>
-    <pubDate>Tue, 10 Nov 2026 12:00:00 +0000</pubDate>
-    <description>A gravitational N-body sandbox. Drag on the canvas to launch a planet with a velocity vector and watch it orbit, slingshot or merge with the other bodies, tune the gravitational constant, trail length and collision mode, and save or reload a system as JSON.</description>
   </item>
   <item>
     <title>Nib (Claude)</title>
@@ -201,157 +222,136 @@
     <description>A typeface drawn by one pen. Every letter is a bare skeleton of lines and arcs, and a single nib swept along it makes the shape — drag the pen pad to turn and widen the nib, adjust slant, x-height, bowls and wobble, tap any glyph to see its construction, and export the result as a real TrueType font you can install.</description>
   </item>
   <item>
-    <title>Parapet (Claude)</title>
-    <link>https://trez63.com/p/parapet.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/parapet.html</guid>
+    <title>Fourier Epicycles Studio (Grok)</title>
+    <link>https://trez63.com/p/fourier-epicycles-studio.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/fourier-epicycles-studio.html</guid>
     <pubDate>Mon, 09 Nov 2026 12:00:00 +0000</pubDate>
-    <description>A security-header audit that runs in the page. Paste the response headers from curl or DevTools and it grades them out of 100, lists each finding with a one-tap fix, maps every Content-Security-Policy source by how open it is, and exports the hardened set as nginx, Apache, Caddy or Express config.</description>
+    <description>Draw any closed shape and watch it redrawn by a chain of rotating circles. The app takes the discrete Fourier transform of your path and traces it back with epicycles; slide the number of terms up and down to see the reconstruction sharpen or blur, change the speed, and save or reload a drawing as JSON.</description>
+  </item>
+  <item>
+    <title>Breathe (Muse)</title>
+    <link>https://trez63.com/p/breathe.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/breathe.html</guid>
+    <pubDate>Mon, 09 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A guided breathing pacer. Pick box, 4-7-8, coherent or deep-slow breathing and a session length and follow the circle as it grows and shrinks, or switch to hold mode and press the circle to breathe in and let go to breathe out; sessions are logged on the device and can be saved as JSON.</description>
+  </item>
+  <item>
+    <title>CelestialTrace (Gemini)</title>
+    <link>https://trez63.com/p/celestialtrace.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/celestialtrace.html</guid>
+    <pubDate>Mon, 09 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A gravitational N-body sandbox. Drag on the canvas to launch a planet with a velocity vector and watch it orbit, slingshot or merge with the other bodies, tune the gravitational constant, trail length and collision mode, and save or reload a system as JSON.</description>
   </item>
   <item>
     <title>Keycuts (Muse)</title>
     <link>https://trez63.com/p/keycuts.html</link>
     <guid isPermaLink="true">https://trez63.com/p/keycuts.html</guid>
-    <pubDate>Mon, 09 Nov 2026 12:00:00 +0000</pubDate>
+    <pubDate>Sun, 08 Nov 2026 12:00:00 +0000</pubDate>
     <description>A keyboard shortcut trainer. Pick VS Code, Gmail, Chrome or macOS, read the action and press its combo on your keyboard or the on-screen keys; misses go into a needs-work pile, a learn mode shows flip cards, and you can add your own shortcuts and save progress as JSON.</description>
   </item>
   <item>
     <title>Rename Studio (Muse)</title>
     <link>https://trez63.com/p/rename-studio.html</link>
     <guid isPermaLink="true">https://trez63.com/p/rename-studio.html</guid>
-    <pubDate>Mon, 09 Nov 2026 12:00:00 +0000</pubDate>
+    <pubDate>Sun, 08 Nov 2026 12:00:00 +0000</pubDate>
     <description>Plan a batch rename before touching any files. Build a naming pattern from date, client, project, name and counter tokens, watch the new name for every file update as you type with duplicates flagged, then copy the names or download the plan as text.</description>
+  </item>
+  <item>
+    <title>Strata (Claude)</title>
+    <link>https://trez63.com/p/strata.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/strata.html</guid>
+    <pubDate>Sun, 08 Nov 2026 12:00:00 +0000</pubDate>
+    <description>Paste an employee CSV and it draws the org chart, measures layers and span of control, flags unknown managers and reporting cycles, then lets you drag people to try a reorg and keeps the diff.</description>
+  </item>
+  <item>
+    <title>ImpactForge (Grok)</title>
+    <link>https://trez63.com/p/imapactforge.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/imapactforge.html</guid>
+    <pubDate>Sun, 08 Nov 2026 12:00:00 +0000</pubDate>
+    <description>An impact-versus-effort matrix. Add tasks, drag them into the do-now, schedule, delegate and eliminate quadrants, and get them ranked by impact density.</description>
+  </item>
+  <item>
+    <title>Subject Line Lab (Muse)</title>
+    <link>https://trez63.com/p/subject-line-lab.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/subject-line-lab.html</guid>
+    <pubDate>Sun, 08 Nov 2026 12:00:00 +0000</pubDate>
+    <description>Type an email subject line and get an instant score with a checklist, see how it lands in a phone and desktop inbox next to other mail, and keep the winners.</description>
   </item>
   <item>
     <title>PipelineForge (Grok)</title>
     <link>https://trez63.com/p/pipelineforge.html</link>
     <guid isPermaLink="true">https://trez63.com/p/pipelineforge.html</guid>
-    <pubDate>Sun, 08 Nov 2026 12:00:00 +0000</pubDate>
+    <pubDate>Sat, 07 Nov 2026 12:00:00 +0000</pubDate>
     <description>A deal list with a live forecast. Add deals with a value, win probability and stage, filter by stage or search by name, and the bar on top keeps pipeline total, weighted forecast and won value current. Arrow keys move the selection; save or reopen the list as JSON.</description>
+  </item>
+  <item>
+    <title>Redline (Claude)</title>
+    <link>https://trez63.com/p/redline.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/redline.html</guid>
+    <pubDate>Sat, 07 Nov 2026 12:00:00 +0000</pubDate>
+    <description>Paste two versions of a contract. It aligns the paragraphs even when they moved, marks every changed word, and reads each change for what it means: amounts, durations, shall-to-may, vanished clauses.</description>
+  </item>
+  <item>
+    <title>Parapet (Claude)</title>
+    <link>https://trez63.com/p/parapet.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/parapet.html</guid>
+    <pubDate>Tue, 03 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A security-header audit that runs in the page. Paste the response headers from curl or DevTools and it grades them out of 100, lists each finding with a one-tap fix, maps every Content-Security-Policy source by how open it is, and exports the hardened set as nginx, Apache, Caddy or Express config.</description>
   </item>
   <item>
     <title>Dibs (Claude)</title>
     <link>https://trez63.com/p/dibs.html</link>
     <guid isPermaLink="true">https://trez63.com/p/dibs.html</guid>
-    <pubDate>Tue, 03 Nov 2026 12:00:00 +0000</pubDate>
+    <pubDate>Mon, 02 Nov 2026 12:00:00 +0000</pubDate>
     <description>Multi-touch attribution for a path report. Paste the touch paths from your analytics export with converted and non-converted counts, and it runs seven models over the same data — last, first, linear, position, decay, Markov removal effect and exact Shapley — and shows where they disagree about which channels open, assist and close.</description>
   </item>
   <item>
     <title>Common Hour (ChatGPT)</title>
     <link>https://trez63.com/p/common-hour.html</link>
     <guid isPermaLink="true">https://trez63.com/p/common-hour.html</guid>
-    <pubDate>Tue, 03 Nov 2026 12:00:00 +0000</pubDate>
+    <pubDate>Mon, 02 Nov 2026 12:00:00 +0000</pubDate>
     <description>Find a meeting time that fits everyone&#x27;s working day. Add up to six people with their time zones, work windows and weekdays, then slide the start across the day and watch the local clocks line up; it marks the starts that fit all of them, jumps to the best overlap, and copies or exports the proposal with every local time.</description>
   </item>
   <item>
     <title>Contrast Checker (Muse)</title>
     <link>https://trez63.com/p/contrast-checker.html</link>
     <guid isPermaLink="true">https://trez63.com/p/contrast-checker.html</guid>
-    <pubDate>Tue, 03 Nov 2026 12:00:00 +0000</pubDate>
+    <pubDate>Mon, 02 Nov 2026 12:00:00 +0000</pubDate>
     <description>Pick a text colour and a background colour and see the WCAG contrast ratio and which levels it passes, with a live preview at body, button and small-print sizes. One tap nudges the text colour until it reaches AA or AAA, and pairs that pass can be saved and moved between machines as JSON.</description>
   </item>
   <item>
     <title>Linework (ChatGPT)</title>
     <link>https://trez63.com/p/linework.html</link>
     <guid isPermaLink="true">https://trez63.com/p/linework.html</guid>
-    <pubDate>Tue, 03 Nov 2026 12:00:00 +0000</pubDate>
+    <pubDate>Sun, 01 Nov 2026 12:00:00 +0000</pubDate>
     <description>A reusable recipe for cleaning up lists. Paste a list, one item per line, then stack up to eight steps — trim, drop blanks, dedupe, replace, prefix or suffix, sort, keep or exclude matches, number — and inspect the rows at any stage before copying or exporting the final result. The source stays intact and the recipe saves as JSON.</description>
   </item>
   <item>
     <title>Tranche (Claude)</title>
     <link>https://trez63.com/p/tranche.html</link>
     <guid isPermaLink="true">https://trez63.com/p/tranche.html</guid>
-    <pubDate>Sun, 01 Nov 2026 12:00:00 +0000</pubDate>
+    <pubDate>Sat, 31 Oct 2026 12:00:00 +0000</pubDate>
     <description>A cap table exit waterfall. Enter the share classes with their preferences, caps and participation, then drag the exit value and see who gets paid what, where the kinks are and when a series converts to common.</description>
   </item>
   <item>
     <title>Deploy Board (Muse)</title>
     <link>https://trez63.com/p/deploy-board.html</link>
     <guid isPermaLink="true">https://trez63.com/p/deploy-board.html</guid>
-    <pubDate>Sun, 01 Nov 2026 12:00:00 +0000</pubDate>
+    <pubDate>Sat, 31 Oct 2026 12:00:00 +0000</pubDate>
     <description>A release tracker board. Add a service, version, owner and risk level, then drag each card from backlog through staging and deploying to live; the board stays in the browser and can be saved to a file.</description>
   </item>
   <item>
     <title>Keyline (ChatGPT)</title>
     <link>https://trez63.com/p/keyline.html</link>
     <guid isPermaLink="true">https://trez63.com/p/keyline.html</guid>
-    <pubDate>Sun, 01 Nov 2026 12:00:00 +0000</pubDate>
+    <pubDate>Sat, 31 Oct 2026 12:00:00 +0000</pubDate>
     <description>A role-based permission workbench. Pick a role and an ability and it traces whether access is granted directly or inherited and from where, previews who loses access if you revoke a grant, and exports the whole model as a plain-text report.</description>
   </item>
   <item>
     <title>LoadMaster (Gemini)</title>
     <link>https://trez63.com/p/loadmaster.html</link>
     <guid isPermaLink="true">https://trez63.com/p/loadmaster.html</guid>
-    <pubDate>Sun, 01 Nov 2026 12:00:00 +0000</pubDate>
+    <pubDate>Sat, 31 Oct 2026 12:00:00 +0000</pubDate>
     <description>A load-test simulator. Set concurrent workers, base latency, jitter and an injected failure rate, hit start and watch throughput, p95 latency and the status-code mix move in real time. Nothing leaves the browser.</description>
-  </item>
-  <item>
-    <title>FlowForge (Grok)</title>
-    <link>https://trez63.com/p/flowforge.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/flowforge.html</guid>
-    <pubDate>Sat, 31 Oct 2026 12:00:00 +0000</pubDate>
-    <description>A process mapper. Drop in start, task, decision and end nodes, drag them around, connect them with arrows and save the flowchart as a file you can reopen.</description>
-  </item>
-  <item>
-    <title>Folio (Claude)</title>
-    <link>https://trez63.com/p/folio.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/folio.html</guid>
-    <pubDate>Sat, 31 Oct 2026 12:00:00 +0000</pubDate>
-    <description>Write Markdown on the left and it is laid out as real pages on the right, with a cover, a table of contents, running headers and page numbers. Print to PDF exactly as shown.</description>
-  </item>
-  <item>
-    <title>Campaign Link Builder (Muse)</title>
-    <link>https://trez63.com/p/campaign-link-builder.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/campaign-link-builder.html</guid>
-    <pubDate>Sat, 31 Oct 2026 12:00:00 +0000</pubDate>
-    <description>Type a page URL, pick the source, medium and campaign, and a tracked UTM link builds itself as you type. Copy it, or save the ones you actually send.</description>
-  </item>
-  <item>
-    <title>Draftloom (ChatGPT)</title>
-    <link>https://trez63.com/p/draftloom.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/draftloom.html</guid>
-    <pubDate>Sat, 31 Oct 2026 12:00:00 +0000</pubDate>
-    <description>Write a template with named slots like {{client_name}}, fill each detail once and every matching slot updates together. Export the finished text or save the template.</description>
-  </item>
-  <item>
-    <title>CanvasForge (Grok)</title>
-    <link>https://trez63.com/p/canvasforge.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/canvasforge.html</guid>
-    <pubDate>Fri, 30 Oct 2026 12:00:00 +0000</pubDate>
-    <description>A Business Model Canvas you fill in block by block. Add, edit and remove items across the nine blocks, watch the completeness score climb, and it writes a one-paragraph pitch from your segments, value propositions and revenue streams. Save and reopen as JSON.</description>
-  </item>
-  <item>
-    <title>Sieve (Claude)</title>
-    <link>https://trez63.com/p/sieve.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/sieve.html</guid>
-    <pubDate>Thu, 29 Oct 2026 12:00:00 +0000</pubDate>
-    <description>Paste raw log lines in any format and it clusters them into message templates with the variable parts marked as slots, so thousands of lines collapse to a short list you can filter by level and sort by frequency. Drag across the timeline to see which templates spike or first appear in that window; tap one for its slot values, sample lines and a ready-made regex; export templates as CSV.</description>
-  </item>
-  <item>
-    <title>Rail (Claude)</title>
-    <link>https://trez63.com/p/rail.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/rail.html</guid>
-    <pubDate>Thu, 29 Oct 2026 12:00:00 +0000</pubDate>
-    <description>Type a regular expression and it draws it as a railroad diagram you can read left to right. Paste test text to see every match highlighted, tap any box in the diagram to see which characters that part captured, read a plain-English breakdown, and preview a replacement live.</description>
-  </item>
-  <item>
-    <title>DocuForge (Gemini)</title>
-    <link>https://trez63.com/p/docuforge.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/docuforge.html</guid>
-    <pubDate>Thu, 29 Oct 2026 12:00:00 +0000</pubDate>
-    <description>Lay out a one-page document on a canvas: drag text blocks into place, edit their text and size, fill in template variables like client, invoice number and total that substitute into any block that references them, then print it to PDF. Save the layout as JSON.</description>
-  </item>
-  <item>
-    <title>Launchstamp (ChatGPT)</title>
-    <link>https://trez63.com/p/launchstamp.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/launchstamp.html</guid>
-    <pubDate>Thu, 29 Oct 2026 12:00:00 +0000</pubDate>
-    <description>Enter one destination URL and a campaign name, add a placement for each place the link will appear (newsletter, social post, partner email), and it builds the UTM-tagged URL for every placement, shows the anatomy of each, flags two placements that would produce the same link, and copies or exports the set as a launch sheet.</description>
-  </item>
-  <item>
-    <title>Next Touch (ChatGPT)</title>
-    <link>https://trez63.com/p/next-touch.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/next-touch.html</guid>
-    <pubDate>Thu, 29 Oct 2026 12:00:00 +0000</pubDate>
-    <description>A small follow-up desk: add the people you want to stay in touch with, give each a next action and a date, and it sorts them into due, later and undated. After you talk to someone, log the touch with a note and pick the next step; the history stays with that person. Save and reopen as JSON.</description>
   </item>
 </channel></rss>

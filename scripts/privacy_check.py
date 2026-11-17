@@ -63,7 +63,7 @@ def scan_text(text, terms, allow=frozenset()):
         for name, rx in RULES:
             for m in rx.finditer(line):
                 s = m.group(0)
-                if s in allow: continue
+                if s in allow or s.strip() in allow: continue  # allow lines are stripped; a match may carry an edge space
                 if name == "email" and s.lower().endswith(ALLOW_EMAIL_DOMAINS): continue
                 if name == "card":
                     digits = re.sub(r"\D", "", s)

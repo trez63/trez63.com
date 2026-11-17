@@ -1,0 +1,361 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Daily Build 2026-11-16 — Gradus</title>
+<style>
+:root{--bg:#f4f0e6;--panel:#fffdf7;--ink:#211d17;--muted:#756d60;--line:#d9d1c2;--accent:#b4541f;
+ --perf:#2a6fb0;--imp:#2e8b57;--diss:#c9302c;--warn:#c8841a;--btn:#ebe4d5;--btn2:#dfd6c3;--shadow:0 1px 3px rgba(0,0,0,.08)}
+[data-theme=dark]{--bg:#14161b;--panel:#1c1f26;--ink:#ece6d9;--muted:#9b948a;--line:#454b59;--accent:#e2a65e;
+ --perf:#6fb0ee;--imp:#6fcf93;--diss:#f0706b;--warn:#f2b85a;--btn:#2a2f3a;--btn2:#353b48;--shadow:0 1px 3px rgba(0,0,0,.4)}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 Georgia,"Iowan Old Style","Times New Roman",serif}
+body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);min-height:100vh}
+header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--line)}
+h1{font-size:26px;font-weight:normal;letter-spacing:.04em;margin:0}
+.sub{color:var(--muted);font-style:italic;font-size:14px;flex:1;min-width:120px}
+button,select{font:inherit;font-size:16px;color:var(--ink);background:var(--btn);border:1px solid var(--line);border-radius:10px;
+ min-height:44px;min-width:44px;padding:0 14px;cursor:pointer;box-shadow:var(--shadow);-webkit-tap-highlight-color:transparent}
+button:active{background:var(--btn2)}
+button.on{outline:2px solid var(--accent);outline-offset:-2px}
+main{padding:10px 14px 24px;max-width:1100px;margin:0 auto}
+#wrap{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:6px 4px;box-shadow:var(--shadow)}
+canvas{display:block;width:100%;touch-action:none;cursor:pointer}
+#bar{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 6px}
+#bar .grow{flex:1 1 auto}
+#status{color:var(--muted);font-size:14px;min-height:20px;margin:4px 2px}
+#status.err{color:var(--diss)}
+#issues{list-style:none;padding:0;margin:8px 0 0;display:grid;gap:6px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+#issues li{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--warn);border-radius:10px;padding:10px 12px;cursor:pointer;min-height:44px}
+#issues li.error{border-left-color:var(--diss)}
+#issues li.ok{border-left-color:var(--imp);cursor:default}
+#issues b{font-weight:normal;color:var(--muted);font-size:13px;margin-right:8px}
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:9}
+#overlay[hidden]{display:none}
+.card{background:var(--panel);color:var(--ink);border-radius:16px;max-width:560px;width:100%;max-height:90vh;overflow:auto;padding:22px 24px;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.card h2{margin:0 0 6px;font-weight:normal}
+.card p{margin:8px 0}
+.card table{border-collapse:collapse;width:100%;margin:8px 0}
+.card td{padding:4px 6px;border-top:1px solid var(--line);font-size:15px}
+.card kbd{font:14px ui-monospace,Menlo,monospace;background:var(--btn);border:1px solid var(--line);border-radius:5px;padding:1px 6px}
+@media (max-width:520px){h1{font-size:22px}.sub{display:none}#bar button{flex:1 1 30%;padding:0 8px}
+ header{gap:6px;padding:10px}header button{padding:0 10px}#mode{flex:1;min-width:0;padding:0 6px}}
+</style>
+</head>
+<body>
+<header>
+ <h1>Gradus</h1><span class="sub">first-species counterpoint, checked and composed</span>
+ <select id="mode" aria-label="Mode"></select>
+ <button id="ab" title="Counterpoint above or below (A)">Above</button>
+ <button id="theme" title="Dark / light (D)">Dark</button>
+ <button id="helpBtn" title="Help (Ctrl+/)">?</button>
+</header>
+<main>
+ <div id="wrap"><canvas id="cv"></canvas></div>
+ <div id="bar">
+  <button id="play" class="grow">▶ Play</button>
+  <button id="compose" class="grow">✦ Compose</button>
+  <button id="up" title="Note up (↑)">▲</button>
+  <button id="down" title="Note down (↓)">▼</button>
+  <button id="voice" title="Which voice ▲▼ edit (V)">Edit: CP</button>
+  <button id="less" title="Remove a measure (−)">−</button>
+  <button id="more" title="Add a measure (+)">+</button>
+  <button id="save">Save</button>
+  <button id="open">Open</button>
+  <button id="midi" title="Export .mid (E)">MIDI</button>
+ </div>
+ <div id="status"></div>
+ <ul id="issues"></ul>
+</main>
+<input type="file" id="file" accept=".json,application/json" hidden>
+<div id="overlay" hidden>
+ <div class="card">
+  <h2>Gradus</h2>
+  <p>A cantus firmus (lower staff by default) and a counterpoint in whole notes, after Fux's <i>Gradus ad Parnassum</i> (1725). Every measure shows the interval between the voices; the list below the music names each broken rule. <b>Compose</b> writes a fresh counterpoint that satisfies the rules; drag any note with a finger or mouse to write your own and watch the checks update.</p>
+  <p><b>Rules checked:</b> consonances only (no 2nds, 4ths, 7ths, tritones); begin on a perfect consonance, end on a unison or octave approached by step; no parallel fifths or octaves; no voice crossing; no leaps of a 7th, tritone or beyond an octave. Warnings: hidden fifths/octaves, unrecovered leaps, repeated notes, more than one high point, too many perfect consonances.</p>
+  <table>
+   <tr><td><kbd>Space</kbd></td><td>Play / stop</td><td><kbd>C</kbd></td><td>Compose a new counterpoint</td></tr>
+   <tr><td><kbd>A</kbd></td><td>Counterpoint above / below</td><td><kbd>M</kbd></td><td>Next mode (loads Fux's cantus firmus)</td></tr>
+   <tr><td><kbd>← →</kbd></td><td>Select measure</td><td><kbd>↑ ↓</kbd></td><td>Move the selected note</td></tr>
+   <tr><td><kbd>V</kbd></td><td>Switch the voice being edited</td><td><kbd>Z</kbd></td><td>Undo</td></tr>
+   <tr><td><kbd>+ −</kbd></td><td>Add / remove a measure</td><td><kbd>D</kbd></td><td>Dark / light</td></tr>
+   <tr><td><kbd>S</kbd> <kbd>O</kbd></td><td>Save / Open (.json)</td><td><kbd>E</kbd></td><td>Export a .mid file</td></tr>
+   <tr><td><kbd>Ctrl/⌘ /</kbd></td><td>This help</td><td><kbd>Esc</kbd></td><td>Close</td></tr>
+  </table>
+  <p style="color:var(--muted);font-size:14px">Save and MIDI download files when the page is opened directly as a file; the artifact viewer blocks page downloads. Everything runs offline in this one file.</p>
+  <button id="closeHelp" style="width:100%">Close</button>
+ </div>
+</div>
+<script>
+'use strict';
+/* ---------- pitch model: p = diatonic step number, C4 = 28 (octave*7 + letter) ---------- */
+const LET='CDEFGAB', SEMI=[0,2,4,5,7,9,11];
+const midi=p=>SEMI[p%7]+12*(Math.floor(p/7)+1);
+const name=p=>LET[p%7]+Math.floor(p/7);
+const P=t=>+t[1]*7+LET.indexOf(t[0]);
+const ORD=['unison','second','third','fourth','fifth','sixth','seventh','octave','ninth','tenth','eleventh','twelfth'];
+const ordinal=n=>ORD[n-1]||n+'th';
+// Fux's six cantus firmi, one per mode
+const MODES=[['Dorian','D4 F4 E4 D4 G4 F4 A4 G4 F4 E4 D4'],['Phrygian','E4 C4 D4 C4 A3 A4 G4 E4 F4 E4'],
+ ['Lydian','F4 G4 A4 F4 D4 E4 F4 C5 A4 F4 G4 F4'],['Mixolydian','G4 C5 B4 G4 C5 E5 D5 G5 E5 C5 D5 B4 A4 G4'],
+ ['Aeolian','A3 C4 B3 D4 C4 E4 D4 B3 A3'],['Ionian','C4 D4 F4 E4 F4 G4 A4 G4 E4 D4 C4']].map(([n,s])=>({name:n,cf:s.split(' ').map(P)}));
+
+// Interval from a lower to an upper pitch; class decided by semitones, so B–F (a diminished fifth) is dissonant.
+function ivl(lo,hi){const s=((midi(hi)-midi(lo))%12+12)%12;
+ return {g:hi-lo,s,cls:s===0||s===7?'perf':[3,4,8,9].includes(s)?'imp':'diss'}}
+
+/* ---------- the rules of the first species, evaluated at measure i (only needs cp[0..i]) ---------- */
+function rulesAt(cf,cp,i,above){
+ const n=cf.length,out=[],E=(m,t)=>out.push({sev:'error',m,t}),W=(m,t)=>out.push({sev:'warn',m,t});
+ const lo=k=>above?cf[k]:cp[k],hi=k=>above?cp[k]:cf[k];
+ const I=ivl(lo(i),hi(i));
+ if(hi(i)<lo(i))E([i],'Voices cross');
+ else if(I.cls==='diss')E([i],`Dissonant ${ordinal(I.g+1)} (${name(lo(i))}–${name(hi(i))})`);
+ else if(I.g===0&&i>0&&i<n-1)E([i],'Unison inside the line');
+ if(i===0&&(I.cls!=='perf'||(!above&&I.s===7)))E([0],above?'Begin on a unison, fifth or octave':'Begin on a unison or octave');
+ if(i===n-1&&I.s!==0)E([i],'End on a unison or octave');
+ if(I.g>11)W([i],'Voices more than a twelfth apart');
+ if(i>0){
+  const J=ivl(lo(i-1),hi(i-1)),d=cp[i]-cp[i-1],dc=cf[i]-cf[i-1],semi=Math.abs(midi(cp[i])-midi(cp[i-1]));
+  if(d===0)W([i-1,i],'Repeated note');
+  else if(Math.abs(d)>7)E([i-1,i],'Leap larger than an octave');
+  else if(Math.abs(d)===6)E([i-1,i],'Leap of a seventh');
+  else if(semi===6)E([i-1,i],'Tritone leap');
+  const motion=d===0||dc===0?'oblique':(d>0)===(dc>0)?'similar':'contrary';
+  if(I.cls==='perf'&&hi(i)>=lo(i)&&motion==='similar'){
+   if(J.cls==='perf'&&J.s===I.s)E([i-1,i],`Parallel ${I.s===7?'fifths':'octaves'}`);
+   else W([i-1,i],`Hidden ${I.s===7?'fifth':'octave'} (similar motion into a perfect consonance)`);}
+  if(i===n-1&&Math.abs(d)!==1)E([i-1,i],'Approach the final by step');
+ }
+ if(i>1){const a=cp[i-1]-cp[i-2],b=cp[i]-cp[i-1];
+  if(Math.abs(a)>=3&&b!==0&&((a>0)===(b>0)||Math.abs(b)>2))W([i-2,i],`Leap of a ${ordinal(Math.abs(a)+1)} not answered by a step the other way`);
+  if(i>2){const c=cp[i-2]-cp[i-3];if([a,b,c].every(x=>Math.abs(x)>=2))W([i-3,i],'Three leaps in a row');}}
+ return out;
+}
+function analyze(cf,cp,above){
+ const iss=[];for(let i=0;i<cf.length;i++)iss.push(...rulesAt(cf,cp,i,above));
+ const mx=Math.max(...cp),tops=cp.map((p,i)=>p===mx?i:-1).filter(i=>i>=0);
+ if(tops.length>1)iss.push({sev:'warn',m:tops,t:'High point reached more than once'});
+ if(mx-Math.min(...cp)>9)iss.push({sev:'warn',m:[],t:'Counterpoint spans more than a tenth'});
+ const perf=cf.filter((c,i)=>ivl(Math.min(c,cp[i]),Math.max(c,cp[i])).cls==='perf').length;
+ if(perf>cf.length/2)iss.push({sev:'warn',m:[],t:'Mostly perfect consonances: a thin sound'});
+ return iss;
+}
+/* ---------- composer: beam search over consonant notes, scored like a teacher would ---------- */
+function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function compose(cf,above,rand,jit=2){
+ const n=cf.length;let beam=[{cp:[],sc:0}];
+ for(let i=0;i<n;i++){
+  const next=[];
+  for(const st of beam)for(let k=0;k<=(i?11:7);k++){
+   const p=above?cf[i]+k:cf[i]-k,cp=st.cp.concat(p),iss=rulesAt(cf,cp,i,above);
+   if(iss.some(x=>x.sev==='error'))continue;
+   let sc=st.sc-8*iss.length+(ivl(Math.min(p,cf[i]),Math.max(p,cf[i])).cls==='imp'?2:0)-(k>7?2:0)+rand()*jit;
+   if(i>0){const d=p-cp[i-1],dc=cf[i]-cf[i-1],ad=Math.abs(d);
+    sc+=ad===1?2:ad===2?1:ad<=4?-1:ad===5?-3:-5;                 // steps are the ideal, big leaps are costly
+    if(d&&dc&&(d>0)!==(dc>0))sc+=3;
+    if(!st.cp.includes(p))sc+=1;
+    if(i>1&&p===cp[i-2])sc-=2;}                                  // discourage see-saw lines (a b a)
+   next.push({cp,sc});}
+  if(!next.length)return null;
+  beam=next.sort((a,b)=>b.sc-a.sc).slice(0,80);
+ }
+ const err=iss=>iss.filter(x=>x.sev==='error').length;
+ return beam.map(st=>({st,iss:analyze(cf,st.cp,above)}))
+  .sort((a,b)=>err(a.iss)-err(b.iss)||a.iss.length-b.iss.length||b.st.sc-a.st.sc)[0].st.cp;
+}
+/* ---------- state ---------- */
+const S={mode:0,above:true,cf:MODES[0].cf.slice(),cp:[],sel:0,voice:'cp',hl:[],play:-1,issues:[]};
+const hist=[];let seed=7;
+const $=id=>document.getElementById(id);
+const cv=$('cv'),ctx=cv.getContext('2d');
+function snapshot(){hist.push(JSON.stringify({cf:S.cf,cp:S.cp,above:S.above,mode:S.mode}));if(hist.length>60)hist.shift()}
+function undo(){if(!hist.length)return;Object.assign(S,JSON.parse(hist.pop()));$('mode').value=S.mode;refresh('Undone')}
+function doCompose(msg){                      // a fresh line each time: widen the jitter until the result differs
+ let cp=null;for(let jit=2;jit<=10&&(!cp||cp.join()===S.cp.join());jit+=2)cp=compose(S.cf,S.above,rng(seed++),jit);
+ if(cp)S.cp=cp;else status('No rule-abiding counterpoint exists for this cantus firmus',true);refresh(msg)}
+function status(t,err){const el=$('status');el.textContent=t;el.className=err?'err':''}
+function refresh(msg){
+ S.issues=analyze(S.cf,S.cp,S.above);
+ $('ab').textContent=S.above?'Above':'Below';$('voice').textContent='Edit: '+S.voice.toUpperCase();
+ const ul=$('issues');ul.innerHTML='';
+ const ne=S.issues.filter(x=>x.sev==='error').length,nw=S.issues.length-ne;
+ if(!S.issues.length){const li=document.createElement('li');li.className='ok';li.textContent='Clean: every rule of the first species is satisfied.';ul.appendChild(li)}
+ S.issues.forEach(x=>{const li=document.createElement('li');li.className=x.sev;
+  li.innerHTML=`<b>${x.m.length?'m. '+x.m.map(i=>i+1).join('–'):'whole line'}</b>${x.t}`;
+  li.onclick=()=>{S.hl=x.m;if(x.m.length)S.sel=x.m[0];draw()};ul.appendChild(li)});
+ if(msg!==undefined)status(msg+(msg?' · ':'')+`${ne} error${ne===1?'':'s'}, ${nw} warning${nw===1?'':'s'}`);
+ draw();
+}
+/* ---------- engraving ---------- */
+function layout(){
+ const W=cv.clientWidth,s=W<600?10:12,margin=10,clefW=4*s,avail=W-2*margin-clefW,n=S.cf.length;
+ const per=Math.ceil(n/Math.ceil(n/Math.max(2,Math.floor(avail/(4.8*s)))));     // measures per system, balanced
+ const systems=[];for(let a=0;a<n;a+=per)systems.push({from:a,to:Math.min(n,a+per)});
+ const pad=3.6*s,block=4*s+2*pad,gap=2.4*s,sysH=2*block+gap,sysGap=1.5*s,top=1.6*s;
+ return {W,s,margin,clefW,mw:Math.min(avail/per,15*s),systems,pad,block,gap,sysH,sysGap,top,H:top+systems.length*(sysH+sysGap)};
+}
+// upper staff shows the upper voice; a staff gets a bass clef when its voice sits low
+const staffOf=v=>(v==='cp')===S.above?0:1;
+const voiceAt=k=>staffOf('cp')===k?'cp':'cf';
+const clefFor=seq=>seq.filter(p=>p<30).length*2>seq.length?{bp:18,bass:true}:{bp:30,bass:false};
+function geom(L,j,k){const y0=L.top+j*(L.sysH+L.sysGap)+k*(L.block+L.gap)+L.pad;return {yT:y0,yB:y0+4*L.s}}
+function draw(){
+ const L=layout(),dpr=Math.min(3,devicePixelRatio||1),css=getComputedStyle(document.documentElement),C=v=>css.getPropertyValue(v).trim();
+ cv.width=L.W*dpr;cv.height=L.H*dpr;cv.style.height=L.H+'px';ctx.setTransform(dpr,0,0,dpr,0,0);
+ const {s,margin,clefW,mw}=L,seq=k=>S[voiceAt(k)],clef=[clefFor(seq(0)),clefFor(seq(1))];
+ ctx.clearRect(0,0,L.W,L.H);ctx.lineCap='round';
+ L.systems.forEach((sys,j)=>{
+  const ys=[geom(L,j,0),geom(L,j,1)],xEnd=margin+clefW+(sys.to-sys.from)*mw;
+  // measure shading: selection, playhead, flagged measures
+  for(let i=sys.from;i<sys.to;i++){
+   const x=margin+clefW+(i-sys.from)*mw,y=ys[0].yT-L.pad*.5,h=ys[1].yB+L.pad*.5-y;
+   const ev=S.issues.find(q=>q.m.includes(i)&&q.sev==='error'),wv=S.issues.find(q=>q.m.includes(i));
+   if(ev||wv){ctx.globalAlpha=.13;ctx.fillStyle=C(ev?'--diss':'--warn');ctx.fillRect(x,y,mw,h);ctx.globalAlpha=1}
+   if(i===S.play){ctx.globalAlpha=.18;ctx.fillStyle=C('--perf');ctx.fillRect(x,y,mw,h);ctx.globalAlpha=1}
+   if(S.hl.includes(i)){ctx.strokeStyle=C('--accent');ctx.lineWidth=2;ctx.strokeRect(x+1,y,mw-2,h)}
+   ctx.fillStyle=C('--muted');ctx.font=`${s*.95}px Georgia,serif`;ctx.textAlign='left';ctx.fillText(i+1,x+3,ys[0].yT-L.pad*.5+s);
+  }
+  ys.forEach((g,k)=>{
+   ctx.strokeStyle=C('--line');ctx.lineWidth=1;
+   for(let l=0;l<5;l++){ctx.beginPath();ctx.moveTo(margin,g.yT+l*s+.5);ctx.lineTo(xEnd,g.yT+l*s+.5);ctx.stroke()}
+   drawClef(margin+s*.4,g.yT,s,clef[k].bass,C('--ink'));
+   if(j===0){ctx.fillStyle=C('--muted');ctx.font=`italic ${s*.95}px Georgia,serif`;ctx.textAlign='left';
+    ctx.fillText(voiceAt(k)==='cp'?'Counterpoint':'Cantus firmus · '+MODES[S.mode].name,margin,g.yT-s*2.6)}
+  });
+  // barlines (spanning both staves) and the final double bar
+  ctx.strokeStyle=C('--ink');
+  for(let i=sys.from;i<=sys.to;i++){const x=margin+clefW+(i-sys.from)*mw;if(i===sys.from)continue;
+   const last=i===S.cf.length;ctx.lineWidth=last?3:1;ctx.beginPath();ctx.moveTo(x-(last?1.5:.5),ys[0].yT);ctx.lineTo(x-(last?1.5:.5),ys[1].yB);ctx.stroke();
+   if(last){ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x-5.5,ys[0].yT);ctx.lineTo(x-5.5,ys[1].yB);ctx.stroke()}}
+  ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(margin+.5,ys[0].yT);ctx.lineTo(margin+.5,ys[1].yB);ctx.stroke();
+  // notes, ledger lines, interval figures
+  for(let i=sys.from;i<sys.to;i++){
+   const xc=margin+clefW+(i-sys.from)*mw+mw/2;
+   [0,1].forEach(k=>{
+    const p=seq(k)[i],g=ys[k],bp=clef[k].bp,y=g.yB-(p-bp)*s/2;
+    ctx.strokeStyle=C('--line');ctx.lineWidth=1;
+    for(let q=p-bp<0?-2:10;p-bp<0?q>=p-bp:q<=p-bp;q+=p-bp<0?-2:2){const yl=g.yB-q*s/2;ctx.beginPath();ctx.moveTo(xc-s*1.1,yl+.5);ctx.lineTo(xc+s*1.1,yl+.5);ctx.stroke()}
+    const selected=i===S.sel&&voiceAt(k)===S.voice;
+    if(selected){ctx.fillStyle=C('--accent');ctx.globalAlpha=.25;ctx.beginPath();ctx.arc(xc,y,s*1.3,0,7);ctx.fill();ctx.globalAlpha=1}
+    wholeNote(xc,y,s,C('--ink'),C('--panel'));
+    ctx.fillStyle=C('--muted');ctx.font=`${s*.85}px Georgia,serif`;ctx.textAlign='center';
+    ctx.fillText(name(p),xc,k===0?g.yT-s*.3-Math.max(0,(p-bp-8)*s/2+s*.6):g.yB+s*1.2+Math.max(0,(bp-p)*s/2+s*.2));
+   });
+   const lo=Math.min(S.cf[i],S.cp[i]),hi=Math.max(S.cf[i],S.cp[i]),I=ivl(lo,hi);
+   const cross=S.above?S.cp[i]<S.cf[i]:S.cf[i]<S.cp[i];
+   ctx.fillStyle=C(cross||I.cls==='diss'?'--diss':I.cls==='perf'?'--perf':'--imp');
+   ctx.font=`bold ${s*1.15}px Georgia,serif`;ctx.textAlign='center';
+   ctx.fillText(cross?'✕':String(I.g+1),xc,ys[0].yB+L.pad+L.gap/2+s*.4);
+  }
+ });
+}
+function wholeNote(x,y,s,ink,hole){
+ ctx.fillStyle=ink;ctx.beginPath();ctx.ellipse(x,y,s*.68,s*.47,0,0,7);ctx.fill();
+ ctx.fillStyle=hole;ctx.beginPath();ctx.ellipse(x,y,s*.33,s*.26,-1,0,7);ctx.fill();
+}
+function drawClef(x,yT,s,bass,ink){
+ ctx.strokeStyle=ink;ctx.fillStyle=ink;ctx.lineWidth=s*.2;ctx.lineJoin='round';
+ const u=(a,b)=>[x+a*s+s,yT+b*s];
+ ctx.beginPath();
+ if(bass){ctx.arc(...u(.05,1),s*.28,0,7);ctx.fill();ctx.beginPath();ctx.moveTo(...u(0,1));
+  ctx.bezierCurveTo(...u(.2,-.1),...u(1.5,-.1),...u(1.5,1));ctx.bezierCurveTo(...u(1.5,2.1),...u(.4,3.0),...u(-.3,3.4));ctx.stroke();
+  ctx.beginPath();ctx.arc(...u(2.1,.6),s*.16,0,7);ctx.arc(...u(2.1,1.4),s*.16,0,7);ctx.fill();return}
+ ctx.moveTo(...u(-.55,5.2));ctx.bezierCurveTo(...u(-.5,5.9),...u(.55,5.9),...u(.55,5.1));   // tail with its hook
+ ctx.bezierCurveTo(...u(.55,4),...u(-.2,1),...u(.35,-1.4));                             // spine up to the top loop
+ ctx.bezierCurveTo(...u(.9,-2.2),...u(1.3,-.8),...u(.3,.5));                             // top loop back down
+ ctx.bezierCurveTo(...u(-.9,1.8),...u(-1.35,2.6),...u(-1.3,3.2));                        // sweep into the big curl
+ ctx.bezierCurveTo(...u(-1.25,4.4),...u(1.35,4.5),...u(1.3,3.1));                        // around the G line
+ ctx.bezierCurveTo(...u(1.25,2.0),...u(-.4,1.9),...u(-.5,2.9));
+ ctx.bezierCurveTo(...u(-.55,3.5),...u(.1,3.7),...u(.3,3.4));ctx.stroke();
+}
+/* ---------- pointer editing: tap a measure, drag to the pitch ---------- */
+let drag=null;
+cv.addEventListener('pointerdown',e=>{
+ const L=layout(),r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+ const j=Math.floor((y-L.top)/(L.sysH+L.sysGap));if(j<0||j>=L.systems.length)return;
+ const sys=L.systems[j],k=y>geom(L,j,0).yB+L.pad+L.gap/2?1:0;
+ const i=Math.max(sys.from,Math.min(sys.to-1,Math.floor((x-L.margin-L.clefW)/L.mw)+sys.from));
+ snapshot();S.sel=i;S.voice=voiceAt(k);S.hl=[];cv.setPointerCapture(e.pointerId);
+ drag={i,voice:S.voice,k,j,bp:clefFor(S[S.voice]).bp};setPitch(y,L);
+});
+cv.addEventListener('pointermove',e=>{if(drag)setPitch(e.clientY-cv.getBoundingClientRect().top,layout())});
+cv.addEventListener('pointerup',()=>{if(drag){drag=null;refresh('')}});
+cv.addEventListener('pointercancel',()=>{drag=null});
+function setPitch(y,L){const g=geom(L,drag.j,drag.k),p=Math.max(10,Math.min(50,drag.bp+Math.round((g.yB-y)/(L.s/2))));
+ if(S[drag.voice][drag.i]!==p){S[drag.voice][drag.i]=p;S.issues=analyze(S.cf,S.cp,S.above);draw()}}
+function nudge(d){snapshot();S[S.voice][S.sel]=Math.max(10,Math.min(50,S[S.voice][S.sel]+d));refresh('')}
+function resize(d){const n=S.cf.length;if(d>0&&n>=16||d<0&&n<=6)return;snapshot();
+ if(d>0){S.cf.splice(n-1,0,S.cf[n-2]);S.cp.splice(n-1,0,S.cp[n-2])}else{S.cf.splice(n-2,1);S.cp.splice(n-2,1)}
+ S.sel=Math.min(S.sel,S.cf.length-1);refresh(d>0?'Measure added before the final: move it, then Compose':'Measure removed')}
+/* ---------- playback: two soft organ voices, whole note = 1.2 s ---------- */
+let AC,playing=null;const DUR=1.2;
+function play(){
+ if(playing)return stop();
+ AC=AC||new (window.AudioContext||window.webkitAudioContext)();AC.resume();
+ const t0=AC.currentTime+.08,master=AC.createGain();master.gain.value=.5;master.connect(AC.destination);
+ const voice=(seq,type,g,oct)=>seq.forEach((p,i)=>{
+  const f=440*2**((midi(p)-69)/12),env=AC.createGain(),ts=t0+i*DUR,te=ts+DUR;
+  env.gain.setValueAtTime(0,ts);env.gain.linearRampToValueAtTime(g,ts+.05);env.gain.setValueAtTime(g,te-.2);env.gain.linearRampToValueAtTime(0,te-.02);env.connect(master);
+  [[f,type,1],[f*2,'sine',oct]].forEach(([fr,ty,a])=>{const o=AC.createOscillator(),og=AC.createGain();o.type=ty;o.frequency.value=fr;og.gain.value=a;o.connect(og).connect(env);o.start(ts);o.stop(te)});
+ });
+ voice(S.cp,'triangle',.22,.12);voice(S.cf,'sine',.34,.25);
+ playing={master,t0};$('play').textContent='■ Stop';tick();
+}
+function tick(){if(!playing)return;const i=Math.floor((AC.currentTime-playing.t0)/DUR);
+ if(i>=S.cf.length)return stop();if(i!==S.play){S.play=i;draw()}requestAnimationFrame(tick)}
+function stop(){if(!playing)return;const m=playing.master;m.gain.setTargetAtTime(0,AC.currentTime,.05);setTimeout(()=>m.disconnect(),300);
+ playing=null;S.play=-1;$('play').textContent='▶ Play';draw()}
+/* ---------- files: Save / Open (JSON) and MIDI export ---------- */
+const today=()=>{const d=new Date(),z=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`};
+function download(fn,blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)}
+function save(){download(`gradus-${today()}.json`,new Blob([JSON.stringify({app:'gradus',version:1,mode:S.mode,above:S.above,cf:S.cf,cp:S.cp})],{type:'application/json'}));status('Saved gradus-'+today()+'.json')}
+function openFile(file){file.text().then(t=>{
+ const d=JSON.parse(t),ok=a=>Array.isArray(a)&&a.length>=4&&a.every(v=>Number.isInteger(v)&&v>=0&&v<70);
+ if(d.app!=='gradus'||d.version!==1||!ok(d.cf)||!ok(d.cp)||d.cf.length!==d.cp.length)throw 0;
+ snapshot();S.cf=d.cf;S.cp=d.cp;S.above=!!d.above;S.mode=MODES[d.mode]?d.mode:0;S.sel=0;$('mode').value=S.mode;refresh('Opened '+file.name);
+}).catch(()=>status('Not a Gradus file: expected JSON with "app":"gradus", "version":1, cf and cp arrays',true))}
+function midiBlob(){
+ const vlq=n=>{const b=[n&127];while(n>>=7)b.unshift(n&127|128);return b},str=t=>[...t].map(c=>c.charCodeAt(0));
+ const u32=n=>[n>>>24&255,n>>>16&255,n>>>8&255,n&255],u16=n=>[n>>8&255,n&255];
+ const track=(seq,ch)=>{const ev=[0,0xC0|ch,52];seq.forEach(p=>ev.push(0,0x90|ch,midi(p),80,...vlq(1920),0x80|ch,midi(p),0));ev.push(0,0xFF,0x2F,0);return [...str('MTrk'),...u32(ev.length),...ev]};
+ const tempo=[...str('MTrk'),...u32(11),0,0xFF,0x51,3,0x04,0x93,0xE0,0,0xFF,0x2F,0];   // quarter = 300 ms → whole note 1.2 s
+ return new Blob([new Uint8Array([...str('MThd'),...u32(6),...u16(1),...u16(3),...u16(480),...tempo,...track(S.cp,0),...track(S.cf,1)])],{type:'audio/midi'});
+}
+/* ---------- wiring ---------- */
+MODES.forEach((m,i)=>$('mode').add(new Option(m.name,i)));
+$('mode').onchange=e=>{snapshot();S.mode=+e.target.value;S.cf=MODES[S.mode].cf.slice();S.sel=0;doCompose(MODES[S.mode].name+' cantus firmus (Fux)')};
+$('ab').onclick=()=>{snapshot();S.above=!S.above;doCompose(S.above?'Counterpoint above':'Counterpoint below')};
+$('compose').onclick=()=>{snapshot();doCompose('Composed')};
+$('play').onclick=play;$('up').onclick=()=>nudge(1);$('down').onclick=()=>nudge(-1);
+$('voice').onclick=()=>{S.voice=S.voice==='cp'?'cf':'cp';refresh('')};
+$('more').onclick=()=>resize(1);$('less').onclick=()=>resize(-1);
+$('save').onclick=save;$('open').onclick=()=>$('file').click();$('midi').onclick=()=>{download(`gradus-${today()}.mid`,midiBlob());status('Exported MIDI')};
+$('file').onchange=e=>{if(e.target.files[0])openFile(e.target.files[0]);e.target.value=''};
+const setTheme=t=>{document.documentElement.dataset.theme=t;$('theme').textContent=t==='dark'?'Light':'Dark';draw()};
+$('theme').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+const help=on=>{$('overlay').hidden=!on};$('helpBtn').onclick=()=>help(true);$('closeHelp').onclick=()=>help(false);
+$('overlay').onclick=e=>{if(e.target.id==='overlay')help(false)};
+addEventListener('keydown',e=>{
+ if(/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)||e.target.isContentEditable)return;
+ if((e.ctrlKey||e.metaKey)&&e.key==='/'){e.preventDefault();return help(!$('overlay').hidden?false:true)}
+ if(e.ctrlKey||e.metaKey||e.altKey)return;
+ if(e.key==='Escape')return help(false);
+ if(!$('overlay').hidden&&e.key!=='?')return;
+ const map={' ':play,c:()=>$('compose').click(),a:()=>$('ab').click(),m:()=>{$('mode').value=(S.mode+1)%MODES.length;$('mode').onchange({target:$('mode')})},
+  v:()=>$('voice').click(),z:undo,d:()=>$('theme').click(),s:save,o:()=>$('file').click(),e:()=>$('midi').click(),'?':()=>help($('overlay').hidden),
+  '+':()=>resize(1),'=':()=>resize(1),'-':()=>resize(-1),ArrowUp:()=>nudge(1),ArrowDown:()=>nudge(-1),
+  ArrowLeft:()=>{S.sel=Math.max(0,S.sel-1);S.hl=[];draw()},ArrowRight:()=>{S.sel=Math.min(S.cf.length-1,S.sel+1);S.hl=[];draw()}};
+ const f=map[e.key.length===1?e.key.toLowerCase():e.key];if(f){e.preventDefault();f()}
+});
+new ResizeObserver(()=>draw()).observe($('wrap'));
+setTheme(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+doCompose('Dorian cantus firmus (Fux) with a composed counterpoint · tap Compose for another');
+</script>
+</body>
+</html>
+
+</body></html>

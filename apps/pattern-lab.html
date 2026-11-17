@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pattern Lab</title>
+<style>
+:root {
+  --bg: #0f1117;
+  --fg: #e8eaed;
+  --panel: #1a1d27;
+  --accent: #5eead4;
+  --accent2: #a78bfa;
+  --border: #2d3340;
+  --shadow: 0 4px 24px rgba(0,0,0,.4);
+}
+body.light {
+  --bg: #f4f6fb;
+  --fg: #1a1d27;
+  --panel: #ffffff;
+  --accent: #0d9488;
+  --accent2: #7c3aed;
+  --border: #e2e8f0;
+  --shadow: 0 4px 24px rgba(0,0,0,.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--bg); color: var(--fg); font-family: system-ui, -apple-system, sans-serif; overflow: hidden; }
+#app { display: flex; flex-direction: column; height: 100dvh; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+header { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+h1 { font-size: 1.1rem; font-weight: 600; letter-spacing: -0.02em; }
+.controls { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+button, select { background: var(--panel); color: var(--fg); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; font-size: 0.85rem; cursor: pointer; }
+button:hover, select:hover { border-color: var(--accent); }
+button.primary { background: var(--accent); color: #0f1117; border: none; font-weight: 600; }
+.main { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+#canvasWrap { flex: 1; position: relative; min-height: 0; display: flex; align-items: center; justify-content: center; background: #000; }
+canvas { max-width: 100%; max-height: 100%; image-rendering: pixelated; cursor: crosshair; touch-action: none; }
+.sidebar { background: var(--panel); border-top: 1px solid var(--border); padding: 10px 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px 12px; max-height: 42vh; overflow-y: auto; }
+.param { display: flex; flex-direction: column; gap: 4px; }
+.param label { font-size: 0.75rem; opacity: 0.8; display: flex; justify-content: space-between; }
+.param input[type=range] { width: 100%; accent-color: var(--accent); }
+#help { position: fixed; inset: 0; background: rgba(0,0,0,.75); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+#help.open { display: flex; }
+.help-box { background: var(--panel); color: var(--fg); padding: 20px; border-radius: 12px; max-width: 480px; max-height: 80vh; overflow-y: auto; box-shadow: var(--shadow); }
+.help-box h2 { margin-bottom: 10px; }
+.help-box ul { padding-left: 18px; line-height: 1.6; }
+.help-box kbd { background: var(--border); padding: 2px 6px; border-radius: 4px; font-size: 0.85em; }
+@media (max-width: 640px) {
+  .sidebar { max-height: 50vh; }
+  h1 { font-size: 1rem; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>Pattern Lab</h1>
+    <div class="controls">
+      <button id="themeBtn">Theme</button>
+      <button id="helpBtn">Help</button>
+      <button id="pauseBtn" class="primary">Pause</button>
+      <button id="resetBtn">Reset</button>
+      <button id="saveBtn">Save</button>
+      <button id="openBtn">Open</button>
+      <input type="file" id="fileInput" accept=".json" hidden>
+    </div>
+  </header>
+  <div class="main">
+    <div id="canvasWrap"><canvas id="c"></canvas></div>
+    <div class="sidebar">
+      <div class="param">
+        <label>Feed <span id="feedVal">0.035</span></label>
+        <input type="range" id="feed" min="0.01" max="0.08" step="0.001" value="0.035">
+      </div>
+      <div class="param">
+        <label>Kill <span id="killVal">0.060</span></label>
+        <input type="range" id="kill" min="0.04" max="0.07" step="0.001" value="0.060">
+      </div>
+      <div class="param">
+        <label>Du <span id="duVal">0.16</span></label>
+        <input type="range" id="du" min="0.05" max="0.25" step="0.005" value="0.16">
+      </div>
+      <div class="param">
+        <label>Dv <span id="dvVal">0.08</span></label>
+        <input type="range" id="dv" min="0.03" max="0.15" step="0.005" value="0.08">
+      </div>
+      <div class="param">
+        <label>Speed <span id="speedVal">4</span></label>
+        <input type="range" id="speed" min="1" max="16" step="1" value="4">
+      </div>
+      <div class="param">
+        <label>Preset</label>
+        <select id="preset">
+          <option value="custom">Custom</option>
+          <option value="spots" selected>Spots</option>
+          <option value="stripes">Stripes</option>
+          <option value="worms">Worms</option>
+          <option value="mitosis">Mitosis</option>
+          <option value="labyrinth">Labyrinth</option>
+          <option value="solitons">Solitons</option>
+        </select>
+      </div>
+      <div class="param">
+        <label>Brush size <span id="brushVal">8</span></label>
+        <input type="range" id="brush" min="2" max="24" step="1" value="8">
+      </div>
+    </div>
+  </div>
+</div>
+<div id="help">
+  <div class="help-box">
+    <h2>Pattern Lab Help</h2>
+    <p>Gray-Scott reaction-diffusion. Two chemicals U (feed) and V (catalyst) interact to form organic patterns.</p>
+    <ul>
+      <li><kbd>Space</kbd> / Pause button — pause/resume simulation</li>
+      <li><kbd>R</kbd> — reset to current preset</li>
+      <li><kbd>T</kbd> — toggle theme</li>
+      <li><kbd>H</kbd> or <kbd>?</kbd> — this help</li>
+      <li><kbd>S</kbd> — save state as JSON</li>
+      <li><kbd>O</kbd> — open saved JSON</li>
+      <li><kbd>1</kbd>–<kbd>6</kbd> — quick presets</li>
+      <li>Mouse / touch drag — paint V catalyst</li>
+      <li>Scroll / pinch not used; use sliders</li>
+    </ul>
+    <p style="margin-top:10px;opacity:.8">All state (params + grid) is saved/loaded. Works offline.</p>
+  </div>
+</div>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d', { willReadFrequently: true });
+const W = 160, H = 160;
+let u, v, nu, nv;
+let paused = false;
+let theme = localStorage.getItem('pl-theme') || 'dark';
+const presets = {
+  spots: { feed: 0.035, kill: 0.060, du: 0.16, dv: 0.08 },
+  stripes: { feed: 0.022, kill: 0.051, du: 0.16, dv: 0.08 },
+  worms: { feed: 0.026, kill: 0.053, du: 0.16, dv: 0.08 },
+  mitosis: { feed: 0.0367, kill: 0.0649, du: 0.16, dv: 0.08 },
+  labyrinth: { feed: 0.029, kill: 0.057, du: 0.16, dv: 0.08 },
+  solitons: { feed: 0.030, kill: 0.062, du: 0.16, dv: 0.08 }
+};
+function initGrid(seed = true) {
+  u = new Float32Array(W * H).fill(1);
+  v = new Float32Array(W * H).fill(0);
+  nu = new Float32Array(W * H);
+  nv = new Float32Array(W * H);
+  if (seed) {
+    const cx = W / 2, cy = H / 2;
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const i = y * W + x;
+        const dx = x - cx, dy = y - cy;
+        if (dx * dx + dy * dy < 80) v[i] = 0.8 + Math.random() * 0.2;
+        if (Math.random() < 0.002) v[i] = 0.5;
+      }
+    }
+  }
+}
+function applyPreset(name) {
+  const p = presets[name];
+  if (!p) return;
+  document.getElementById('feed').value = p.feed;
+  document.getElementById('kill').value = p.kill;
+  document.getElementById('du').value = p.du;
+  document.getElementById('dv').value = p.dv;
+  updateLabels();
+  initGrid(true);
+}
+function updateLabels() {
+  document.getElementById('feedVal').textContent = (+document.getElementById('feed').value).toFixed(3);
+  document.getElementById('killVal').textContent = (+document.getElementById('kill').value).toFixed(3);
+  document.getElementById('duVal').textContent = (+document.getElementById('du').value).toFixed(2);
+  document.getElementById('dvVal').textContent = (+document.getElementById('dv').value).toFixed(2);
+  document.getElementById('speedVal').textContent = document.getElementById('speed').value;
+  document.getElementById('brushVal').textContent = document.getElementById('brush').value;
+}
+function laplacian(arr, i) {
+  const x = i % W, y = (i / W) | 0;
+  const l = arr[y * W + ((x - 1 + W) % W)];
+  const r = arr[y * W + ((x + 1) % W)];
+  const u = arr[((y - 1 + H) % H) * W + x];
+  const d = arr[((y + 1) % H) * W + x];
+  return l + r + u + d - 4 * arr[i];
+}
+function step() {
+  const feed = +document.getElementById('feed').value;
+  const kill = +document.getElementById('kill').value;
+  const du = +document.getElementById('du').value;
+  const dv = +document.getElementById('dv').value;
+  for (let i = 0; i < u.length; i++) {
+    const lapU = laplacian(u, i);
+    const lapV = laplacian(v, i);
+    const uvv = u[i] * v[i] * v[i];
+    nu[i] = u[i] + du * lapU - uvv + feed * (1 - u[i]);
+    nv[i] = v[i] + dv * lapV + uvv - (kill + feed) * v[i];
+    nu[i] = Math.max(0, Math.min(1, nu[i]));
+    nv[i] = Math.max(0, Math.min(1, nv[i]));
+  }
+  [u, nu] = [nu, u];
+  [v, nv] = [nv, v];
+}
+function render() {
+  const img = ctx.createImageData(W, H);
+  const d = img.data;
+  for (let i = 0; i < u.length; i++) {
+    const val = v[i];
+    const j = i * 4;
+    const t = Math.min(1, val * 3);
+    d[j] = 20 + t * 40;
+    d[j + 1] = 30 + t * 180;
+    d[j + 2] = 50 + t * 200;
+    d[j + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+}
+function resize() {
+  const wrap = document.getElementById('canvasWrap');
+  const size = Math.min(wrap.clientWidth, wrap.clientHeight);
+  canvas.style.width = canvas.style.height = size + 'px';
+  canvas.width = W;
+  canvas.height = H;
+}
+let painting = false, lastX = 0, lastY = 0;
+function paint(x, y) {
+  const rect = canvas.getBoundingClientRect();
+  const px = ((x - rect.left) / rect.width) * W | 0;
+  const py = ((y - rect.top) / rect.height) * H | 0;
+  const r = +document.getElementById('brush').value;
+  for (let dy = -r; dy <= r; dy++) {
+    for (let dx = -r; dx <= r; dx++) {
+      if (dx * dx + dy * dy <= r * r) {
+        const nx = (px + dx + W) % W;
+        const ny = (py + dy + H) % H;
+        v[ny * W + nx] = 0.9;
+      }
+    }
+  }
+}
+function loop() {
+  if (!paused) {
+    const n = +document.getElementById('speed').value;
+    for (let i = 0; i < n; i++) step();
+    render();
+  }
+  requestAnimationFrame(loop);
+}
+function setTheme(t) {
+  theme = t;
+  document.body.classList.toggle('light', t === 'light');
+  localStorage.setItem('pl-theme', t);
+}
+function toggleHelp() {
+  document.getElementById('help').classList.toggle('open');
+}
+function saveState() {
+  const state = {
+    feed: +document.getElementById('feed').value,
+    kill: +document.getElementById('kill').value,
+    du: +document.getElementById('du').value,
+    dv: +document.getElementById('dv').value,
+    speed: +document.getElementById('speed').value,
+    brush: +document.getElementById('brush').value,
+    preset: document.getElementById('preset').value,
+    u: Array.from(u),
+    v: Array.from(v)
+  };
+  const blob = new Blob([JSON.stringify(state)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'pattern-lab.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+function loadState(data) {
+  document.getElementById('feed').value = data.feed;
+  document.getElementById('kill').value = data.kill;
+  document.getElementById('du').value = data.du;
+  document.getElementById('dv').value = data.dv;
+  document.getElementById('speed').value = data.speed;
+  document.getElementById('brush').value = data.brush;
+  document.getElementById('preset').value = data.preset || 'custom';
+  updateLabels();
+  u = new Float32Array(data.u);
+  v = new Float32Array(data.v);
+  nu = new Float32Array(W * H);
+  nv = new Float32Array(W * H);
+  render();
+}
+document.getElementById('themeBtn').onclick = () => setTheme(theme === 'dark' ? 'light' : 'dark');
+document.getElementById('helpBtn').onclick = toggleHelp;
+document.getElementById('pauseBtn').onclick = () => {
+  paused = !paused;
+  document.getElementById('pauseBtn').textContent = paused ? 'Resume' : 'Pause';
+};
+document.getElementById('resetBtn').onclick = () => applyPreset(document.getElementById('preset').value || 'spots');
+document.getElementById('saveBtn').onclick = saveState;
+document.getElementById('openBtn').onclick = () => document.getElementById('fileInput').click();
+document.getElementById('fileInput').onchange = e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try { loadState(JSON.parse(r.result)); } catch (err) { alert('Invalid file'); }
+  };
+  r.readAsText(f);
+  e.target.value = '';
+};
+['feed','kill','du','dv','speed','brush'].forEach(id => {
+  document.getElementById(id).oninput = updateLabels;
+});
+document.getElementById('preset').onchange = e => {
+  if (e.target.value !== 'custom') applyPreset(e.target.value);
+};
+canvas.addEventListener('pointerdown', e => { painting = true; paint(e.clientX, e.clientY); });
+canvas.addEventListener('pointermove', e => { if (painting) paint(e.clientX, e.clientY); });
+canvas.addEventListener('pointerup', () => painting = false);
+canvas.addEventListener('pointerleave', () => painting = false);
+document.getElementById('help').onclick = e => { if (e.target.id === 'help') toggleHelp(); };
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  const k = e.key.toLowerCase();
+  if (k === ' ' || k === 'spacebar') { e.preventDefault(); document.getElementById('pauseBtn').click(); }
+  else if (k === 'r') document.getElementById('resetBtn').click();
+  else if (k === 't') document.getElementById('themeBtn').click();
+  else if (k === 'h' || k === '?') toggleHelp();
+  else if (k === 's') saveState();
+  else if (k === 'o') document.getElementById('openBtn').click();
+  else if (k >= '1' && k <= '6') {
+    const names = ['spots','stripes','worms','mitosis','labyrinth','solitons'];
+    document.getElementById('preset').value = names[+k - 1];
+    applyPreset(names[+k - 1]);
+  }
+});
+window.addEventListener('resize', resize);
+setTheme(theme);
+initGrid(true);
+applyPreset('spots');
+updateLabels();
+resize();
+render();
+loop();
+</script>
+</body>
+</html>

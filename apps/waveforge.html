@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WaveForge — Fourier Harmonic Synthesis & DSP Studio</title>
+    <style>
+        :root {
+            --bg: #070a12; --panel: #0f172a; --card: #1e293b; --border: #334155;
+            --text: #f8fafc; --sub: #94a3b8; --accent: #ec4899; --accent-hover: #db2777;
+            --cyan: #38bdf8; --emerald: #10b981; --shadow: rgba(0,0,0,0.6);
+        }
+        [data-theme="light"] {
+            --bg: #f8fafc; --panel: #ffffff; --card: #f1f5f9; --border: #cbd5e1;
+            --text: #0f172a; --sub: #64748b; --accent: #db2777; --accent-hover: #be185d;
+            --cyan: #0284c7; --emerald: #059669; --shadow: rgba(0,0,0,0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+
+        header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; z-index: 10; }
+        .brand { font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em; }
+        .wave-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+        .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        button, label.btn-label, select { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; user-select: none; transition: 0.15s; outline: none; }
+        button:hover, label.btn-label:hover { border-color: var(--accent); color: var(--accent); }
+        button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+        button.primary:hover { background: var(--accent-hover); color: #fff; }
+        input[type="file"] { display: none; }
+
+        .metrics-bar { background: var(--panel); border-bottom: 1px solid var(--border); padding: 10px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: 12px; font-size: 0.8rem; z-index: 10; }
+        .metric-card { background: var(--bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); }
+        .metric-title { color: var(--sub); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+        .metric-val { font-size: 1rem; font-weight: 700; color: var(--text); }
+
+        main { flex: 1; padding: 16px; max-width: 1360px; width: 100%; margin: 0 auto; display: grid; grid-template-columns: 310px 1fr; gap: 16px; }
+        .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; box-shadow: 0 4px 6px var(--shadow); display: flex; flex-direction: column; gap: 12px; }
+        .section-title { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sub); display: flex; justify-content: space-between; align-items: center; }
+
+        .form-group { margin-bottom: 6px; }
+        .form-group label { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--sub); margin-bottom: 4px; font-weight: 500; }
+        .form-group select, .form-group input[type="range"] { width: 100%; accent-color: var(--accent); }
+
+        .canvas-stack { display: flex; flex-direction: column; gap: 12px; }
+        .canvas-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px; height: 220px; position: relative; }
+        canvas { width: 100%; height: 100%; display: block; touch-action: none; }
+        #harmCanvas { cursor: ns-resize; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 200; padding: 16px; }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 440px; padding: 20px; box-shadow: 0 20px 25px -5px var(--shadow); }
+        .modal h3 { font-size: 1.1rem; margin-bottom: 12px; }
+
+        .shortcut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem; margin: 12px 0 16px; }
+        .shortcut-row { display: flex; justify-content: space-between; background: var(--card); padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border); }
+        kbd { background: var(--panel); border: 1px solid var(--border); padding: 1px 5px; border-radius: 3px; font-weight: 600; font-size: 0.75rem; }
+
+        @media (max-width: 850px) {
+            header { flex-direction: column; align-items: stretch; }
+            .actions { justify-content: space-between; }
+            main { grid-template-columns: 1fr; padding: 8px; }
+            .metrics-bar { grid-template-columns: repeat(2, 1fr); }
+            .canvas-box { height: 185px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand"><div class="wave-dot"></div> WaveForge Fourier Studio</div>
+        <div class="actions">
+            <button id="audioBtn" class="primary">🔊 Audition Tone</button>
+            <button id="freezeBtn">⏸ Freeze Phase</button>
+            <button id="saveBtn">💾 Save JSON</button>
+            <label class="btn-label" for="openFile">📂 Open JSON</label>
+            <input type="file" id="openFile" accept=".json">
+            <button id="themeBtn">🌓 Theme</button>
+            <button id="helpBtn">❓ Help</button>
+        </div>
+    </header>
+
+    <div class="metrics-bar">
+        <div class="metric-card"><div class="metric-title">Fundamental (f0)</div><div class="metric-val" id="mFreq">220 Hz (A3)</div></div>
+        <div class="metric-card"><div class="metric-title">Active Partials</div><div class="metric-val" id="mPartials">8 / 16</div></div>
+        <div class="metric-card"><div class="metric-title">Total Harmonic Distortion</div><div class="metric-val" id="mThd" style="color:var(--cyan);">48.3%</div></div>
+        <div class="metric-card"><div class="metric-title">Timbre Profile</div><div class="metric-val" id="mTimbre" style="color:var(--emerald);">Sawtooth</div></div>
+    </div>
+
+    <main>
+        <!-- DSP Controls -->
+        <div class="panel">
+            <div class="section-title"><span>Fourier Synthesis Controls</span></div>
+
+            <div class="form-group">
+                <label>Fourier Series Preset</label>
+                <select id="cfgPreset">
+                    <option value="sawtooth">Sawtooth (1/n All Harmonics)</option>
+                    <option value="square">Square (1/n Odd Harmonics)</option>
+                    <option value="triangle">Triangle (1/n² Alternating)</option>
+                    <option value="organ">Drawbar Cathedral Organ</option>
+                    <option value="sine">Pure Fundamental Sine</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Fundamental Pitch: <span id="valFreq">220</span> Hz</label>
+                <input type="range" id="cfgFreq" min="110" max="660" step="1" value="220">
+            </div>
+
+            <div class="form-group">
+                <label>Oscilloscope Zoom: <span id="valCycles">2.5</span> cycles</label>
+                <input type="range" id="cfgCycles" min="1" max="6" step="0.5" value="2.5">
+            </div>
+
+            <div class="section-title" style="margin-top:6px;"><span>Interactive Spectrum Guide</span></div>
+            <p style="font-size:0.76rem; color:var(--sub); line-height:1.45;">
+                <strong>Tap or drag</strong> any of the 16 harmonic bars in the bottom chart to sculpt custom Fourier amplitudes in real time. Tap <strong>Audition Tone</strong> to hear the synthesized waveform via WebAudio.
+            </p>
+        </div>
+
+        <!-- Dual-Domain Oscilloscope & Spectrum -->
+        <div class="panel">
+            <div class="canvas-stack">
+                <div>
+                    <div class="section-title" style="margin-bottom:6px;"><span>Time-Domain Composite Waveform (f(t) = Σ Aₙ sin(nωt))</span></div>
+                    <div class="canvas-box"><canvas id="waveCanvas"></canvas></div>
+                </div>
+                <div>
+                    <div class="section-title" style="margin-bottom:6px;"><span>Frequency-Domain Harmonic Partial Spectrum (H1 – H16)</span></div>
+                    <div class="canvas-box"><canvas id="harmCanvas"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal">
+            <h3>WaveForge Guide &amp; Shortcuts</h3>
+            <p style="font-size:0.85rem; color:var(--sub); line-height:1.4; margin-bottom:10px;">Real-time 16-partial Fourier additive synthesizer with live WebAudio playback and dual-domain oscilloscope.</p>
+            <div class="shortcut-grid">
+                <div class="shortcut-row"><span>Audition Audio</span> <kbd>A</kbd></div>
+                <div class="shortcut-row"><span>Freeze Phase</span> <kbd>Space</kbd></div>
+                <div class="shortcut-row"><span>Reset Sawtooth</span> <kbd>R</kbd></div>
+                <div class="shortcut-row"><span>Save Timbre</span> <kbd>S</kbd></div>
+                <div class="shortcut-row"><span>Open Timbre</span> <kbd>O</kbd></div>
+                <div class="shortcut-row"><span>Toggle Theme</span> <kbd>T</kbd></div>
+                <div class="shortcut-row"><span>Close Modal</span> <kbd>Esc</kbd></div>
+            </div>
+            <button id="closeHelpBtn" class="primary" style="width:100%; justify-content:center; margin-top:10px;">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Fourier Harmonic State ---
+        const NUM_HARMONICS = 16;
+        let harmonics = new Array(NUM_HARMONICS).fill(0);
+        let baseFreq = 220;
+        let cycles = 2.5;
+        let phase = 0;
+        let isFrozen = false;
+        let audioCtx = null, periodicOsc = null, masterGain = null, isPlaying = false;
+
+        const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+
+        function freqToNote(f) {
+            const midi = Math.round(12 * Math.log2(f / 440) + 69);
+            const name = NOTE_NAMES[(midi + 120) % 12];
+            const oct = Math.floor(midi / 12) - 1;
+            return `${name}${oct}`;
+        }
+
+        function applyPreset(name) {
+            for (let i = 0; i < NUM_HARMONICS; i++) {
+                const n = i + 1;
+                if (name === 'sawtooth') harmonics[i] = Number((1 / n).toFixed(3));
+                else if (name === 'square') harmonics[i] = n % 2 === 1 ? Number((1 / n).toFixed(3)) : 0;
+                else if (name === 'triangle') harmonics[i] = n % 2 === 1 ? Number((1 / (n * n)).toFixed(3)) : 0;
+                else if (name === 'organ') harmonics[i] = [1, 0.8, 0.9, 0.6, 0, 0.5, 0, 0.4, 0, 0, 0, 0.3, 0, 0, 0, 0.2][i];
+                else harmonics[i] = i === 0 ? 1 : 0;
+            }
+            const labels = { sawtooth: 'Sawtooth', square: 'Square', triangle: 'Triangle', organ: 'Drawbar Organ', sine: 'Pure Sine' };
+            document.getElementById('mTimbre').innerText = labels[name] || 'Custom';
+            updateMetrics();
+            syncWebAudioWave();
+            renderSpectrum();
+        }
+
+        function updateMetrics() {
+            const active = harmonics.filter(a => a > 0.01).length;
+            const fund = harmonics[0] || 0.001;
+            let higherPower = 0;
+            for (let i = 1; i < NUM_HARMONICS; i++) higherPower += harmonics[i] * harmonics[i];
+            const thd = (Math.sqrt(higherPower) / fund) * 100;
+
+            document.getElementById('mFreq').innerText = `${baseFreq} Hz (${freqToNote(baseFreq)})`;
+            document.getElementById('mPartials').innerText = `${active} / ${NUM_HARMONICS}`;
+            document.getElementById('mThd').innerText = `${Math.min(999, thd).toFixed(1)}%`;
+        }
+
+        // --- Live WebAudio PeriodicWave Synthesizer ---
+        function toggleAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+            }
+            if (isPlaying) {
+                if (periodicOsc) { periodicOsc.stop(); periodicOsc.disconnect(); periodicOsc = null; }
+                isPlaying = false;
+                document.getElementById('audioBtn').innerText = '🔊 Audition Tone';
+                return;
+            }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            periodicOsc = audioCtx.createOscillator();
+            masterGain = audioCtx.createGain();
+            masterGain.gain.value = 0.18;
+            periodicOsc.frequency.value = baseFreq;
+            syncWebAudioWave();
+            periodicOsc.connect(masterGain);
+            masterGain.connect(audioCtx.destination);
+            periodicOsc.start();
+            isPlaying = true;
+            document.getElementById('audioBtn').innerText = '⏹ Stop Audio';
+        }
+
+        function syncWebAudioWave() {
+            if (!audioCtx || !periodicOsc) return;
+            const real = new Float32Array(NUM_HARMONICS + 1);
+            const imag = new Float32Array(NUM_HARMONICS + 1);
+            for (let i = 0; i < NUM_HARMONICS; i++) imag[i + 1] = harmonics[i];
+            const wave = audioCtx.createPeriodicWave(real, imag);
+            periodicOsc.setPeriodicWave(wave);
+            periodicOsc.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
+        }
+
+        // --- Dual Canvas Rendering ---
+        const waveCanvas = document.getElementById('waveCanvas');
+        const waveCtx = waveCanvas.getContext('2d');
+        const harmCanvas = document.getElementById('harmCanvas');
+        const harmCtx = harmCanvas.getContext('2d');
+
+        function renderWaveform() {
+            waveCanvas.width = waveCanvas.parentElement.clientWidth - 16;
+            waveCanvas.height = waveCanvas.parentElement.clientHeight - 16;
+            const w = waveCanvas.width, h = waveCanvas.height, midY = h / 2;
+
+            const styles = getComputedStyle(document.documentElement);
+            const accent = styles.getPropertyValue('--accent').trim();
+            const border = styles.getPropertyValue('--border').trim();
+
+            waveCtx.clearRect(0, 0, w, h);
+
+            // Zero-crossing axis
+            waveCtx.beginPath();
+            waveCtx.moveTo(0, midY);
+            waveCtx.lineTo(w, midY);
+            waveCtx.strokeStyle = border;
+            waveCtx.lineWidth = 1;
+            waveCtx.stroke();
+
+            // Composite Fourier Sum
+            waveCtx.beginPath();
+            waveCtx.strokeStyle = accent;
+            waveCtx.lineWidth = 2.5;
+            const scale = (h * 0.36);
+
+            for (let x = 0; x <= w; x += 2) {
+                const t = (x / w) * cycles * Math.PI * 2 + phase;
+                let yVal = 0;
+                for (let i = 0; i < NUM_HARMONICS; i++) {
+                    if (harmonics[i] > 0) yVal += harmonics[i] * Math.sin((i + 1) * t);
+                }
+                const py = midY - yVal * scale;
+                if (x === 0) waveCtx.moveTo(x, py);
+                else waveCtx.lineTo(x, py);
+            }
+            waveCtx.stroke();
+        }
+
+        function renderSpectrum() {
+            harmCanvas.width = harmCanvas.parentElement.clientWidth - 16;
+            harmCanvas.height = harmCanvas.parentElement.clientHeight - 16;
+            const w = harmCanvas.width, h = harmCanvas.height;
+            const padBottom = 22, barAreaH = h - padBottom;
+            const slotW = w / NUM_HARMONICS;
+
+            const styles = getComputedStyle(document.documentElement);
+            const cyan = styles.getPropertyValue('--cyan').trim();
+            const card = styles.getPropertyValue('--card').trim();
+            const sub = styles.getPropertyValue('--sub').trim();
+
+            harmCtx.clearRect(0, 0, w, h);
+
+            for (let i = 0; i < NUM_HARMONICS; i++) {
+                const bx = i * slotW + 4;
+                const bw = Math.max(6, slotW - 8);
+                const bh = harmonics[i] * (barAreaH - 12);
+
+                // Background track
+                harmCtx.fillStyle = card;
+                harmCtx.fillRect(bx, 6, bw, barAreaH - 6);
+
+                // Active harmonic amplitude bar
+                harmCtx.fillStyle = cyan;
+                harmCtx.fillRect(bx, barAreaH - bh, bw, bh);
+
+                // Harmonic number label
+                harmCtx.fillStyle = sub;
+                harmCtx.font = '10px monospace';
+                harmCtx.textAlign = 'center';
+                harmCtx.fillText(`H${i + 1}`, bx + bw / 2, h - 6);
+            }
+        }
+
+        function animate() {
+            if (!isFrozen) phase += 0.04;
+            renderWaveform();
+            requestAnimationFrame(animate);
+        }
+
+        // --- Touch / Pointer Harmonic Bar Sculpting ---
+        let isScrubbing = false;
+
+        function scrubHarmonic(e) {
+            const rect = harmCanvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const idx = Math.floor(((clientX - rect.left) / rect.width) * NUM_HARMONICS);
+            if (idx < 0 || idx >= NUM_HARMONICS) return;
+
+            const normY = 1 - ((clientY - rect.top) / (rect.height - 22));
+            harmonics[idx] = Number(Math.min(1, Math.max(0, normY)).toFixed(2));
+            document.getElementById('mTimbre').innerText = 'Custom Sculpt';
+            updateMetrics();
+            syncWebAudioWave();
+            renderSpectrum();
+        }
+
+        harmCanvas.addEventListener('pointerdown', e => { isScrubbing = true; scrubHarmonic(e); });
+        harmCanvas.addEventListener('pointermove', e => { if (isScrubbing) scrubHarmonic(e); });
+        window.addEventListener('pointerup', () => isScrubbing = false);
+        window.addEventListener('resize', renderSpectrum);
+
+        // --- UI Controls & JSON Save/Open ---
+        document.getElementById('audioBtn').addEventListener('click', toggleAudio);
+        document.getElementById('freezeBtn').addEventListener('click', () => {
+            isFrozen = !isFrozen;
+            document.getElementById('freezeBtn').innerText = isFrozen ? '▶ Resume Phase' : '⏸ Freeze Phase';
+        });
+
+        document.getElementById('cfgPreset').addEventListener('change', e => applyPreset(e.target.value));
+        document.getElementById('cfgFreq').addEventListener('input', e => {
+            baseFreq = parseInt(e.target.value);
+            document.getElementById('valFreq').innerText = baseFreq;
+            updateMetrics();
+            syncWebAudioWave();
+        });
+        document.getElementById('cfgCycles').addEventListener('input', e => {
+            cycles = parseFloat(e.target.value);
+            document.getElementById('valCycles').innerText = cycles;
+        });
+
+        document.getElementById('saveBtn').addEventListener('click', exportJSON);
+        document.getElementById('openFile').addEventListener('change', importJSON);
+
+        function exportJSON() {
+            const payload = { baseFreq, cycles, harmonics };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload, null, 2));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            a.setAttribute("download", `waveforge_timbre_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        function importJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = evt => {
+                try {
+                    const data = JSON.parse(evt.target.result);
+                    if (Array.isArray(data.harmonics) && data.harmonics.length === NUM_HARMONICS) {
+                        harmonics = data.harmonics.map(v => Math.min(1, Math.max(0, Number(v) || 0)));
+                        if (data.baseFreq) {
+                            baseFreq = data.baseFreq;
+                            document.getElementById('cfgFreq').value = baseFreq;
+                            document.getElementById('valFreq').innerText = baseFreq;
+                        }
+                        if (data.cycles) {
+                            cycles = data.cycles;
+                            document.getElementById('cfgCycles').value = cycles;
+                            document.getElementById('valCycles').innerText = cycles;
+                        }
+                        document.getElementById('mTimbre').innerText = 'Imported';
+                        updateMetrics();
+                        syncWebAudioWave();
+                        renderSpectrum();
+                    } else alert('Invalid WaveForge JSON file.');
+                } catch { alert('Error reading JSON file.'); }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Theme & Shortcuts (Zero Key Overlap) ---
+        const helpModal = document.getElementById('helpModal');
+        document.getElementById('helpBtn').addEventListener('click', () => helpModal.classList.add('open'));
+        document.getElementById('closeHelpBtn').addEventListener('click', () => helpModal.classList.remove('open'));
+        document.getElementById('themeBtn').addEventListener('click', () => {
+            const cur = document.documentElement.getAttribute('data-theme');
+            document.documentElement.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+            renderSpectrum();
+        });
+
+        // A = Audition Audio, Space = Freeze Phase, R = Reset Sawtooth, S = Save JSON, O = Open JSON, T = Theme, Esc = Close Modal
+        window.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+            const k = e.key.toLowerCase();
+            if (k === 'a') { e.preventDefault(); toggleAudio(); }
+            if (e.code === 'Space') { e.preventDefault(); document.getElementById('freezeBtn').click(); }
+            if (k === 'r') { e.preventDefault(); document.getElementById('cfgPreset').value = 'sawtooth'; applyPreset('sawtooth'); }
+            if (k === 's') { e.preventDefault(); exportJSON(); }
+            if (k === 'o') { e.preventDefault(); document.getElementById('openFile').click(); }
+            if (k === 't') { e.preventDefault(); document.getElementById('themeBtn').click(); }
+            if (e.key === 'Escape') helpModal.classList.remove('open');
+        });
+
+        // Pre-loaded 5-Second Impressive Demo State
+        applyPreset('sawtooth');
+        requestAnimationFrame(animate);
+    </script>
+</body>
+</html>

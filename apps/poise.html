@@ -1,0 +1,478 @@
+<!doctype html>
+<!-- Poise | Created 2026-11-16 (America/Los_Angeles)
+Purpose: Design a three-beam kinetic mobile and explore how arm lengths and suspended loads determine balance.
+Interaction: Choose a beam, shift its suspension point by a notch and change the shape weights. Compare the tilted view with the level plan; export the study.
+Visual approach: An airy modernist sculpture gallery with a large paper-white installation wall, colored metal shapes, ultramarine controls and a ruled model-workshop bench.
+Distinct from Moonpost, Selvedge and Tideglass: the user balances a hierarchical hanging sculpture and can inspect the moments acting on its individual beams. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f6f4ee">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Poise · Kinetic mobile studio</title>
+<style>
+:root{color-scheme:light;--paper:#f6f4ee;--panel:#fffefa;--ink:#212323;--muted:#555956;--rule:#c6c7bd;--blue:#233ead;--brick:#bd402d;--gold:#edbc4c;--body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;--display:"Bricolage Grotesque","Arial",sans-serif;--mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--ink);background:var(--paper);font-family:var(--body);font-size:16px;line-height:1.42}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--paper)}
+[hidden]{display:none!important}
+button,input,select,textarea{font:inherit;color:inherit}button,select{touch-action:manipulation}
+button{border:1px solid #92968d;border-radius:6px;background:var(--panel);display:inline-flex;justify-content:center;align-items:center;gap:.45em;min-width:44px;min-height:44px;font-weight:650;font-size:.91rem;padding:8px 15px;line-height:1.2;cursor:pointer}
+button:disabled,input:disabled,select:disabled{opacity:.46;cursor:default}
+button.primary{color:white;background:var(--blue);border-color:var(--blue)}
+button.quiet{background:transparent;border-color:transparent}
+button.iconBtn{padding:7px;min-width:44px;width:44px}
+button svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.65;flex:none}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid #ad432a;outline-offset:3px}
+input[type=text],select,textarea{border:1px solid #a4a69c;border-radius:5px;background:var(--panel);min-height:44px;max-width:100%;min-width:0;font-size:16px;padding:8px 11px}
+select{padding-inline-end:27px;cursor:pointer}
+input[type=range]{width:100%;min-width:0;min-height:44px;margin:0;accent-color:var(--blue);cursor:pointer}
+textarea{width:100%;display:block;font:16px/1.5 var(--mono);resize:vertical}
+h1,h2,h3,p{margin:0}.page{max-width:1376px;margin:auto;padding:26px 44px 40px;padding-top:max(26px,env(safe-area-inset-top));padding-left:max(44px,env(safe-area-inset-left));padding-right:max(44px,env(safe-area-inset-right));padding-bottom:max(40px,env(safe-area-inset-bottom))}
+.mast{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:13px;padding-bottom:19px;border-bottom:2px solid var(--ink)}
+.brand{display:flex;gap:14px;align-items:center}.brand svg{width:62px;height:67px;flex:none}.brand h1{font:740 clamp(3rem,4.4vw,4.25rem)/.84 var(--display);letter-spacing:-.09em}.brand p{font-size:.92rem;line-height:1.22;margin-top:8px;color:#434947;letter-spacing:.018em}
+.actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+#status{color:#29405c;font-weight:620;font-size:.93rem;overflow-wrap:anywhere}#status:not(:empty){margin:11px 0 0}
+.work{display:grid;grid-template-columns:minmax(0,1.77fr) minmax(284px,.86fr);gap:clamp(16px,2.45vw,34px);align-items:start;margin-top:23px}
+.gallery{min-width:0;border:1px solid #b4b7ac;background:#fbfaf4;border-radius:3px;overflow:hidden}
+.catalog{display:flex;align-items:end;gap:12px;justify-content:space-between;padding:14px 18px 12px;background:var(--panel);border-bottom:1px solid var(--rule)}
+.field{display:block;min-width:0}.caption{display:block;font-size:.79rem;font-weight:700;line-height:1.25;color:#444b47;margin-bottom:5px}
+.catalog .field:first-child{flex:1 1 48%;max-width:30rem}.catalog .field:last-child{flex:0 1 39%;max-width:15rem}.field input,.field select{width:100%}
+#stage{position:relative;width:100%;aspect-ratio:700/460;min-width:0;border:0;padding:0;background:radial-gradient(ellipse at 50% 34%,#fffef8,#f3f0e4 94%);overflow:hidden}
+#stage>svg{display:block;width:100%;height:100%}#stage [data-bar]{cursor:pointer}
+.stageFoot{border-top:1px solid var(--rule);display:flex;align-items:center;gap:11px 19px;justify-content:space-between;flex-wrap:wrap;padding:12px 18px;background:var(--panel)}
+.viewSelect{display:flex;align-items:center;gap:8px;font-size:.84rem;font-weight:700;min-width:0}
+.viewSelect select{max-width:100%;font-size:16px}.exportBtn{background:transparent;color:var(--ink);border-color:#9da39b}
+.summary{padding:11px 18px;border-top:1px solid #c5cabf;background:#eef0e7;display:flex;align-items:center;gap:9px;font-size:.91rem;font-weight:650;color:#353f35;overflow-wrap:anywhere}
+.summary::before{content:"";flex:none;width:13px;height:9px;border-top:2px solid #64795e;transform:rotate(-12deg)}
+.bench{min-width:0;border-top:4px solid var(--blue);padding:14px 0 0}
+.panelHead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.panelHead h2{font:680 clamp(1.6rem,2.8vw,2.3rem)/1 var(--display);letter-spacing:-.064em}
+.panelHead .quiet{color:#444e60;padding-inline:5px}
+.firstUse{font-size:.93rem;line-height:1.48;color:var(--muted);margin:8px 0 13px;max-width:46ch}
+.selectRow{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid var(--rule);padding:14px 0}
+.selectRow label{font-weight:690;font-size:.94rem}.selectRow select{min-width:min(174px,60%);max-width:68%}
+.pivot{padding:13px 0 15px;border-top:1px solid var(--rule)}
+.pivot .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.pivot label,.loadTitle{font-weight:700;font-size:.95rem}
+.pivot output{font:650 1.31rem/1.2 var(--mono);color:var(--blue);font-variant-numeric:tabular-nums}
+.stepper{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;gap:12px;margin:8px 0}
+.stepper button{border-radius:50%;font-size:1.29rem;background:transparent;padding:0}
+#balance{color:var(--blue);border-color:#909ec0;background:#f2f3fe;width:100%}
+.loadSection{border-block:1px solid var(--rule);padding:14px 0}.loads{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:8px}
+#weightNote{margin-top:6px;font-size:.89rem;line-height:1.42;color:var(--muted)}
+.reading{display:grid;grid-template-columns:4px minmax(0,1fr);gap:11px;margin-top:15px}.reading::before{content:"";background:var(--brick);border-radius:3px}
+#torque{font:700 clamp(1.15rem,2vw,1.42rem)/1.2 var(--display);overflow-wrap:anywhere}#detail{font-size:.9rem;line-height:1.46;color:var(--muted);margin-top:5px;overflow-wrap:anywhere}
+dialog{width:min(440px,calc(100% - 28px));border:1px solid #8b9287;border-radius:9px;color:var(--ink);background:var(--panel);padding:23px;max-height:calc(100vh - 28px);max-height:calc(100dvh - max(28px,env(safe-area-inset-top) + env(safe-area-inset-bottom)));overflow:auto;overscroll-behavior:contain;box-shadow:0 12px 54px #27282136}
+dialog::backdrop{background:#2226299c}dialog h2{font:700 1.72rem/1.13 var(--display);letter-spacing:-.055em;margin-bottom:11px}dialog p,dialog li{font-size:.94rem;line-height:1.48;overflow-wrap:anywhere}dialog p+p{margin-top:.7em}dialog ol{padding-left:1.35rem}dialog li+li{margin-top:6px}dialog .actions{margin-top:14px}#manual{margin-top:13px}#selectText{margin-top:6px}
+@media(hover:hover){button:enabled:hover{filter:brightness(.95)}}
+@media(max-width:900px){.page{padding-left:max(22px,env(safe-area-inset-left));padding-right:max(22px,env(safe-area-inset-right))}.work{grid-template-columns:minmax(0,1.46fr) minmax(254px,.8fr);gap:17px}.catalog,.stageFoot,.summary{padding-inline:12px}.catalog{gap:8px}.stageFoot{gap:8px}.viewSelect{gap:6px}.bench{padding-top:10px}}
+@media(max-width:680px){.page{padding:15px 14px 28px;padding-top:max(15px,env(safe-area-inset-top));padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right));padding-bottom:max(28px,env(safe-area-inset-bottom))}.mast{padding-bottom:13px;gap:11px}.brand{gap:8px}.brand svg{width:42px;height:46px}.brand h1{font-size:2.85rem}.brand p{font-size:.77rem;margin-top:5px}.actions{gap:4px}.mast button{padding-inline:10px}.work{grid-template-columns:minmax(0,1fr);gap:18px;margin-top:14px}.catalog{padding:10px}.stageFoot,.summary{padding:9px 10px}.bench{border-top-width:3px}.selectRow{padding-block:10px}.firstUse{max-width:none}.pivot,.loadSection{padding-block:11px}.reading{margin-top:11px}}
+@media(max-width:410px){.mast .actions{width:100%}.mast .quiet{margin-left:auto}.catalog .field:last-child{flex-basis:44%}.viewSelect{flex-wrap:wrap}.stageFoot{gap:5px}.stageFoot button{padding-inline:8px}}
+@media(max-width:340px){.page{padding-inline:max(8px,env(safe-area-inset-left)) max(8px,env(safe-area-inset-right))}.stageFoot{align-items:flex-start;flex-direction:column}.catalog{flex-wrap:wrap}.catalog .field:first-child,.catalog .field:last-child{max-width:none;flex:1 1 100%}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main class="page">
+ <header class="mast">
+  <div class="brand">
+   <svg viewBox="0 0 64 70" aria-hidden="true" focusable="false">
+    <g fill="none" stroke="#252925" stroke-width="2" stroke-linecap="round"><path d="M34 2v10M5 24 56 7M12 22v11m38-24v17M6 37l18-6m-13 5v15m10-18v11"/></g>
+    <path d="M40 31q8-12 21-6 1 10-10 13-11 2-11-7" fill="#c94631"/><path d="M4 50q8-3 14 1l-4 16q-11-3-10-17" fill="#2c46a6"/><circle cx="21" cy="48" r="6" fill="#d9a52e"/>
+   </svg><div><h1>Poise</h1><p>Kinetic mobile studio</p></div>
+  </div>
+  <nav class="actions" aria-label="Study files and help">
+   <button id="open" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18V6h7l2 2h8v3M3 18l3-6h15l-3 7H3z"/></svg>Open</button>
+   <button id="save" type="button" class="primary"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 17v3h16v-3"/></svg>Save</button>
+   <button id="help" type="button" class="quiet" aria-haspopup="dialog">Guide</button>
+  </nav><input type="file" id="file" accept=".json,application/json" hidden>
+ </header>
+ <noscript><p>Enable JavaScript in your browser to adjust the mobile.</p></noscript>
+ <p id="status" role="status" aria-live="polite" aria-atomic="true"></p>
+ <div class="work">
+  <section class="gallery" aria-label="Sculpture study">
+   <div class="catalog">
+    <label class="field" for="title"><span class="caption">Study name</span><input type="text" id="title" maxlength="80" autocomplete="off" placeholder="Untitled mobile"></label>
+    <label class="field" for="preset"><span class="caption">Starting study</span><select id="preset"></select></label>
+   </div>
+   <div id="stage"></div>
+   <div class="stageFoot">
+    <label class="viewSelect" for="pose">View <select id="pose"><option value="hang">Tilt preview</option><option value="level">Level plan</option></select></label>
+    <button id="exportSVG" type="button" class="exportBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 17v4h16v-4"/></svg>Export study SVG</button>
+   </div>
+   <div class="summary"><p id="overall"></p></div>
+  </section>
+  <section class="bench" aria-labelledby="bench-title">
+   <div class="panelHead"><h2 id="bench-title">Balance bench</h2><button type="button" id="undo" class="quiet">Undo</button></div>
+   <p class="firstUse">Choose a beam. Move its hanging point toward the side that pulls down, one notch at a time.</p>
+   <div class="selectRow"><label for="bar">Beam to adjust</label><select id="bar"><option value="0">Crown beam</option><option value="1">Left beam</option><option value="2">Right beam</option></select></div>
+   <div class="pivot">
+    <div class="row"><label for="pivot">Suspension notch</label><output id="pivotText" for="pivot"></output></div>
+    <div class="stepper"><button type="button" id="minus" class="iconBtn" aria-label="Move one notch left">−</button><input type="range" id="pivot" min="1" max="19" step="1" value="10"><button type="button" id="plus" class="iconBtn" aria-label="Move one notch right">+</button></div>
+    <button type="button" id="balance">Nearest notch</button>
+   </div>
+   <div class="loadSection"><h3 class="loadTitle">Suspended loads</h3>
+    <div class="loads" id="weightControls"><label class="field" for="loadA"><span class="caption">Left shape (g)</span><select id="loadA"></select></label><label class="field" for="loadB"><span class="caption">Right shape (g)</span><select id="loadB"></select></label></div>
+    <p id="weightNote">The crown carries the total weight of each lower beam’s shapes.</p>
+   </div>
+   <div class="reading"><div><p id="torque"></p><p id="detail"></p></div></div>
+  </section>
+ </div>
+</main>
+<dialog id="guideDialog" aria-labelledby="guide-title">
+ <h2 id="guide-title">Balancing a mobile</h2>
+ <p>The crown beam carries two lower beams. Each lower beam carries a pair of shapes.</p>
+ <ol><li>Choose a lower beam to change its two shape weights. Both weights also contribute to the load on the crown.</li><li>The turning effect of each load equals its weight times its distance from the notch. Equal turning effects balance the beam.</li><li>Move the suspension notch toward the side that pulls down to shorten its arm. <strong>Nearest notch</strong> chooses the available notch closest to exact balance.</li></ol>
+ <p>The level plan uses massless beams, with a 40 cm crown and 20 cm lower beams. Tilt preview shows which side pulls down. Its angle is illustrative.</p>
+ <p><strong>Save</strong> keeps the adjustable study as a local JSON file. <strong>Export study SVG</strong> creates a drawing with its measurements.</p>
+ <div class="actions"><button type="button" data-close class="primary">Back to the studio</button></div>
+</dialog>
+<dialog id="fileDialog" aria-labelledby="fileHeading">
+ <h2 id="fileHeading">Save study</h2><p id="fileInfo"></p>
+ <div class="actions"><button id="share" type="button">Share or save to Files</button><button id="again" type="button">Download again</button></div>
+ <div id="manual" hidden><label for="fileText" class="caption">Complete file text</label><textarea id="fileText" rows="4" readonly spellcheck="false"></textarea><button id="selectText" type="button">Select text</button></div>
+ <div class="actions"><button type="button" data-close class="primary">Done</button></div>
+</dialog>
+<dialog id="confirmDialog" aria-labelledby="confirm-title">
+ <h2 id="confirm-title">Replace this study?</h2><p id="confText"></p>
+ <div class="actions"><button id="keep" type="button" class="primary" autofocus>Keep current study</button><button id="replace" type="button">Replace</button></div>
+</dialog>
+<script>
+(() => { 'use strict';
+const FILE_LIMIT = 64000;
+const beamNames = ['Crown beam','Left beam','Right beam'];
+const MOBILE_STUDIES = [
+  {id:'gallery', name:'Gallery mobile', weights:[6,18,12,4], pivots:[10,11,8]},
+  {id:'equinox', name:'Equinox', weights:[12,12,12,12], pivots:[10,10,10]},
+  {id:'study', name:'Between notches', weights:[7,12,3,11], pivots:[10,10,10]}
+];
+function presets() {
+  return MOBILE_STUDIES.map(({id,name})=>({id,name}));
+}
+function makePreset(id='gallery') {
+  const item=MOBILE_STUDIES.find(entry=>entry.id===id);
+  if (!item) throw Error('Choose a listed mobile.');
+  return {title:item.name,weights:item.weights.slice(),pivots:item.pivots.slice(),selected:0,pose:'hang'};
+}
+function barStats(work,index) {
+  if (!Number.isInteger(index) || index<0 || index>2) throw Error('Choose one of the three beams.');
+  const [a,b,c,d]=work.weights;
+  // Measured from the left endpoint, each notch is 2 cm on the crown
+  // and 1 cm on a lower beam. The child suspension carries both weights.
+  const left=index===0?a+b:index===1?a:c;
+  const right=index===0?c+d:index===1?b:d;
+  const step=index===0?2:1;
+  const leftArm=work.pivots[index]*step;
+  const rightArm=(20-work.pivots[index])*step;
+  const net=right*rightArm-left*leftArm;
+  const ideal=20*right/(left+right);
+  const nearest=Math.min(19,Math.max(1,Math.round(ideal)));
+  return {left,right,leftArm,rightArm,net,ideal,nearest};
+}
+function isBalanced(work) {
+  return [0,1,2].every(index=>barStats(work,index).net===0);
+}
+function exactKeys(value,fields) {
+  return value!==null && typeof value==='object' && !Array.isArray(value)
+    && Object.keys(value).length===fields.length
+    && fields.every(key=>Object.prototype.hasOwnProperty.call(value,key));
+}
+function integerIn(value,low,high) {
+  return Number.isInteger(value) && value>=low && value<=high;
+}
+function validArray(value,size,low,high) {
+  return Array.isArray(value) && value.length===size && Array.from(value).every(v=>integerIn(v,low,high));
+}
+function validateState(work) {
+  if (!exactKeys(work,['title','weights','pivots','selected','pose']))
+    throw Error('This mobile has missing or unexpected fields.');
+  if (typeof work.title!=='string' || work.title.length>80 || /[\u0000-\u001f\u007f]/.test(work.title))
+    throw Error('The title must fit on one line of up to 80 characters.');
+  if (!validArray(work.weights,4,1,40)) throw Error('A mobile needs four whole-number masses of 1 to 40 grams.');
+  if (!validArray(work.pivots,3,1,19)) throw Error('Each of the three suspension points must be at notch 1 to 19.');
+  if (!integerIn(work.selected,0,2) || !['hang','level'].includes(work.pose))
+    throw Error('This mobile contains an invalid beam selection or view.');
+  return work;
+}
+function serializeSession(work) {
+  return JSON.stringify({app:'poise',version:1,workspace:validateState(work)},null,2)+'\n';
+}
+function readSession(text) {
+  if (typeof text!=='string' || text.length>FILE_LIMIT || new TextEncoder().encode(text).length>FILE_LIMIT)
+    throw Error('Choose a Poise JSON file of 64 KB or less.');
+  let doc;
+  try {doc=JSON.parse(text.replace(/^\uFEFF/,''));}
+  catch {throw Error('This file contains invalid JSON.');}
+  if (!exactKeys(doc,['app','version','workspace']) || doc.app!=='poise' || doc.version!==1)
+    throw Error('Choose a version 1 Poise mobile.');
+  return validateState(doc.workspace);
+}
+
+
+function artText(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+const numberArt=value=>Number(value.toFixed(2));
+function mobileSVG(work,forExport=false){
+  const objects=[],bounds=[];
+  const record=(x,y)=>bounds.push([x,y]);
+  const style=['#b73f2b','#244e9a','#db9d23','#226459'];
+  function line(x1,y1,x2,y2,stroke,width,extra=''){
+    return `<line x1="${numberArt(x1)}" y1="${numberArt(y1)}" x2="${numberArt(x2)}" y2="${numberArt(y2)}" stroke="${stroke}" stroke-width="${width}" ${extra}/>`;
+  }
+  function node(index,x,y){
+    const len=index===0?320:160,p=work.pivots[index]/20;
+    const st=barStats(work,index);
+    const tilt=work.pose==='hang'?Math.atan(st.net/(st.left*st.leftArm+st.right*st.rightArm))*.61:0;
+    const dx=Math.cos(tilt)*len,dy=Math.sin(tilt)*len;
+    const left=[x-p*dx,y-p*dy],right=[left[0]+dx,left[1]+dy];
+    record(left[0]-5,left[1]-6);record(right[0]+5,right[1]+6);
+    const chosen=!forExport && index===work.selected;
+    objects.push(`<g data-bar="${index}" style="cursor:pointer"><title>${beamNames[index]}, support notch ${work.pivots[index]}</title>`,
+      line(...left,...right,'transparent',30),line(...left,...right,chosen?'#974226':'#383938',chosen?4.1:3.1,'stroke-linecap="round"'));
+    for(let i=1;i<20;i++){
+      const ax=left[0]+dx*i/20,ay=left[1]+dy*i/20;
+      objects.push(`<circle cx="${numberArt(ax)}" cy="${numberArt(ay)}" r="1.05" fill="#c9c3b0"/>`);
+    }
+    objects.push(`<circle cx="${numberArt(x)}" cy="${numberArt(y)}" r="${chosen?5.4:4}" stroke="${chosen?'#9c4028':'#45433c'}" stroke-width="1.8" fill="#eee5c7"/></g>`);
+    return [left,right];
+  }
+  function cutout(i,x,y){
+    const scale=.62+.025*work.weights[i];
+    const forms=[
+      'M0 0C18 3 37 18 40 35C15 40-16 34-26 22C-18 11-10 5 0 0Z',
+      'M0 0C18 4 30 21 24 37C18 54-5 53-16 44C-30 32-24 9 0 0Z',
+      'M0 0L36 42Q4 55-28 42Z',
+      'M0 0C15 0 28 6 36 16C17 39-9 49-33 41C-23 21-13 9 0 0Z'
+    ];
+    objects.push(`<g transform="translate(${numberArt(x)} ${numberArt(y)}) scale(${numberArt(scale)})"><path d="${forms[i]}" fill="${style[i]}"/><circle cy="3" r="1.3" fill="#f4eedb"/></g>`);
+    const labelY=y+56*scale+10;
+    objects.push(`<text x="${numberArt(x)}" y="${numberArt(labelY)}" text-anchor="middle" font-family="ui-monospace,monospace" font-size="13" fill="#413f37">${work.weights[i]} g</text>`);
+    record(x-42*scale,y-2);record(x+42*scale,labelY+5);
+  }
+  record(0,-9);
+  objects.push(line(0,-7,0,42,'#4b4b43',1.5),'<path d="M-9-7H9" stroke="#4b4b43" stroke-width="2.3"/>');
+  const tips=node(0,0,42);
+  for(let k=0;k<2;k++){
+    const [tx,ty]=tips[k],cy=ty+(k===0?86:117);
+    objects.push(line(tx,ty,tx,cy,'#56574f',1.5));
+    const ends=node(k+1,tx,cy);
+    ends.forEach(([x,y],j)=>{
+      const i=k*2+j, drop=[49,83,52,76][i];
+      objects.push(line(x,y,x,y+drop+3,'#56574f',1.4));cutout(i,x,y+drop);
+    });
+  }
+  const minX=Math.min(...bounds.map(p=>p[0])),maxX=Math.max(...bounds.map(p=>p[0]));
+  const minY=Math.min(...bounds.map(p=>p[1])),maxY=Math.max(...bounds.map(p=>p[1]));
+  const zoom=Math.min(660/(maxX-minX),390/(maxY-minY),1.52);
+  const tx=350-zoom*(maxX+minX)/2,ty=214-zoom*(maxY+minY)/2;
+  let caption='';
+  if(forExport){
+    caption='<g font-family="sans-serif" fill="#323930"><text x="24" y="473" font-size="16" font-weight="bold">Support distances from the left end</text>';
+    for(let i=0;i<3;i++){
+      const st=barStats(work,i);
+      caption+=`<text x="24" y="${501+i*26}" font-size="15">${beamNames[i]} · ${st.leftArm} cm along a ${i===0?40:20} cm beam · ${st.left} g left / ${st.right} g right</text>`;
+    }
+    caption+='</g>';
+  }
+  const height=forExport?575:440;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 ${height}" role="img" aria-label="Three-beam hanging mobile, ${work.pose==='level'?'level plan':'illustrative tilt'}">
+    <title>${artText(work.title.trim()||'Untitled mobile')}</title>
+    <rect width="700" height="${height}" fill="#f5f2e9"/>
+    <g transform="translate(${numberArt(tx)} ${numberArt(ty)}) scale(${numberArt(zoom)})">${objects.join('')}</g>${caption}</svg>`;
+}
+
+const get=id=>document.getElementById(id);
+let state=makePreset(), baseline=JSON.stringify(state), pending=null, reading=false, prepared=null;
+let editGroup='';
+const history=[];
+const say=message=>{get('status').textContent=message;};
+function option(id,value,label) {
+  const opt=document.createElement('option');opt.value=String(value);opt.textContent=label;get(id).append(opt);
+}
+function remember() {
+  history.push({state,baseline});
+  if(history.length>64) history.shift();
+}
+function setWork(next,group='') {
+  validateState(next);
+  if(group==='' || group!==editGroup) remember();
+  state=next;editGroup=group;paint();
+}
+function changeBeam(index) {
+  if(!integerIn(index,0,2) || index===state.selected) return;
+  editGroup='';state={...state,selected:index};paint();
+  say(beamNames[index]+'. '+get('torque').textContent+'.');
+}
+function setPivot(value,group='') {
+  if(!integerIn(value,1,19) || value===state.pivots[state.selected]) return;
+  const pivots=state.pivots.slice();pivots[state.selected]=value;
+  setWork({...state,pivots},group);
+}
+function paint() {
+  const beam=state.selected, stat=barStats(state,beam), notch=state.pivots[beam];
+  if(get('title').value!==state.title) get('title').value=state.title;
+  get('bar').value=String(beam);get('pose').value=state.pose;
+  get('pivot').value=String(notch);
+  get('pivot').setAttribute('aria-valuetext','Notch '+notch+', '+stat.leftArm+' centimeters from the left end');
+  get('pivotText').textContent='Notch '+notch+' · '+stat.leftArm+' cm';
+  get('minus').disabled=notch===1;get('plus').disabled=notch===19;
+  get('balance').disabled=stat.nearest===notch;get('undo').disabled=!history.length;
+  get('weightControls').hidden=beam===0;get('weightNote').hidden=beam!==0;
+  if(beam) {
+    const index=(beam-1)*2;
+    get('loadA').value=String(state.weights[index]);get('loadB').value=String(state.weights[index+1]);
+  }
+  const amount=Math.abs(stat.net), direction=stat.net>0?'right':'left';
+  get('torque').textContent=amount?amount+' g·cm '+direction:'Balanced · 0 g·cm';
+  const arms='Left '+stat.left+' g × '+stat.leftArm+' cm = '+(stat.left*stat.leftArm)+' g·cm. Right '+
+    stat.right+' g × '+stat.rightArm+' cm = '+(stat.right*stat.rightArm)+' g·cm.';
+  const between=amount && notch===stat.nearest;
+  get('detail').textContent=arms+(between?' Closest notch; the exact balance point is '+(stat.ideal*(beam===0?2:1)).toFixed(2)+' cm from the left end.':'');
+  const balanced=[0,1,2].filter(i=>barStats(state,i).net===0).length;
+  get('overall').textContent=balanced===3?'All three beams balanced':balanced+' of 3 beams balanced';
+  get('stage').innerHTML=mobileSVG(state);
+}
+if(!get('preset').querySelector('option')) {
+  option('preset','','Choose a study…');for(const p of presets()) option('preset',p.id,p.name);
+}
+for(const id of ['loadA','loadB']) {
+  if(!get(id).querySelector('option')) for(let g=1;g<=40;g++) option(id,g,g+' g');
+}
+get('bar').addEventListener('change',()=>changeBeam(Number(get('bar').value)));
+get('stage').addEventListener('click',event=>{
+  const token=event.target.closest?.('[data-bar]');
+  if(token) changeBeam(Number(token.getAttribute('data-bar')));
+});
+get('pose').addEventListener('change',()=>{
+  const value=get('pose').value;
+  if(['level','hang'].includes(value) && value!==state.pose) {
+    editGroup='';state={...state,pose:value};paint();
+  }
+});
+get('pivot').addEventListener('input',()=>setPivot(Number(get('pivot').value),'pivot'));
+get('pivot').addEventListener('change',()=>{setPivot(Number(get('pivot').value),'pivot');editGroup='';say(get('torque').textContent+'.');});
+get('pivot').addEventListener('blur',()=>{editGroup='';});
+get('minus').addEventListener('click',()=>{setPivot(state.pivots[state.selected]-1);say(get('torque').textContent+'.');});
+get('plus').addEventListener('click',()=>{setPivot(state.pivots[state.selected]+1);say(get('torque').textContent+'.');});
+get('balance').addEventListener('click',()=>{
+  const {nearest}=barStats(state,state.selected);setPivot(nearest);
+  say(beamNames[state.selected]+', notch '+nearest+'. '+get('torque').textContent+'.');
+});
+for(const [id,side] of [['loadA',0],['loadB',1]]) {
+  get(id).addEventListener('change',()=>{
+    const value=Number(get(id).value), beam=state.selected;
+    if(!beam || !integerIn(value,1,40)) return;
+    const index=(beam-1)*2+side;
+    if(state.weights[index]===value) return;
+    const weights=state.weights.slice();weights[index]=value;setWork({...state,weights});
+    say(beamNames[beam]+'. '+get('torque').textContent+'.');
+  });
+}
+get('title').addEventListener('input',()=>{
+  if(get('title').value===state.title) return;
+  try {setWork({...state,title:get('title').value},'title');}
+  catch(error){get('title').value=state.title;say(error.message);}
+});
+get('title').addEventListener('blur',()=>{editGroup='';});
+get('undo').addEventListener('click',()=>{
+  const previous=history.pop();if(!previous) return;
+  state=previous.state;baseline=previous.baseline;editGroup='';paint();say('Previous mobile restored.');
+});
+
+const dialogOrigins=new Map();
+function show(id,origin){dialogOrigins.set(id,origin);get(id).showModal();}
+for(const d of document.querySelectorAll('dialog')) d.addEventListener('close',()=>{
+  if(d.id==='confirmDialog') pending=null;
+  if(d.id==='fileDialog'){prepared=null;get('fileText').value='';}
+  const origin=get(dialogOrigins.get(d.id));if(origin&&!origin.disabled) origin.focus();
+});
+for(const button of document.querySelectorAll('[data-close]')) button.addEventListener('click',()=>button.closest('dialog').close());
+get('help').addEventListener('click',()=>show('guideDialog','help'));
+function loadMobile(next){
+  remember();editGroup='';state=next;baseline=JSON.stringify(next);paint();say('Opened '+(state.title||'untitled mobile')+'.');
+}
+function offerMobile(next,origin){
+  if(JSON.stringify(state)===baseline){loadMobile(next);return;}
+  pending=next;
+  get('confText').textContent='Open “'+(next.title.trim()||'Untitled mobile')+'” in place of the current mobile? Choose Keep to save your edits first.';
+  show('confirmDialog',origin);get('keep').focus();
+}
+get('keep').addEventListener('click',()=>{pending=null;get('confirmDialog').close();say('Current mobile kept.');});
+get('confirmDialog').addEventListener('cancel',()=>{pending=null;});
+get('replace').addEventListener('click',()=>{
+  const next=pending;pending=null;get('confirmDialog').close();if(next) loadMobile(next);
+});
+get('preset').addEventListener('change',()=>{
+  const id=get('preset').value;get('preset').value='';
+  if(presets().some(p=>p.id===id)) offerMobile(makePreset(id),'preset');
+});
+function readLocal(file){
+  if(typeof file.text==='function') return file.text();
+  if(typeof FileReader==='undefined') throw Error('This browser could not read the local file.');
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();reader.onload=()=>resolve(reader.result);
+    reader.onerror=reader.onabort=()=>reject(Error('The file could not be read.'));
+    reader.readAsText(file);
+  });
+}
+get('open').addEventListener('click',()=>{
+  if(reading) return;
+  get('file').value='';
+  try{get('file').click();}catch{say('The local file picker could not open.');}
+});
+get('file').addEventListener('cancel',()=>say('Open canceled. Current mobile kept.'));
+get('file').addEventListener('change',async()=>{
+  const file=get('file').files?.[0];if(!file||reading) return;
+  reading=true;get('open').disabled=true;
+  try {
+    if(file.size>FILE_LIMIT) throw Error('Choose a Poise JSON file of 64 KB or less.');
+    const next=readSession(await readLocal(file));
+    if(['guideDialog','fileDialog','confirmDialog'].some(id=>get(id).open)) throw Error('Finish the current dialog, then choose your mobile again.');
+    offerMobile(next,'open');
+  }catch(error){say(error.message+' Current mobile kept.');}
+  finally{reading=false;get('open').disabled=false;get('file').value='';}
+});
+function downloadFile(){
+  if(!prepared) return;
+  let url;const a=document.createElement('a');
+  try {
+    try{if(prepared.blob) url=URL.createObjectURL(prepared.blob);}catch{}
+    a.href=url||'data:'+prepared.type+';charset=utf-8,'+encodeURIComponent(prepared.text);
+    a.download=prepared.name;document.body.append(a);a.click();
+    get('fileInfo').textContent='Download requested for '+prepared.name+'.'+(prepared.file?' You can also choose Share, then Save to Files.':'');
+  }catch{get('fileInfo').textContent='Copy the entire file text below and save it as '+prepared.name+'.';}
+  finally{a.remove();if(url) setTimeout(()=>URL.revokeObjectURL(url),60000);}
+}
+function offerFile(artwork){
+  try {
+    const text=artwork?mobileSVG(state,true):serializeSession(state),type=artwork?'image/svg+xml':'application/json';
+    const stem=state.title.trim().toLowerCase().replace(/[^a-z0-9_-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,64)||'untitled';
+    const name=stem+'-poise.'+(artwork?'svg':'json');
+    prepared={text,type,name,file:null,blob:null};
+    try{
+      prepared.blob=new Blob([text],{type});const f=new File([prepared.blob],name,{type});
+      if(navigator.share && navigator.canShare?.({files:[f]})) prepared.file=f;
+    }catch{}
+    get('fileHeading').textContent=artwork?'Export sculpture':'Save mobile';get('fileText').value=text;
+    get('share').hidden=!prepared.file;get('manual').hidden=false;
+    downloadFile();show('fileDialog',artwork?'exportSVG':'save');
+  }catch(error){say('Could not prepare the file. '+error.message);}
+}
+get('save').addEventListener('click',()=>offerFile(false));
+get('exportSVG').addEventListener('click',()=>offerFile(true));
+get('again').addEventListener('click',downloadFile);
+get('selectText').addEventListener('click',()=>{get('fileText').focus();get('fileText').select();});
+get('share').addEventListener('click',async()=>{
+  const data=prepared;if(!data?.file) return;
+  try{
+    await navigator.share({files:[data.file]});
+    if(data.type==='application/json' && serializeSession(state)===data.text) baseline=JSON.stringify(state);
+    if(data===prepared) get('fileInfo').textContent='Share sheet completed.';
+  }catch(error){if(data===prepared) get('fileInfo').textContent=error.name==='AbortError'?'Sharing canceled. Your mobile is still open.':'Use Download again or copy the file text.';}
+});
+paint();
+
+})();
+</script>
+</body>
+</html>

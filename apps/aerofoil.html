@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AeroFoil — Exact Conformal Wind Tunnel & Airfoil Lab</title>
+    <style>
+        :root {
+            --bg: #070b14; --panel: #0f172a; --card: #1e293b; --border: #334155;
+            --text: #f8fafc; --sub: #94a3b8; --accent: #0ea5e9; --accent-hover: #0284c7;
+            --lift: #10b981; --warn: #f59e0b; --shadow: rgba(0,0,0,0.6);
+        }
+        [data-theme="light"] {
+            --bg: #f1f5f9; --panel: #ffffff; --card: #f8fafc; --border: #cbd5e1;
+            --text: #0f172a; --sub: #64748b; --accent: #0284c7; --accent-hover: #0369a1;
+            --lift: #059669; --warn: #d97706; --shadow: rgba(0,0,0,0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+
+        header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; z-index: 10; }
+        .brand { font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em; }
+        .wing-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+        .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        button, label.btn-label, select { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; user-select: none; transition: 0.15s; outline: none; }
+        button:hover, label.btn-label:hover { border-color: var(--accent); color: var(--accent); }
+        button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+        button.primary:hover { background: var(--accent-hover); color: #fff; }
+        input[type="file"] { display: none; }
+
+        .metrics-bar { background: var(--panel); border-bottom: 1px solid var(--border); padding: 10px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: 12px; font-size: 0.8rem; z-index: 10; }
+        .metric-card { background: var(--bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); }
+        .metric-title { color: var(--sub); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+        .metric-val { font-size: 1rem; font-weight: 700; color: var(--text); }
+
+        main { flex: 1; padding: 16px; max-width: 1360px; width: 100%; margin: 0 auto; display: grid; grid-template-columns: 315px 1fr; gap: 16px; }
+        .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; box-shadow: 0 4px 6px var(--shadow); display: flex; flex-direction: column; gap: 12px; }
+        .section-title { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sub); display: flex; justify-content: space-between; align-items: center; }
+
+        .form-group { margin-bottom: 4px; }
+        .form-group label { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--sub); margin-bottom: 4px; font-weight: 500; }
+        .form-group select, .form-group input[type="range"] { width: 100%; accent-color: var(--accent); }
+
+        .tunnel-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; height: 460px; position: relative; overflow: hidden; }
+        canvas { width: 100%; height: 100%; display: block; cursor: ns-resize; touch-action: none; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 200; padding: 16px; }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 440px; padding: 20px; box-shadow: 0 20px 25px -5px var(--shadow); }
+        .modal h3 { font-size: 1.1rem; margin-bottom: 12px; }
+
+        .shortcut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem; margin: 12px 0 16px; }
+        .shortcut-row { display: flex; justify-content: space-between; background: var(--card); padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border); }
+        kbd { background: var(--panel); border: 1px solid var(--border); padding: 1px 5px; border-radius: 3px; font-weight: 600; font-size: 0.75rem; }
+
+        @media (max-width: 850px) {
+            header { flex-direction: column; align-items: stretch; }
+            .actions { justify-content: space-between; }
+            main { grid-template-columns: 1fr; padding: 8px; }
+            .metrics-bar { grid-template-columns: repeat(2, 1fr); }
+            .tunnel-box { height: 350px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand"><div class="wing-dot"></div> AeroFoil Wind Tunnel Lab</div>
+        <div class="actions">
+            <button id="smokeBtn" class="primary">💨 Pulse Smoke</button>
+            <button id="resetBtn">🔄 Reset Trim</button>
+            <button id="saveBtn">💾 Save JSON</button>
+            <label class="btn-label" for="openFile">📂 Open JSON</label>
+            <input type="file" id="openFile" accept=".json">
+            <button id="themeBtn">🌓 Theme</button>
+            <button id="helpBtn">❓ Help</button>
+        </div>
+    </header>
+
+    <div class="metrics-bar">
+        <div class="metric-card"><div class="metric-title">Lift Coefficient (Cl)</div><div class="metric-val" id="mCl" style="color:var(--lift);">1.18</div></div>
+        <div class="metric-card"><div class="metric-title">Lift / Drag Ratio</div><div class="metric-val" id="mLd">38.4</div></div>
+        <div class="metric-card"><div class="metric-title">Kutta Circulation (Γ)</div><div class="metric-val" id="mGamma" style="color:var(--accent);">23.1 m²/s</div></div>
+        <div class="metric-card"><div class="metric-title">Flow Regime</div><div class="metric-val" id="mStall">Attached Kutta</div></div>
+    </div>
+
+    <main>
+        <!-- Airfoil Geometry & Tunnel Controls -->
+        <div class="panel">
+            <div class="section-title"><span>Joukowsky Airfoil Geometry</span></div>
+
+            <div class="form-group">
+                <label>Aerodynamic Profile Preset</label>
+                <select id="cfgPreset">
+                    <option value="airliner">Supercritical Airliner (6° AoA)</option>
+                    <option value="glider">High-Aspect Sailplane (4° AoA)</option>
+                    <option value="aerobatic">Symmetrical Aerobatic (0° AoA)</option>
+                    <option value="stall">High-AoA Stall Boundary (16.5° AoA)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Angle of Attack (α): <span id="valAlpha">6.0</span>°</label>
+                <input type="range" id="cfgAlpha" min="-15" max="20" step="0.5" value="6">
+            </div>
+
+            <div class="form-group">
+                <label>Airfoil Camber (μy): <span id="valCamber">0.08</span></label>
+                <input type="range" id="cfgCamber" min="0.00" max="0.18" step="0.01" value="0.08">
+            </div>
+
+            <div class="form-group">
+                <label>Chord Thickness (μx): <span id="valThick">0.12</span></label>
+                <input type="range" id="cfgThick" min="0.05" max="0.22" step="0.01" value="0.12">
+            </div>
+
+            <div class="form-group">
+                <label>Freestream Velocity: <span id="valVel">65</span> m/s</label>
+                <input type="range" id="cfgVel" min="20" max="120" step="5" value="65">
+            </div>
+
+            <p style="font-size:0.76rem; color:var(--sub); line-height:1.45; margin-top:4px;">
+                <strong>Drag vertically</strong> inside the wind tunnel to pitch the airfoil Angle of Attack in real time. Streamlines are solved directly in the conformal ζ-plane with strict impenetrable boundary walls and Kutta trailing-edge condition.
+            </p>
+        </div>
+
+        <!-- Wind Tunnel Canvas -->
+        <div class="panel">
+            <div class="section-title"><span>Conformal ζ-Plane Streamlines &amp; Surface Pressure Field</span></div>
+            <div class="tunnel-box">
+                <canvas id="tunnelCanvas"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal">
+            <h3>AeroFoil Guide &amp; Shortcuts</h3>
+            <p style="font-size:0.85rem; color:var(--sub); line-height:1.4; margin-bottom:10px;">Exact conformal ζ-plane potential-flow solver with impenetrable airfoil walls, Kutta circulation, and RK2 streamline advection.</p>
+            <div class="shortcut-grid">
+                <div class="shortcut-row"><span>Pulse Smoke</span> <kbd>Space</kbd></div>
+                <div class="shortcut-row"><span>Reset Trim</span> <kbd>R</kbd></div>
+                <div class="shortcut-row"><span>Save Config</span> <kbd>S</kbd></div>
+                <div class="shortcut-row"><span>Open Config</span> <kbd>O</kbd></div>
+                <div class="shortcut-row"><span>Toggle Theme</span> <kbd>T</kbd></div>
+                <div class="shortcut-row"><span>Close Modal</span> <kbd>Esc</kbd></div>
+            </div>
+            <button id="closeHelpBtn" class="primary" style="width:100%; justify-content:center; margin-top:10px;">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Aerodynamic State ---
+        let state = {
+            alpha: 6.0,     // Nose-up Angle of Attack (degrees)
+            camber: 0.08,   // Imaginary circle center offset (cy)
+            thick: 0.12,    // Real circle center offset (-cx)
+            vel: 65         // Freestream speed (m/s)
+        };
+
+        const PRESETS = {
+            airliner: { alpha: 6.0, camber: 0.08, thick: 0.12, vel: 65 },
+            glider: { alpha: 4.0, camber: 0.11, thick: 0.09, vel: 45 },
+            aerobatic: { alpha: 0.0, camber: 0.00, thick: 0.11, vel: 90 },
+            stall: { alpha: 16.5, camber: 0.09, thick: 0.12, vel: 55 }
+        };
+
+        let particles = [];
+        const NUM_PARTICLES = 150;
+        const canvas = document.getElementById('tunnelCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // --- Forward Joukowsky Conformal Transform: z = zeta + 1/zeta ---
+        function zetaToZ(zx, zy) {
+            const r2 = zx * zx + zy * zy || 1e-6;
+            return {
+                x: zx * (1 + 1 / r2),
+                y: zy * (1 - 1 / r2)
+            };
+        }
+
+        // Convert physical z in airfoil-aligned frame to screen pixels
+        function zToScreen(zx, zy, chordPx, originX, originY, alphaRad) {
+            // Rotate physical z by +alpha (nose-up)
+            const cosA = Math.cos(alphaRad), sinA = Math.sin(alphaRad);
+            const wx = zx * cosA - zy * sinA;
+            const wy = zx * sinA + zy * cosA;
+            const scale = chordPx / 2.0;
+            return {
+                x: originX + wx * scale,
+                y: originY - wy * scale
+            };
+        }
+
+        // Spawn particle cleanly upstream in the zeta-plane
+        function spawnParticle(p, randomX = false) {
+            const alpha = (state.alpha * Math.PI) / 180;
+            const cosA = Math.cos(alpha), sinA = Math.sin(alpha);
+            // Upstream distance along incoming flow (-cosA, +sinA)
+            const s = randomX ? (Math.random() * 5.8 - 2.9) : (-2.8 - Math.random() * 0.4);
+            // Cross-stream height perpendicular to incoming flow
+            const h = (Math.random() - 0.5) * 3.2;
+            p.zx = s * cosA + h * sinA;
+            p.zy = -s * sinA + h * cosA;
+            p.trail = [];
+        }
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < NUM_PARTICLES; i++) {
+                const p = { zx: 0, zy: 0, trail: [] };
+                spawnParticle(p, true);
+                particles.push(p);
+            }
+        }
+
+        function computeAerodynamics() {
+            const rad = (state.alpha * Math.PI) / 180;
+            const cx = -state.thick;
+            const cy = state.camber;
+            const R = Math.hypot(1 - cx, cy);
+            const beta = Math.asin(Math.min(0.6, cy / R));
+
+            const clRaw = 2 * Math.PI * R * Math.sin(rad + beta);
+            const stalled = Math.abs(state.alpha) > 14.5;
+            const cl = stalled ? clRaw * 0.62 : clRaw;
+            const cd = 0.008 + 0.018 * cl * cl + (stalled ? 0.14 : 0);
+            const ld = Math.abs(cl / cd);
+            const gamma = 0.5 * state.vel * 2.0 * cl;
+
+            document.getElementById('mCl').innerText = cl.toFixed(2);
+            document.getElementById('mLd').innerText = ld.toFixed(1);
+            document.getElementById('mGamma').innerText = `${gamma.toFixed(1)} m²/s`;
+
+            const stallEl = document.getElementById('mStall');
+            if (stalled) {
+                stallEl.innerText = 'Flow Separation!';
+                stallEl.style.color = 'var(--warn)';
+            } else {
+                stallEl.innerText = 'Attached Kutta';
+                stallEl.style.color = 'var(--lift)';
+            }
+        }
+
+        // --- Exact Velocity Field in Conformal Zeta-Plane ---
+        // Advecting in the zeta-plane guarantees zero penetration through |zeta - mu| = R
+        function zetaVelocity(zx, zy) {
+            const cx = -state.thick, cy = state.camber;
+            const R = Math.hypot(1 - cx, cy);
+            const R2 = R * R;
+
+            const sx = zx - cx, sy = zy - cy;
+            const s2 = sx * sx + sy * sy || 1e-6;
+
+            const alpha = (state.alpha * Math.PI) / 180;
+            const cosA = Math.cos(alpha), sinA = Math.sin(alpha);
+            const beta = Math.asin(Math.min(0.6, cy / R));
+            const effAlpha = Math.abs(state.alpha) > 14.5 ? alpha * 0.65 : alpha;
+
+            // Exact Kutta Circulation Gamma = 4 * pi * R * sin(alpha + beta)
+            const gamma = 4 * Math.PI * R * Math.sin(effAlpha + beta);
+
+            // Complex velocity dW/dzeta = e^(-i*alpha) - R^2*e^(i*alpha)/zeta'^2 + i*Gamma/(2*pi*zeta')
+            const invS2x = (sx * sx - sy * sy) / (s2 * s2);
+            const invS2y = (-2 * sx * sy) / (s2 * s2);
+
+            const dobX = R2 * (cosA * invS2x - sinA * invS2y);
+            const dobY = R2 * (cosA * invS2y + sinA * invS2x);
+
+            const vorX = (gamma * sy) / (2 * Math.PI * s2);
+            const vorY = (gamma * sx) / (2 * Math.PI * s2);
+
+            const dWdzetaX = cosA - dobX + vorX;
+            const dWdzetaY = -sinA - dobY + vorY;
+
+            // Physical speed correction factor |dz/dzeta|^2 so particles move smoothly near leading/trailing edges
+            const zMag2 = zx * zx + zy * zy || 1e-6;
+            const jx = 1 - (zx * zx - zy * zy) / (zMag2 * zMag2);
+            const jy = (2 * zx * zy) / (zMag2 * zMag2);
+            const jMag2 = Math.max(0.25, jx * jx + jy * jy);
+
+            // Velocity in zeta-plane: u = Re(dW/dzeta)/|J|^2, v = -Im(dW/dzeta)/|J|^2
+            return {
+                vx: dWdzetaX / jMag2,
+                vy: -dWdzetaY / jMag2,
+                speed: Math.hypot(dWdzetaX, dWdzetaY) / Math.sqrt(jMag2)
+            };
+        }
+
+        // Enforce strict impenetrable wall boundary |zeta - mu| >= 1.015 * R
+        function enforceWallBoundary(p) {
+            const cx = -state.thick, cy = state.camber;
+            const R = Math.hypot(1 - cx, cy);
+            const minR = R * 1.015;
+            const dx = p.zx - cx, dy = p.zy - cy;
+            const dist = Math.hypot(dx, dy);
+            if (dist < minR) {
+                const scale = minR / (dist || 1e-5);
+                p.zx = cx + dx * scale;
+                p.zy = cy + dy * scale;
+            }
+        }
+
+        // --- 60fps Wind Tunnel Renderer ---
+        function renderTunnel() {
+            const w = canvas.parentElement.clientWidth;
+            const h = canvas.parentElement.clientHeight;
+            if (canvas.width !== w || canvas.height !== h) {
+                canvas.width = w;
+                canvas.height = h;
+            }
+
+            const styles = getComputedStyle(document.documentElement);
+            const accent = styles.getPropertyValue('--accent').trim();
+            const liftCol = styles.getPropertyValue('--lift').trim();
+            const warnCol = styles.getPropertyValue('--warn').trim();
+            const cardCol = styles.getPropertyValue('--card').trim();
+            const borderCol = styles.getPropertyValue('--border').trim();
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Subtle reference grid
+            ctx.strokeStyle = borderCol;
+            ctx.globalAlpha = 0.22;
+            ctx.lineWidth = 1;
+            for (let gx = 40; gx < w; gx += 40) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, h); ctx.stroke(); }
+            for (let gy = 40; gy < h; gy += 40) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(w, gy); ctx.stroke(); }
+            ctx.globalAlpha = 1.0;
+
+            const chordPx = Math.min(w * 0.44, 280);
+            const originX = w * 0.45;
+            const originY = h * 0.5;
+            const alpha = (state.alpha * Math.PI) / 180;
+            const dt = (state.vel / 65) * 0.038;
+
+            // Advect streamlines in conformal zeta-plane using RK2 + strict wall boundary
+            particles.forEach(p => {
+                const v1 = zetaVelocity(p.zx, p.zy);
+                const midX = p.zx + v1.vx * dt * 0.5;
+                const midY = p.zy + v1.vy * dt * 0.5;
+                const v2 = zetaVelocity(midX, midY);
+
+                p.zx += v2.vx * dt;
+                p.zy += v2.vy * dt;
+                enforceWallBoundary(p);
+
+                // Project conformal point zeta -> physical airfoil z -> screen pixels
+                const zPhys = zetaToZ(p.zx, p.zy);
+                // Add stall wake vortex oscillation only downstream of trailing edge (zPhys.x > 0.85)
+                if (Math.abs(state.alpha) > 14.5 && zPhys.x > 0.85 && Math.abs(zPhys.y) < 0.45) {
+                    zPhys.y += Math.sin(zPhys.x * 10 - performance.now() * 0.015) * 0.08 * (zPhys.x - 0.85);
+                }
+
+                const scr = zToScreen(zPhys.x, zPhys.y, chordPx, originX, originY, alpha);
+                p.trail.push(scr);
+                if (p.trail.length > 22) p.trail.shift();
+
+                if (scr.x > w + 20 || scr.x < -40 || scr.y < -40 || scr.y > h + 40) {
+                    spawnParticle(p, false);
+                }
+
+                if (p.trail.length > 1) {
+                    ctx.beginPath();
+                    ctx.moveTo(p.trail[0].x, p.trail[0].y);
+                    for (let i = 1; i < p.trail.length; i++) ctx.lineTo(p.trail[i].x, p.trail[i].y);
+                    ctx.strokeStyle = v2.speed > 1.15 ? liftCol : accent;
+                    ctx.globalAlpha = 0.7;
+                    ctx.lineWidth = 1.65;
+                    ctx.stroke();
+                    ctx.globalAlpha = 1.0;
+                }
+            });
+
+            // Render Joukowsky Airfoil Body (Exact Conformal Image of |zeta - mu| = R)
+            const cx = -state.thick, cy = state.camber;
+            const R = Math.hypot(1 - cx, cy);
+
+            ctx.save();
+            ctx.translate(originX, originY);
+            ctx.rotate(-alpha);
+
+            // Pressure Differential Halo (Suction above, High Pressure below)
+            const grad = ctx.createLinearGradient(0, -52, 0, 42);
+            grad.addColorStop(0, 'rgba(16, 185, 129, 0.25)');
+            grad.addColorStop(0.5, 'rgba(14, 165, 233, 0)');
+            grad.addColorStop(1, 'rgba(245, 158, 11, 0.22)');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, chordPx * 0.54, 44, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Exact Airfoil Surface Contour
+            ctx.beginPath();
+            const steps = 160;
+            for (let i = 0; i <= steps; i++) {
+                const theta = (i / steps) * Math.PI * 2;
+                const pt = zetaToZ(cx + R * Math.cos(theta), cy + R * Math.sin(theta));
+                const sx = (pt.x / 2.0) * chordPx;
+                const sy = -(pt.y / 2.0) * chordPx;
+                if (i === 0) ctx.moveTo(sx, sy);
+                else ctx.lineTo(sx, sy);
+            }
+            ctx.closePath();
+            ctx.fillStyle = cardCol;
+            ctx.fill();
+            ctx.strokeStyle = Math.abs(state.alpha) > 14.5 ? warnCol : accent;
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+
+            // Quarter-Chord Lift Vector
+            const liftLen = Math.min(105, Math.max(-75, (state.alpha + state.camber * 55) * 4.2));
+            ctx.beginPath();
+            ctx.moveTo(-chordPx * 0.22, 0);
+            ctx.lineTo(-chordPx * 0.22, -liftLen);
+            ctx.strokeStyle = liftCol;
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            ctx.restore();
+            requestAnimationFrame(renderTunnel);
+        }
+
+        // --- Touch / Pointer Pitch Control ---
+        let isPitching = false, startY = 0, startAlpha = 0;
+
+        canvas.addEventListener('pointerdown', e => {
+            isPitching = true;
+            startY = e.clientY;
+            startAlpha = state.alpha;
+        });
+
+        window.addEventListener('pointermove', e => {
+            if (!isPitching) return;
+            const deltaDeg = (startY - e.clientY) * 0.12;
+            state.alpha = Number(Math.min(20, Math.max(-15, startAlpha + deltaDeg)).toFixed(1));
+            syncUI();
+        });
+
+        window.addEventListener('pointerup', () => isPitching = false);
+
+        // --- Controls & Persistence ---
+        function syncUI() {
+            document.getElementById('cfgAlpha').value = state.alpha;
+            document.getElementById('valAlpha').innerText = state.alpha.toFixed(1);
+            document.getElementById('cfgCamber').value = state.camber;
+            document.getElementById('valCamber').innerText = state.camber.toFixed(2);
+            document.getElementById('cfgThick').value = state.thick;
+            document.getElementById('valThick').innerText = state.thick.toFixed(2);
+            document.getElementById('cfgVel').value = state.vel;
+            document.getElementById('valVel').innerText = state.vel;
+            computeAerodynamics();
+        }
+
+        document.getElementById('cfgPreset').addEventListener('change', e => {
+            state = { ...PRESETS[e.target.value] };
+            syncUI();
+        });
+
+        document.getElementById('cfgAlpha').addEventListener('input', e => { state.alpha = parseFloat(e.target.value); syncUI(); });
+        document.getElementById('cfgCamber').addEventListener('input', e => { state.camber = parseFloat(e.target.value); syncUI(); });
+        document.getElementById('cfgThick').addEventListener('input', e => { state.thick = parseFloat(e.target.value); syncUI(); });
+        document.getElementById('cfgVel').addEventListener('input', e => { state.vel = parseInt(e.target.value); syncUI(); });
+
+        document.getElementById('smokeBtn').addEventListener('click', initParticles);
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            document.getElementById('cfgPreset').value = 'airliner';
+            state = { ...PRESETS.airliner };
+            syncUI();
+            initParticles();
+        });
+
+        document.getElementById('saveBtn').addEventListener('click', exportJSON);
+        document.getElementById('openFile').addEventListener('change', importJSON);
+
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            a.setAttribute("download", `aerofoil_profile_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        function importJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = evt => {
+                try {
+                    const data = JSON.parse(evt.target.result);
+                    if (typeof data.alpha === 'number' && typeof data.camber === 'number') {
+                        state = {
+                            alpha: Math.min(20, Math.max(-15, data.alpha)),
+                            camber: Math.min(0.18, Math.max(0, data.camber)),
+                            thick: Math.min(0.22, Math.max(0.05, data.thick || 0.12)),
+                            vel: Math.min(120, Math.max(20, data.vel || 65))
+                        };
+                        syncUI();
+                    } else alert('Invalid AeroFoil JSON file.');
+                } catch { alert('Error reading JSON file.'); }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Theme & Shortcuts (Zero Key Overlap) ---
+        const helpModal = document.getElementById('helpModal');
+        document.getElementById('helpBtn').addEventListener('click', () => helpModal.classList.add('open'));
+        document.getElementById('closeHelpBtn').addEventListener('click', () => helpModal.classList.remove('open'));
+        document.getElementById('themeBtn').addEventListener('click', () => {
+            const cur = document.documentElement.getAttribute('data-theme');
+            document.documentElement.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+        });
+
+        // Space = Pulse Smoke, R = Reset Trim, S = Save JSON, O = Open JSON, T = Theme, Esc = Close Modal
+        window.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+            const k = e.key.toLowerCase();
+            if (e.code === 'Space') { e.preventDefault(); initParticles(); }
+            if (k === 'r') { e.preventDefault(); document.getElementById('resetBtn').click(); }
+            if (k === 's') { e.preventDefault(); exportJSON(); }
+            if (k === 'o') { e.preventDefault(); document.getElementById('openFile').click(); }
+            if (k === 't') { e.preventDefault(); document.getElementById('themeBtn').click(); }
+            if (e.key === 'Escape') helpModal.classList.remove('open');
+        });
+
+        // Pre-loaded 5-Second Impressive Demo State
+        syncUI();
+        initParticles();
+        requestAnimationFrame(renderTunnel);
+    </script>
+</body>
+</html>

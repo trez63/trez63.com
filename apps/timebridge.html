@@ -1,0 +1,806 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Timebridge</title>
+    <style>
+      /* ---------- Palette: deep midnight navy + electric cyan + amber + coral ---------- */
+      :root {
+        --bg: #070d1f;
+        --bg-2: #0a1330;
+        --panel: #101a38;
+        --panel-2: #0c1530;
+        --line: #24335f;
+        --ink: #e9eefc;
+        --muted: #93a5cf;
+        --cyan: #2fd6f2;
+        --cyan-dim: #1b7f96;
+        --amber: #f5b83d;
+        --coral: #ff6a5c;
+        --work: #2fd6f2;
+        --evening: #f5b83d;
+        --sleep: #46548c;
+        --sleep-ink: #c3cdf0;
+        --good: #4ade80;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+        --radius: 14px;
+      }
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: #edf1fb;
+          --bg-2: #e2e9f8;
+          --panel: #ffffff;
+          --panel-2: #f2f5fd;
+          --line: #c6d2ee;
+          --ink: #101c3f;
+          --muted: #54648c;
+          --cyan: #0e9db8;
+          --cyan-dim: #7cc7d6;
+          --amber: #c07f10;
+          --coral: #e8493a;
+          --work: #12a5c4;
+          --evening: #e9a41b;
+          --sleep: #aab8e2;
+          --sleep-ink: #33406e;
+          --good: #178a4c;
+          --shadow: 0 10px 24px rgba(23, 38, 84, 0.14);
+        }
+      }
+
+      /* ---------- Base ---------- */
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        margin: 0;
+        font-family: ui-sans-system, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background: linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+        color: var(--ink);
+        min-height: 100vh;
+      }
+      main { max-width: 1120px; margin: 0 auto; padding: 18px 16px 40px; }
+      h1 { font-size: 1.35rem; margin: 0 0 4px; letter-spacing: 0.01em; }
+      h1 .accent { color: var(--cyan); }
+      .lede { margin: 0 0 18px; color: var(--muted); font-size: 0.95rem; max-width: 62ch; }
+      h2 { font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin: 0 0 10px; }
+      button, select, input { font: inherit; color: inherit; }
+      button {
+        min-height: 44px; padding: 9px 14px; border-radius: 10px; cursor: pointer;
+        border: 1px solid var(--line); background: var(--panel-2); color: var(--ink);
+      }
+      button:hover { border-color: var(--cyan-dim); }
+      button:focus-visible, select:focus-visible, input:focus-visible, [tabindex]:focus-visible {
+        outline: 2px solid var(--cyan); outline-offset: 2px;
+      }
+      .btn-primary { background: var(--cyan); border-color: var(--cyan); color: #04222b; font-weight: 700; }
+      .btn-coral { background: var(--coral); border-color: var(--coral); color: #2b0a06; font-weight: 700; }
+      select, input[type="date"], input[type="text"], input[type="number"] {
+        min-height: 44px; padding: 8px 10px; border-radius: 10px;
+        border: 1px solid var(--line); background: var(--panel-2); color: var(--ink);
+        max-width: 100%;
+      }
+      label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 5px; font-weight: 600; }
+
+      /* ---------- Top layout: dial + side panel ---------- */
+      .top-grid { display: grid; grid-template-columns: 380px 1fr; gap: 18px; align-items: start; }
+      @media (max-width: 820px) { .top-grid { grid-template-columns: 1fr; } }
+      .panel {
+        background: var(--panel); border: 1px solid var(--line);
+        border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow);
+      }
+      .dial-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+      #dial { width: min(76vw, 330px); height: auto; touch-action: none; cursor: grab; display: block; }
+      #dial:active { cursor: grabbing; }
+      .dial-readout { text-align: center; }
+      .dial-readout .big { font-size: 1.9rem; font-weight: 800; line-height: 1.05; font-variant-numeric: tabular-nums; }
+      .dial-readout .sub { color: var(--muted); font-size: 0.9rem; margin-top: 2px; }
+      .dial-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+      .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+      @media (max-width: 460px) { .controls { grid-template-columns: 1fr; } }
+      .stats { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 16px; }
+      .stat {
+        background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px;
+        padding: 8px 12px; font-size: 0.9rem;
+      }
+      .stat b { color: var(--cyan); font-variant-numeric: tabular-nums; }
+      .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+      .chip {
+        min-height: 48px; border-radius: 999px; padding: 8px 16px; text-align: left;
+        border: 1px solid var(--cyan-dim); background: var(--panel-2);
+      }
+      .chip .t { font-weight: 800; font-variant-numeric: tabular-nums; }
+      .chip .s { color: var(--muted); font-size: 0.82rem; display: block; }
+      .chip[aria-pressed="true"] { background: var(--cyan); color: #04222b; border-color: var(--cyan); }
+      .chip[aria-pressed="true"] .s { color: #0a3d4a; }
+      .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 0.85rem; color: var(--muted); margin-top: 14px; }
+      .legend span::before {
+        content: ""; display: inline-block; width: 11px; height: 11px; border-radius: 3px;
+        margin-right: 6px; vertical-align: -1px; background: var(--c, var(--cyan));
+      }
+
+      /* ---------- Zone cards ---------- */
+      .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(248px, 1fr)); gap: 14px; margin-top: 18px; }
+      .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow); }
+      .card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+      .card h3 { margin: 0; font-size: 1.02rem; }
+      .card .tz { color: var(--muted); font-size: 0.8rem; margin-top: 2px; }
+      .home-badge {
+        display: inline-block; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em;
+        color: #04222b; background: var(--cyan); border-radius: 999px; padding: 2px 8px; margin-left: 6px; vertical-align: 2px;
+      }
+      .remove-btn {
+        min-height: 36px; min-width: 36px; padding: 0; border-radius: 9px; font-size: 1.05rem; line-height: 1;
+        color: var(--muted);
+      }
+      .big-time { font-size: 1.65rem; font-weight: 800; margin: 8px 0 2px; font-variant-numeric: tabular-nums; }
+      .day-shift { color: var(--amber); font-size: 0.85rem; font-weight: 600; min-height: 1.1em; }
+      .day-shift.same { color: var(--muted); font-weight: 400; }
+      .strip { position: relative; display: flex; height: 20px; border-radius: 6px; overflow: visible; margin: 12px 0 4px; }
+      .strip .seg { flex: 1 1 0; height: 100%; }
+      .strip .seg:first-child { border-radius: 6px 0 0 6px; }
+      .strip .seg:last-child { border-radius: 0 6px 6px 0; }
+      .seg.work { background: var(--work); }
+      .seg.evening { background: var(--evening); }
+      .seg.sleep { background: var(--sleep); }
+      .strip .marker {
+        position: absolute; top: -5px; bottom: -5px; width: 3px; margin-left: -1.5px;
+        background: var(--coral); border-radius: 2px; pointer-events: none;
+      }
+      .strip .marker::after {
+        content: ""; position: absolute; top: -6px; left: 50%; transform: translateX(-50%);
+        border: 5px solid transparent; border-top: 6px solid var(--coral); border-bottom: 0;
+      }
+      .strip-scale { display: flex; justify-content: space-between; color: var(--muted); font-size: 0.7rem; }
+      .status { margin: 9px 0 0; font-size: 0.88rem; font-weight: 600; }
+      .status.work { color: var(--cyan); }
+      .status.evening { color: var(--amber); }
+      .status.sleep { color: var(--sleep-ink); }
+
+      /* ---------- Add zone + file row ---------- */
+      .lower { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 18px; align-items: start; }
+      @media (max-width: 820px) { .lower { grid-template-columns: 1fr; } }
+      .add-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; }
+      .add-row .grow { flex: 1 1 150px; }
+      .custom-grid { display: grid; grid-template-columns: 1fr 130px; gap: 8px; margin-top: 12px; align-items: end; }
+      @media (max-width: 460px) { .custom-grid { grid-template-columns: 1fr; } }
+      .file-row { display: flex; flex-wrap: wrap; gap: 8px; }
+      .keys { color: var(--muted); font-size: 0.85rem; line-height: 1.7; margin: 12px 0 0; }
+      .keys kbd {
+        background: var(--panel-2); border: 1px solid var(--line); border-bottom-width: 2px;
+        border-radius: 5px; padding: 1px 6px; font-family: inherit; font-size: 0.8rem; color: var(--ink);
+      }
+      #toast {
+        position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(20px);
+        background: var(--ink); color: var(--bg); padding: 11px 18px; border-radius: 999px;
+        font-size: 0.92rem; font-weight: 600; opacity: 0; pointer-events: none;
+        transition: opacity 0.25s ease, transform 0.25s ease; max-width: 92vw; text-align: center; z-index: 20;
+      }
+      #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+      @media (prefers-reduced-motion: reduce) {
+        #toast { transition: none; }
+        * { scroll-behavior: auto !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Time<span class="accent">bridge</span></h1>
+      <p class="lede">Drag the dial to propose a meeting time, and see instantly what that moment looks like in every city — who is working, who is winding down, and who is asleep. The best-overlap finder scores all 24 hours so you can jump straight to a fair time.</p>
+
+      <div class="top-grid">
+        <!-- Dial panel -->
+        <section class="panel dial-wrap" aria-label="Meeting time dial">
+          <svg id="dial" viewBox="0 0 300 300" role="slider" tabindex="0"
+               aria-label="Proposed meeting time in your home zone. Use left and right arrow keys to adjust by 30 minutes."
+               aria-valuemin="0" aria-valuemax="1439" aria-valuenow="540" aria-valuetext="9:00 AM">
+            <g id="dial-segs"></g>
+            <g id="dial-labels"></g>
+            <line id="dial-needle" x1="150" y1="150" x2="150" y2="34" stroke="var(--coral)" stroke-width="3.5" stroke-linecap="round" />
+            <circle id="dial-handle" cx="150" cy="34" r="11" fill="var(--coral)" stroke="var(--bg)" stroke-width="3" />
+            <circle cx="150" cy="150" r="5" fill="var(--coral)" />
+          </svg>
+          <div class="dial-readout">
+            <div class="big" id="readout-time">9:00 AM</div>
+            <div class="sub" id="readout-sub">Los Angeles</div>
+          </div>
+          <div class="dial-actions">
+            <button type="button" id="btn-now">Now</button>
+            <button type="button" id="btn-best" class="btn-primary">Jump to best time</button>
+            <button type="button" id="btn-copy">Copy summary</button>
+          </div>
+        </section>
+
+        <!-- Controls + best overlap -->
+        <section class="panel" aria-label="Date, home zone and best overlap">
+          <div class="controls">
+            <div>
+              <label for="date-input">Meeting date (home zone)</label>
+              <input type="date" id="date-input" />
+            </div>
+            <div>
+              <label for="home-select">Your home zone</label>
+              <select id="home-select"></select>
+            </div>
+          </div>
+
+          <h2>Live picture at this time</h2>
+          <div class="stats" id="stats"></div>
+
+          <h2>Best overlap — most zones in work hours</h2>
+          <div class="chips" id="best-chips"></div>
+
+          <div class="legend" aria-hidden="true">
+            <span style="--c: var(--work)">Work · 9 AM–5 PM</span>
+            <span style="--c: var(--evening)">Evening · 7–9 AM, 5–11 PM</span>
+            <span style="--c: var(--sleep)">Sleep · 11 PM–7 AM</span>
+            <span style="--c: var(--coral)">Coral marker · meeting time</span>
+          </div>
+        </section>
+      </div>
+
+      <!-- Zone cards -->
+      <div class="cards" id="cards"></div>
+
+      <div class="lower">
+        <!-- Add a place -->
+        <section class="panel" aria-label="Add a place">
+          <h2>Add a place</h2>
+          <div class="add-row">
+            <div class="grow">
+              <label for="preset-select">Preset city</label>
+              <select id="preset-select"></select>
+            </div>
+            <button type="button" id="btn-add-preset">Add city</button>
+          </div>
+          <div class="custom-grid">
+            <div>
+              <label for="custom-name">Custom place name</label>
+              <input type="text" id="custom-name" placeholder="e.g. Field office" maxlength="40" />
+            </div>
+            <div>
+              <label for="custom-offset">Fixed UTC offset</label>
+              <select id="custom-offset"></select>
+            </div>
+          </div>
+          <div class="add-row" style="margin-top:10px">
+            <button type="button" id="btn-add-custom">Add custom place</button>
+          </div>
+        </section>
+
+        <!-- Save / open / keys -->
+        <section class="panel" aria-label="Save, open and shortcuts">
+          <h2>Your plan</h2>
+          <div class="file-row">
+            <button type="button" id="btn-save" class="btn-primary">Save</button>
+            <button type="button" id="btn-open">Open</button>
+            <button type="button" id="btn-reset">Reset</button>
+            <input type="file" id="file-input" accept="application/json,.json" hidden />
+          </div>
+          <p class="keys">
+            <kbd>←</kbd> <kbd>→</kbd> nudge 30 min ·
+            <kbd>B</kbd> best time ·
+            <kbd>S</kbd> save ·
+            <kbd>O</kbd> open ·
+            <kbd>R</kbd> reset<br />
+            Your plan also autosaves in this browser as you work.
+          </p>
+        </section>
+      </div>
+    </main>
+
+    <div id="toast" role="status" aria-live="polite"></div>
+
+    <script>
+      "use strict";
+      /* ================= Data: preset cities (IANA zones only) ================= */
+      const PRESETS = [
+        ["Los Angeles", "America/Los_Angeles"], ["New York", "America/New_York"],
+        ["Chicago", "America/Chicago"], ["Denver", "America/Denver"],
+        ["Toronto", "America/Toronto"], ["Mexico City", "America/Mexico_City"],
+        ["São Paulo", "America/Sao_Paulo"], ["Honolulu", "Pacific/Honolulu"],
+        ["London", "Europe/London"], ["Berlin", "Europe/Berlin"],
+        ["Paris", "Europe/Paris"], ["Lagos", "Africa/Lagos"],
+        ["Cairo", "Africa/Cairo"], ["Dubai", "Asia/Dubai"],
+        ["Mumbai", "Asia/Kolkata"], ["Singapore", "Asia/Singapore"],
+        ["Hong Kong", "Asia/Hong_Kong"], ["Tokyo", "Asia/Tokyo"],
+        ["Sydney", "Australia/Sydney"], ["Auckland", "Pacific/Auckland"]
+      ];
+      const DEFAULT_ZONES = ["Los Angeles", "New York", "London", "Berlin", "Mumbai", "Tokyo"];
+      const LS_KEY = "timebridge-v1";
+      const WORK_START = 9, WORK_END = 17; // local hours counted as work
+
+      /* ================= State ================= */
+      let uid = 0;
+      const nextId = () => "z" + (++uid);
+      let state = null;
+
+      function defaultState() {
+        return {
+          date: null,            // filled by setToNow() on first run
+          minutes: 9 * 60,
+          home: "America/Los_Angeles",
+          zones: DEFAULT_ZONES.map(name => {
+            const tz = PRESETS.find(p => p[0] === name)[1];
+            return { id: nextId(), name, tz };
+          })
+        };
+      }
+
+      /* ================= Intl time-zone helpers (no hard-coded IANA offsets) ================= */
+      const dtfCache = new Map();
+      function dtf(tz) {
+        if (!dtfCache.has(tz)) {
+          dtfCache.set(tz, new Intl.DateTimeFormat("en-US", {
+            timeZone: tz, hourCycle: "h23",
+            year: "numeric", month: "2-digit", day: "2-digit",
+            hour: "2-digit", minute: "2-digit", second: "2-digit"
+          }));
+        }
+        return dtfCache.get(tz);
+      }
+      // Local wall-clock parts of an instant in an IANA zone.
+      function partsIn(tz, instant) {
+        const out = {};
+        for (const p of dtf(tz).formatToParts(instant)) {
+          if (p.type !== "literal") out[p.type] = parseInt(p.value, 10);
+        }
+        out.hour = out.hour % 24;
+        return out; // {year, month, day, hour, minute, second}
+      }
+      // Offset (ms) of an IANA zone at an instant, derived from Intl.
+      function tzOffsetMs(tz, instant) {
+        const p = partsIn(tz, instant);
+        const asUTC = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second);
+        return asUTC - Math.floor(instant.getTime() / 1000) * 1000;
+      }
+      // Convert a wall-clock time in an IANA zone to a UTC instant (iterate to settle DST).
+      function wallToUTC(tz, y, mo, d, h, mi) {
+        let t = Date.UTC(y, mo - 1, d, h, mi, 0);
+        for (let i = 0; i < 3; i++) {
+          const next = Date.UTC(y, mo - 1, d, h, mi, 0) - tzOffsetMs(tz, new Date(t));
+          if (next === t) break;
+          t = next;
+        }
+        return new Date(t);
+      }
+      function isValidTZ(tz) {
+        try { new Intl.DateTimeFormat("en-US", { timeZone: tz }); return true; }
+        catch (e) { return false; }
+      }
+
+      /* ================= Zone local time ================= */
+      // Returns {hour, minute, minutesOfDay, dayNum, dateStr} for a zone at an instant.
+      function zoneLocal(zone, instant) {
+        let y, mo, d, h, mi;
+        if (zone.tz) {
+          const p = partsIn(zone.tz, instant);
+          y = p.year; mo = p.month; d = p.day; h = p.hour; mi = p.minute;
+        } else { // fixed-offset custom place
+          const shifted = new Date(instant.getTime() + zone.offset * 60000);
+          y = shifted.getUTCFullYear(); mo = shifted.getUTCMonth() + 1; d = shifted.getUTCDate();
+          h = shifted.getUTCHours(); mi = shifted.getUTCMinutes();
+        }
+        return {
+          hour: h, minute: mi, minutesOfDay: h * 60 + mi,
+          dayNum: Math.floor(Date.UTC(y, mo - 1, d) / 86400000),
+          dateStr: y + "-" + String(mo).padStart(2, "0") + "-" + String(d).padStart(2, "0")
+        };
+      }
+      function categoryOf(hour) {
+        if (hour >= WORK_START && hour < WORK_END) return "work";
+        if (hour >= 23 || hour < 7) return "sleep";
+        return "evening";
+      }
+      const CAT_LABEL = { work: "In work hours", evening: "Evening — outside work hours", sleep: "Likely asleep" };
+
+      /* ================= Formatting ================= */
+      function fmtTime(minOfDay) {
+        const h24 = Math.floor(minOfDay / 60) % 24, m = minOfDay % 60;
+        const ap = h24 < 12 ? "AM" : "PM";
+        const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+        return h12 + ":" + String(m).padStart(2, "0") + " " + ap;
+      }
+      function fmtDateLong(dateStr) {
+        const [y, mo, d] = dateStr.split("-").map(Number);
+        return new Date(Date.UTC(y, mo - 1, d)).toLocaleDateString("en-US",
+          { weekday: "short", month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+      }
+      function zoneLabel(zone) {
+        if (zone.tz) return zone.tz.replace(/_/g, " ");
+        const sign = zone.offset < 0 ? "−" : "+";
+        const a = Math.abs(zone.offset);
+        return "UTC" + sign + Math.floor(a / 60) + ":" + String(a % 60).padStart(2, "0");
+      }
+      function esc(s) {
+        return String(s).replace(/[&<>"']/g, c =>
+          ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+      }
+
+      /* ================= Core computation ================= */
+      // The proposed instant: state.date + state.minutes read as home-zone wall time.
+      function meetingInstant() {
+        const [y, mo, d] = state.date.split("-").map(Number);
+        return wallToUTC(state.home, y, mo, d, Math.floor(state.minutes / 60), state.minutes % 60);
+      }
+      // Score one candidate hour of the home-zone day: zones in work hours, minus asleep penalty.
+      function scoreHour(hour) {
+        const [y, mo, d] = state.date.split("-").map(Number);
+        const instant = wallToUTC(state.home, y, mo, d, hour, 0);
+        let work = 0, asleep = 0;
+        for (const z of state.zones) {
+          const cat = categoryOf(zoneLocal(z, instant).hour);
+          if (cat === "work") work++;
+          if (cat === "sleep") asleep++;
+        }
+        return { hour, work, asleep, score: work * 100 - asleep * 10 };
+      }
+      function bestWindows() {
+        const all = [];
+        for (let h = 0; h < 24; h++) all.push(scoreHour(h));
+        all.sort((a, b) => b.score - a.score || a.hour - b.hour);
+        return all.slice(0, 3);
+      }
+
+      /* ================= Dial construction ================= */
+      const SVGNS = "http://www.w3.org/2000/svg";
+      function polar(cx, cy, r, deg) {
+        const rad = (deg - 90) * Math.PI / 180;
+        return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)];
+      }
+      function arcPath(cx, cy, rOuter, rInner, a0, a1) {
+        const [x0, y0] = polar(cx, cy, rOuter, a0), [x1, y1] = polar(cx, cy, rOuter, a1);
+        const [x2, y2] = polar(cx, cy, rInner, a1), [x3, y3] = polar(cx, cy, rInner, a0);
+        return "M" + x0.toFixed(1) + " " + y0.toFixed(1) +
+               " A" + rOuter + " " + rOuter + " 0 0 1 " + x1.toFixed(1) + " " + y1.toFixed(1) +
+               " L" + x2.toFixed(1) + " " + y2.toFixed(1) +
+               " A" + rInner + " " + rInner + " 0 0 0 " + x3.toFixed(1) + " " + y3.toFixed(1) + " Z";
+      }
+      function buildDial() {
+        const segs = document.getElementById("dial-segs");
+        const labels = document.getElementById("dial-labels");
+        const catColor = { work: "var(--work)", evening: "var(--evening)", sleep: "var(--sleep)" };
+        for (let h = 0; h < 24; h++) {
+          const p = document.createElementNS(SVGNS, "path");
+          p.setAttribute("d", arcPath(150, 150, 138, 112, h * 15 + 0.6, (h + 1) * 15 - 0.6));
+          p.setAttribute("fill", catColor[categoryOf(h)]);
+          p.setAttribute("opacity", "0.85");
+          segs.appendChild(p);
+        }
+        for (let h = 0; h < 24; h += 3) {
+          const [x, y] = polar(150, 150, 95, h * 15);
+          const t = document.createElementNS(SVGNS, "text");
+          t.setAttribute("x", x); t.setAttribute("y", y);
+          t.setAttribute("text-anchor", "middle"); t.setAttribute("dominant-baseline", "middle");
+          t.setAttribute("fill", "var(--muted)"); t.setAttribute("font-size", "12"); t.setAttribute("font-weight", "600");
+          t.textContent = String(h).padStart(2, "0");
+          labels.appendChild(t);
+        }
+      }
+
+      /* ================= Rendering ================= */
+      const $ = id => document.getElementById(id);
+      let toastTimer = null;
+      function toast(msg) {
+        const el = $("toast");
+        el.textContent = msg;
+        el.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove("show"), 2600);
+      }
+
+      function render() {
+        const instant = meetingInstant();
+        const homeName = (PRESETS.find(p => p[1] === state.home) || [state.home])[0];
+
+        // Dial needle + handle + readouts
+        const ang = state.minutes / 1440 * 360;
+        const [hx, hy] = polar(150, 150, 125, ang);
+        const needle = $("dial-needle"), handle = $("dial-handle");
+        needle.setAttribute("x2", hx); needle.setAttribute("y2", hy);
+        handle.setAttribute("cx", hx); handle.setAttribute("cy", hy);
+        const dial = $("dial");
+        dial.setAttribute("aria-valuenow", state.minutes);
+        dial.setAttribute("aria-valuetext", fmtTime(state.minutes));
+        $("readout-time").textContent = fmtTime(state.minutes);
+        $("readout-sub").textContent = homeName + " · " + fmtDateLong(state.date);
+
+        // Controls reflect state
+        $("date-input").value = state.date;
+        $("home-select").value = state.home;
+
+        // Per-zone data
+        const homeDay = zoneLocal({ tz: state.home }, instant).dayNum;
+        const rows = state.zones.map(z => {
+          const loc = zoneLocal(z, instant);
+          return { z, loc, cat: categoryOf(loc.hour), shift: loc.dayNum - homeDay };
+        });
+
+        // Stats
+        const nWork = rows.filter(r => r.cat === "work").length;
+        const nSleep = rows.filter(r => r.cat === "sleep").length;
+        const best = bestWindows();
+        $("stats").innerHTML =
+          '<div class="stat"><b>' + nWork + " / " + rows.length + "</b> zones in work hours</div>" +
+          '<div class="stat"><b>' + nSleep + "</b> " + (nSleep === 1 ? "zone" : "zones") + " asleep</div>" +
+          '<div class="stat">Best today: <b>' + fmtTime(best[0].hour * 60) + "</b> (" + best[0].work + "/" + rows.length + " working)</div>";
+
+        // Best-overlap chips
+        $("best-chips").innerHTML = best.map(w =>
+          '<button type="button" class="chip" data-hour="' + w.hour + '" aria-pressed="' +
+          (state.minutes === w.hour * 60) + '"><span class="t">' + fmtTime(w.hour * 60) + '</span>' +
+          '<span class="s">' + w.work + " of " + rows.length + " in work hours" +
+          (w.asleep ? " · " + w.asleep + " asleep" : "") + "</span></button>"
+        ).join("");
+        document.querySelectorAll("#best-chips .chip").forEach(chip => {
+          chip.addEventListener("click", () => {
+            state.minutes = Number(chip.dataset.hour) * 60;
+            render(); autosave();
+          });
+        });
+
+        // Zone cards with 24-hour strips
+        $("cards").innerHTML = rows.map(r => {
+          const isHome = r.z.tz && r.z.tz === state.home;
+          const segsHtml = Array.from({ length: 24 }, (_, h) =>
+            '<div class="seg ' + categoryOf(h) + '"></div>').join("");
+          const shiftTxt = r.shift === 0 ? "Same day as home"
+            : (r.shift > 0 ? "+" + r.shift + (r.shift === 1 ? " day" : " days") + " vs home"
+                           : r.shift + (r.shift === -1 ? " day" : " days") + " vs home");
+          return '<article class="card">' +
+            '<div class="card-head"><div><h3>' + esc(r.z.name) +
+            (isHome ? '<span class="home-badge">HOME</span>' : "") +
+            '</h3><div class="tz">' + esc(zoneLabel(r.z)) + '</div></div>' +
+            (isHome ? "" : '<button type="button" class="remove-btn" data-remove="' + r.z.id +
+              '" aria-label="Remove ' + esc(r.z.name) + '">✕</button>') +
+            '</div>' +
+            '<div class="big-time">' + fmtTime(r.loc.minutesOfDay) + '</div>' +
+            '<div class="day-shift' + (r.shift === 0 ? " same" : "") + '">' + shiftTxt + " · " + fmtDateLong(r.loc.dateStr) + '</div>' +
+            '<div class="strip">' + segsHtml +
+            '<div class="marker" style="left:' + (r.loc.minutesOfDay / 1440 * 100).toFixed(2) + '%"></div></div>' +
+            '<div class="strip-scale"><span>12 AM</span><span>6 AM</span><span>12 PM</span><span>6 PM</span><span>12 AM</span></div>' +
+            '<p class="status ' + r.cat + '">' + CAT_LABEL[r.cat] + '</p>' +
+            '</article>';
+        }).join("");
+        document.querySelectorAll("[data-remove]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            state.zones = state.zones.filter(z => z.id !== btn.dataset.remove);
+            render(); autosave();
+          });
+        });
+      }
+
+      /* ================= Actions ================= */
+      function setToNow() {
+        const p = partsIn(state.home, new Date());
+        state.date = p.year + "-" + String(p.month).padStart(2, "0") + "-" + String(p.day).padStart(2, "0");
+        state.minutes = Math.round((p.hour * 60 + p.minute) / 5) * 5 % 1440;
+      }
+      function jumpToBest() {
+        const best = bestWindows();
+        if (best.length) { state.minutes = best[0].hour * 60; render(); autosave(); }
+      }
+      function summaryText() {
+        const instant = meetingInstant();
+        const homeName = (PRESETS.find(p => p[1] === state.home) || [state.home])[0];
+        const homeDay = zoneLocal({ tz: state.home }, instant).dayNum;
+        const lines = ["Meeting: " + fmtDateLong(state.date) + ", " + fmtTime(state.minutes) + " (" + homeName + ")"];
+        for (const z of state.zones) {
+          const loc = zoneLocal(z, instant);
+          const shift = loc.dayNum - homeDay;
+          const when = shift === 0 ? "same day" : (shift > 0 ? "+" + shift + "d" : shift + "d");
+          lines.push("• " + z.name + ": " + fmtTime(loc.minutesOfDay) + ", " + when + " — " + CAT_LABEL[categoryOf(loc.hour)].toLowerCase());
+        }
+        const best = bestWindows()[0];
+        const nWork = state.zones.filter(z => categoryOf(zoneLocal(z, instant).hour) === "work").length;
+        lines.push(nWork + " of " + state.zones.length + " zones in work hours at this time. Best overlap today: " +
+          fmtTime(best.hour * 60) + " home time (" + best.work + "/" + state.zones.length + " working).");
+        return lines.join("\n");
+      }
+      function copySummary() {
+        const text = summaryText();
+        const done = () => toast("Summary copied to clipboard");
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done));
+        } else fallbackCopy(text, done);
+      }
+      function fallbackCopy(text, done) {
+        const ta = document.createElement("textarea");
+        ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand("copy"); done(); }
+        catch (e) { toast("Copy failed — your browser blocked it"); }
+        ta.remove();
+      }
+
+      /* ================= Save / Open / autosave ================= */
+      function serialize() {
+        return JSON.stringify({
+          app: "timebridge", version: 1,
+          date: state.date, minutes: state.minutes, home: state.home,
+          zones: state.zones.map(z => z.tz ? { name: z.name, tz: z.tz } : { name: z.name, offset: z.offset })
+        }, null, 2);
+      }
+      function saveFile() {
+        const blob = new Blob([serialize()], { type: "application/json" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "timebridge-plan.json";
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+        toast("Plan saved as timebridge-plan.json");
+      }
+      // Full validation: returns a clean state object or null. Never mutates current state.
+      function validatePlan(data) {
+        if (!data || typeof data !== "object" || Array.isArray(data)) return null;
+        if (data.app !== "timebridge" || data.version !== 1) return null;
+        if (typeof data.date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(data.date)) return null;
+        const [y, mo, d] = data.date.split("-").map(Number);
+        const probe = new Date(Date.UTC(y, mo - 1, d));
+        if (probe.getUTCFullYear() !== y || probe.getUTCMonth() !== mo - 1 || probe.getUTCDate() !== d) return null;
+        if (!Number.isInteger(data.minutes) || data.minutes < 0 || data.minutes > 1439) return null;
+        if (typeof data.home !== "string" || !isValidTZ(data.home)) return null;
+        if (!Array.isArray(data.zones) || data.zones.length < 1 || data.zones.length > 24) return null;
+        const zones = [];
+        for (const z of data.zones) {
+          if (!z || typeof z !== "object") return null;
+          if (typeof z.name !== "string" || z.name.trim().length < 1 || z.name.length > 40) return null;
+          if (typeof z.tz === "string") {
+            if (!isValidTZ(z.tz)) return null;
+            zones.push({ id: nextId(), name: z.name.trim(), tz: z.tz });
+          } else if (typeof z.offset === "number" && isFinite(z.offset)) {
+            if (z.offset < -720 || z.offset > 840 || z.offset % 15 !== 0) return null;
+            zones.push({ id: nextId(), name: z.name.trim(), offset: z.offset });
+          } else return null;
+        }
+        if (!zones.some(z => z.tz === data.home)) return null; // home zone must be listed
+        return { date: data.date, minutes: data.minutes, home: data.home, zones };
+      }
+      function openFile(file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          let parsed;
+          try { parsed = JSON.parse(reader.result); }
+          catch (e) { toast("That file is not valid JSON — nothing changed"); return; }
+          const clean = validatePlan(parsed);
+          if (!clean) { toast("That is not a valid Timebridge plan — nothing changed"); return; }
+          state = clean;
+          render(); autosave();
+          toast("Plan loaded");
+        };
+        reader.onerror = () => toast("Could not read that file — nothing changed");
+        reader.readAsText(file);
+      }
+      function autosave() {
+        try { localStorage.setItem(LS_KEY, serialize()); } catch (e) { /* storage unavailable */ }
+      }
+      function restoreAutosave() {
+        try {
+          const raw = localStorage.getItem(LS_KEY);
+          if (!raw) return false;
+          const clean = validatePlan(JSON.parse(raw));
+          if (!clean) return false;
+          state = clean;
+          return true;
+        } catch (e) { return false; }
+      }
+
+      /* ================= Dial dragging ================= */
+      function initDialDrag() {
+        const dial = $("dial");
+        let dragging = false;
+        const setFromEvent = e => {
+          const r = dial.getBoundingClientRect();
+          const dx = e.clientX - (r.left + r.width / 2);
+          const dy = e.clientY - (r.top + r.height / 2);
+          let deg = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+          if (deg < 0) deg += 360;
+          state.minutes = Math.round(deg / 360 * 1440 / 5) * 5 % 1440;
+          render();
+        };
+        dial.addEventListener("pointerdown", e => {
+          dragging = true;
+          dial.setPointerCapture(e.pointerId);
+          setFromEvent(e);
+          e.preventDefault();
+        });
+        dial.addEventListener("pointermove", e => { if (dragging) setFromEvent(e); });
+        const end = () => { if (dragging) { dragging = false; autosave(); } };
+        dial.addEventListener("pointerup", end);
+        dial.addEventListener("pointercancel", end);
+      }
+
+      /* ================= Wiring ================= */
+      function fillSelects() {
+        const homeSel = $("home-select"), presetSel = $("preset-select");
+        for (const [name, tz] of PRESETS) {
+          homeSel.appendChild(new Option(name, tz));
+          presetSel.appendChild(new Option(name, tz));
+        }
+        const offSel = $("custom-offset");
+        for (let m = -720; m <= 840; m += 30) {
+          const sign = m < 0 ? "−" : "+";
+          const a = Math.abs(m);
+          offSel.appendChild(new Option(
+            "UTC" + sign + Math.floor(a / 60) + ":" + String(a % 60).padStart(2, "0"), m));
+        }
+        offSel.value = "0";
+      }
+      function addZone(zone) {
+        if (state.zones.length >= 24) { toast("That's the 24-place limit"); return; }
+        if (zone.tz && state.zones.some(z => z.tz === zone.tz)) { toast(zone.name + " is already on the list"); return; }
+        if (!zone.tz && state.zones.some(z => !z.tz && z.name === zone.name)) { toast(zone.name + " is already on the list"); return; }
+        state.zones.push(zone);
+        render(); autosave();
+        toast(zone.name + " added");
+      }
+      function init() {
+        fillSelects();
+        buildDial();
+        if (!restoreAutosave()) {
+          state = defaultState();
+          setToNow();
+        }
+        render();
+
+        $("date-input").addEventListener("change", e => {
+          if (/^\d{4}-\d{2}-\d{2}$/.test(e.target.value)) {
+            state.date = e.target.value; render(); autosave();
+          }
+        });
+        $("home-select").addEventListener("change", e => {
+          state.home = e.target.value;
+          if (!state.zones.some(z => z.tz === state.home)) {
+            const name = (PRESETS.find(p => p[1] === state.home) || [state.home])[0];
+            state.zones.unshift({ id: nextId(), name, tz: state.home });
+          }
+          render(); autosave();
+        });
+        $("btn-now").addEventListener("click", () => { setToNow(); render(); autosave(); });
+        $("btn-best").addEventListener("click", jumpToBest);
+        $("btn-copy").addEventListener("click", copySummary);
+        $("btn-save").addEventListener("click", saveFile);
+        $("btn-open").addEventListener("click", () => $("file-input").click());
+        $("file-input").addEventListener("change", e => {
+          if (e.target.files[0]) openFile(e.target.files[0]);
+          e.target.value = "";
+        });
+        $("btn-reset").addEventListener("click", resetAll);
+        $("btn-add-preset").addEventListener("click", () => {
+          const sel = $("preset-select");
+          addZone({ id: nextId(), name: sel.options[sel.selectedIndex].text, tz: sel.value });
+        });
+        $("btn-add-custom").addEventListener("click", () => {
+          const name = $("custom-name").value.trim();
+          if (!name) { toast("Give the custom place a name first"); return; }
+          addZone({ id: nextId(), name, offset: Number($("custom-offset").value) });
+          $("custom-name").value = "";
+        });
+        initDialDrag();
+      }
+      function resetAll() {
+        state = defaultState();
+        setToNow();
+        render(); autosave();
+        toast("Reset to the default cities");
+      }
+
+      /* ================= Keyboard: each key exactly one function ================= */
+      document.addEventListener("keydown", e => {
+        const t = e.target;
+        const typing = t && (t.tagName === "INPUT" || t.tagName === "SELECT" ||
+                             t.tagName === "TEXTAREA" || t.isContentEditable);
+        if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
+        if (e.key === "ArrowLeft") { state.minutes = (state.minutes + 1440 - 30) % 1440; render(); autosave(); e.preventDefault(); }
+        else if (e.key === "ArrowRight") { state.minutes = (state.minutes + 30) % 1440; render(); autosave(); e.preventDefault(); }
+        else if (e.key === "b" || e.key === "B") jumpToBest();
+        else if (e.key === "s" || e.key === "S") saveFile();
+        else if (e.key === "o" || e.key === "O") $("file-input").click();
+        else if (e.key === "r" || e.key === "R") resetAll();
+      });
+
+      init();
+    </script>
+  </body>
+</html>

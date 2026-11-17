@@ -1,0 +1,368 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Daily Build 2026-11-17 — Iris</title>
+<style>
+:root{--bg:#f6f5f2;--panel:#fff;--ink:#1b1b1f;--muted:#6b6b75;--line:#d9d8d3;--accent:#3457d5;--bad:#c62828;--ok:#2e7d32;--btn:#ecebe6;--btn2:#dedcd4;--shadow:0 1px 3px rgba(0,0,0,.08)}
+[data-theme=dark]{--bg:#121318;--panel:#1b1d24;--ink:#e8e6e1;--muted:#9a99a3;--line:#3a3d48;--accent:#8fa6ff;--bad:#ff6b6b;--ok:#4cb86f;--btn:#272a34;--btn2:#333745;--shadow:0 1px 3px rgba(0,0,0,.4)}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif}
+body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+header{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--line)}
+h1{font-size:24px;margin:0;letter-spacing:.02em}
+.sub{color:var(--muted);font-size:14px;flex:1;min-width:140px}
+button,input{font:inherit;font-size:16px;color:var(--ink)}
+button{background:var(--btn);border:1px solid var(--line);border-radius:10px;min-height:44px;min-width:44px;padding:0 14px;cursor:pointer;box-shadow:var(--shadow);-webkit-tap-highlight-color:transparent}
+button:active{background:var(--btn2)}
+button.on{outline:2px solid var(--accent);outline-offset:-2px}
+button.primary{background:var(--accent);color:#fff;border-color:transparent}
+input[type=text]{background:var(--panel);border:1px solid var(--line);border-radius:10px;min-height:44px;padding:0 12px;flex:1;min-width:0}
+main{padding:12px 14px 28px;max-width:1200px;margin:0 auto;display:grid;gap:14px}
+section{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:var(--shadow)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 8px;font-weight:600}
+#swatches{display:flex;flex-wrap:wrap;gap:6px}
+#add{width:48px;height:48px;min-width:0;padding:0;font-size:22px}
+.sw{width:48px;height:48px;border-radius:10px;border:2px solid transparent;position:relative;padding:0;min-width:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+.sw.sel{border-color:var(--accent)}
+.sw i{position:absolute;left:5px;top:4px;font:600 12px/1 sans-serif;font-style:normal;color:#fff;text-shadow:0 0 3px #000,0 0 1px #000}
+.sw b{position:absolute;right:3px;bottom:2px;font-size:12px}
+#editor{margin-top:10px}
+input[type=color]{width:48px;height:44px;border:1px solid var(--line);border-radius:10px;background:var(--btn);padding:2px;cursor:pointer}
+#hex{max-width:130px;font-family:ui-monospace,Menlo,monospace;flex:0 1 130px}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{flex:1 1 auto;padding:0 10px}
+#grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(215px,1fr))}
+.vp{border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--bg);cursor:pointer}
+.vp.on{outline:2px solid var(--accent);outline-offset:-2px}
+.vp.off .strip,.vp.off canvas{opacity:.55}
+.vp .guard{margin-top:8px;width:100%;min-height:44px;font-size:14px;box-shadow:none}
+.vp .guard{color:var(--muted)}.vp .guard.yes{color:var(--ok);border-color:var(--ok)}
+.vp h3{margin:0 0 6px;font-size:15px;display:flex;justify-content:space-between;align-items:center;gap:6px}
+.vp small{display:block;color:var(--muted);font-size:12px;margin:-4px 0 6px}
+.badge{font-size:12px;padding:2px 8px;border-radius:999px;background:var(--ok);color:#fff;font-weight:600;white-space:nowrap}
+.badge.bad{background:var(--bad)}
+.strip{display:flex;height:34px;border-radius:8px;overflow:hidden;margin-bottom:6px}
+.strip span{flex:1}
+.vp canvas{width:100%;height:110px;display:block;border-radius:8px}
+.coll{font-size:13px;color:var(--muted);min-height:18px;margin-top:6px}
+.coll em{color:var(--bad);font-style:normal;font-weight:600}
+label.sl{display:flex;align-items:center;gap:8px;flex:1 1 220px;min-height:44px;font-size:14px}
+label.sl output{min-width:2.2em;text-align:right;font-variant-numeric:tabular-nums}
+input[type=range]{flex:1;min-width:80px;accent-color:var(--accent);height:44px;margin:0}
+#imgwrap{position:relative;max-width:760px;border-radius:12px;overflow:hidden;background:#000;touch-action:none;cursor:col-resize;user-select:none;-webkit-user-select:none}
+#out{display:block;width:100%;height:auto}
+#divider{position:absolute;top:0;bottom:0;left:50%;width:2px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.4);pointer-events:none;transform:translateX(-1px)}
+#divider::after{content:'⇔';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;color:#000;border-radius:999px;width:36px;height:36px;display:grid;place-items:center;font-size:18px}
+.tag{position:absolute;top:8px;padding:2px 8px;border-radius:6px;background:rgba(0,0,0,.55);color:#fff;font-size:12px;pointer-events:none}
+#status{font-size:14px;min-height:20px;margin-top:8px}
+#status.err{color:var(--bad)}
+#prop{display:none}#prop.show{display:block}
+.pairs{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:10px}
+.pairs .strip{height:26px;margin:0 0 3px}
+.pairs small{font-size:12px;color:var(--muted)}
+video{display:none}
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:9}
+#overlay[hidden]{display:none}
+.card{background:var(--panel);border-radius:16px;max-width:580px;width:100%;max-height:90vh;overflow:auto;padding:22px 24px;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.card h2{text-transform:none;letter-spacing:0;font-size:22px;color:var(--ink)}
+.card p{margin:8px 0;font-size:15px}
+.card table{border-collapse:collapse;width:100%;margin:8px 0}
+.card td{padding:4px 6px;border-top:1px solid var(--line);font-size:15px}
+kbd{font:14px ui-monospace,Menlo,monospace;background:var(--btn);border:1px solid var(--line);border-radius:5px;padding:1px 6px}
+@media (max-width:520px){.sub{display:none}header{padding:10px}header button{padding:0 10px}#grid{grid-template-columns:1fr}.vp canvas{height:96px}#hex{flex:1 1 100px;max-width:none}}
+</style>
+</head>
+<body>
+<header>
+ <h1>Iris</h1><span class="sub">see your palette through every kind of colour vision, then fix it</span>
+ <button id="save">Save</button><button id="open">Open</button>
+ <button id="theme" title="Dark / light (D)">Dark</button>
+ <button id="helpBtn" title="Help (Ctrl+/)">?</button>
+</header>
+<main>
+ <section>
+  <h2>Palette</h2>
+  <div id="swatches"><button id="add" title="Add a colour (N)">+</button></div>
+  <div class="row" id="editor">
+   <input type="color" id="pick" aria-label="Colour">
+   <input type="text" id="hex" spellcheck="false" aria-label="Hex value">
+   <button id="lock" title="Lock: the fixer leaves this colour alone (L)">Lock</button>
+   <button id="del" title="Remove colour (Delete)">Remove</button>
+  </div>
+  <div class="row" style="margin-top:8px">
+   <input type="text" id="paste" placeholder="Paste hex colours to replace the palette…" aria-label="Paste colours">
+   <button id="setpal">Set</button>
+  </div>
+  <div class="row" style="margin-top:10px">
+   <button id="fix" class="primary" title="Repair the palette (F)">Fix palette</button>
+   <label class="sl">Collision below ΔE <input type="range" id="thr" min="4" max="24" step="1" value="12"><output id="thrv">12</output></label>
+   <label class="sl">Severity <input type="range" id="sev" min="0.3" max="1" step="0.05" value="1"><output id="sevv">100%</output></label>
+  </div>
+  <div id="status"></div>
+ </section>
+ <section id="prop">
+  <h2>Proposed fix</h2>
+  <div class="pairs" id="pairs"></div>
+  <div class="row"><button id="apply" class="primary">Apply (A)</button><button id="discard">Discard</button><span id="propmsg" style="font-size:14px;color:var(--muted)"></span></div>
+ </section>
+ <section>
+  <h2>As seen by</h2>
+  <div id="grid"></div>
+ </section>
+ <section>
+  <h2>Any picture, any vision — drag the divider</h2>
+  <div class="row" style="margin-bottom:10px">
+   <div class="seg" id="vseg"></div>
+   <button id="img" title="Open an image (I)">Image</button>
+   <button id="cam" title="Live camera (C)">Camera</button>
+  </div>
+  <div id="imgwrap"><canvas id="out"></canvas><div id="divider"></div><span class="tag" style="left:8px">original</span><span class="tag" id="rtag" style="right:8px"></span></div>
+ </section>
+</main>
+<video id="video" playsinline muted></video>
+<input type="file" id="file" accept=".json,application/json" hidden>
+<input type="file" id="imgfile" accept="image/*" hidden>
+<div id="overlay" hidden>
+ <div class="card">
+  <h2>Iris</h2>
+  <p>About 1 in 12 men and 1 in 200 women see colour differently. Iris simulates protanopia, deuteranopia, tritanopia and achromatopsia (Machado, Oliveira &amp; Fernandes 2009, applied in linear light) and measures every pair of your palette in OKLab under each one. Pairs closer than the collision threshold are the ones a reader cannot tell apart.</p>
+  <p><b>Fix palette</b> searches for the smallest change to your colours that pushes every pair past the threshold under every vision type; locked colours stay exactly as they are. Each vision type can be <b>Enforced</b> or <b>Ignored</b>; achromatopsia is ignored by default because eight distinct lightness levels rarely fit one palette. Tap a swatch to edit or lock it. The picture panel shows any image or your live camera through the chosen vision — drag the divider to compare.</p>
+  <table>
+   <tr><td><kbd>1</kbd>–<kbd>5</kbd> / <kbd>←</kbd> <kbd>→</kbd></td><td>Choose vision type</td><td><kbd>F</kbd></td><td>Fix palette</td></tr>
+   <tr><td><kbd>A</kbd></td><td>Apply the proposed fix</td><td><kbd>N</kbd></td><td>Add a colour</td></tr>
+   <tr><td><kbd>L</kbd></td><td>Lock / unlock selected colour</td><td><kbd>Delete</kbd> / <kbd>⌫</kbd></td><td>Remove selected colour</td></tr>
+   <tr><td><kbd>[</kbd> <kbd>]</kbd></td><td>Collision threshold</td><td><kbd>G</kbd></td><td>Enforce / ignore chosen vision type</td></tr>
+   <tr><td><kbd>I</kbd> <kbd>C</kbd></td><td>Open image / camera</td><td></td><td></td></tr>
+   <tr><td><kbd>S</kbd> <kbd>O</kbd></td><td>Save / Open (.json)</td><td><kbd>D</kbd></td><td>Dark / light</td></tr>
+   <tr><td><kbd>Ctrl/⌘ /</kbd></td><td>This help</td><td><kbd>Esc</kbd></td><td>Close / stop camera</td></tr>
+  </table>
+  <p style="color:var(--muted);font-size:14px">Everything runs offline in this one file; images and camera frames never leave the page. Save downloads a file when the page is opened directly; the artifact viewer blocks page downloads.</p>
+  <button id="closeHelp" style="width:100%">Close</button>
+ </div>
+</div>
+<script>
+'use strict';
+/* ---------- colour math: sRGB ⇄ linear light ⇄ OKLab ---------- */
+const lin=c=>c<=.04045?c/12.92:((c+.055)/1.055)**2.4;
+const enc=c=>{c=Math.min(1,Math.max(0,c));return c<=.0031308?12.92*c:1.055*c**(1/2.4)-.055};
+const hex2lin=h=>[1,3,5].map(i=>lin(parseInt(h.slice(i,i+2),16)/255));
+const lin2hex=c=>'#'+c.map(v=>Math.round(enc(v)*255).toString(16).padStart(2,'0')).join('');
+const mul=(M,v)=>[0,1,2].map(i=>M[i*3]*v[0]+M[i*3+1]*v[1]+M[i*3+2]*v[2]);
+function toLab([r,g,b]){
+ const l=Math.cbrt(.4122214708*r+.5363325363*g+.0514459929*b),m=Math.cbrt(.2119034982*r+.6806995451*g+.1073969566*b),s=Math.cbrt(.0883024619*r+.2817188376*g+.6299787005*b);
+ return [.2104542553*l+.793617785*m-.0040720468*s,1.9779984951*l-2.428592205*m+.4505937099*s,.0259040371*l+.7827717662*m-.808675766*s]}
+function fromLab([L,a,b]){
+ const l=(L+.3963377774*a+.2158037573*b)**3,m=(L-.1055613458*a-.0638541728*b)**3,s=(L-.0894841775*a-1.291485548*b)**3;
+ return [4.0767416621*l-3.3077115913*m+.2309699292*s,-1.2684380046*l+2.6097574011*m-.3413193965*s,-.0041960863*l-.7034186147*m+1.707614701*s]}
+const inGamut=c=>c.every(v=>v>=-.0005&&v<=1.0005);
+const dE=(p,q)=>100*Math.hypot(p[0]-q[0],p[1]-q[1],p[2]-q[2]);   // OKLab distance ×100: ~2 is a just-noticeable step
+
+/* ---------- colour-vision deficiency: Machado et al. 2009 dichromat matrices (linear RGB) ---------- */
+const I3=[1,0,0,0,1,0,0,0,1];
+const VISION={
+ normal:{name:'Typical vision',note:'trichromat · the palette as designed',M:I3},
+ protan:{name:'Protanopia',note:'no red cones · about 1% of men',M:[.152286,1.052583,-.204868,.114503,.786281,.099216,-.003882,-.048116,1.051998]},
+ deutan:{name:'Deuteranopia',note:'no green cones · the most common form',M:[.367322,.860646,-.227968,.280085,.672501,.047413,-.01182,.04294,.968881]},
+ tritan:{name:'Tritanopia',note:'no blue cones · rare, blue–yellow confusion',M:[1.255528,-.076749,-.178779,-.078411,.930809,.147602,.004733,.691367,.3039]},
+ mono:{name:'Achromatopsia',note:'no colour at all · lightness is all that is left',M:[.2126,.7152,.0722,.2126,.7152,.0722,.2126,.7152,.0722]}};
+const TYPES=Object.keys(VISION);
+// Severity blends toward the identity: a serviceable stand-in for anomalous trichromacy
+const matrix=(t,s)=>t==='normal'?I3:VISION[t].M.map((v,i)=>I3[i]+s*(v-I3[i]));
+const simulate=(c,M)=>mul(M,c).map(v=>Math.min(1,Math.max(0,v)));
+
+/* ---------- palette analysis and repair ---------- */
+function analyze(hexes,thr,sev,guard=S.guard){
+ return TYPES.map(t=>{const M=matrix(t,sev),sims=hexes.map(h=>simulate(hex2lin(h),M)),labs=sims.map(toLab),pairs=[];let min=Infinity;
+  for(let i=0;i<labs.length;i++)for(let j=i+1;j<labs.length;j++){const d=dE(labs[i],labs[j]);min=Math.min(min,d);if(d<thr)pairs.push([i,j,d])}
+  return {type:t,guard:guard[t],seen:sims.map(lin2hex),min,pairs:pairs.sort((a,b)=>a[2]-b[2])}})}
+function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+// Stochastic hill climb in OKLab: every pair must clear the threshold under every vision type, while each colour drifts as little as possible
+function fixPalette(hexes,locks,thr,sev,guard=S.guard,iters=5000){
+ const orig=hexes.map(h=>toLab(hex2lin(h))),Ms=TYPES.filter(t=>guard[t]).map(t=>matrix(t,sev)),target=thr+2;
+ const cost=labs=>{let c=0;
+  for(const M of Ms){const S=labs.map(l=>toLab(simulate(fromLab(l),M)));
+   for(let i=0;i<S.length;i++)for(let j=i+1;j<S.length;j++){const d=dE(S[i],S[j]);if(d<target)c+=(target-d)**2}}
+  for(let i=0;i<labs.length;i++)c+=.06*dE(labs[i],orig[i])**2;
+  return c};
+ const free=hexes.map((h,i)=>i).filter(i=>!locks[i]);if(free.length<1||hexes.length<2||!Ms.length)return hexes;
+ let bestAll=null,bestCost=Infinity;
+ for(const seed of [11,23,47]){                        // three restarts; keep the cheapest
+  const rand=rng(seed),cur=orig.map(l=>l.slice());let best=cost(cur);
+  for(let k=0;k<iters&&best>1e-9;k++){
+   const i=free[Math.floor(rand()*free.length)],step=.14*(1-.8*k/iters),old=cur[i];
+   const cand=old.map(v=>v+(rand()-.5)*step);
+   if(cand[0]<.15||cand[0]>.97||!inGamut(fromLab(cand)))continue;
+   cur[i]=cand;const c=cost(cur);if(c<best)best=c;else cur[i]=old}
+  if(best<bestCost){bestCost=best;bestAll=cur}if(best<1e-9)break}
+ return bestAll.map(l=>lin2hex(fromLab(l)))}
+function parseColors(t){
+ const out=[];for(const m of t.matchAll(/#?\b([0-9a-f]{6}|[0-9a-f]{3})\b|rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/gi)){
+  if(m[1])out.push('#'+(m[1].length===3?[...m[1]].map(c=>c+c).join(''):m[1]).toLowerCase());
+  else out.push('#'+[m[2],m[3],m[4]].map(v=>Math.min(255,+v).toString(16).padStart(2,'0')).join(''))}
+ return out}
+
+/* ---------- state ---------- */
+const S={colors:['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628','#f781bf'].map(hex=>({hex,lock:false})),
+ sel:0,vision:'deutan',thr:12,sev:1,guard:{normal:true,protan:true,deutan:true,tritan:true,mono:false},prop:null,split:.5,image:null,stream:null,drag:false};
+const $=id=>document.getElementById(id);
+const status=(t,err)=>{const el=$('status');el.textContent=t;el.className=err?'err':''};
+const hexes=()=>S.colors.map(c=>c.hex);
+
+/* ---------- palette UI ---------- */
+function renderPalette(){
+ const box=$('swatches'),add=$('add');box.querySelectorAll('.sw').forEach(e=>e.remove());
+ S.colors.forEach((c,i)=>{const b=document.createElement('button');b.className='sw'+(i===S.sel?' sel':'');b.style.background=c.hex;b.title=c.hex;
+  b.innerHTML=`<i>${i+1}</i>${c.lock?'<b>🔒</b>':''}`;b.onclick=()=>{S.sel=i;renderPalette()};box.insertBefore(b,add)});
+ const c=S.colors[S.sel];$('editor').style.display=c?'flex':'none';
+ if(c){$('pick').value=c.hex;$('hex').value=c.hex;$('lock').textContent=c.lock?'Unlock':'Lock';$('lock').classList.toggle('on',c.lock)}
+}
+function renderAll(msg){
+ renderPalette();S.res=analyze(hexes(),S.thr,S.sev);renderPanels();
+ const G=S.res.filter(r=>r.guard),worst=G.reduce((w,r)=>r.min<w.min?r:w,G[0]||S.res[0]),n=G.reduce((a,r)=>a+r.pairs.length,0),tail=msg?' · '+msg:'';
+ if(S.colors.length<2)status('Add at least two colours to compare.'+tail);
+ else if(!n)status(`Clean: every pair is at least ΔE ${S.thr} apart under every enforced vision type (weakest ${worst.min.toFixed(1)}).`+tail);
+ else{const p=worst.pairs[0];status(`${n} colliding pair${n>1?'s':''} · weakest: ${p[0]+1} & ${p[1]+1} under ${VISION[worst.type].name.toLowerCase()} (ΔE ${p[2].toFixed(1)})`+tail,true)}
+ if(!S.stream)processFrame();
+}
+/* ---------- vision panels ---------- */
+const panels={};
+TYPES.forEach(t=>{const d=document.createElement('div');d.className='vp';d.dataset.type=t;
+ d.innerHTML=`<h3>${VISION[t].name}<span class="badge"></span></h3><small>${VISION[t].note}</small><div class="strip"></div><canvas></canvas><div class="coll"></div><button class="guard" title="Enforce this vision type in the fix and the verdict (G)"></button>`;
+ d.onclick=e=>{if(e.target.classList.contains('guard')){S.guard[t]=!S.guard[t];discard();renderAll()}else setVision(t)};$('grid').appendChild(d);panels[t]=d;
+ const b=document.createElement('button');b.textContent=VISION[t].name.split(' ')[0];b.dataset.type=t;b.onclick=()=>setVision(t);$('vseg').appendChild(b)});
+function renderPanels(){
+ if(!S.res)return;
+ S.res.forEach(r=>{const d=panels[r.type],bad=r.pairs.length>0;d.classList.toggle('on',r.type===S.vision);d.classList.toggle('off',!r.guard);
+  const g=d.querySelector('.guard');g.textContent=r.guard?'Enforced':'Ignored';g.classList.toggle('yes',r.guard);
+  const badge=d.querySelector('.badge');badge.textContent=r.min===Infinity?'—':'min ΔE '+r.min.toFixed(1);badge.classList.toggle('bad',bad);
+  d.querySelector('.strip').innerHTML=r.seen.map(h=>`<span style="background:${h}"></span>`).join('');
+  d.querySelector('.coll').innerHTML=bad?(r.guard?'Confused: ':'Would confuse: ')+r.pairs.slice(0,4).map(p=>`<em>${p[0]+1}↔${p[1]+1}</em> ${p[2].toFixed(0)}`).join(', ')+(r.pairs.length>4?` +${r.pairs.length-4} more`:''):'All pairs distinguishable';
+  drawChart(d.querySelector('canvas'),r.seen)});
+ [...$('vseg').children].forEach(b=>b.classList.toggle('on',b.dataset.type===S.vision));
+ $('rtag').textContent=VISION[S.vision].name.toLowerCase();
+}
+function drawChart(cv,cols){
+ const dpr=Math.min(3,devicePixelRatio||1),W=cv.clientWidth||200,H=cv.clientHeight||100;cv.width=W*dpr;cv.height=H*dpr;
+ const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,W,H);if(!cols.length)return;
+ const R=Math.min(H/2-4,W*.2),cx=R+4,cy=H/2,wts=cols.map((c,i)=>1+(i*5)%4),tot=wts.reduce((a,b)=>a+b,0);let a=-Math.PI/2;
+ cols.forEach((c,i)=>{const e=a+2*Math.PI*wts[i]/tot;x.fillStyle=c;x.beginPath();x.arc(cx,cy,R,a,e);x.arc(cx,cy,R*.55,e,a,true);x.closePath();x.fill();a=e});
+ const x0=cx+R+10,x1=W-4,y0=6,y1=H-6;
+ cols.forEach((c,i)=>{x.strokeStyle=c;x.lineWidth=2.5;x.lineJoin='round';x.beginPath();
+  for(let k=0;k<=8;k++){const t=k/8,v=.5+.42*Math.sin(t*5+i*1.9)*Math.cos(i*.7+t*2),px=x0+t*(x1-x0),py=y1-(y1-y0)*v;k?x.lineTo(px,py):x.moveTo(px,py)}x.stroke()});
+}
+function setVision(t){S.vision=t;renderPanels();if(!S.stream)processFrame()}
+
+/* ---------- proposed fix ---------- */
+function fix(){
+ if(S.colors.length<2)return status('Add at least two colours first.',true);
+ const before=hexes(),after=fixPalette(before,S.colors.map(c=>c.lock),S.thr,S.sev);
+ const res=analyze(after,S.thr,S.sev).filter(r=>r.guard),n=res.reduce((a,r)=>a+r.pairs.length,0),minB=Math.min(...S.res.filter(r=>r.guard).map(r=>r.min)),minA=Math.min(...res.map(r=>r.min));
+ S.prop=after;$('prop').classList.add('show');
+ $('pairs').innerHTML=before.map((h,i)=>{const d=dE(toLab(hex2lin(h)),toLab(hex2lin(after[i])));
+  return `<div><div class="strip"><span style="background:${h}"></span><span style="background:${after[i]}"></span></div><small>${i+1} · ${after[i]}${S.colors[i].lock?' · locked':d<.5?' · unchanged':' · moved ΔE '+d.toFixed(0)}</small></div>`}).join('');
+ $('propmsg').textContent=`Weakest pair ${minB.toFixed(1)} → ${minA.toFixed(1)}. `+(n?`${n} pair${n>1?'s':''} still collide — unlock a colour, lower the threshold or ignore a vision type.`:'Every pair clears the threshold under every enforced vision type.');
+ $('prop').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function applyFix(){if(!S.prop)return;S.prop.forEach((h,i)=>S.colors[i].hex=h);discard();renderAll('fix applied')}
+function discard(){S.prop=null;$('prop').classList.remove('show')}
+
+/* ---------- picture: demo scene, any image, or the live camera, split original | simulated ---------- */
+const out=$('out'),octx=out.getContext('2d'),work=document.createElement('canvas'),wctx=work.getContext('2d',{willReadFrequently:true}),video=$('video');
+const LIN=new Float32Array(256).map((_,i)=>lin(i/255)),ENC=new Uint8ClampedArray(4096).map((_,i)=>Math.round(enc(i/4095)*255));
+const demo=document.createElement('canvas');demo.width=720;demo.height=420;
+(function paintDemo(){
+ const x=demo.getContext('2d');x.fillStyle='#f3efe6';x.fillRect(0,0,720,420);
+ const g=x.createLinearGradient(0,0,0,170);g.addColorStop(0,'#2c6fbb');g.addColorStop(1,'#9cc8f0');x.fillStyle=g;x.fillRect(0,0,720,170);
+ x.fillStyle='#5a8f3c';x.beginPath();x.moveTo(0,170);for(let i=0;i<=720;i+=40)x.lineTo(i,150+20*Math.sin(i/70));x.lineTo(720,230);x.lineTo(0,230);x.fill();
+ for(let i=0;i<14;i++){x.fillStyle=i%3?'#d8302a':'#4caf50';x.beginPath();x.arc(60+i*48,205+((i*37)%17),9,0,7);x.fill()}   // ripe and unripe berries
+ x.fillStyle='#222';x.fillRect(620,22,60,150);['#d8302a','#f0b429','#3fa34d'].forEach((c,i)=>{x.fillStyle=c;x.beginPath();x.arc(650,50+i*48,18,0,7);x.fill()});   // a traffic light
+ x.fillStyle='#fff';x.fillRect(30,250,660,150);x.strokeStyle='#ddd';x.strokeRect(30.5,250.5,660,150);
+ const cols=['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#a65628'];
+ cols.forEach((c,i)=>{x.fillStyle=c;for(let k=0;k<4;k++){const h=24+((i*7+k*5)%9)*10;x.fillRect(70+k*150+i*18,392-h,14,h)}});
+ x.fillStyle='#333';x.font='bold 18px sans-serif';x.fillText('Quarterly volume by region',44,278);
+ x.font='14px sans-serif';['Q1','Q2','Q3','Q4'].forEach((q,k)=>x.fillText(q,120+k*150,412));
+})();
+function processFrame(){
+ const live=S.stream&&video.readyState>=2,src=live?video:S.image||demo,sw=live?video.videoWidth:src.width,sh=live?video.videoHeight:src.height;if(!sw)return;
+ const W=Math.min(720,sw),H=Math.round(sh*W/sw);
+ if(out.width!==W||out.height!==H){out.width=work.width=W;out.height=work.height=H}
+ wctx.drawImage(src,0,0,W,H);
+ const id=wctx.getImageData(0,0,W,H),d=id.data,[a,b,c,e,f,g,h,i,j]=matrix(S.vision,S.sev),x0=Math.round(S.split*W);
+ for(let y=0;y<H;y++)for(let x=x0,p=(y*W+x)*4;x<W;x++,p+=4){const r=LIN[d[p]],gg=LIN[d[p+1]],bb=LIN[d[p+2]];
+  d[p]=ENC[(Math.min(1,Math.max(0,a*r+b*gg+c*bb))*4095)|0];d[p+1]=ENC[(Math.min(1,Math.max(0,e*r+f*gg+g*bb))*4095)|0];d[p+2]=ENC[(Math.min(1,Math.max(0,h*r+i*gg+j*bb))*4095)|0]}
+ octx.putImageData(id,0,0);
+}
+const wrap=$('imgwrap');
+function setSplit(e){const r=wrap.getBoundingClientRect();S.split=Math.min(1,Math.max(0,(e.clientX-r.left)/r.width));$('divider').style.left=S.split*100+'%';if(!S.stream)processFrame()}
+wrap.addEventListener('pointerdown',e=>{wrap.setPointerCapture(e.pointerId);S.drag=true;setSplit(e)});
+wrap.addEventListener('pointermove',e=>{if(S.drag)setSplit(e)});
+['pointerup','pointercancel'].forEach(ev=>wrap.addEventListener(ev,()=>S.drag=false));
+function loadImage(file){const url=URL.createObjectURL(file),im=new Image();
+ im.onload=()=>{S.image=im;URL.revokeObjectURL(url);stopCamera();processFrame();status('Image loaded: '+file.name)};im.onerror=()=>status('Could not read that image',true);im.src=url}
+async function camera(){
+ if(S.stream)return stopCamera();
+ try{S.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280}},audio:false});
+  video.srcObject=S.stream;await video.play();$('cam').textContent='Stop camera';$('cam').classList.add('on');
+  (function loop(){if(!S.stream)return;processFrame();requestAnimationFrame(loop)})()}
+ catch(err){S.stream=null;status('Camera unavailable here ('+(err.message||err.name||err)+'). Open an image instead.',true)}}
+function stopCamera(){if(!S.stream)return;S.stream.getTracks().forEach(t=>t.stop());S.stream=null;video.srcObject=null;$('cam').textContent='Camera';$('cam').classList.remove('on');processFrame()}
+
+/* ---------- files ---------- */
+const today=()=>{const d=new Date(),z=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`};
+function save(){const blob=new Blob([JSON.stringify({app:'iris',version:1,palette:S.colors,vision:S.vision,threshold:S.thr,severity:S.sev,guard:S.guard},null,1)],{type:'application/json'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`iris-${today()}.json`;document.body.appendChild(a);a.click();
+ setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);status('Saved iris-'+today()+'.json')}
+function openFile(file){file.text().then(t=>{const d=JSON.parse(t);
+ if(d.app!=='iris'||d.version!==1||!Array.isArray(d.palette)||!d.palette.every(c=>/^#[0-9a-f]{6}$/i.test(c.hex)))throw 0;
+ S.colors=d.palette.map(c=>({hex:c.hex.toLowerCase(),lock:!!c.lock}));S.sel=0;discard();
+ if(VISION[d.vision])S.vision=d.vision;if(d.guard)TYPES.forEach(t=>S.guard[t]=!!d.guard[t]);if(d.threshold>=4&&d.threshold<=24)S.thr=+d.threshold;if(d.severity>=.3&&d.severity<=1)S.sev=+d.severity;
+ syncSliders();renderAll('opened '+file.name)}).catch(()=>status('Not an Iris file: expected JSON with "app":"iris", "version":1 and a palette array',true))}
+function syncSliders(){$('thr').value=S.thr;$('thrv').textContent=S.thr;$('sev').value=S.sev;$('sevv').textContent=Math.round(S.sev*100)+'%'}
+
+/* ---------- wiring ---------- */
+function setHex(h){if(!/^#[0-9a-f]{6}$/i.test(h))return;S.colors[S.sel].hex=h.toLowerCase();discard();renderAll()}
+$('pick').oninput=e=>setHex(e.target.value);
+$('hex').onchange=e=>{const c=parseColors(e.target.value)[0];if(c)setHex(c);else{e.target.value=S.colors[S.sel].hex;status('Use a hex colour like #3457d5',true)}};
+$('lock').onclick=()=>{const c=S.colors[S.sel];if(c){c.lock=!c.lock;renderPalette()}};
+$('del').onclick=()=>{if(S.colors.length){S.colors.splice(S.sel,1);S.sel=Math.max(0,Math.min(S.sel,S.colors.length-1));discard();renderAll()}};
+$('add').onclick=()=>{if(S.colors.length>=16)return status('Sixteen colours is plenty for one palette.',true);
+ const hue=(S.colors.length*137.5)%360*Math.PI/180;S.colors.push({hex:lin2hex(fromLab([.65,.14*Math.cos(hue),.14*Math.sin(hue)])),lock:false});S.sel=S.colors.length-1;discard();renderAll()};
+$('setpal').onclick=()=>{const cs=parseColors($('paste').value);if(cs.length<2)return status('Paste at least two hex colours, e.g. #e41a1c #377eb8',true);
+ S.colors=cs.slice(0,16).map(hex=>({hex,lock:false}));S.sel=0;$('paste').value='';discard();renderAll(`${S.colors.length} colours set`)};
+$('paste').onkeydown=e=>{if(e.key==='Enter')$('setpal').click()};
+$('thr').oninput=e=>{S.thr=+e.target.value;syncSliders();discard();renderAll()};
+$('sev').oninput=e=>{S.sev=+e.target.value;syncSliders();discard();renderAll()};
+$('fix').onclick=fix;$('apply').onclick=applyFix;$('discard').onclick=discard;
+$('save').onclick=save;$('open').onclick=()=>$('file').click();$('img').onclick=()=>$('imgfile').click();$('cam').onclick=camera;
+$('file').onchange=e=>{if(e.target.files[0])openFile(e.target.files[0]);e.target.value=''};
+$('imgfile').onchange=e=>{if(e.target.files[0])loadImage(e.target.files[0]);e.target.value=''};
+const setTheme=t=>{document.documentElement.dataset.theme=t;$('theme').textContent=t==='dark'?'Light':'Dark';renderPanels()};
+$('theme').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+const help=on=>{$('overlay').hidden=!on};$('helpBtn').onclick=()=>help(true);$('closeHelp').onclick=()=>help(false);
+$('overlay').onclick=e=>{if(e.target.id==='overlay')help(false)};
+addEventListener('keydown',e=>{
+ if(/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)||e.target.isContentEditable)return;
+ if((e.ctrlKey||e.metaKey)&&e.key==='/'){e.preventDefault();return help($('overlay').hidden)}
+ if(e.ctrlKey||e.metaKey||e.altKey)return;
+ if(e.key==='Escape'){if(!$('overlay').hidden)return help(false);return stopCamera()}
+ if(!$('overlay').hidden)return;
+ const vi=TYPES.indexOf(S.vision),map={f:fix,a:applyFix,n:()=>$('add').click(),l:()=>$('lock').click(),Delete:()=>$('del').click(),Backspace:()=>$('del').click(),
+  g:()=>{S.guard[S.vision]=!S.guard[S.vision];discard();renderAll()},i:()=>$('img').click(),c:camera,s:save,o:()=>$('file').click(),d:()=>$('theme').click(),'?':()=>help(true),
+  '[':()=>{$('thr').value=S.thr-1;$('thr').oninput({target:$('thr')})},']':()=>{$('thr').value=S.thr+1;$('thr').oninput({target:$('thr')})},
+  ArrowLeft:()=>setVision(TYPES[(vi+4)%5]),ArrowRight:()=>setVision(TYPES[(vi+1)%5])};
+ if(/^[1-5]$/.test(e.key))map[e.key]=()=>setVision(TYPES[+e.key-1]);
+ const f=map[e.key.length===1?e.key.toLowerCase():e.key];if(f){e.preventDefault();f()}
+});
+new ResizeObserver(()=>renderPanels()).observe($('grid'));
+setTheme(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+syncSliders();renderAll();
+</script>
+</body>
+</html>
+
+</body></html>

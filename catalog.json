@@ -2357,6 +2357,103 @@
         }
       ],
       "category": "audio"
+    },
+    "iris": {
+      "title": "Iris",
+      "engine": "Claude",
+      "description": "Paste a palette and see it through protanopia, deuteranopia, tritanopia and achromatopsia. It measures every pair of colours under each one, names the pairs a reader cannot tell apart, and finds the smallest change that fixes them; lock the colours that must stay.",
+      "source_file": "Iris-Claude.html",
+      "first_published": "2026-11-17",
+      "last_updated": "2026-11-17",
+      "version": 1,
+      "sha": "0828ce94a78a",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-17",
+          "sha": "0828ce94a78a"
+        }
+      ],
+      "thumb": {
+        "actions": [
+          {
+            "wait": 1200
+          },
+          {
+            "key": "Escape"
+          },
+          {
+            "selector_click": "#fix"
+          },
+          {
+            "wait": 1500
+          },
+          {
+            "click": [
+              0.5,
+              0.03
+            ]
+          },
+          {
+            "wait": 800
+          }
+        ]
+      },
+      "category": "tool"
+    },
+    "aerofoil": {
+      "title": "AeroFoil",
+      "engine": "Gemini",
+      "description": "A potential-flow wind tunnel. Pick a Joukowsky airfoil preset or set camber, thickness and speed, drag inside the tunnel to pitch the angle of attack, and watch the streamlines, surface pressure, lift coefficient and lift-to-drag ratio respond.",
+      "source_file": "aerofoil-gemini.html",
+      "first_published": "2026-11-17",
+      "last_updated": "2026-11-17",
+      "version": 1,
+      "sha": "3f804f111181",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-17",
+          "sha": "3f804f111181"
+        }
+      ],
+      "category": "sim"
+    },
+    "poise": {
+      "title": "Poise",
+      "engine": "ChatGPT",
+      "description": "Balance a hanging mobile. Choose a beam, set the weights of its two shapes, and slide the suspension notch until the turning effects match; the tilt preview shows which side pulls down, and the finished study exports as an SVG.",
+      "source_file": "poise-Codex.html",
+      "first_published": "2026-11-16",
+      "last_updated": "2026-11-16",
+      "version": 1,
+      "sha": "bac5a93fddf1",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-16",
+          "sha": "bac5a93fddf1"
+        }
+      ],
+      "category": "edu"
+    },
+    "timebridge": {
+      "title": "Timebridge",
+      "engine": "Muse",
+      "description": "Drag a 24-hour dial to propose a meeting time and see what that moment looks like in every city you add: who is at work, who is winding down, who is asleep. Jump to the hour with the best overlap and copy a summary.",
+      "source_file": "timebridge-muse.html",
+      "first_published": "2026-11-17",
+      "last_updated": "2026-11-17",
+      "version": 1,
+      "sha": "60ba8d868408",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-17",
+          "sha": "60ba8d868408"
+        }
+      ],
+      "category": "tool"
     }
   },
   "generated": "2026-11-17"

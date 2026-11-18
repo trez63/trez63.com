@@ -135,8 +135,8 @@ button.like.on{background:var(--acc-soft,#eef2ff);border-color:var(--acc);color:
 button.like.on i{color:var(--acc)}
 </style>
 <script>(()=>{try{const L=localStorage,P=new URLSearchParams(location.search);let g=P.get('ab');
-if(g==='a'||g==='b')L.setItem('ab1',g);g=L.getItem('ab1');if(!g){g=Math.random()<.5?'a':'b';L.setItem('ab1',g);}
-window.AB=g;if(g==='b'&&!L.getItem('intro-off'))document.documentElement.classList.add('b');}catch(e){window.AB=''}})();</script>
+if(g==='a'||g==='b')L.setItem('ab2',g);g=L.getItem('ab2');if(!g){g=Math.random()<.5?'a':'b';L.setItem('ab2',g);}
+window.AB=g;}catch(e){window.AB=''}})();</script>
 <script>try{if(new URLSearchParams(location.search).get('notrack')==='1'||(!new URLSearchParams(location.search).has('notrack')&&localStorage.getItem('notrack')))window['ga-disable-G-F4X7P9J00K']=true}catch(e){}</script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-F4X7P9J00K"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-F4X7P9J00K');</script>
@@ -2199,11 +2199,13 @@ document.querySelectorAll('.card').forEach(c=>{
   if(slug){ hit('stat-o-'+day); hit('stat-open-'+slug); }
   if(localStorage.getItem('seen')!==day){ localStorage.setItem('seen',day); hit('stat-u-'+day);
     if(/reddit\.com|redd\.it/i.test(document.referrer)) hit('stat-r-'+day); }
-  if(window.AB){ const ab='stat-ab1-'+window.AB+'-';
-    if(!localStorage.getItem('ab1c')){ localStorage.setItem('ab1c','1'); hit(ab+'u'); }
+  if(window.AB){ const ab='stat-ab2-'+window.AB+'-';
+    if(!localStorage.getItem('ab2c')){ localStorage.setItem('ab2c','1'); hit(ab+'u'); }
     hit(ab+(slug?'o':'h'));
-    document.addEventListener('click',e=>{ const t=e.target.closest&&e.target.closest('button.like:not(.on),.intro a');
-      if(t) hit(ab+(t.matches('button.like')?'l':'c')); },true); }
+    document.addEventListener('click',e=>{ const t=e.target.closest&&e.target.closest('button.like:not(.on)'); if(t) hit(ab+'l'); },true);
+    // the nudge (bucket b, app pages): 25 seconds of the page being visible, and not liked yet
+    if(window.AB==='b' && slug){ let left=25; const tick=setInterval(()=>{ if(document.hidden) return; if(--left>0) return; clearInterval(tick);
+      const b=document.querySelector('.bar button.like'); if(b && !b.classList.contains('on')){ b.classList.add('nudge'); hit(ab+'n'); } },1000); } }
 }catch(e){} })();
 </script>
 </body>

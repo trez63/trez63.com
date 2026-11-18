@@ -97,21 +97,25 @@ TRACK_JS = """
   if(slug){ hit('stat-o-'+day); hit('stat-open-'+slug); }
   if(localStorage.getItem('seen')!==day){ localStorage.setItem('seen',day); hit('stat-u-'+day);
     if(/reddit\\.com|redd\\.it/i.test(document.referrer)) hit('stat-r-'+day); }
-  if(window.AB){ const ab='stat-ab1-'+window.AB+'-';
-    if(!localStorage.getItem('ab1c')){ localStorage.setItem('ab1c','1'); hit(ab+'u'); }
+  if(window.AB){ const ab='stat-ab2-'+window.AB+'-';
+    if(!localStorage.getItem('ab2c')){ localStorage.setItem('ab2c','1'); hit(ab+'u'); }
     hit(ab+(slug?'o':'h'));
-    document.addEventListener('click',e=>{ const t=e.target.closest&&e.target.closest('button.like:not(.on),.intro a');
-      if(t) hit(ab+(t.matches('button.like')?'l':'c')); },true); }
+    document.addEventListener('click',e=>{ const t=e.target.closest&&e.target.closest('button.like:not(.on)'); if(t) hit(ab+'l'); },true);
+    // the nudge (bucket b, app pages): 25 seconds of the page being visible, and not liked yet
+    if(window.AB==='b' && slug){ let left=25; const tick=setInterval(()=>{ if(document.hidden) return; if(--left>0) return; clearInterval(tick);
+      const b=document.querySelector('.bar button.like'); if(b && !b.classList.contains('on')){ b.classList.add('nudge'); hit(ab+'n'); } },1000); } }
 }catch(e){} })();
 """
-# EXPERIMENT 1 (started 2026-11-17): most visitors land on an app page and never see the main page, so half of all
-# browsers (bucket "b") get an intro strip on app pages: what the site is, the same day's apps from the other models,
-# and a link to all apps. Bucket "a" sees the page as before. Counters per bucket (cumulative, not per day):
-#   stat-ab1-<a|b>-u  browsers   -o  app pages opened   -h  main page views   -l  like clicks   -c  clicks on the strip
+# EXPERIMENTS: engagement ideas are tried on half of all browsers, chosen at random, and compared (README, "Experiments").
+# Experiment 1 (2026-11-17 to 11-18, a strip on app pages explaining the site) made no improvement and was removed.
+# EXPERIMENT 2 (started 2026-11-18): only about 3 visitors in 100 like anything, and the like button is a small heart
+# in the app page's top bar. In bucket "b", once someone has had an app open for 25 seconds and has not liked it, the
+# button turns yellow and reads "Like it?". Bucket "a" sees the button as before. Counters per bucket (cumulative):
+#   stat-ab2-<a|b>-u  browsers   -o  app pages opened   -h  main page views   -l  like clicks   -n  nudges shown
 # ?ab=a or ?ab=b forces a bucket for the browser that opens it. stats.html shows the comparison.
 AB_JS = """<script>(()=>{try{const L=localStorage,P=new URLSearchParams(location.search);let g=P.get('ab');
-if(g==='a'||g==='b')L.setItem('ab1',g);g=L.getItem('ab1');if(!g){g=Math.random()<.5?'a':'b';L.setItem('ab1',g);}
-window.AB=g;if(g==='b'&&!L.getItem('intro-off'))document.documentElement.classList.add('b');}catch(e){window.AB=''}})();</script>"""
+if(g==='a'||g==='b')L.setItem('ab2',g);g=L.getItem('ab2');if(!g){g=Math.random()<.5?'a':'b';L.setItem('ab2',g);}
+window.AB=g;}catch(e){window.AB=''}})();</script>"""
 # Google Analytics (GA4). A property used by this site only. Skipped for browsers opted out with ?notrack=1.
 GA_ID = "G-F4X7P9J00K"
 GA = f"""<script>try{{if(new URLSearchParams(location.search).get('notrack')==='1'||(!new URLSearchParams(location.search).has('notrack')&&localStorage.getItem('notrack')))window['ga-disable-{GA_ID}']=true}}catch(e){{}}</script>
@@ -473,24 +477,6 @@ PDIR = ROOT / "p"; PDIR.mkdir(exist_ok=True)
 for old in PDIR.glob("*.html"):
     if old.stem not in apps: old.unlink()
 order = [s for s, _ in by_pub]
-by_day = defaultdict(list)
-for s_, e_ in by_pub: by_day[pub(e_)].append((s_, e_))
-top_liked = sorted(apps.items(), key=lambda kv: (-likes(kv[1]), kv[1]["title"].lower()))
-def intro(slug, e):
-    """Same day's apps from the other models (one per model, the most liked); if the day has none, the most liked overall."""
-    best = {}
-    for s_, e_ in by_day[pub(e)]:
-        if s_ == slug or e_["engine"] == e["engine"]: continue
-        if e_["engine"] not in best or likes(e_) > likes(best[e_["engine"]][1]): best[e_["engine"]] = (s_, e_)
-    picks_ = [best[k] for k in sorted(best)][:4]
-    label = "Same prompt, same day:"
-    if not picks_:
-        picks_ = [(s_, e_) for s_, e_ in top_liked if s_ != slug][:3]; label = "Most liked:"
-    chips = "".join(f'<a class="chip" href="{s_}.html"><i class="dot {ENGINE_CLASS.get(e_["engine"], "other")}"></i>{E(e_["engine"])}: {E(e_["title"])}</a>' for s_, e_ in picks_)
-    return (f'<div class="intro" role="note"><b>{len(apps)} apps. {n_word.capitalize()} AI models, one prompt a day.</b>'
-            f'<span>{E(e["engine"])} built this on {date(*map(int, pub(e).split("-"))).strftime("%b %-d")}. {label}</span>{chips}'
-            f'<a class="all" href="../">Browse all {len(apps)} →</a>'
-            f'<button type="button" id="introx" aria-label="Hide this strip" title="Hide">×</button></div>')
 for slug, e in apps.items():
     i = order.index(slug); prev_s, next_s = order[i - 1], order[(i + 1) % len(order)]
     eng = E(e["engine"]); cls = ENGINE_CLASS.get(e["engine"], "other")
@@ -520,20 +506,11 @@ body{{display:flex;flex-direction:column;background:var(--bg);color:var(--fg);fo
 .desc{{color:var(--mute);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:1;min-width:0}}
 .raw{{color:var(--mute);white-space:nowrap;font:11px "Courier New",monospace;letter-spacing:.5px}} .raw:hover{{color:var(--fg)}}
 .back img{{height:36px;width:auto;display:block}}
-.intro{{display:none;align-items:center;gap:9px;padding:7px 16px;background:var(--fg);color:#fff;font-size:12px;flex:none;overflow-x:auto;white-space:nowrap;scrollbar-width:none}}
-html.b .intro{{display:flex}}
-.intro b{{font-weight:700}} .intro span{{color:#c0c9d7}}
-.intro a{{color:#fff;text-decoration:none}}
-.intro a.chip{{display:inline-flex;align-items:center;gap:6px;border:1px solid #ffffff38;border-radius:5px;padding:4px 8px;font-weight:700}}
-.intro a.chip:hover{{border-color:#fff}}
-.intro .dot{{width:7px;height:7px;border-radius:50%;flex:none;background:var(--other)}}
-.dot.claude{{background:var(--claude)}}.dot.chatgpt{{background:var(--chatgpt)}}.dot.muse{{background:var(--muse)}}.dot.gemini{{background:#7d9bff}}.dot.grok{{background:#c0c9d7}}
-.intro a.all{{background:var(--yellow);color:var(--fg);font-weight:700;border-radius:5px;padding:5px 9px}}
-.intro button{{margin-left:auto;background:none;border:0;color:#c0c9d7;cursor:pointer;font-size:17px;line-height:1;padding:2px 4px}}
-@media (max-width:640px){{.intro{{flex-wrap:wrap;white-space:normal;overflow:visible;gap:6px 7px;padding:8px 34px 9px 10px;position:relative}}
-  .intro b{{flex:1 1 100%}} .intro span{{display:none}} .intro a.chip:nth-of-type(n+3){{display:none}}
-  .intro button{{position:absolute;top:4px;right:6px;margin:0}}}}
-.intro button:hover{{color:#fff}} .intro a:focus-visible,.intro button:focus-visible{{outline:2px solid var(--yellow);outline-offset:2px}}
+button.like.nudge:not(.on){{background:var(--yellow);border-color:var(--fg);color:var(--fg);animation:nudge .5s ease-out 2}}
+button.like.nudge:not(.on) i{{color:var(--fg)}}
+button.like.nudge:not(.on)::after{{content:"Like it?";margin-left:3px}}
+@keyframes nudge{{50%{{transform:scale(1.12)}}}}
+@media (prefers-reduced-motion:reduce){{button.like.nudge{{animation:none}}}}
 .step{{display:inline-flex;align-items:center;height:30px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:#fff;font-weight:700;font-size:11px;white-space:nowrap}}
 .step:hover{{border-color:var(--acc);color:var(--acc)}}
 .step.go{{background:var(--fg);border-color:var(--fg);color:#fff}} .step.go:hover{{color:#fff;filter:brightness(1.25)}}
@@ -558,10 +535,8 @@ iframe{{flex:1;border:0;width:100%;background:#fff}}
   <a class="step rnd" id="lucky" href="../" title="Open a random app">Surprise me</a>
   <a class="step go" href="{next_s}.html" title="Next: {E(apps[next_s]['title'])}">Next app →</a>
 </div>
-{intro(slug, e)}
 <iframe src="../apps/{slug}.html" title="{E(e['title'])}" allow="clipboard-write; fullscreen; autoplay" allowfullscreen></iframe>
 <script>{LIKE_JS}{TRACK_JS}
-document.getElementById('introx').addEventListener('click',()=>{{ try{{localStorage.setItem('intro-off','1')}}catch(e){{}} document.documentElement.classList.remove('b'); }});
 document.getElementById('lucky').addEventListener('click',async e=>{{ e.preventDefault();
   try{{ const all=Object.keys((await (await fetch('../catalog.json')).json()).apps).filter(s=>s!=='{slug}');
     location.href=all[Math.floor(Math.random()*all.length)]+'.html'; }}catch(x){{ location.href='../'; }} }});
@@ -588,9 +563,14 @@ td.w{color:#b8bfca}
 <h1>Visits</h1>
 <p id="s">Loading the last 7 days…</p>
 <div class="wrap"><table><thead><tr><th>Day (Pacific)</th><th>Visitors</th><th>From Reddit</th><th>Page views</th><th>App opens</th></tr></thead><tbody id="t"></tbody></table></div>
-<h1 style="margin-top:34px;font-size:20px">Experiment 1: intro strip on app pages</h1>
-<p>Since Nov 17, 2026. Half of all browsers get the strip. Rates are per visitor, cumulative.</p>
-<div class="wrap"><table><thead><tr><th>Group</th><th>Visitors</th><th>App opens</th><th>Main page views</th><th>Likes</th><th>Strip clicks</th></tr></thead><tbody id="x"></tbody></table></div>
+<h1 style="margin-top:34px;font-size:20px">Experiment 2: like nudge on app pages</h1>
+<p>Since Nov 18, 2026. In group B the like button turns yellow and reads "Like it?" after 25 seconds on an app. Rates are per visitor, cumulative.</p>
+<div class="wrap"><table><thead><tr><th>Group</th><th>Visitors</th><th>Likes</th><th>App opens</th><th>Main page views</th><th>Nudges shown</th></tr></thead><tbody id="x"></tbody></table></div>
+<h1 style="margin-top:34px;font-size:20px">Finished</h1>
+<div class="wrap"><table><thead><tr><th>Experiment 1: intro strip (Nov 17–18)</th><th>Visitors</th><th>Likes</th><th>App opens</th><th>Main page views</th><th>Strip clicks</th></tr></thead><tbody>
+<tr><td>A: page as before</td><td>202</td><td>0.03</td><td>3.11</td><td>0.42</td><td>–</td></tr>
+<tr><td>B: intro strip</td><td>181</td><td>0.02</td><td>2.70</td><td>0.45</td><td>0.16</td></tr></tbody></table></div>
+<p style="margin-top:10px;font-size:12px">No improvement on any measure, so the strip was removed.</p>
 <p style="margin-top:14px;font-size:12px">Visitors = browsers seen that day. Counting started Nov 14, 2026 mid-afternoon. Your own visits count unless you open <a href="./?notrack=1">trez63.com/?notrack=1</a> once in each browser you use.</p>
 </main><script>
 (async()=>{
@@ -605,11 +585,11 @@ td.w{color:#b8bfca}
       await new Promise(r=>setTimeout(r,350)); }
   }
   s.textContent='Last 7 days. Reload for fresh numbers.';
-  const x=document.getElementById('x'), X='ab1-';
-  for(const [g,name] of [['a','A: page as before'],['b','B: intro strip on app pages']]){
-    const n={}; for(const k of ['u','o','h','l','c']){ n[k]=await get(X+g+'-'+k); await new Promise(r=>setTimeout(r,350)); }
+  const x=document.getElementById('x'), X='ab2-';
+  for(const [g,name] of [['a','A: button as before'],['b','B: like nudge']]){
+    const n={}; for(const k of ['u','l','o','h','n']){ n[k]=await get(X+g+'-'+k); await new Promise(r=>setTimeout(r,350)); }
     const per=(v)=>n.u?(v/n.u).toFixed(2):'–', tr=x.insertRow();
-    [name,n.u,per(n.o),per(n.h),per(n.l),g==='b'?per(n.c):'–'].forEach(v=>tr.insertCell().textContent=(v===null?'?':typeof v==='number'?v.toLocaleString():v));
+    [name,n.u,per(n.l),per(n.o),per(n.h),g==='b'?per(n.n):'–'].forEach(v=>tr.insertCell().textContent=(v===null?'?':typeof v==='number'?v.toLocaleString():v));
   }
 })();
 </script></body></html>

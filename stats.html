@@ -15,9 +15,14 @@ td.w{color:#b8bfca}
 <h1>Visits</h1>
 <p id="s">Loading the last 7 days…</p>
 <div class="wrap"><table><thead><tr><th>Day (Pacific)</th><th>Visitors</th><th>From Reddit</th><th>Page views</th><th>App opens</th></tr></thead><tbody id="t"></tbody></table></div>
-<h1 style="margin-top:34px;font-size:20px">Experiment 1: intro strip on app pages</h1>
-<p>Since Nov 17, 2026. Half of all browsers get the strip. Rates are per visitor, cumulative.</p>
-<div class="wrap"><table><thead><tr><th>Group</th><th>Visitors</th><th>App opens</th><th>Main page views</th><th>Likes</th><th>Strip clicks</th></tr></thead><tbody id="x"></tbody></table></div>
+<h1 style="margin-top:34px;font-size:20px">Experiment 2: like nudge on app pages</h1>
+<p>Since Nov 18, 2026. In group B the like button turns yellow and reads "Like it?" after 25 seconds on an app. Rates are per visitor, cumulative.</p>
+<div class="wrap"><table><thead><tr><th>Group</th><th>Visitors</th><th>Likes</th><th>App opens</th><th>Main page views</th><th>Nudges shown</th></tr></thead><tbody id="x"></tbody></table></div>
+<h1 style="margin-top:34px;font-size:20px">Finished</h1>
+<div class="wrap"><table><thead><tr><th>Experiment 1: intro strip (Nov 17–18)</th><th>Visitors</th><th>Likes</th><th>App opens</th><th>Main page views</th><th>Strip clicks</th></tr></thead><tbody>
+<tr><td>A: page as before</td><td>202</td><td>0.03</td><td>3.11</td><td>0.42</td><td>–</td></tr>
+<tr><td>B: intro strip</td><td>181</td><td>0.02</td><td>2.70</td><td>0.45</td><td>0.16</td></tr></tbody></table></div>
+<p style="margin-top:10px;font-size:12px">No improvement on any measure, so the strip was removed.</p>
 <p style="margin-top:14px;font-size:12px">Visitors = browsers seen that day. Counting started Nov 14, 2026 mid-afternoon. Your own visits count unless you open <a href="./?notrack=1">trez63.com/?notrack=1</a> once in each browser you use.</p>
 </main><script>
 (async()=>{
@@ -32,11 +37,11 @@ td.w{color:#b8bfca}
       await new Promise(r=>setTimeout(r,350)); }
   }
   s.textContent='Last 7 days. Reload for fresh numbers.';
-  const x=document.getElementById('x'), X='ab1-';
-  for(const [g,name] of [['a','A: page as before'],['b','B: intro strip on app pages']]){
-    const n={}; for(const k of ['u','o','h','l','c']){ n[k]=await get(X+g+'-'+k); await new Promise(r=>setTimeout(r,350)); }
+  const x=document.getElementById('x'), X='ab2-';
+  for(const [g,name] of [['a','A: button as before'],['b','B: like nudge']]){
+    const n={}; for(const k of ['u','l','o','h','n']){ n[k]=await get(X+g+'-'+k); await new Promise(r=>setTimeout(r,350)); }
     const per=(v)=>n.u?(v/n.u).toFixed(2):'–', tr=x.insertRow();
-    [name,n.u,per(n.o),per(n.h),per(n.l),g==='b'?per(n.c):'–'].forEach(v=>tr.insertCell().textContent=(v===null?'?':typeof v==='number'?v.toLocaleString():v));
+    [name,n.u,per(n.l),per(n.o),per(n.h),g==='b'?per(n.n):'–'].forEach(v=>tr.insertCell().textContent=(v===null?'?':typeof v==='number'?v.toLocaleString():v));
   }
 })();
 </script></body></html>

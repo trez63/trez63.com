@@ -593,7 +593,8 @@
           }
         ]
       },
-      "category": "art"
+      "category": "art",
+      "likes": 1
     },
     "chroma-desk": {
       "title": "Chroma Desk",
@@ -1582,7 +1583,8 @@
             "wait": 2500
           }
         ]
-      }
+      },
+      "likes": 1
     },
     "breathe": {
       "title": "Breathe",
@@ -1657,7 +1659,7 @@
         }
       ],
       "category": "art",
-      "likes": 2
+      "likes": 3
     },
     "nash": {
       "title": "Nash",
@@ -1676,7 +1678,7 @@
         }
       ],
       "category": "game",
-      "likes": 6
+      "likes": 8
     },
     "belfry": {
       "title": "Belfry",
@@ -2106,7 +2108,7 @@
         }
       ],
       "category": "art",
-      "likes": 1
+      "likes": 2
     },
     "cipherlab": {
       "title": "CipherLab",

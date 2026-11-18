@@ -2267,7 +2267,8 @@
           "sha": "e116e9eb26f7"
         }
       ],
-      "category": "game"
+      "category": "game",
+      "likes": 1
     },
     "regexpulse": {
       "title": "RegexPulse",

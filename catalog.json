@@ -799,7 +799,7 @@
         }
       ],
       "category": "sim",
-      "likes": 17
+      "likes": 18
     },
     "tidytext": {
       "title": "Tidy Text",
@@ -982,7 +982,7 @@
         }
       ],
       "category": "dev",
-      "likes": 3
+      "likes": 4
     },
     "logglass": {
       "title": "Logglass",
@@ -2251,7 +2251,8 @@
           "sha": "1dd4fe2198e3"
         }
       ],
-      "category": "focus"
+      "category": "focus",
+      "likes": 1
     },
     "moonpost": {
       "title": "Moonpost",

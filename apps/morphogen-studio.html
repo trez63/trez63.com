@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Morphogen Studio</title>
+<style>
+:root {
+  --bg: #0a0c10;
+  --fg: #e8eef4;
+  --panel: rgba(12,16,24,0.88);
+  --accent: #3ee0c2;
+  --muted: #8a9bb0;
+  --border: #1e2a38;
+  --danger: #ff5c7a;
+}
+body.light {
+  --bg: #f4f6f8;
+  --fg: #1a2230;
+  --panel: rgba(255,255,255,0.92);
+  --accent: #007a6e;
+  --muted: #5a6a7a;
+  --border: #d0d8e0;
+  --danger: #c0392b;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font-family: system-ui, -apple-system, sans-serif; overflow: hidden; }
+#wrap { display: flex; flex-direction: column; height: 100%; height: 100dvh; }
+#stage { flex: 1; position: relative; min-height: 0; }
+canvas { width: 100%; height: 100%; display: block; touch-action: none; background: #000; image-rendering: auto; }
+#ui { background: var(--panel); border-top: 1px solid var(--border); padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: center; font-size: 13px; }
+label { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+input[type=range] { width: 90px; accent-color: var(--accent); }
+select, button, input[type=file] { background: var(--bg); color: var(--fg); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; font-size: 13px; cursor: pointer; }
+button:hover, select:hover { border-color: var(--accent); }
+button.primary { background: var(--accent); color: #04120f; border-color: transparent; font-weight: 600; }
+#help {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.72); display: none; align-items: center; justify-content: center; z-index: 20;
+  padding: 20px;
+}
+#help.show { display: flex; }
+#help-inner {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px; max-width: 520px; max-height: 80vh; overflow: auto;
+  line-height: 1.5;
+}
+#help h2 { margin-top: 0; color: var(--accent); }
+#status { position: absolute; top: 12px; left: 12px; background: var(--panel); padding: 6px 10px; border-radius: 6px; font-size: 12px; pointer-events: none; }
+@media (max-width: 600px) {
+  #ui { font-size: 12px; gap: 6px; }
+  input[type=range] { width: 70px; }
+  #help-inner { padding: 16px; }
+}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="stage">
+    <canvas id="c"></canvas>
+    <div id="status">Evolving…</div>
+  </div>
+  <div id="ui">
+    <label>Preset <select id="preset"></select></label>
+    <label>F <input type="range" id="f" min="0.01" max="0.08" step="0.001"></label>
+    <label>K <input type="range" id="k" min="0.04" max="0.07" step="0.001"></label>
+    <label>Du <input type="range" id="du" min="0.1" max="0.3" step="0.01" value="0.16"></label>
+    <label>Dv <input type="range" id="dv" min="0.04" max="0.12" step="0.01" value="0.08"></label>
+    <button id="pause">Pause</button>
+    <button id="reset">Reset</button>
+    <button id="seed">Seed</button>
+    <button id="color">Color</button>
+    <button id="save" class="primary">Save</button>
+    <button id="open">Open</button>
+    <input type="file" id="file" accept=".json" hidden>
+    <button id="helpbtn">Help</button>
+    <button id="theme">Theme</button>
+  </div>
+</div>
+<div id="help">
+  <div id="help-inner">
+    <h2>Morphogen Studio</h2>
+    <p>Real-time Gray-Scott reaction-diffusion. Patterns self-organize from simple chemistry.</p>
+    <ul>
+      <li><b>Click / touch canvas</b> — paint activator (seed reaction)</li>
+      <li><b>Space</b> — pause / resume</li>
+      <li><b>R</b> — reset to uniform + central seeds</li>
+      <li><b>S</b> — save parameters as .json</li>
+      <li><b>T</b> — toggle dark / light theme</li>
+      <li><b>C</b> — cycle color map</li>
+      <li><b>H</b> or <b>?</b> — toggle this help</li>
+    </ul>
+    <p>Presets load classic parameter sets. Patterns continue evolving after you change F/K. Save/Open restores all sliders and color mode.</p>
+    <button id="closehelp">Close</button>
+  </div>
+</div>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d', { alpha: false });
+const W = 192, H = 192;
+const N = W * H;
+let U = new Float32Array(N), V = new Float32Array(N);
+let U2 = new Float32Array(N), V2 = new Float32Array(N);
+let f = 0.037, k = 0.06, du = 0.16, dv = 0.08;
+let paused = false, colorMode = 0, frame = 0;
+const presets = [
+  { name: 'Worms', f: 0.046, k: 0.063 },
+  { name: 'Spots', f: 0.035, k: 0.065 },
+  { name: 'Maze', f: 0.029, k: 0.057 },
+  { name: 'Coral', f: 0.054, k: 0.062 },
+  { name: 'Solitons', f: 0.030, k: 0.062 },
+  { name: 'Chaos', f: 0.026, k: 0.051 },
+  { name: 'Holes', f: 0.039, k: 0.058 }
+];
+const presetSel = document.getElementById('preset');
+presets.forEach((p, i) => {
+  const o = document.createElement('option');
+  o.value = i; o.textContent = p.name; presetSel.appendChild(o);
+});
+presetSel.value = 0;
+
+function idx(x, y) { return ((y + H) % H) * W + ((x + W) % W); }
+function lap(arr, x, y) {
+  const c = arr[idx(x, y)];
+  return arr[idx(x-1,y)] + arr[idx(x+1,y)] + arr[idx(x,y-1)] + arr[idx(x,y+1)] - 4 * c;
+}
+function seedCircle(cx, cy, r, vu = 0.5, vv = 1) {
+  for (let y = -r; y <= r; y++) for (let x = -r; x <= r; x++) {
+    if (x*x + y*y <= r*r) {
+      const i = idx(cx + x, cy + y);
+      U[i] = vu; V[i] = vv;
+    }
+  }
+}
+function reset() {
+  U.fill(1); V.fill(0);
+  seedCircle(W/2, H/2, 8);
+  seedCircle(W/2 + 20, H/2 - 15, 5);
+  seedCircle(W/2 - 25, H/2 + 10, 6);
+  U2.set(U); V2.set(V);
+  document.getElementById('status').textContent = 'Reset';
+}
+function applyPreset(i) {
+  const p = presets[i];
+  f = p.f; k = p.k;
+  document.getElementById('f').value = f;
+  document.getElementById('k').value = k;
+}
+function step() {
+  const F = f, K = k, Du = du, Dv = dv;
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const i = y * W + x;
+      const u = U[i], v = V[i];
+      const lu = lap(U, x, y), lv = lap(V, x, y);
+      const uvv = u * v * v;
+      let nu = u + Du * lu - uvv + F * (1 - u);
+      let nv = v + Dv * lv + uvv - (F + K) * v;
+      U2[i] = nu < 0 ? 0 : nu > 1 ? 1 : nu;
+      V2[i] = nv < 0 ? 0 : nv > 1 ? 1 : nv;
+    }
+  }
+  [U, U2] = [U2, U];
+  [V, V2] = [V2, V];
+}
+const colors = [
+  (v) => [v*40, 80 + v*175, 160 + v*95],          // teal-cyan
+  (v) => [v*255, v*180, 40],                       // heat
+  (v) => [20 + v*60, 30 + v*200, 40 + v*80],       // forest
+  (v) => [v*200, 40 + v*40, 180 + v*75],           // magenta
+  (v) => [240 - v*200, 240 - v*180, 255 - v*40]    // ice
+];
+function render() {
+  const img = ctx.createImageData(W, H);
+  const d = img.data;
+  const map = colors[colorMode % colors.length];
+  for (let i = 0; i < N; i++) {
+    const [r, g, b] = map(V[i]);
+    const o = i * 4;
+    d[o] = r; d[o+1] = g; d[o+2] = b; d[o+3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+}
+function loop() {
+  if (!paused) {
+    for (let s = 0; s < 8; s++) step();
+    frame++;
+    if (frame % 30 === 0) document.getElementById('status').textContent = paused ? 'Paused' : 'Evolving…';
+  }
+  render();
+  requestAnimationFrame(loop);
+}
+function paint(e) {
+  const rect = canvas.getBoundingClientRect();
+  const sx = (e.clientX - rect.left) / rect.width;
+  const sy = (e.clientY - rect.top) / rect.height;
+  const x = Math.floor(sx * W), y = Math.floor(sy * H);
+  seedCircle(x, y, 4, 0.4, 0.9);
+}
+canvas.addEventListener('pointerdown', paint);
+canvas.addEventListener('pointermove', e => { if (e.buttons) paint(e); });
+
+function togglePause() {
+  paused = !paused;
+  document.getElementById('pause').textContent = paused ? 'Resume' : 'Pause';
+  document.getElementById('status').textContent = paused ? 'Paused' : 'Evolving…';
+}
+function toggleTheme() {
+  document.body.classList.toggle('light');
+  const theme = document.body.classList.contains('light') ? 'light' : 'dark';
+  try { localStorage.setItem('morphogen-theme', theme); } catch(e) {}
+}
+function toggleHelp() { document.getElementById('help').classList.toggle('show'); }
+function cycleColor() { colorMode++; }
+
+document.getElementById('pause').onclick = togglePause;
+document.getElementById('reset').onclick = reset;
+document.getElementById('seed').onclick = () => { for (let i = 0; i < 12; i++) seedCircle(Math.random()*W, Math.random()*H, 3 + Math.random()*5); };
+document.getElementById('color').onclick = cycleColor;
+document.getElementById('theme').onclick = toggleTheme;
+document.getElementById('helpbtn').onclick = toggleHelp;
+document.getElementById('closehelp').onclick = toggleHelp;
+document.getElementById('f').oninput = e => f = +e.target.value;
+document.getElementById('k').oninput = e => k = +e.target.value;
+document.getElementById('du').oninput = e => du = +e.target.value;
+document.getElementById('dv').oninput = e => dv = +e.target.value;
+presetSel.onchange = e => applyPreset(+e.target.value);
+
+function saveState() {
+  const data = { f, k, du, dv, colorMode, preset: +presetSel.value };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'morphogen-studio.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+function loadState(data) {
+  if (data.f != null) { f = data.f; document.getElementById('f').value = f; }
+  if (data.k != null) { k = data.k; document.getElementById('k').value = k; }
+  if (data.du != null) { du = data.du; document.getElementById('du').value = du; }
+  if (data.dv != null) { dv = data.dv; document.getElementById('dv').value = dv; }
+  if (data.colorMode != null) colorMode = data.colorMode;
+  if (data.preset != null) presetSel.value = data.preset;
+}
+document.getElementById('save').onclick = saveState;
+document.getElementById('open').onclick = () => document.getElementById('file').click();
+document.getElementById('file').onchange = e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try { loadState(JSON.parse(reader.result)); } catch (err) { alert('Invalid file'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+};
+
+document.addEventListener('keydown', e => {
+  if (e.target.matches('input, select, button')) return;
+  const key = e.key.toLowerCase();
+  if (key === ' ') { e.preventDefault(); togglePause(); }
+  else if (key === 'r') reset();
+  else if (key === 't') toggleTheme();
+  else if (key === 'h' || key === '?') toggleHelp();
+  else if (key === 'c') cycleColor();
+  else if (key === 's') saveState();
+});
+
+// init
+try {
+  const t = localStorage.getItem('morphogen-theme');
+  if (t === 'light') document.body.classList.add('light');
+} catch(e) {}
+applyPreset(0);
+document.getElementById('f').value = f;
+document.getElementById('k').value = k;
+reset();
+// extra seeds for immediate interest
+for (let i = 0; i < 6; i++) seedCircle(40 + Math.random()*110, 40 + Math.random()*110, 4);
+canvas.width = W; canvas.height = H;
+loop();
+</script>
+</body>
+</html>

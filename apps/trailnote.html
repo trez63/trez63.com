@@ -1,0 +1,461 @@
+<!doctype html>
+<!-- Trailnote | Created 2026-11-18 (America/Los_Angeles)
+Purpose: Explore a local GPX route and keep a portable notebook of places along it.
+Main interaction: Move a shared cursor along the route and elevation profile, inspect the recorded position, and attach a note to that point.
+Visual approach: An evergreen field-guide masthead, a pale mineral sheet, mint survey plate, burnt-orange trail and ruled observation rail.
+Distinct from Tideglass, Poise and the earlier work utilities: the collection's first geographic track notebook, linking imported route geometry to distance, elevation and personal annotations. All code and graphics are contained in this one offline file. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#173f36">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Trailnote · A route, remembered</title>
+<style>
+:root{color-scheme:light;--paper:#edf1ef;--sheet:#fbfcfa;--ink:#173f36;--sub:#50665e;--line:#b7c9bf;--mint:#d9e9dd;--orange:#ac4b29;--yellow:#e6f4ac;--body:system-ui,-apple-system,"Segoe UI",sans-serif;--mono:ui-monospace,SFMono-Regular,Consolas,monospace;font-family:var(--body);font-size:16px;line-height:1.45;color:var(--ink);background:var(--paper)}
+*,*::before,*::after{box-sizing:border-box}body{margin:0;min-height:100vh}button,input,select,textarea{font:inherit;color:inherit}button,select{touch-action:manipulation}button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;min-width:44px;border:1px solid #8aa297;border-radius:5px;padding:9px 16px;background:var(--sheet);font-size:.91rem;line-height:1.2;font-weight:650;cursor:pointer}button:disabled{opacity:.4;cursor:default}button.primary{background:var(--ink);color:white;border-color:var(--ink)}button.quiet{border-color:transparent;background:transparent;padding-inline:8px}button svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(--orange);outline-offset:3px}input[type=text],select,textarea{font-size:16px;min-width:0;max-width:100%;min-height:44px;border:1px solid #94ab9f;border-radius:4px;padding:9px 11px;background:var(--sheet)}textarea{width:100%;display:block;line-height:1.5;resize:vertical}select{padding-right:27px;cursor:pointer}input[type=range]{display:block;width:100%;min-width:0;margin:0;min-height:44px;accent-color:var(--orange);cursor:pointer}[hidden]{display:none!important}h1,h2,h3,p{margin:0}button,.number{font-variant-numeric:tabular-nums}.page{max-width:1480px;margin:auto;padding:28px 42px 36px;padding-top:max(28px,env(safe-area-inset-top));padding-left:max(42px,env(safe-area-inset-left));padding-right:max(42px,env(safe-area-inset-right));padding-bottom:max(36px,env(safe-area-inset-bottom))}
+.mast{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:18px;padding:24px 29px;background:var(--ink);color:#f4f7ef;border-radius:7px 7px 0 0}.identity{display:flex;align-items:center;gap:16px}.brandMark{width:62px;height:61px;flex:none}.brandName{font-weight:780;font-size:clamp(2.5rem,4.3vw,4.1rem);line-height:.96;letter-spacing:-.065em}.tagline{color:#c6dbca;font-size:.87rem;letter-spacing:.035em;margin-top:7px}.actions{display:flex;flex-wrap:wrap;gap:7px;align-items:center}.mast button{background:transparent;color:#f3f8ec;border-color:#779888}.mast .primary{background:var(--yellow);border-color:var(--yellow);color:#173f36}.mast .quiet{border-color:transparent}.edition{font:500 .68rem/1.35 var(--mono);letter-spacing:.13em;color:#bcd4c5;margin-left:auto;padding-right:12px;text-align:right}
+.intro{display:flex;gap:24px;justify-content:space-between;align-items:center;padding:20px 1px 19px;border-bottom:1px solid var(--line)}.intro p{max-width:66ch;font-size:.96rem;color:var(--sub);line-height:1.55}.intro strong{color:var(--ink);font-weight:650}.import{background:#f8fbf1;border-color:#9caf96;flex:none}.status{font-size:.92rem;font-weight:620;color:#763e26;overflow-wrap:anywhere}.status:not(:empty){padding-top:13px}
+.routeHeading{display:flex;gap:20px;align-items:end;justify-content:space-between;padding:20px 0 17px}.nameField{min-width:0;flex:1}.caption{display:block;font:550 .72rem/1.3 var(--mono);letter-spacing:.075em;text-transform:uppercase;margin-bottom:7px;color:var(--sub)}#title{width:100%;padding:4px 0 7px;border:0;border-bottom:1px solid #97aea1;border-radius:0;background:transparent;min-height:46px;font-weight:700;font-size:clamp(1.36rem,2.2vw,1.88rem);letter-spacing:-.04em}#title::placeholder{font-weight:500;color:#64786c}.unitsField{flex:none}.unitsField select{min-width:88px}.exampleBadge{font:600 .69rem/1.3 var(--mono);color:#6e4a2e;background:#eee2ca;border:1px solid #d5c4a1;border-radius:3px;padding:6px 8px;letter-spacing:.025em;margin-bottom:10px;white-space:nowrap}.summary{display:grid;grid-template-columns:1fr 1.1fr .8fr;margin-bottom:20px;border-block:1px solid var(--line);background:#e4ece5}.summaryItem{padding:13px 18px 15px;min-width:0}.summaryItem+.summaryItem{border-left:1px solid var(--line)}.summary .caption{margin-bottom:4px;font-size:.68rem}.summaryValue{font-weight:700;font-size:clamp(1.16rem,2vw,1.65rem);line-height:1.2;letter-spacing:-.025em;overflow-wrap:anywhere}
+.work{display:grid;grid-template-columns:minmax(0,1.9fr) minmax(270px,.85fr);gap:29px;align-items:start}.atlas{min-width:0;border:1px solid #aec4b4;border-radius:5px;background:var(--sheet);overflow:hidden}.plateHeader{display:flex;justify-content:space-between;gap:12px;padding:13px 18px;align-items:center;background:#edf4e9;border-bottom:1px solid #b9cdbb}.plateHeader h2{font-size:.88rem;font-weight:700;letter-spacing:.01em}.smallLabel{font:500 .67rem/1.35 var(--mono);letter-spacing:.07em;color:var(--sub);text-transform:uppercase}.plateHeader .smallLabel{display:flex;align-items:center;gap:8px}.trailKey{display:inline-block;width:22px;border-top:3px solid var(--orange);flex:none}#route{width:100%;aspect-ratio:680/420;background:var(--mint);position:relative;overflow:hidden;min-width:0}#route>svg{display:block;width:100%;height:100%}#route svg [data-index]{cursor:pointer}.routeFoot{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 18px;background:#eaf2e8;border-top:1px solid #bdcfbf;color:var(--sub);font-size:.76rem}.north{display:flex;gap:6px;align-items:center;font:600 .75rem var(--mono)}.north::before{content:"↑";font:600 1.25rem var(--body);color:var(--ink)}.profilePanel{padding:15px 18px 8px;border-top:1px solid #bdcfbf}.profileLabel{display:flex;justify-content:space-between;gap:8px;align-items:center}.profileLabel h3{font-size:.88rem;font-weight:700}.profileLabel .smallLabel{text-transform:none;letter-spacing:0}#profile{aspect-ratio:680/160;width:100%;position:relative;min-height:78px}#profile>svg{display:block;width:100%;height:100%}
+.cursorControl{background:#f7f9f2;border-top:1px solid var(--line);padding:12px 18px 15px}.cursorHead{display:flex;justify-content:space-between;align-items:center;gap:10px}.cursorHead label{font-weight:700;font-size:.9rem}#pointLabel{font:500 .72rem var(--mono);color:var(--sub);text-align:right}.stepper{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;gap:12px;align-items:center;margin-top:6px}.stepper button{padding:0;border-radius:50%;background:transparent;font-size:1.3rem}.cursorHint{font-size:.78rem;color:var(--sub);margin-top:5px}
+.journal{min-width:0}.journalHead{display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:2px solid var(--ink);padding-bottom:10px}.journalHead h2{font-size:1.6rem;line-height:1.1;letter-spacing:-.05em}.journalHead .quiet{color:var(--sub);min-height:44px}.currentReading{padding:17px 0;border-bottom:1px solid var(--line)}.readingGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.readingGrid .caption{font-size:.66rem;letter-spacing:.04em}.readingValue{font-size:1.25rem;font-weight:700;letter-spacing:-.025em;line-height:1.25;overflow-wrap:anywhere}.coordinate{font:400 .75rem/1.5 var(--mono);color:var(--sub);margin-top:13px;overflow-wrap:anywhere}.noteForm{padding:17px 0 18px;border-bottom:1px solid var(--line)}.noteForm label{font-size:.91rem;font-weight:700;display:block;margin-bottom:8px}.noteForm textarea{border-color:#b0c0b3;background:var(--sheet);min-height:112px}.noteForm .noteActions{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:10px}.noteForm .noteHint{font-size:.76rem;color:var(--sub);max-width:20ch}.noteForm button{flex:none}.notesHead{display:flex;justify-content:space-between;align-items:center;padding:17px 0 11px}.notesHead h3{font-size:.95rem;font-weight:700}.notesHead .smallLabel{font-size:.62rem;letter-spacing:.03em}.noteList{display:grid;gap:0;padding:0;margin:0;list-style:none}.noteList>article,.noteList>li,.noteCard{padding:13px 0;border-top:1px solid var(--line);overflow-wrap:anywhere}.noteList p{white-space:pre-wrap;font-size:.91rem;line-height:1.55}.noteList button{font-size:.81rem;min-height:44px}.noteList .noteMeta,.noteList header{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}.noteList .noteMeta{font:500 .7rem var(--mono);color:var(--sub)}.emptyNotes{font-size:.88rem;line-height:1.6;color:var(--sub);padding:4px 0 10px}.footer{margin-top:23px;display:flex;gap:14px;align-items:center;justify-content:space-between;font-size:.76rem;color:var(--sub)}.footer .smallLabel{font-size:.62rem;letter-spacing:.08em}
+dialog{width:min(470px,calc(100% - 28px));padding:25px;border:1px solid #8aa196;border-radius:8px;background:var(--sheet);color:var(--ink);max-height:calc(100vh - 28px);max-height:calc(100dvh - max(28px,env(safe-area-inset-top) + env(safe-area-inset-bottom)));overflow:auto;overscroll-behavior:contain;box-shadow:0 15px 70px #122b2945}dialog::backdrop{background:#102e29a8}dialog h2{font-size:1.7rem;line-height:1.15;letter-spacing:-.045em;margin-bottom:13px}dialog p,dialog li{font-size:.94rem;line-height:1.55;overflow-wrap:anywhere}dialog p+p{margin-top:10px}dialog ol{padding-left:21px;margin-block:13px}dialog li+li{margin-top:8px}dialog .actions{margin-top:16px}#manual{margin-top:17px}#fileText{font:14px/1.5 var(--mono)}#selectText{margin-top:7px}
+@media(hover:hover){button:enabled:hover{filter:brightness(.94)}.mast button:enabled:hover{filter:brightness(1.1)}.mast .primary:enabled:hover{filter:brightness(.94)}}
+@media(max-width:1100px){.page{padding-inline:max(24px,env(safe-area-inset-left)) max(24px,env(safe-area-inset-right))}.mast{padding:22px}.edition{display:none}.work{gap:22px;grid-template-columns:minmax(0,1.7fr) minmax(260px,.9fr)}.summaryItem{padding-inline:14px}.noteForm .noteActions{align-items:flex-start;flex-direction:column}.noteForm .noteHint{max-width:none}.noteForm .noteActions button{width:100%}}
+@media(max-width:780px){.page{padding:16px 18px 27px;padding-top:max(16px,env(safe-area-inset-top));padding-left:max(18px,env(safe-area-inset-left));padding-right:max(18px,env(safe-area-inset-right));padding-bottom:max(27px,env(safe-area-inset-bottom))}.mast{gap:15px;padding:19px}.brandMark{width:47px;height:48px}.identity{gap:10px}.brandName{font-size:2.9rem}.tagline{font-size:.79rem}.mast .actions{gap:5px}.mast button{padding-inline:11px}.work{grid-template-columns:minmax(0,1fr);gap:25px}.intro{gap:14px;padding-block:17px}.intro p{font-size:.9rem}.routeHeading{padding-top:16px;gap:12px;flex-wrap:wrap}.nameField{flex-basis:60%}.exampleBadge{order:3;margin:0}.summary{margin-bottom:16px}.summaryValue{font-size:1.27rem}.journalHead h2{font-size:1.55rem}.currentReading{padding-block:14px}.readingGrid{max-width:400px}.noteForm .noteActions{flex-direction:row;align-items:center}.noteForm .noteActions button{width:auto}.noteForm .noteHint{max-width:32ch}.noteForm textarea{min-height:96px}.footer{align-items:flex-start}.footer p:first-child{max-width:46ch}}
+@media(max-width:510px){.page{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}.mast{padding:17px 15px 15px;gap:16px}.mast .actions{width:100%}.mast .quiet{margin-left:auto}.intro{align-items:flex-start;flex-direction:column;gap:12px}.intro .import{width:100%}.routeHeading{gap:11px}.nameField{flex-basis:calc(100% - 105px)}.unitsField select{min-width:78px}.summaryItem{padding:12px 10px}.summary .caption{font-size:.6rem;letter-spacing:.025em}.summaryValue{font-size:1.05rem}.summary{grid-template-columns:.95fr 1.2fr .78fr}.plateHeader{padding:11px 12px}.plateHeader .smallLabel{font-size:.6rem;letter-spacing:.03em}.routeFoot{padding:8px 12px;font-size:.69rem}.profilePanel{padding:13px 10px 7px}.profileLabel{padding-inline:2px}.profileLabel .smallLabel{font-size:.61rem}.cursorControl{padding:11px 12px 13px}.stepper{gap:8px}.cursorHint{font-size:.72rem}.noteForm .noteHint{max-width:22ch}.footer{flex-direction:column;gap:6px;margin-top:20px}dialog{padding:21px}}
+@media(max-width:350px){.brandName{font-size:2.5rem}.brandMark{width:39px;height:43px}.mast{padding-inline:12px}.summaryItem{padding-inline:7px}.summaryValue{font-size:.96rem}.summary .caption{font-size:.57rem}.plateHeader .smallLabel{max-width:105px}.noteForm .noteActions{align-items:flex-start;flex-direction:column}.noteForm .noteActions button{width:100%}.noteForm .noteHint{max-width:none}.routeFoot{align-items:flex-start}.routeFoot p{max-width:25ch}.stepper{gap:6px}#pointLabel{font-size:.66rem}.cursorHead label{font-size:.84rem}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+.route-note>button{display:grid;grid-template-columns:26px minmax(0,1fr) 15px;align-items:start;text-align:left;width:100%;padding:8px 0;border:0;border-radius:0;background:transparent;line-height:1.5;font-weight:400}.note-number{font-family:var(--mono);color:var(--orange)}.note-copy{display:block;white-space:pre-wrap;overflow-wrap:anywhere;margin-top:4px;font-size:.91rem}.route-note strong{font-family:var(--mono);font-size:.73rem}.empty-note{font-size:.9rem;line-height:1.6;color:var(--sub)}#fileText{font-size:16px}#route,#profile{cursor:crosshair}
+</style>
+</head>
+<body>
+<main class="page">
+ <header class="mast">
+  <div class="identity">
+   <svg class="brandMark" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><path d="M7 52 23 14l10 21 9-17 16 34" fill="none" stroke="#c8debc" stroke-width="2.2" stroke-linejoin="round"/><path d="M27 57c-14-10 17-14 11-22-5-7-12-4-10-14" fill="none" stroke="#e6f4ac" stroke-width="3" stroke-linecap="round"/><circle cx="28" cy="21" r="4" fill="#e6f4ac"/><path d="M3 57h58M23 14l-2 10 7 1" fill="none" stroke="#749c86" stroke-width="1.5"/></svg>
+   <div><h1 class="brandName">Trailnote</h1><p class="tagline">A route, remembered.</p></div>
+  </div>
+  <p class="edition">THE POCKET<br>ROUTE NOTEBOOK</p>
+  <nav class="actions" aria-label="Notebook files and help">
+   <button id="open" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19V6h7l2 2h8v3M3 19l3-7h15l-3 7H3z"/></svg>Open</button>
+   <button id="save" type="button" class="primary"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 17v4h16v-4"/></svg>Save</button>
+   <button id="help" type="button" class="quiet" aria-haspopup="dialog">Guide</button>
+  </nav>
+  <input type="file" id="file" accept=".json,application/json" hidden>
+  <input type="file" id="gpxFile" accept=".gpx,application/gpx+xml,application/xml,text/xml" hidden>
+ </header>
+ <noscript><p>Enable JavaScript in your browser to explore a route and keep notes.</p></noscript>
+ <section class="intro" aria-label="Getting started"><p><strong>Open a GPX route, or explore the example.</strong> Move the route cursor to connect distance, elevation and notes.</p><button id="importGPX" type="button" class="import"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H5v18h14V8l-5-5v5h5M8 15h8m-4-4v8"/></svg>Import GPX</button></section>
+ <p id="status" class="status" role="status" aria-live="polite" aria-atomic="true"></p>
+ <div class="routeHeading">
+  <label class="nameField" for="title"><span class="caption">Route notebook</span><input type="text" id="title" maxlength="100" placeholder="Untitled route" autocomplete="off" spellcheck="false"></label>
+  <label class="unitsField" for="units"><span class="caption">Distance</span><select id="units"><option value="km">km</option><option value="mi">mi</option></select></label>
+  <span id="example" class="exampleBadge">FICTIONAL EXAMPLE</span>
+ </div>
+ <section class="summary" aria-label="Route summary">
+  <div class="summaryItem"><span class="caption">Recorded distance</span><p id="distance" class="summaryValue number">—</p></div>
+  <div class="summaryItem"><span class="caption">Elevation range</span><p id="elevationRange" class="summaryValue number">—</p></div>
+  <div class="summaryItem"><span class="caption">Route points</span><p id="pointCount" class="summaryValue number">—</p></div>
+ </section>
+ <div class="work">
+  <section class="atlas" aria-labelledby="atlas-title">
+   <div class="plateHeader"><h2 id="atlas-title">The route</h2><span class="smallLabel"><i class="trailKey" aria-hidden="true"></i>Recorded path</span></div>
+   <div id="route"></div>
+   <div class="routeFoot"><p>Tap the route to place your cursor.</p><span class="north" aria-label="North is up">N</span></div>
+   <section class="profilePanel" aria-labelledby="profile-title">
+    <div class="profileLabel"><h3 id="profile-title">Elevation profile</h3><span class="smallLabel">Same route. A different view.</span></div>
+    <div id="profile"></div>
+   </section>
+   <div class="cursorControl">
+    <div class="cursorHead"><label for="scrub">Travel the route</label><span id="pointLabel">Point 1</span></div>
+    <div class="stepper"><button id="previous" type="button" aria-label="Previous route point">←</button><input type="range" id="scrub" min="0" max="1" value="0" step="1"><button id="next" type="button" aria-label="Next route point">→</button></div>
+    <p class="cursorHint">Use the slider or arrows to inspect every recorded point.</p>
+   </div>
+  </section>
+  <aside class="journal" aria-labelledby="journal-title">
+   <div class="journalHead"><h2 id="journal-title">Field notes</h2><button id="undo" type="button" class="quiet">Undo</button></div>
+   <section class="currentReading" aria-label="Selected route point">
+    <div class="readingGrid"><div><span class="caption">Along the route</span><p id="cursorDistance" class="readingValue number">—</p></div><div><span class="caption">At this elevation</span><p id="cursorElevation" class="readingValue number">—</p></div></div>
+    <p id="coordinate" class="coordinate">—</p>
+   </section>
+   <div class="noteForm">
+    <label for="note">Note at this point</label><textarea id="note" rows="4" maxlength="500" placeholder="A good rest stop, a steep stretch, a view worth returning to…"></textarea>
+    <div class="noteActions"><p class="noteHint">Notes stay attached as you move the cursor.</p><button id="addNote" type="button">Clear this note</button></div>
+   </div>
+   <div class="notesHead"><h3>Your route notes</h3><span class="smallLabel">IN ROUTE ORDER</span></div>
+   <ul id="notes" class="noteList"></ul>
+   <p id="emptyNotes" class="emptyNotes">Pick a place on the route and add your first note.</p>
+  </aside>
+ </div>
+ <footer class="footer"><p>Everything stays in this browser. Save a notebook file to keep your route and notes.</p><span class="smallLabel">BUILT FOR EXPLORING · WORKS OFFLINE</span></footer>
+</main>
+<dialog id="guideDialog" aria-labelledby="guide-title">
+ <h2 id="guide-title">Your route, point by point.</h2>
+ <ol><li><strong>Import GPX</strong> opens a local track or route file. The fictional example is ready to explore immediately.</li><li>Move the slider, use the arrows, or tap the route to choose a point. The profile and measurements follow the same cursor.</li><li>Write in <strong>Note at this point</strong>. Your words stay attached as you move the cursor. Select a route note to return to that spot. You can keep up to 40 notes.</li></ol>
+ <p><strong>Save</strong> downloads a notebook file with the route, notes, units and cursor position. <strong>Open</strong> restores a saved Trailnote notebook. On an iPhone, use the offered share control to save to Files when available.</p>
+ <p>Distance follows consecutive recorded points within each track segment. Gaps between segments are excluded. Elevation comes from the imported file; points without a height appear as gaps in the profile.</p>
+ <p>The route drawing shows recorded geometry. It does not include terrain, roads or live navigation, and needs no device location. Very sparse or noisy recordings can affect measurements.</p>
+ <div class="actions"><button type="button" class="primary" data-close>Back to the route</button></div>
+</dialog>
+<dialog id="fileDialog" aria-labelledby="fileHeading">
+ <h2 id="fileHeading">Save notebook</h2><p id="fileInfo"></p>
+ <div class="actions"><button id="share" type="button">Share or save to Files</button><button id="again" type="button">Download again</button></div>
+ <div id="manual" hidden><label for="fileText" class="caption">Complete file text</label><textarea id="fileText" rows="4" readonly spellcheck="false"></textarea><button id="selectText" type="button">Select text</button></div>
+ <div class="actions"><button type="button" class="primary" data-close>Done</button></div>
+</dialog>
+<dialog id="confirmDialog" aria-labelledby="confirm-title">
+ <h2 id="confirm-title">Replace this notebook?</h2><p id="confText"></p>
+ <div class="actions"><button id="keep" type="button" class="primary" autofocus>Keep current notebook</button><button id="replace" type="button">Replace</button></div>
+</dialog>
+<script>
+(() => { 'use strict';
+const MAX_FILE_BYTES = 2097152;
+const MAX_ROUTE_POINTS = 8000;
+const EARTH_RADIUS_KM = 6371.0088;
+
+function sameKeys(value, keys) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const actual = Object.keys(value);
+  return actual.length === keys.length && keys.every(key => Object.prototype.hasOwnProperty.call(value, key));
+}
+function validNumber(value, low, high) {
+  return typeof value === 'number' && Number.isFinite(value) && value >= low && value <= high;
+}
+function checkTextSize(text) {
+  if (typeof text !== 'string') throw Error('Choose a text file.');
+  if (text.length > MAX_FILE_BYTES) throw Error('This file is too large. The limit is 2 MiB.');
+  let bytes = 0;
+  for (const char of text) {
+    const point = char.codePointAt(0);
+    bytes += point < 128 ? 1 : point < 2048 ? 2 : point < 65536 ? 3 : 4;
+    if (bytes > MAX_FILE_BYTES) throw Error('This file is too large. The limit is 2 MiB.');
+  }
+}
+function validateState(value) {
+  if (!sameKeys(value, ['title','source','units','selected','notes','segments'])) throw Error('The saved workspace has an unexpected structure.');
+  if (typeof value.title !== 'string' || value.title.length > 100) throw Error('The route title must contain at most 100 characters.');
+  if (!['km','mi'].includes(value.units)) throw Error('The saved distance unit is not supported.');
+  if (!['example','gpx'].includes(value.source)) throw Error('The saved route source is not supported.');
+  if (!Array.isArray(value.segments) || value.segments.length < 1 || value.segments.length > 100) throw Error('Use a route with 1 to 100 segments.');
+  let total = 0;
+  const segments = value.segments.map(segment => {
+    if (!Array.isArray(segment) || !segment.length || segment.length > MAX_ROUTE_POINTS) throw Error('Each route segment must contain points.');
+    total += segment.length;
+    if (total > MAX_ROUTE_POINTS) throw Error('This route has too many points. The limit is 8,000.');
+    return segment.map(point => {
+      if (!sameKeys(point, ['lat','lon','ele']) || !validNumber(point.lat,-90,90) || !validNumber(point.lon,-180,180)) throw Error('A route point has invalid coordinates.');
+      if (point.ele !== null && !validNumber(point.ele,-12000,100000)) throw Error('A route point has an invalid elevation.');
+      return {lat:point.lat,lon:point.lon,ele:point.ele};
+    });
+  });
+  if (total < 2) throw Error('A route needs at least two points.');
+  if (!Number.isInteger(value.selected) || value.selected < 0 || value.selected >= total) throw Error('The selected point is outside this route.');
+  if (!Array.isArray(value.notes) || value.notes.length > 40) throw Error('A route can contain up to 40 notes.');
+  const indices = new Set();
+  const notes = value.notes.map(note => {
+    if (!sameKeys(note,['index','text']) || !Number.isInteger(note.index) || note.index < 0 || note.index >= total || indices.has(note.index)) throw Error('A route note refers to an invalid or duplicate point.');
+    if (typeof note.text !== 'string' || note.text.length > 500) throw Error('Each note must contain at most 500 characters.');
+    indices.add(note.index);
+    return {index:note.index,text:note.text};
+  });
+  return {title:value.title,source:value.source,units:value.units,selected:value.selected,notes,segments};
+}
+function serializeSession(work) {
+  return JSON.stringify({app:'trailnote',version:1,workspace:validateState(work)},null,2);
+}
+function readSession(text) {
+  checkTextSize(text);
+  let data;
+  try { data = JSON.parse(text.replace(/^\uFEFF/,'')); }
+  catch (_) { throw Error('This file is not valid JSON. Choose a Trailnote save.'); }
+  if (!sameKeys(data,['app','version','workspace']) || data.app !== 'trailnote') throw Error('This is not a Trailnote save. Use Import GPX for a track file.');
+  if (data.version !== 1) throw Error('This Trailnote file version is not supported.');
+  return validateState(data.workspace);
+}
+function makeExample() {
+  const segment = [];
+  for (let index = 0; index <= 180; index++) {
+    const t = index / 180 * Math.PI * 2;
+    const lat = 37.26 + .018*Math.sin(t) + .0038*Math.sin(3*t);
+    const lon = -119.63 + .023*(Math.cos(t)-1) + .0032*Math.sin(4*t);
+    const ele = 340 + 226*Math.pow(Math.sin(t/2),2) + 36*Math.sin(2*t) + 13*Math.sin(5*t);
+    segment.push({lat:Number(lat.toFixed(7)),lon:Number(lon.toFixed(7)),ele:Math.round(ele)});
+  }
+  return {title:'Example ridge walk',source:'example',units:'km',selected:0,notes:[
+    {index:0,text:'A fictional route to explore. Import a GPX file to work with your own journey.'},
+    {index:48,text:'The first ridge. Move the route cursor to compare this spot with the elevation profile.'},
+    {index:104,text:'A place for a pause. Add your own observations to any point on the route.'}
+  ],segments:[segment]};
+}
+function analyze(work) {
+  const radians = Math.PI/180;
+  const points = [];
+  let distance = 0, minElevation = null, maxElevation = null;
+  let latitudeSum = 0, previousUnwrapped = null;
+  for (let segment = 0; segment < work.segments.length; segment++) {
+    let previous = null;
+    for (const source of work.segments[segment]) {
+      if (previous) {
+        const dLat = (source.lat-previous.lat)*radians;
+        const dLon = (source.lon-previous.lon)*radians;
+        const halfChord = Math.sin(dLat/2)**2 + Math.cos(previous.lat*radians)*Math.cos(source.lat*radians)*Math.sin(dLon/2)**2;
+        distance += 2*EARTH_RADIUS_KM*Math.asin(Math.sqrt(Math.max(0,Math.min(1,halfChord))));
+      }
+      let unwrapped = source.lon;
+      if (previousUnwrapped !== null) unwrapped += 360*Math.round((previousUnwrapped-unwrapped)/360);
+      previousUnwrapped = unwrapped;
+      points.push({...source,segment,index:points.length,distance,x:unwrapped,y:-source.lat});
+      latitudeSum += source.lat;
+      if (source.ele !== null) {
+        minElevation = minElevation === null ? source.ele : Math.min(minElevation,source.ele);
+        maxElevation = maxElevation === null ? source.ele : Math.max(maxElevation,source.ele);
+      }
+      previous = source;
+    }
+  }
+  const meanLat = latitudeSum/points.length;
+  const lonScale = Math.cos(meanLat*radians)*EARTH_RADIUS_KM*radians;
+  const latScale = EARTH_RADIUS_KM*radians;
+  const originX = points[0].x, originY = -meanLat;
+  for (const point of points) {
+    point.x = (point.x-originX)*lonScale;
+    point.y = (point.y-originY)*latScale;
+  }
+  return {points,distance,minElevation,maxElevation};
+}
+function parseGPX(text) {
+  checkTextSize(text);
+  if (/<!\s*(?:DOCTYPE|ENTITY)\b/i.test(text)) throw Error('GPX files with document types or entity declarations are not supported.');
+  if (typeof DOMParser === 'undefined') throw Error('This browser cannot read GPX files. Open a Trailnote save instead.');
+  const doc = new DOMParser().parseFromString(text,'application/xml');
+  if (!doc.documentElement || doc.getElementsByTagName('parsererror').length || doc.getElementsByTagNameNS('*','parsererror').length) throw Error('This GPX file contains invalid XML.');
+  const root = doc.documentElement;
+  const ns = root.namespaceURI || '';
+  if (root.localName !== 'gpx' || !['','http://www.topografix.com/GPX/1/0','http://www.topografix.com/GPX/1/1'].includes(ns)) throw Error('Choose a GPX 1.0 or 1.1 route or track file.');
+  const version = root.getAttribute('version');
+  if (version && !['1.0','1.1'].includes(version)) throw Error('This GPX version is not supported.');
+  const children = (parent,name) => Array.from(parent.children).filter(child => child.localName === name && (child.namespaceURI || '') === ns);
+  const decimal = (raw,label) => {
+    if (raw === null || !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(raw.trim())) throw Error('A GPX point has an invalid '+label+'.');
+    const value = Number(raw);
+    if (!Number.isFinite(value)) throw Error('A GPX point has an invalid '+label+'.');
+    return value;
+  };
+  let count = 0;
+  const readPoints = (parent,tag) => children(parent,tag).map(point => {
+    if (++count > MAX_ROUTE_POINTS) throw Error('This GPX file has too many points. The limit is 8,000.');
+    const elevations = children(point,'ele');
+    if (elevations.length > 1) throw Error('A GPX point contains more than one elevation.');
+    return {lat:decimal(point.getAttribute('lat'),'latitude'),lon:decimal(point.getAttribute('lon'),'longitude'),ele:elevations.length?decimal(elevations[0].textContent,'elevation'):null};
+  });
+  let segments = [], title = '';
+  const nameOf = parent => {
+    const name = children(parent,'name')[0];
+    return name ? name.textContent.trim().slice(0,100) : '';
+  };
+  for (const track of children(root,'trk')) {
+    for (const group of children(track,'trkseg')) {
+      const points = readPoints(group,'trkpt');
+      if (points.length) {
+        if (!title) title = nameOf(track);
+        segments.push(points);
+      }
+    }
+  }
+  if (!segments.length) {
+    for (const route of children(root,'rte')) {
+      const points = readPoints(route,'rtept');
+      if (points.length) {
+        if (!title) title = nameOf(route);
+        segments.push(points);
+      }
+    }
+  }
+  if (!segments.length) throw Error('This GPX file contains no track or route points.');
+  return validateState({title:title || 'Imported route',source:'gpx',units:'km',selected:0,notes:[],segments});
+}
+
+function esc(value){return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function fmtDistance(km,units){return (km*(units==='mi'?0.621371192:1)).toLocaleString(undefined,{maximumFractionDigits:2,minimumFractionDigits:2})+' '+units;}
+function fmtHeight(m,units){return m===null?'No elevation':Math.round(m*(units==='mi'?3.280839895:1)).toLocaleString()+' '+(units==='mi'?'ft':'m');}
+function mapGeometry(data){
+  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+  for(const p of data.points){minX=Math.min(minX,p.x);maxX=Math.max(maxX,p.x);minY=Math.min(minY,p.y);maxY=Math.max(maxY,p.y);}
+  const spanX=maxX-minX,spanY=maxY-minY,scale=Math.min(540/(spanX||1e-8),290/(spanY||1e-8));
+  return data.points.map(p=>({x:340+(p.x-(minX+maxX)/2)*scale,y:208+(p.y-(minY+maxY)/2)*scale}));
+}
+function pointPath(points,data,end=points.length-1){
+  let result='';for(let i=0;i<=end;i++)result+=(i===0||data.points[i].segment!==data.points[i-1].segment?'M':'L')+points[i].x.toFixed(2)+' '+points[i].y.toFixed(2);
+  return result;
+}
+function profileGeometry(data){
+  const lo=data.minElevation??0,hi=data.maxElevation??0,span=hi-lo;
+  return data.points.map(p=>({x:54+(data.distance?p.distance/data.distance:0)*580,y:p.ele===null?null:(span?119-(p.ele-lo)/span*91:73)}));
+}
+function routeMarkup(data,coords){
+  const first=coords[0],last=coords[coords.length-1];
+  return `<svg viewBox="0 0 680 420" role="img" aria-labelledby="routeSvgTitle routeSvgDesc"><title id="routeSvgTitle">Route geometry</title><desc id="routeSvgDesc">Tap the route to inspect a point, or use the numbered cursor below. North is up. Separate track segments stay separate.</desc>
+  <defs><pattern id="surveyGrid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#c6d9d1" stroke-width=".7"/></pattern></defs>
+  <rect width="680" height="420" fill="#e2eee7"/><rect x="20" y="20" width="640" height="380" fill="url(#surveyGrid)"/>
+  <g fill="none" stroke="#b4cbc0"><path d="M20 35V20H35M645 20H660V35M20 385V400H35M645 400H660V385"/></g>
+  <g transform="translate(620 63)" fill="#224c40"><path d="M0-20L-6-3H6Z"/><path d="M0-3V13" fill="none" stroke="#224c40"/><text y="30" text-anchor="middle" font-family="sans-serif" font-size="11">N</text></g>
+  <path d="${pointPath(coords,data)}" fill="none" stroke="#91afa1" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path id="routeProgress" d="" fill="none" stroke="#be4b2e" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="${first.x}" cy="${first.y}" r="7" fill="#e2eee7" stroke="#224c40" stroke-width="3"/>
+  <rect x="${last.x-5}" y="${last.y-5}" width="10" height="10" fill="#224c40" stroke="#e2eee7" stroke-width="2"/>
+  <g id="routeNotePins"></g>
+  <g id="routeCursor" pointer-events="none"><circle r="15" fill="#fffaf0" stroke="#be4b2e" stroke-width="2"/><circle r="5" fill="#be4b2e"/><path d="M-23 0H-18M18 0H23M0-23V-18M0 18V23" stroke="#be4b2e" stroke-width="1.5"/></g>
+  <g font-family="sans-serif" font-size="11" fill="#315b4c"><circle cx="35" cy="380" r="4" fill="none" stroke="#224c40" stroke-width="2"/><text x="46" y="384">Start</text><rect x="98" y="376" width="8" height="8" fill="#224c40"/><text x="114" y="384">Finish</text><text x="644" y="384" text-anchor="end">${data.points.length.toLocaleString()} recorded points</text></g></svg>`;
+}
+function profileMarkup(data,coords,units){
+  let lines='',areas='',run=[];
+  function flush(){if(!run.length)return;const d=run.map((p,i)=>(i?'L':'M')+p.x.toFixed(2)+' '+p.y.toFixed(2)).join('');lines+=`<path d="${d}"/>`;if(run.length===1)lines+=`<circle cx="${run[0].x}" cy="${run[0].y}" r="2"/>`;areas+=`<path d="${d}L${run[run.length-1].x} 125L${run[0].x} 125Z"/>`;run=[];}
+  coords.forEach((p,i)=>{if(i&&data.points[i].segment!==data.points[i-1].segment)flush();if(p.y===null)flush();else run.push(p);});flush();
+  return `<svg viewBox="0 0 680 160" role="img" aria-labelledby="profileSvgTitle"><title id="profileSvgTitle">Elevation along the route. Tap to select a distance.</title><path d="M54 24H634M54 74H634M54 125H634" fill="none" stroke="#d8e1dc"/>
+  <g fill="#e2eee7">${areas}</g><g fill="none" stroke="#356c57" stroke-width="2" stroke-linejoin="round">${lines}</g>
+  <g font-family="sans-serif" font-size="11" fill="#557264"><text x="48" y="29" text-anchor="end">${data.maxElevation===null?'':Math.round(data.maxElevation*(units==='mi'?3.280839895:1))}</text><text x="48" y="122" text-anchor="end">${data.minElevation===null?'':Math.round(data.minElevation*(units==='mi'?3.280839895:1))}</text><text x="54" y="148">0</text><text x="634" y="148" text-anchor="end">${esc(fmtDistance(data.distance,units))}</text><text x="12" y="75">${units==='mi'?'ft':'m'}</text></g>
+  ${data.minElevation===null?'<text x="340" y="78" text-anchor="middle" font-family="sans-serif" font-size="15" fill="#557264">This route has no elevation data.</text>':''}
+  <g id="profileCursor" pointer-events="none"><path d="M0 17V128" stroke="#be4b2e" stroke-width="1.5" stroke-dasharray="4 3"/><circle id="profileDot" r="5" fill="#be4b2e" stroke="#fff" stroke-width="2"/></g></svg>`;
+}
+
+const get=id=>document.getElementById(id);
+let state=makeExample(),baseline=JSON.stringify(state),data,routeCoords,profileCoords;
+let pending=null,reading=false,prepared=null,editGroup='';
+const history=[];
+function copy(value){return JSON.parse(JSON.stringify(value));}
+function remember(group=''){if(group&&editGroup===group)return;history.push(copy(state));if(history.length>12)history.shift();editGroup=group;get('undo').disabled=false;}
+function say(text){get('status').textContent=text;}
+function updateNotes(){
+  const sorted=[...state.notes].sort((a,b)=>a.index-b.index);
+  get('notes').innerHTML=sorted.length?sorted.map((n,i)=>`<li class="route-note"><button type="button" data-note="${n.index}" aria-label="Go to note ${i+1}, point ${n.index+1}"><span class="note-number">${String(i+1).padStart(2,'0')}</span><span><strong>${esc(fmtDistance(data.points[n.index].distance,state.units))}</strong><span class="note-copy">${esc(n.text)}</span></span><span aria-hidden="true">↗</span></button></li>`).join(''):'<li class="empty-note">A good view. A steep turn. A place to pause.<br>Your notes will appear here.</li>';
+  const pins=get('routeNotePins');if(pins)pins.innerHTML=sorted.map((n,i)=>{const p=routeCoords[n.index];return `<g transform="translate(${p.x} ${p.y})" data-note="${n.index}"><path d="M0-5V-18" stroke="#224c40"/><circle cy="-24" r="10" fill="#224c40"/><text y="-20" text-anchor="middle" fill="white" font-family="sans-serif" font-size="10">${i+1}</text></g>`;}).join('');
+  get('addNote').disabled=!state.notes.some(n=>n.index===state.selected);
+}
+function updateCursor(syncNote=true){
+  const p=data.points[state.selected],m=routeCoords[state.selected],e=profileCoords[state.selected];
+  get('routeCursor').setAttribute('transform',`translate(${m.x} ${m.y})`);
+  get('routeProgress').setAttribute('d',pointPath(routeCoords,data,state.selected));
+  get('profileCursor').setAttribute('transform',`translate(${e.x} 0)`);
+  get('profileDot').setAttribute('cy',e.y===null?74:e.y);get('profileDot').style.display=e.y===null?'none':'';
+  get('pointLabel').textContent='Point '+(state.selected+1)+' of '+data.points.length;
+  get('cursorDistance').textContent=fmtDistance(p.distance,state.units);get('cursorElevation').textContent=fmtHeight(p.ele,state.units);
+  get('coordinate').textContent=p.lat.toFixed(5)+'°, '+p.lon.toFixed(5)+'° · Segment '+(p.segment+1);
+  get('scrub').value=state.selected;get('scrub').setAttribute('aria-valuetext',`Point ${state.selected+1}, ${fmtDistance(p.distance,state.units)}, ${fmtHeight(p.ele,state.units)}`);
+  get('previous').disabled=state.selected===0;get('next').disabled=state.selected===data.points.length-1;
+  if(syncNote)get('note').value=state.notes.find(n=>n.index===state.selected)?.text||'';
+  get('addNote').disabled=!state.notes.some(n=>n.index===state.selected);
+}
+function paint(){
+  data=analyze(state);routeCoords=mapGeometry(data);profileCoords=profileGeometry(data);
+  get('title').value=state.title;get('units').value=state.units;
+  get('example').textContent=state.source==='example'?'Fictional example route':'Your imported route';
+  get('distance').textContent=fmtDistance(data.distance,state.units);
+  get('elevationRange').textContent=data.minElevation===null?'Not recorded':fmtHeight(data.minElevation,state.units)+' – '+fmtHeight(data.maxElevation,state.units);
+  get('pointCount').textContent=data.points.length.toLocaleString()+' · '+state.segments.length+' segment'+(state.segments.length===1?'':'s');
+  get('route').innerHTML=routeMarkup(data,routeCoords);get('profile').innerHTML=profileMarkup(data,profileCoords,state.units);
+  get('scrub').min=0;get('scrub').max=data.points.length-1;get('scrub').step=1;
+  get('undo').disabled=!history.length;
+  updateCursor();updateNotes();
+}
+function selectPoint(index){state.selected=Math.max(0,Math.min(data.points.length-1,index));editGroup='';updateCursor();}
+get('scrub').addEventListener('input',()=>selectPoint(Number(get('scrub').value)));
+get('previous').addEventListener('click',()=>selectPoint(state.selected-1));
+get('next').addEventListener('click',()=>selectPoint(state.selected+1));
+get('title').addEventListener('input',()=>{remember('title');state.title=get('title').value;});
+get('title').addEventListener('change',()=>{editGroup='';});
+get('units').addEventListener('change',()=>{remember();state.units=get('units').value;paint();});
+get('note').addEventListener('input',()=>{
+  const existing=state.notes.find(n=>n.index===state.selected),text=get('note').value;
+  if(!existing&&text&&state.notes.length>=40){get('note').value='';say('This notebook has 40 notes. Clear a note before adding another.');return;}
+  remember('note-'+state.selected);
+  if(existing){if(text)existing.text=text;else state.notes=state.notes.filter(n=>n!==existing);}
+  else if(text)state.notes.push({index:state.selected,text});
+  updateNotes();
+});
+get('note').addEventListener('change',()=>{editGroup='';});
+get('addNote').addEventListener('click',()=>{remember();state.notes=state.notes.filter(n=>n.index!==state.selected);get('note').value='';updateNotes();say('Note cleared. Undo can restore it.');get('note').focus();});
+get('notes').addEventListener('click',event=>{const b=event.target.closest('[data-note]');if(b){selectPoint(Number(b.dataset.note));get('note').focus();}});
+get('undo').addEventListener('click',()=>{if(!history.length)return;state=history.pop();editGroup='';paint();say('Last edit undone.');});
+function svgPosition(host,event){const svg=host.querySelector('svg'),p=svg.createSVGPoint();p.x=event.clientX;p.y=event.clientY;const matrix=svg.getScreenCTM();return matrix?p.matrixTransform(matrix.inverse()):null;}
+get('route').addEventListener('click',event=>{
+  const pin=event.target.closest('[data-note]');if(pin){selectPoint(Number(pin.dataset.note));return;}
+  const pos=svgPosition(get('route'),event);if(!pos)return;
+  let nearest=0,best=Infinity;routeCoords.forEach((p,i)=>{const d=(p.x-pos.x)**2+(p.y-pos.y)**2;if(d<best){best=d;nearest=i;}});selectPoint(nearest);
+});
+get('profile').addEventListener('click',event=>{
+  const pos=svgPosition(get('profile'),event);if(!pos)return;
+  let nearest=0,best=Infinity;profileCoords.forEach((p,i)=>{const d=Math.abs(p.x-pos.x);if(d<best){best=d;nearest=i;}});selectPoint(nearest);
+});
+
+const dialogOrigins=new Map();
+function show(id,origin){dialogOrigins.set(id,origin);get(id).showModal();}
+for(const d of document.querySelectorAll('dialog'))d.addEventListener('close',()=>{
+  if(d.id==='confirmDialog')pending=null;
+  if(d.id==='fileDialog'){prepared=null;get('fileText').value='';}
+  const origin=get(dialogOrigins.get(d.id));if(origin&&!origin.disabled)origin.focus();
+});
+for(const b of document.querySelectorAll('[data-close]'))b.addEventListener('click',()=>b.closest('dialog').close());
+get('help').addEventListener('click',()=>show('guideDialog','help'));
+function loadRoute(next){remember();editGroup='';state=next;baseline=JSON.stringify(next);paint();say('Opened '+(state.title||'untitled route')+'.');}
+function offerRoute(next,origin){
+  if(JSON.stringify(state)===baseline){loadRoute(next);return;}
+  pending=next;get('confText').textContent='Open “'+(next.title.trim()||'Untitled route')+'” in place of this notebook? Choose Keep to return and save your current work first.';
+  show('confirmDialog',origin);get('keep').focus();
+}
+get('keep').addEventListener('click',()=>{pending=null;get('confirmDialog').close();say('Current notebook kept.');});
+get('confirmDialog').addEventListener('cancel',()=>{pending=null;});
+get('replace').addEventListener('click',()=>{const next=pending;pending=null;get('confirmDialog').close();if(next)loadRoute(next);});
+function readLocal(file){
+  if(typeof file.text==='function')return file.text();
+  if(typeof FileReader==='undefined')throw Error('This browser could not read the local file.');
+  return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=r.onabort=()=>reject(Error('The file could not be read.'));r.readAsText(file);});
+}
+for(const [button,input,parser] of [['open','file',readSession],['importGPX','gpxFile',parseGPX]]){
+  get(button).addEventListener('click',()=>{if(reading)return;get(input).value='';try{get(input).click();}catch{say('The local file picker could not open.');}});
+  get(input).addEventListener('cancel',()=>say('File selection canceled. Current notebook kept.'));
+  get(input).addEventListener('change',async()=>{
+    const file=get(input).files?.[0];if(!file||reading)return;
+    reading=true;get('open').disabled=get('importGPX').disabled=true;
+    try{
+      if(file.size>MAX_FILE_BYTES)throw Error('Choose a file of 2 MB or less.');
+      const next=parser(await readLocal(file));
+      if(['guideDialog','fileDialog','confirmDialog'].some(id=>get(id).open))throw Error('Finish the current dialog, then choose your file again.');
+      offerRoute(next,button);
+    }catch(error){say(error.message+' Current notebook kept.');}
+    finally{reading=false;get('open').disabled=get('importGPX').disabled=false;get(input).value='';}
+  });
+}
+function downloadFile(){
+  if(!prepared)return;let url;const a=document.createElement('a');
+  try{
+    try{if(prepared.blob)url=URL.createObjectURL(prepared.blob);}catch{}
+    a.href=url||'data:application/json;charset=utf-8,'+encodeURIComponent(prepared.text);a.download=prepared.name;document.body.append(a);a.click();
+    get('fileInfo').textContent='Download requested for '+prepared.name+'. On iPhone, you can also use Share and choose Save to Files when available.';
+  }catch{get('fileInfo').textContent='Copy the full file text below and save it as '+prepared.name+'.';}
+  finally{a.remove();if(url)setTimeout(()=>URL.revokeObjectURL(url),60000);}
+}
+get('save').addEventListener('click',()=>{
+  try{
+    const text=serializeSession(state),stem=state.title.trim().toLowerCase().replace(/[^a-z0-9_-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,64)||'route';
+    const name=stem+'-trailnote.json';prepared={text,name,file:null,blob:null};
+    try{prepared.blob=new Blob([text],{type:'application/json'});const file=new File([prepared.blob],name,{type:'application/json'});if(navigator.share&&navigator.canShare?.({files:[file]}))prepared.file=file;}catch{}
+    get('fileHeading').textContent='Save your notebook';get('fileText').value=text;get('share').hidden=!prepared.file;
+    downloadFile();show('fileDialog','save');
+  }catch(error){say('Could not prepare the file. '+error.message);}
+});
+get('again').addEventListener('click',downloadFile);
+get('selectText').addEventListener('click',()=>{get('fileText').focus();get('fileText').select();});
+get('share').addEventListener('click',async()=>{
+  const p=prepared;if(!p?.file)return;
+  try{await navigator.share({files:[p.file]});if(p===prepared)get('fileInfo').textContent='Share sheet completed. Your notebook remains open.';}
+  catch(error){if(p===prepared)get('fileInfo').textContent=error.name==='AbortError'?'Sharing canceled. Your notebook is still open.':'Use Download again or copy the file text.';}
+});
+window.addEventListener('beforeunload',event=>{if(JSON.stringify(state)!==baseline){event.preventDefault();event.returnValue='';}});
+paint();
+
+})();
+</script>
+</body>
+</html>

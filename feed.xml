@@ -3,7 +3,56 @@
   <title>trez63 — one small app a day</title>
   <link>https://trez63.com/</link>
   <description>Every day ChatGPT, Claude, Gemini, Grok and Muse each build a single-page app from the same one-line prompt. Play them all.</description>
-  <lastBuildDate>Wed, 18 Nov 2026 12:00:00 +0000</lastBuildDate>
+  <lastBuildDate>Thu, 19 Nov 2026 12:00:00 +0000</lastBuildDate>
+  <item>
+    <title>Quorum (Claude)</title>
+    <link>https://trez63.com/p/quorum.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/quorum.html</guid>
+    <pubDate>Thu, 19 Nov 2026 12:00:00 +0000</pubDate>
+    <description>Split a password or recovery phrase into n shares so that any k of them rebuild it and fewer reveal nothing (Shamir&#x27;s secret sharing over GF(256)), print the shares as cards, combine them again, and watch a curve explain why k-1 shares carry no information.</description>
+  </item>
+  <item>
+    <title>Gordian (Claude)</title>
+    <link>https://trez63.com/p/gordian.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/gordian.html</guid>
+    <pubDate>Wed, 18 Nov 2026 12:00:00 +0000</pubDate>
+    <description>Draw one closed loop that crosses itself, tap crossings to flip which strand is on top, and it computes the Alexander polynomial, determinant, writhe and tricolorability and names the knot from a table of prime knots.</description>
+  </item>
+  <item>
+    <title>Morphogen Studio (Grok)</title>
+    <link>https://trez63.com/p/morphogen-studio.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/morphogen-studio.html</guid>
+    <pubDate>Wed, 18 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A real-time Gray-Scott reaction-diffusion simulator: pick a preset or set the feed, kill and diffusion rates yourself, paint activator onto the canvas and watch spots, stripes and worms organise themselves.</description>
+  </item>
+  <item>
+    <title>Drawbag (ChatGPT)</title>
+    <link>https://trez63.com/p/drawbag.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/drawbag.html</guid>
+    <pubDate>Wed, 18 Nov 2026 12:00:00 +0000</pubDate>
+    <description>Fill a bag with marked and plain tokens, choose a handful size and whether tokens go back, then draw handfuls or run a hundred trials and compare what turned up with the exact probability distribution.</description>
+  </item>
+  <item>
+    <title>Palette Lift (Muse)</title>
+    <link>https://trez63.com/p/palette-lift.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/palette-lift.html</guid>
+    <pubDate>Wed, 18 Nov 2026 12:00:00 +0000</pubDate>
+    <description>Drop in a picture and it lifts out the eight colours that carry it, each with a hex code to tap and copy, plus a harmony built from the top colour; palettes can be named, kept and saved as JSON, all in the browser.</description>
+  </item>
+  <item>
+    <title>RayPrism (Gemini)</title>
+    <link>https://trez63.com/p/rayprism.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/rayprism.html</guid>
+    <pubDate>Wed, 18 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A 2D optical bench: drag prisms, mirrors and a laser emitter around, sweep their rotation and watch multi-wavelength rays refract, disperse by Cauchy&#x27;s law and trap themselves in total internal reflection.</description>
+  </item>
+  <item>
+    <title>Trailnote (ChatGPT)</title>
+    <link>https://trez63.com/p/trailnote.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/trailnote.html</guid>
+    <pubDate>Wed, 18 Nov 2026 12:00:00 +0000</pubDate>
+    <description>Import a GPX track (or explore the fictional example), move a cursor along the route to see distance and elevation at every point, and attach notes to places along the way; notebooks save and reopen as files.</description>
+  </item>
   <item>
     <title>Iris (Claude)</title>
     <link>https://trez63.com/p/iris.html</link>
@@ -304,54 +353,5 @@
     <guid isPermaLink="true">https://trez63.com/p/subject-line-lab.html</guid>
     <pubDate>Sun, 08 Nov 2026 12:00:00 +0000</pubDate>
     <description>Type an email subject line and get an instant score with a checklist, see how it lands in a phone and desktop inbox next to other mail, and keep the winners.</description>
-  </item>
-  <item>
-    <title>PipelineForge (Grok)</title>
-    <link>https://trez63.com/p/pipelineforge.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/pipelineforge.html</guid>
-    <pubDate>Sat, 07 Nov 2026 12:00:00 +0000</pubDate>
-    <description>A deal list with a live forecast. Add deals with a value, win probability and stage, filter by stage or search by name, and the bar on top keeps pipeline total, weighted forecast and won value current. Arrow keys move the selection; save or reopen the list as JSON.</description>
-  </item>
-  <item>
-    <title>Redline (Claude)</title>
-    <link>https://trez63.com/p/redline.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/redline.html</guid>
-    <pubDate>Sat, 07 Nov 2026 12:00:00 +0000</pubDate>
-    <description>Paste two versions of a contract. It aligns the paragraphs even when they moved, marks every changed word, and reads each change for what it means: amounts, durations, shall-to-may, vanished clauses.</description>
-  </item>
-  <item>
-    <title>Parapet (Claude)</title>
-    <link>https://trez63.com/p/parapet.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/parapet.html</guid>
-    <pubDate>Tue, 03 Nov 2026 12:00:00 +0000</pubDate>
-    <description>A security-header audit that runs in the page. Paste the response headers from curl or DevTools and it grades them out of 100, lists each finding with a one-tap fix, maps every Content-Security-Policy source by how open it is, and exports the hardened set as nginx, Apache, Caddy or Express config.</description>
-  </item>
-  <item>
-    <title>Dibs (Claude)</title>
-    <link>https://trez63.com/p/dibs.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/dibs.html</guid>
-    <pubDate>Mon, 02 Nov 2026 12:00:00 +0000</pubDate>
-    <description>Multi-touch attribution for a path report. Paste the touch paths from your analytics export with converted and non-converted counts, and it runs seven models over the same data — last, first, linear, position, decay, Markov removal effect and exact Shapley — and shows where they disagree about which channels open, assist and close.</description>
-  </item>
-  <item>
-    <title>Common Hour (ChatGPT)</title>
-    <link>https://trez63.com/p/common-hour.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/common-hour.html</guid>
-    <pubDate>Mon, 02 Nov 2026 12:00:00 +0000</pubDate>
-    <description>Find a meeting time that fits everyone&#x27;s working day. Add up to six people with their time zones, work windows and weekdays, then slide the start across the day and watch the local clocks line up; it marks the starts that fit all of them, jumps to the best overlap, and copies or exports the proposal with every local time.</description>
-  </item>
-  <item>
-    <title>Contrast Checker (Muse)</title>
-    <link>https://trez63.com/p/contrast-checker.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/contrast-checker.html</guid>
-    <pubDate>Mon, 02 Nov 2026 12:00:00 +0000</pubDate>
-    <description>Pick a text colour and a background colour and see the WCAG contrast ratio and which levels it passes, with a live preview at body, button and small-print sizes. One tap nudges the text colour until it reaches AA or AAA, and pairs that pass can be saved and moved between machines as JSON.</description>
-  </item>
-  <item>
-    <title>Linework (ChatGPT)</title>
-    <link>https://trez63.com/p/linework.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/linework.html</guid>
-    <pubDate>Sun, 01 Nov 2026 12:00:00 +0000</pubDate>
-    <description>A reusable recipe for cleaning up lists. Paste a list, one item per line, then stack up to eight steps — trim, drop blanks, dedupe, replace, prefix or suffix, sort, keep or exclude matches, number — and inspect the rows at any stage before copying or exporting the final result. The source stays intact and the recipe saves as JSON.</description>
   </item>
 </channel></rss>

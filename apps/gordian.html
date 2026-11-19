@@ -1,0 +1,294 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Daily Build 2026-11-18 — Gordian</title>
+<meta name="description" content="Draw a loop with a finger; Gordian finds the crossings, computes the Alexander polynomial, determinant, writhe and tricolorability, and names the knot.">
+<style>
+:root{--bg:#f6f3ec;--fg:#1d1a16;--mut:#6c665b;--line:#dcd6c9;--panel:#fffdf8;--btn:#ebe6da;--btnfg:#1d1a16;--acc:#b8431f;--rope:#2b6cb0;--ropeHi:#8fc1f2;--ropeEdge:#143a63;--ok:#2d7a3e;--warn:#a36b00;--shadow:0 10px 30px rgba(0,0,0,.14)}
+:root[data-theme="dark"]{--bg:#121417;--fg:#ebe7df;--mut:#9a948a;--line:#2a2e34;--panel:#1a1d22;--btn:#262a31;--btnfg:#ebe7df;--acc:#ff8a5b;--rope:#e2b65a;--ropeHi:#fff0c2;--ropeEdge:#5a3f0e;--ok:#6fd38a;--warn:#f0b64a;--shadow:0 10px 30px rgba(0,0,0,.5)}
+*{box-sizing:border-box}
+html{overflow-x:hidden}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100dvh;display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+header{display:flex;align-items:center;gap:12px;padding:10px 16px 6px;flex-wrap:wrap}
+h1{font-size:26px;margin:0;letter-spacing:-.02em;font-weight:700}
+h1 i{font-style:normal;color:var(--acc)}
+.sub{color:var(--mut);font-size:14px;flex:1;min-width:160px}
+button{font:inherit;font-weight:600;min-height:44px;min-width:44px;padding:0 14px;border:0;border-radius:12px;background:var(--btn);color:var(--btnfg);cursor:pointer;touch-action:manipulation}
+button:active{transform:translateY(1px)}
+button.icon{font-size:20px;padding:0}
+button.acc{background:var(--acc);color:#fff}
+.bar{display:flex;flex-wrap:wrap;gap:8px;padding:6px 16px 10px}
+.bar .sep{width:1px;background:var(--line);margin:4px 2px}
+main{flex:1;display:flex;min-height:0}
+.stage{flex:1;position:relative;min-height:0;background:var(--panel);border-top:1px solid var(--line)}
+canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
+.hint{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;color:var(--mut);text-align:center;padding:20px;font-size:18px}
+.hint.off{display:none}
+aside{width:340px;border-left:1px solid var(--line);border-top:1px solid var(--line);padding:14px 16px 20px;overflow:auto;background:var(--bg)}
+.name{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.1;margin:2px 0 4px}
+.name small{display:block;font-size:14px;font-weight:500;color:var(--mut);margin-top:4px}
+.poly{font-size:20px;margin:10px 0 14px;padding:10px 12px;border-radius:12px;background:var(--panel);border:1px solid var(--line);overflow-wrap:anywhere}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cell{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+.cell b{display:block;font-size:20px}
+.cell span{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
+.gauss{font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-top:10px;word-break:break-word;max-height:120px;overflow:auto}
+.lbl{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;margin-top:14px}
+.note{font-size:13px;color:var(--mut);margin-top:12px}
+.warn{color:var(--warn);font-weight:600}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:grid;place-items:center;padding:16px;z-index:9}
+.overlay.off{display:none}
+.card{background:var(--panel);color:var(--fg);max-width:560px;width:100%;max-height:90dvh;overflow:auto;border-radius:18px;padding:20px 22px;box-shadow:var(--shadow);border:1px solid var(--line)}
+.card h2{margin:0 0 8px}
+.card p{margin:8px 0}
+kbd{font:13px ui-monospace,Menlo,monospace;background:var(--btn);padding:2px 7px;border-radius:6px;border:1px solid var(--line)}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:10px 0}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90vw;text-align:center;z-index:10}
+#toast.on{opacity:1}
+@media (min-width:761px){body{height:100dvh;overflow:hidden}}
+@media (max-width:760px){main{flex-direction:column}.stage{flex:none;height:56dvh;min-height:300px}aside{width:auto;border-left:0}.name{font-size:26px}}
+</style>
+</head>
+<body>
+<header>
+  <h1><i>G</i>ordian</h1>
+  <span class="sub">draw a loop, tap crossings, learn which knot it is</span>
+  <button class="icon" id="theme" title="Theme (T)" aria-label="Toggle theme">◐</button>
+  <button class="icon" id="helpBtn" title="Help (Ctrl+/)" aria-label="Help">?</button>
+</header>
+<div class="bar" id="bar">
+  <button data-act="new" title="N">New</button>
+  <button data-act="undo" title="Z">Undo</button>
+  <span class="sep"></span>
+  <button data-act="alt" title="A">Alternate</button>
+  <button data-act="desc" title="D">Descend</button>
+  <button data-act="mirror" title="M">Mirror</button>
+  <button data-act="labels" title="L">Labels</button>
+  <span class="sep"></span>
+  <button data-act="random" class="acc" title="R">Random knot</button>
+  <button data-preset="0" title="1">Trefoil</button>
+  <button data-preset="1" title="2">Figure‑8</button>
+  <button data-preset="2" title="3">Cinquefoil</button>
+  <button data-preset="3" title="4">T(3,4)</button>
+  <button data-preset="4" title="5">T(3,5)</button>
+  <button data-preset="5" title="6">Tangle</button>
+  <span class="sep"></span>
+  <button data-act="save" title="S">Save</button>
+  <button data-act="open" title="O">Open</button>
+</div>
+<main>
+  <section class="stage"><canvas id="cv"></canvas><div class="hint" id="hint">Draw one closed loop that crosses itself.<br>Tap a crossing to flip which strand is on top.</div></section>
+  <aside>
+    <div class="name"><span id="kname">—</span><small id="ksub"></small></div>
+    <div class="poly" id="poly">Δ(t) = 1</div>
+    <div class="grid">
+      <div class="cell"><b id="sCross">0</b><span>crossings</span></div>
+      <div class="cell"><b id="sWrithe">0</b><span>writhe</span></div>
+      <div class="cell"><b id="sDet">1</b><span>determinant</span></div>
+      <div class="cell"><b id="sTri">no</b><span>tricolorable</span></div>
+      <div class="cell"><b id="sAlt">—</b><span>alternating</span></div>
+      <div class="cell"><b id="sGenus">0</b><span>genus ≥ deg Δ / 2</span></div>
+    </div>
+    <div class="lbl">Gauss code (O over · U under · ± sign)</div>
+    <div class="gauss" id="gauss">—</div>
+    <div class="note" id="note">The Alexander polynomial is computed from the diagram with Fox calculus and a fraction‑free (Bareiss) determinant over ℤ[t]. It is an invariant: flip a crossing and you may change the knot; smooth or stretch the drawing and Δ stays put.</div>
+  </aside>
+</main>
+<div class="overlay off" id="help">
+  <div class="card">
+    <h2>Gordian</h2>
+    <p>A knot‑theory sketchpad. Draw one closed loop with a finger or mouse; wherever it crosses itself the strands alternate over/under. Tap any crossing to flip it. Gordian then computes invariants that do not depend on how the knot is drawn, and looks the result up in a table of prime knots up to 7 crossings plus a few torus and composite knots.</p>
+    <p><b>Alternate</b> re‑assigns every crossing so the strand alternates over, under, over… (the most tangled reading of your drawing). <b>Descend</b> makes the first pass at every crossing the over‑pass, which always unties to the unknot, however messy. <b>Mirror</b> flips every crossing (the mirror image, same Δ). <b>Random knot</b> draws a random smooth loop and reads it alternately.</p>
+    <div class="keys">
+      <kbd>Ctrl/⌘ + /</kbd><span>this help (also <kbd>?</kbd>, <kbd>Esc</kbd> closes)</span>
+      <kbd>N</kbd><span>new (clear)</span><kbd>Z</kbd><span>undo last change</span>
+      <kbd>A</kbd><span>alternate</span><kbd>D</kbd><span>descend (unknot)</span>
+      <kbd>M</kbd><span>mirror</span><kbd>L</kbd><span>labels on/off</span>
+      <kbd>R</kbd><span>random knot</span><kbd>1 – 6</kbd><span>presets</span>
+      <kbd>T</kbd><span>theme</span><kbd>S</kbd> <span>save JSON</span><kbd>O</kbd><span>open JSON</span>
+    </div>
+    <p><b>Save / Open</b> write and read a small JSON file with the drawing and crossing choices. Save downloads when the page is opened directly as a file (the artifact viewer blocks downloads). Nothing leaves your device; the page makes no network requests.</p>
+    <p class="note">Δ(t) is a strong but not complete invariant: a few distinct knots share a polynomial, so the name shown is the simplest knot with that Δ.</p>
+    <button id="closeHelp" class="acc">Close</button>
+  </div>
+</div>
+<input type="file" id="file" accept=".json,application/json" hidden>
+<div id="toast"></div>
+<script>
+/*LOGIC*/
+// ---------- polynomials over Z[t]: arrays of BigInt, index = power ----------
+const trim=a=>{let n=a.length;while(n&&a[n-1]===0n)n--;return n===a.length?a:a.slice(0,n)};
+const padd=(a,b)=>{const r=[];for(let i=0;i<Math.max(a.length,b.length);i++)r.push((a[i]||0n)+(b[i]||0n));return trim(r)};
+const psub=(a,b)=>padd(a,b.map(x=>-x));
+const pmul=(a,b)=>{if(!a.length||!b.length)return[];const r=Array(a.length+b.length-1).fill(0n);for(let i=0;i<a.length;i++)for(let j=0;j<b.length;j++)r[i+j]+=a[i]*b[j];return trim(r)};
+const pdiv=(a,b)=>{a=trim(a);b=trim(b);if(!a.length)return[];const q=Array(Math.max(0,a.length-b.length+1)).fill(0n),r=a.slice(),lb=b[b.length-1];
+  for(let i=a.length-b.length;i>=0;i--){const c=r[i+b.length-1]/lb;q[i]=c;for(let j=0;j<b.length;j++)r[i+j]-=c*b[j];}return trim(q)};
+// Bareiss fraction-free determinant: every division is exact in Z[t]
+function pdet(M){const n=M.length;if(!n)return[1n];M=M.map(r=>r.slice());let sign=1n,prev=[1n];
+  for(let k=0;k<n-1;k++){if(!M[k][k].length){let r=k+1;while(r<n&&!M[r][k].length)r++;if(r===n)return[];[M[k],M[r]]=[M[r],M[k]];sign=-sign;}
+    for(let i=k+1;i<n;i++)for(let j=k+1;j<n;j++)M[i][j]=pdiv(psub(pmul(M[i][j],M[k][k]),pmul(M[i][k],M[k][j])),prev);prev=M[k][k];}
+  return M[n-1][n-1].map(x=>x*sign)}
+// Δ is defined up to ±t^k: drop the power of t, make the leading coefficient positive
+function normalize(p){p=trim(p);if(!p.length)return[];let l=0;while(p[l]===0n)l++;p=p.slice(l);return p[p.length-1]<0n?p.map(x=>-x):p}
+
+// ---------- geometry ----------
+function segHit(a,b,c,d){const r0=b[0]-a[0],r1=b[1]-a[1],s0=d[0]-c[0],s1=d[1]-c[1],den=r0*s1-r1*s0;if(Math.abs(den)<1e-12)return null;
+  const q0=c[0]-a[0],q1=c[1]-a[1],u=(q0*s1-q1*s0)/den,v=(q0*r1-q1*r0)/den;if(u<=0||u>=1||v<=0||v>=1)return null;return{u,v,x:a[0]+u*r0,y:a[1]+u*r1}}
+function chaikin(P){const o=[];for(let i=0;i<P.length;i++){const a=P[i],b=P[(i+1)%P.length];o.push([.75*a[0]+.25*b[0],.75*a[1]+.25*b[1]],[.25*a[0]+.75*b[0],.25*a[1]+.75*b[1]]);}return o}
+// resample a closed polyline to even spacing h (z, if given, is interpolated alongside)
+function resample(P,z,h){const n=P.length,out=[],oz=[];let L=0;const seg=[];for(let i=0;i<n;i++){const a=P[i],b=P[(i+1)%n];const d=Math.hypot(b[0]-a[0],b[1]-a[1]);seg.push(d);L+=d;}
+  const m=Math.max(8,Math.round(L/h)),step=L/m;let i=0,acc=0;
+  for(let k=0;k<m;k++){const target=k*step;while(acc+seg[i]<target&&i<n-1){acc+=seg[i];i++;}const u=seg[i]?(target-acc)/seg[i]:0,a=P[i],b=P[(i+1)%n];
+    out.push([a[0]+u*(b[0]-a[0]),a[1]+u*(b[1]-a[1])]);if(z)oz.push(z[i]+u*(z[(i+1)%n]-z[i]));}
+  return{pts:out,z:z?oz:null}}
+
+// ---------- the knot diagram ----------
+// over[c] = true means the FIRST visit along the curve to crossing c is the over-strand
+function analyze(P,over,z){const n=P.length,X=[];
+  for(let i=0;i<n;i++)for(let j=i+2;j<n;j++){if(i===0&&j===n-1)continue;const h=segHit(P[i],P[(i+1)%n],P[j],P[(j+1)%n]);if(h)X.push({i,j,u:h.u,v:h.v,x:h.x,y:h.y});}
+  const V=[];X.forEach((c,id)=>{V.push({pos:c.i+c.u,id,seg:c.i});V.push({pos:c.j+c.v,id,seg:c.j});});V.sort((a,b)=>a.pos-b.pos);
+  V.forEach((v,idx)=>{v.idx=idx;const c=X[v.id];if(c.first==null)c.first=v;else c.second=v;});
+  const C=X.length;let valid=true;X.forEach(c=>{if(((c.second.idx-c.first.idx)&1)===0)valid=false;});
+  if(!over||over.length!==C){over=X.map(c=>{if(z){const zz=v=>z[v.seg]+(v.pos-v.seg)*(z[(v.seg+1)%n]-z[v.seg]);return zz(c.first)>zz(c.second)}return c.first.idx%2===0})}
+  const dir=s=>{const a=P[s],b=P[(s+1)%n];return[b[0]-a[0],b[1]-a[1]]};
+  let writhe=0;X.forEach((c,id)=>{c.over=over[id];const o=dir(c.over?c.first.seg:c.second.seg),u=dir(c.over?c.second.seg:c.first.seg);
+    c.sign=(o[0]*u[1]-o[1]*u[0])<0?1:-1;writhe+=c.sign;});          // screen y points down, hence the flipped test
+  V.forEach(v=>{v.over=(v===X[v.id].first)===X[v.id].over;});
+  let alternating=C>0;for(let k=1;k<V.length;k++)if(V[k].over===V[k-1].over)alternating=false;
+  // arcs: the curve is cut at every under-pass; arc of a visit = number of under-passes before it
+  let cnt=0;const arcOf=[];V.forEach(v=>{arcOf[v.idx]=C?cnt%C:0;if(!v.over)cnt++;});
+  const M=[];for(let r=0;r<C;r++)M.push(Array(C).fill(null).map(()=>[]));
+  X.forEach((c,id)=>{const ov=c.over?c.first:c.second,un=c.over?c.second:c.first;const k=arcOf[ov.idx],a=arcOf[un.idx],b=(a+1)%C;
+    const row=M[id],put=(j,p)=>row[j]=padd(row[j],p);put(k,[1n,-1n]);if(c.sign>0){put(a,[0n,1n]);put(b,[-1n]);}else{put(a,[-1n]);put(b,[0n,1n]);}});
+  const minor=M.slice(0,C-1).map(r=>r.slice(0,C-1));
+  const delta=valid?normalize(pdet(minor)):[];
+  const dm1=delta.reduce((s,c,i)=>s+(i%2?-c:c),0n);const det=dm1<0n?-dm1:dm1;
+  const gauss=V.map(v=>(v.over?'O':'U')+(v.id+1)+(X[v.id].sign>0?'+':'−')).join(' ');
+  return{X,V,over,writhe,alternating,valid,delta,det,gauss,n}}
+const TABLE={'1':['Unknot','0₁ (or an Alexander‑trivial knot)'],'1,-1,1':['Trefoil','3₁ · torus knot T(2,3)'],'1,-3,1':['Figure‑eight','4₁'],
+ '1,-1,1,-1,1':['Cinquefoil','5₁ · torus knot T(2,5)'],'2,-3,2':['Three‑twist','5₂'],'2,-5,2':['Stevedore','6₁'],'1,-3,3,-3,1':['Miller Institute','6₂'],
+ '1,-3,5,-3,1':['6₃','amphichiral'],'1,-1,1,-1,1,-1,1':['7₁','torus knot T(2,7)'],'3,-5,3':['7₂',''],'2,-3,3,-3,2':['7₃',''],'4,-7,4':['7₄',''],
+ '2,-4,5,-4,2':['7₅',''],'1,-5,7,-5,1':['7₆',''],'1,-5,9,-5,1':['7₇',''],'1,-2,3,-2,1':['Granny / square','3₁ # 3₁ (8₂₀ shares this Δ)'],
+ '1,-4,5,-4,1':['3₁ # 4₁','composite (8₂₁ shares this Δ)'],'1,-1,0,1,0,-1,1':['8₁₉','torus knot T(3,4) · non‑alternating'],
+ '1,-1,0,1,-1,1,0,-1,1':['10₁₂₄','torus knot T(3,5)'],'1,-2,1,-2,1':['Cable knot','(or 9₄₆ family)'],'1,-1,1,-1,1,-1,1,-1,1':['9₁','torus knot T(2,9)']};
+function identify(d){if(!d.length)return['Unclear diagram','a tangency or overlapping strokes — redraw'];const k=d.join(',');return TABLE[k]||null}
+function polyText(p,html){if(!p.length)return'?';const parts=[];for(let i=p.length-1;i>=0;i--){const c=p[i];if(c===0n)continue;const a=c<0n?-c:c;let term=(i===0||a!==1n?a.toString():'')+(i>0?'t':'')+(i>1?(html?'<sup>'+i+'</sup>':'^'+i):'');
+  parts.push((parts.length?(c<0n?' − ':' + '):(c<0n?'−':''))+term);}return parts.join('')}
+
+// ---------- preset curves (unit coords, with a z height that decides over/under) ----------
+function torus(p,q){const P=[],z=[];for(let k=0;k<720;k++){const t=k/720*2*Math.PI,r=.62+.3*Math.cos(q*t);P.push([r*Math.cos(p*t),r*Math.sin(p*t)]);z.push(Math.sin(q*t));}return{P,z}}
+function figureEight(){const P=[],z=[];for(let k=0;k<720;k++){const t=k/720*2*Math.PI,r=.3*(2+Math.cos(2*t));P.push([r*Math.cos(3*t),r*Math.sin(3*t)]);z.push(Math.sin(4*t));}return{P,z}}
+function fourier(co){const P=[];for(let k=0;k<720;k++){const t=k/720*2*Math.PI;let x=0,y=0;co.forEach(([f,ax,px,ay,py])=>{x+=ax*Math.cos(f*t+px);y+=ay*Math.sin(f*t+py);});P.push([x,y]);}
+  let mx=-1e9,mn=1e9,my=-1e9,ny=1e9;P.forEach(p=>{mx=Math.max(mx,p[0]);mn=Math.min(mn,p[0]);my=Math.max(my,p[1]);ny=Math.min(ny,p[1]);});
+  const s=1.7/Math.max(mx-mn,my-ny),cx=(mx+mn)/2,cy=(my+ny)/2;return{P:P.map(p=>[(p[0]-cx)*s,(p[1]-cy)*s]),z:null}}
+const tangle=()=>fourier([[1,1,0,1,0],[3,.6,1.1,.55,.4],[5,.45,2.3,.5,1.7],[2,.3,.6,.35,2.9]]);
+function randomKnot(rnd){const co=[[1,1,0,1,0]];for(let f=2;f<=6;f++)co.push([f,(rnd()-.5)*2.4/Math.sqrt(f),rnd()*6.28,(rnd()-.5)*2.4/Math.sqrt(f),rnd()*6.28]);return fourier(co)}
+/*ENDLOGIC*/
+
+// ---------- app state ----------
+const H=0.014;                                   // resample spacing in unit coords
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+const S={P:null,z:null,over:null,K:null,labels:true,history:[],raw:null};
+let W=0,Hh=0,SC=1,DPR=1;
+const el=id=>document.getElementById(id);
+const toast=m=>{const t=el('toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),2200)};
+const toPx=p=>[W/2+p[0]*SC,Hh/2+p[1]*SC];
+const toUnit=(x,y)=>[(x-W/2)/SC,(y-Hh/2)/SC];
+
+function setCurve(P,z,over,keep){if(S.P&&!keep)S.history.push({P:S.P,z:S.z,over:S.over});if(S.history.length>20)S.history.shift();
+  S.P=P;S.z=z;S.over=over||null;recompute()}
+function recompute(){if(!S.P){S.K=null;render();showStats();return}S.K=analyze(S.P,S.over,S.z);S.over=S.K.over;showStats();render()}
+function loadPreset(i){const g=[()=>torus(2,3),figureEight,()=>torus(2,5),()=>torus(3,4),()=>torus(3,5),tangle][i]();const r=resample(g.P,g.z,H);
+  setCurve(r.pts,r.z,null);if(i===5){S.over=S.K.X.map(()=>true);recompute();}}   // Tangle: descending diagram → unknot
+
+// ---------- rendering ----------
+function fit(){const r=cv.parentElement.getBoundingClientRect();DPR=Math.min(3,devicePixelRatio||1);W=r.width;Hh=r.height;SC=Math.min(W,Hh)/2;
+  cv.width=Math.round(W*DPR);cv.height=Math.round(Hh*DPR);ctx.setTransform(DPR,0,0,DPR,0,0);render()}
+new ResizeObserver(fit).observe(cv.parentElement);
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
+function path(pts,close){ctx.beginPath();pts.forEach((p,i)=>{const q=toPx(p);i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]);});if(close)ctx.closePath()}
+function rope(pts,close,w,cap){ctx.lineJoin='round';ctx.lineCap=cap||'round';path(pts,close);ctx.strokeStyle=css('--ropeEdge');ctx.lineWidth=w+4;ctx.stroke();
+  ctx.strokeStyle=css('--rope');ctx.lineWidth=w;ctx.stroke();ctx.strokeStyle=css('--ropeHi');ctx.globalAlpha=.55;ctx.lineWidth=w*.3;ctx.stroke();ctx.globalAlpha=1}
+function render(){ctx.clearRect(0,0,W,Hh);el('hint').classList.toggle('off',!!(S.P||S.raw));
+  const w=Math.max(7,Math.min(14,SC/28));
+  if(S.raw){ctx.lineJoin='round';ctx.lineCap='round';path(S.raw,false);ctx.strokeStyle=css('--acc');ctx.lineWidth=w;ctx.stroke();return}
+  if(!S.P)return;const P=S.P,n=P.length,K=S.K;
+  rope(P,true,w);
+  // orientation arrows
+  ctx.fillStyle=css('--ropeEdge');for(let k=0;k<5;k++){const i=Math.floor(k*n/5),a=toPx(P[i]),b=toPx(P[(i+2)%n]),d=Math.atan2(b[1]-a[1],b[0]-a[0]);
+    ctx.save();ctx.translate(a[0],a[1]);ctx.rotate(d);ctx.beginPath();ctx.moveTo(w*.9,0);ctx.lineTo(-w*.5,w*.8);ctx.lineTo(-w*.5,-w*.8);ctx.closePath();ctx.fill();ctx.restore();}
+  if(!K)return;
+  // redraw the over-strand through each crossing with a background halo → classic broken under-strand
+  const m=Math.ceil(2.4*w/(H*SC))+1;
+  K.X.forEach(c=>{const v=c.over?c.first:c.second,i0=Math.floor(v.pos);const seg=[];for(let k=-m;k<=m+1;k++)seg.push(P[((i0+k)%n+n)%n]);
+    ctx.lineJoin='round';ctx.lineCap='butt';path(seg,false);ctx.strokeStyle=css('--panel');ctx.lineWidth=w+14;ctx.stroke();rope(seg,false,w,'butt');});
+  if(S.labels){ctx.font='600 13px system-ui,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    K.X.forEach((c,id)=>{const p=toPx([c.x,c.y]);const lx=p[0]+w+9,ly=p[1]-w-6;ctx.fillStyle=css('--panel');ctx.beginPath();ctx.arc(lx,ly,11,0,7);ctx.fill();
+      ctx.strokeStyle=c.sign>0?css('--ok'):css('--acc');ctx.lineWidth=2;ctx.stroke();ctx.fillStyle=css('--fg');ctx.fillText(id+1+(c.sign>0?'⁺':'⁻'),lx,ly+.5);});}
+}
+function showStats(){const K=S.K;const set=(id,v)=>el(id).textContent=v;
+  if(!K){set('kname','—');set('ksub','');el('poly').innerHTML='Δ(t) = 1';['sCross','sWrithe','sDet','sTri','sAlt','sGenus'].forEach((id,i)=>set(id,['0','0','1','no','—','0'][i]));set('gauss','—');return}
+  const idn=identify(K.delta),deg=K.delta.length?K.delta.length-1:0;
+  set('kname',idn?idn[0]:'Not in the table');el('ksub').textContent=idn?idn[1]:'det '+K.det+', Δ of degree '+deg+' — likely 8+ crossings';
+  el('poly').innerHTML=K.valid?'Δ(t) = '+polyText(K.delta,true):'<span class="warn">Crossings are ambiguous (tangency) — redraw a little looser.</span>';
+  set('sCross',K.X.length);set('sWrithe',(K.writhe>0?'+':'')+K.writhe);set('sDet',K.valid?K.det:'?');set('sTri',K.valid?(K.det%3n===0n?'yes':'no'):'?');
+  set('sAlt',K.X.length?(K.alternating?'yes':'no'):'—');set('sGenus',Math.ceil(deg/2));set('gauss',K.gauss||'no crossings — a plain circle');}
+
+// ---------- input: draw a loop, or tap a crossing to flip it ----------
+let drawing=false,pid=null;
+cv.addEventListener('pointerdown',e=>{if(drawing)return;const x=e.offsetX,y=e.offsetY;
+  if(S.K){let best=null,bd=28;S.K.X.forEach((c,id)=>{const p=toPx([c.x,c.y]),d=Math.hypot(p[0]-x,p[1]-y);if(d<bd){bd=d;best=id;}});
+    if(best!=null){flip(best);return}}
+  drawing=true;pid=e.pointerId;cv.setPointerCapture(pid);S.raw=[toUnit(x,y)];render();});
+cv.addEventListener('pointermove',e=>{if(!drawing||e.pointerId!==pid)return;const p=toUnit(e.offsetX,e.offsetY),l=S.raw[S.raw.length-1];
+  if(Math.hypot(p[0]-l[0],p[1]-l[1])>2/SC){S.raw.push(p);render();}});
+const finish=e=>{if(!drawing||e.pointerId!==pid)return;drawing=false;const raw=S.raw;S.raw=null;
+  let L=0;for(let i=1;i<raw.length;i++)L+=Math.hypot(raw[i][0]-raw[i-1][0],raw[i][1]-raw[i-1][1]);
+  if(raw.length<12||L<.4){render();return}
+  const r=resample(chaikin(chaikin(raw)),null,H);setCurve(r.pts,null,null);};
+cv.addEventListener('pointerup',finish);cv.addEventListener('pointercancel',finish);
+function flip(id){const o=S.over.slice();o[id]=!o[id];S.history.push({P:S.P,z:S.z,over:S.over});S.over=o;recompute()}
+
+// ---------- actions ----------
+const ACT={
+  new(){if(S.P)S.history.push({P:S.P,z:S.z,over:S.over});S.P=S.z=S.over=S.K=null;render();showStats()},
+  undo(){const h=S.history.pop();if(!h){toast('Nothing to undo');return}S.P=h.P;S.z=h.z;S.over=h.over;recompute()},
+  alt(){if(!S.K)return;S.history.push({P:S.P,z:S.z,over:S.over});S.over=S.K.X.map(c=>c.first.idx%2===0);recompute()},
+  desc(){if(!S.K)return;S.history.push({P:S.P,z:S.z,over:S.over});S.over=S.K.X.map(()=>true);recompute();toast('Descending diagram — always the unknot')},
+  mirror(){if(!S.K)return;S.history.push({P:S.P,z:S.z,over:S.over});S.over=S.over.map(b=>!b);recompute()},
+  labels(){S.labels=!S.labels;render()},
+  random(){let r;for(let k=0;k<12;k++){r=resample(randomKnot(Math.random).P,null,H);const K=analyze(r.pts,null,null);if(K.valid&&K.X.length>=3)break;}setCurve(r.pts,null,null)},
+  save(){if(!S.P){toast('Draw something first');return}const d=new Date(),ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    const data={app:'gordian',version:1,saved:d.toISOString(),points:S.P,over:S.over,labels:S.labels,theme:document.documentElement.dataset.theme};
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data)],{type:'application/json'}));a.download='gordian-'+ds+'.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);toast('Saved '+a.download)},
+  open(){el('file').click()},
+  theme(){const h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'light':'dark';render()},
+  help(){el('help').classList.toggle('off')}
+};
+el('file').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const d=JSON.parse(rd.result);
+  if(d.app!=='gordian'||d.version!==1||!Array.isArray(d.points))throw new Error('Not a Gordian file (expected app "gordian", version 1).');
+  const P=d.points.map(p=>[+p[0],+p[1]]);if(P.length<8||P.some(p=>!isFinite(p[0])||!isFinite(p[1])))throw new Error('Gordian file has no usable drawing.');
+  if(typeof d.labels==='boolean')S.labels=d.labels;if(d.theme==='dark'||d.theme==='light')document.documentElement.dataset.theme=d.theme;
+  setCurve(P,null,Array.isArray(d.over)?d.over.map(Boolean):null);toast('Opened '+f.name)}catch(err){toast('Could not open: '+err.message)}};rd.readAsText(f);e.target.value=''});
+el('bar').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.preset!=null)loadPreset(+b.dataset.preset);else ACT[b.dataset.act]()});
+el('theme').onclick=ACT.theme;el('helpBtn').onclick=ACT.help;el('closeHelp').onclick=ACT.help;
+el('help').addEventListener('click',e=>{if(e.target===el('help'))ACT.help()});
+const KEYS={n:'new',z:'undo',a:'alt',d:'desc',m:'mirror',l:'labels',r:'random',s:'save',o:'open',t:'theme','?':'help'};
+addEventListener('keydown',e=>{const t=e.target;if(t&&(/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)||t.isContentEditable))return;
+  if((e.ctrlKey||e.metaKey)&&e.key==='/'){e.preventDefault();ACT.help();return}
+  if(e.key==='Escape'){el('help').classList.add('off');return}
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  if(/^[1-6]$/.test(e.key)){loadPreset(+e.key-1);return}
+  const a=KEYS[e.key.toLowerCase()];if(a){e.preventDefault();ACT[a]()}});
+
+// ---------- boot: theme from the OS, trefoil preloaded ----------
+document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+fit();loadPreset(0);S.history=[];
+</script>
+</body>
+</html>
+
+</body></html>

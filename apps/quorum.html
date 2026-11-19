@@ -1,0 +1,375 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Daily Build 2026-11-19 — Quorum</title>
+<style>
+:root{--bg:#f3f1ea;--panel:#fffefb;--ink:#1c1b18;--muted:#6e6a60;--line:#dcd7ca;--acc:#0f766e;--acc-ink:#fff;--hi:#e9f5f3;--warn:#b45309;--bad:#b91c1c;--good:#15803d;--shadow:0 1px 3px rgba(0,0,0,.08)}
+:root[data-theme=dark]{--bg:#121417;--panel:#1b1e23;--ink:#e9e6df;--muted:#9a978f;--line:#30343b;--acc:#3ec9b9;--acc-ink:#0b1a18;--hi:#1e2a29;--warn:#f0a44a;--bad:#f27676;--good:#6fd38f;--shadow:0 1px 3px rgba(0,0,0,.5)}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);min-height:100dvh;display:flex;flex-direction:column}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+h1{font-size:22px;margin:0;letter-spacing:.3px}
+h1 small{font-size:13px;color:var(--muted);font-weight:400;margin-left:10px;letter-spacing:0}
+.grow{flex:1}
+button,input,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:10px}
+button{min-height:44px;min-width:44px;padding:0 14px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;box-shadow:var(--shadow)}
+button:active{background:var(--hi)}
+button.primary{background:var(--acc);color:var(--acc-ink);border-color:transparent;font-weight:600}
+button[aria-pressed=true]{background:var(--acc);color:var(--acc-ink);border-color:transparent}
+nav{display:flex;gap:8px;padding:10px 16px 0}
+nav button{flex:1}
+main{padding:12px 16px 24px;display:grid;gap:12px}
+main[data-tab=split] #split,main[data-tab=combine] #combine,main[data-tab=why] #why{display:grid}
+.tab{display:none;gap:12px;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr)}
+#why{grid-template-columns:1fr}
+.pane{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow);min-width:0}
+.pane h2{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:0 0 8px}
+label.f{display:block;color:var(--muted);font-size:13px;margin:10px 0 4px}
+textarea,input[type=text]{width:100%;padding:10px 12px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow-wrap:anywhere}
+textarea{min-height:110px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+.step{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.step button{border:0;border-radius:0;box-shadow:none}
+.step b{min-width:44px;text-align:center;font-variant-numeric:tabular-nums}
+.hint{color:var(--muted);font-size:13px}
+.cards{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.card{border:1px dashed var(--line);border-radius:12px;padding:10px 12px;background:var(--bg);display:grid;grid-template-columns:40px 1fr auto;gap:8px 10px;align-items:center}
+.card svg{width:40px;height:40px;border-radius:6px}
+.card .t{font-weight:600}
+.card .t small{color:var(--muted);font-weight:400;margin-left:6px}
+.card code{grid-column:1/-1;font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow-wrap:anywhere;user-select:all;-webkit-user-select:all}
+.card button{padding:0 10px;min-height:44px}
+#result{margin-top:10px;padding:12px;border-radius:12px;background:var(--hi);border:1px solid var(--line);font-family:ui-monospace,Menlo,Consolas,monospace;overflow-wrap:anywhere;white-space:pre-wrap;min-height:44px}
+#result.bad{color:var(--bad)}
+#verdict{margin-top:8px;font-size:14px}
+#verdict .ok{color:var(--good)}#verdict .warn{color:var(--warn)}#verdict .bad{color:var(--bad)}
+canvas{display:block;width:100%;height:320px;touch-action:none;border-radius:10px;cursor:pointer;background:var(--hi)}
+#why p{margin:8px 0 0;max-width:72ch}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;opacity:0;transition:.25s;pointer-events:none;max-width:90vw;z-index:20}
+#toast.show{opacity:1;transform:translateX(-50%)}
+#help{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+#help[open]{display:flex}
+#help .box{background:var(--panel);border-radius:16px;max-width:580px;width:100%;max-height:90dvh;overflow:auto;padding:20px 22px}
+#help h3{margin:0 0 8px}#help p{margin:8px 0}
+#help table{border-collapse:collapse;width:100%;font-size:14px}#help td{padding:4px 6px;border-top:1px solid var(--line)}#help td:first-child{white-space:nowrap}
+kbd{display:inline-block;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 6px;font:12px ui-monospace,monospace;background:var(--hi)}
+@media (max-width:760px){.tab{grid-template-columns:1fr}h1 small{display:none}canvas{height:260px}.cards{grid-template-columns:1fr}}
+@media print{header,nav,#combine,#why,.pane.in,#toast,#help{display:none!important}body{background:#fff;color:#000}.pane{border:0;box-shadow:none}.cards{grid-template-columns:1fr 1fr}.card{break-inside:avoid;border:1px dashed #000}.card button{display:none}}
+</style>
+</head>
+<body>
+<header>
+ <h1>Quorum<small>split a secret so any k of n pieces rebuild it — and nothing fewer can</small></h1>
+ <span class="grow"></span>
+ <button id="save" title="Save shares & settings (Ctrl+S)">Save</button>
+ <button id="open" title="Open a saved file (Ctrl+O)">Open</button>
+ <input id="file" type="file" accept=".json,application/json" hidden>
+ <button id="theme" title="Theme (T)" aria-label="Toggle theme">Dark</button>
+ <button id="helpBtn" title="Help (Ctrl+/)" aria-label="Help">?</button>
+</header>
+<nav>
+ <button data-tab="split" aria-pressed="true">1 · Split</button>
+ <button data-tab="combine" aria-pressed="false">2 · Combine</button>
+ <button data-tab="why" aria-pressed="false">3 · Why it works</button>
+</nav>
+<main data-tab="split">
+ <section id="split" class="tab">
+  <div class="pane in">
+   <h2>Secret</h2>
+   <label class="f" for="label">Label (printed on every card)</label>
+   <input id="label" type="text" maxlength="60" value="Vault master key · office safe">
+   <label class="f" for="secret">Secret (text, up to 2 000 characters)</label>
+   <textarea id="secret" spellcheck="false">correct horse battery staple — safe combination 38-14-52, backup drive passphrase: "winter-marmalade-orbit-71"</textarea>
+   <div class="row">
+    <span class="hint">Need</span>
+    <span class="step"><button id="kDown" aria-label="fewer needed">−</button><b id="kVal">3</b><button id="kUp" aria-label="more needed">+</button></span>
+    <span class="hint">of</span>
+    <span class="step"><button id="nDown" aria-label="fewer shares">−</button><b id="nVal">5</b><button id="nUp" aria-label="more shares">+</button></span>
+    <span class="hint" id="kn"></span>
+   </div>
+   <div class="row">
+    <button id="doSplit" class="primary">Split into shares</button>
+    <span class="hint">Fresh random shares every time · nothing leaves this page</span>
+   </div>
+  </div>
+  <div class="pane">
+   <h2>Shares <span id="shareStat" class="hint"></span></h2>
+   <div class="row" style="margin:0 0 10px">
+    <button id="copyAll">Copy all</button>
+    <button id="print">Print cards</button>
+    <button id="toCombine" title="Put k random shares into Combine">Try k of them →</button>
+   </div>
+   <div id="cards" class="cards"></div>
+  </div>
+ </section>
+
+ <section id="combine" class="tab">
+  <div class="pane">
+   <h2>Shares you have</h2>
+   <label class="f" for="pasted">Paste shares, one per line, any order, any case</label>
+   <textarea id="pasted" spellcheck="false" style="min-height:180px"></textarea>
+   <div class="row"><button id="doCombine" class="primary">Combine</button><span class="hint">Typos are caught by each share's checksum; extra shares are cross-checked</span></div>
+  </div>
+  <div class="pane">
+   <h2>Recovered secret</h2>
+   <div id="result" aria-live="polite"></div>
+   <div id="verdict"></div>
+   <div class="row"><button id="copyResult">Copy secret</button></div>
+  </div>
+ </section>
+
+ <section id="why" class="tab">
+  <div class="pane">
+   <h2>One byte of the secret, drawn as a curve</h2>
+   <canvas id="plot"></canvas>
+   <div class="row">
+    <span class="hint">Shares revealed</span>
+    <span class="step"><button id="revDown" aria-label="reveal fewer">−</button><b id="revVal">2</b><button id="revUp" aria-label="reveal more">+</button></span>
+    <span class="hint" id="whyStat"></span>
+   </div>
+   <p id="whyText"></p>
+   <p class="hint">Shamir's scheme: for every byte, pick a random polynomial of degree k−1 whose constant term is that byte, and hand out its value at x = 1, 2, … n. Any k points pin the curve down (Lagrange interpolation) and its value at x = 0 is the byte. With k−1 points the curve can still pass through <i>every</i> possible value at x = 0 — the picture sweeps through them — so fewer than k shares carry no information at all. The real arithmetic happens in the finite field GF(2⁸), not on the real line, which is what makes "no information" exact rather than approximate.</p>
+  </div>
+ </section>
+</main>
+<div id="toast" role="status"></div>
+<div id="help" role="dialog" aria-modal="true"><div class="box">
+ <h3>Quorum</h3>
+ <p>Split a password, recovery phrase or safe combination into <b>n</b> shares so that any <b>k</b> of them rebuild it and k−1 reveal nothing (Shamir's secret sharing over GF(256), with <code>crypto.getRandomValues</code>). Give the cards to different people or places; combine them when needed. Each share carries a checksum, so a mistyped share is reported rather than silently wrong, and spare shares are cross-checked against the rest.</p>
+ <p>Everything runs in this one file, offline. <b>Save</b> stores the shares, label and settings — never the plaintext secret. Save downloads a file when the page is opened directly from disk; the artifact viewer blocks page downloads.</p>
+ <table>
+  <tr><td><kbd>Ctrl/⌘</kbd>+<kbd>/</kbd> or <kbd>?</kbd></td><td>This help (<kbd>Esc</kbd> closes)</td></tr>
+  <tr><td><kbd>Ctrl/⌘</kbd>+<kbd>Enter</kbd></td><td>Split or Combine (works while typing)</td></tr>
+  <tr><td><kbd>Ctrl/⌘</kbd>+<kbd>S</kbd> / <kbd>O</kbd></td><td>Save / Open</td></tr>
+  <tr><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></td><td>Split / Combine / Why it works</td></tr>
+  <tr><td><kbd>[</kbd> <kbd>]</kbd></td><td>Reveal fewer / more shares in the picture (or tap a point)</td></tr>
+  <tr><td><kbd>T</kbd></td><td>Dark / light</td></tr>
+ </table>
+ <p class="hint">Letter shortcuts are ignored while you type.</p>
+ <p style="text-align:right;margin:0"><button id="helpClose" class="primary">Close</button></p>
+</div></div>
+
+<script>
+/*PURE-START*/ // DOM-free: GF(256) arithmetic, Shamir split/combine, share encoding. Unit-tested with node.
+const EXP=new Uint8Array(512),LOG=new Uint8Array(256);
+(()=>{let x=1;for(let i=0;i<255;i++){EXP[i]=x;LOG[x]=i;x^=x<<1;if(x&0x100)x^=0x11b}for(let i=255;i<512;i++)EXP[i]=EXP[i-255]})();
+const mul=(a,b)=>a&&b?EXP[LOG[a]+LOG[b]]:0;
+const div=(a,b)=>{if(!b)throw new Error('division by zero');return a?EXP[(LOG[a]-LOG[b]+255)%255]:0};
+const evalPoly=(c,x)=>{let r=0;for(let j=c.length-1;j>=0;j--)r=mul(r,x)^c[j];return r};
+// Lagrange interpolation in GF(256): the value at x of the polynomial through points {x_i, y_i}.
+function interp(pts,x){
+ let acc=0;
+ for(let i=0;i<pts.length;i++){let num=1,den=1;
+  for(let j=0;j<pts.length;j++)if(j!==i){num=mul(num,x^pts[j].x);den=mul(den,pts[i].x^pts[j].x)}
+  acc^=mul(pts[i].y,div(num,den))}
+ return acc;
+}
+function split(secret,k,n,rand){ // secret: Uint8Array → [{x, k, data:Uint8Array}]
+ if(k<2||n<k||n>255)throw new Error('need 2 ≤ k ≤ n ≤ 255');
+ const coef=rand(secret.length*(k-1)),out=[];
+ for(let x=1;x<=n;x++){const data=new Uint8Array(secret.length);
+  for(let b=0;b<secret.length;b++){const c=[secret[b]];for(let j=0;j<k-1;j++)c.push(coef[b*(k-1)+j]);data[b]=evalPoly(c,x)}
+  out.push({x,k,data})}
+ return out;
+}
+// Combine with the first k shares, then cross-check every spare share against that polynomial.
+function combine(shares){
+ if(!shares.length)throw new Error('No shares given.');
+ const k=shares[0].k,L=shares[0].data.length,seen=new Set();
+ for(const s of shares){
+  if(s.k!==k)throw new Error(`Shares disagree on how many are needed (${k} vs ${s.k}): they come from different splits.`);
+  if(s.data.length!==L)throw new Error('Shares have different lengths: they come from different splits.');
+  if(seen.has(s.x))throw new Error(`Share #${s.x} was pasted twice.`);seen.add(s.x)}
+ if(shares.length<k)throw new Error(`Need ${k} shares, have ${shares.length}.`);
+ const base=shares.slice(0,k),secret=new Uint8Array(L),bad=[];
+ for(let b=0;b<L;b++)secret[b]=interp(base.map(s=>({x:s.x,y:s.data[b]})),0);
+ for(const s of shares.slice(k)){let ok=true;
+  for(let b=0;b<L&&ok;b++)ok=interp(base.map(t=>({x:t.x,y:t.data[b]})),s.x)===s.data[b];
+  if(!ok)bad.push(s.x)}
+ return {secret,used:base.map(s=>s.x),bad};
+}
+// Share wire format: [0x51 'Q', k, x, ...data, crc16] in Crockford base32, grouped by 4 for paper.
+function crc16(bytes){let c=0xffff;for(const b of bytes){c^=b<<8;for(let i=0;i<8;i++)c=c&0x8000?(c<<1)^0x1021:c<<1;c&=0xffff}return c}
+const B32='0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+function b32enc(bytes){let s='',bits=0,v=0;for(const b of bytes){v=(v<<8)|b;bits+=8;while(bits>=5){s+=B32[(v>>(bits-5))&31];bits-=5}}if(bits)s+=B32[(v<<(5-bits))&31];return s}
+function b32dec(str){
+ const clean=str.toUpperCase().replace(/[IL]/g,'1').replace(/O/g,'0').replace(/[^0-9A-Z]/g,''),out=[];let bits=0,v=0;
+ for(const ch of clean){const d=B32.indexOf(ch);if(d<0)throw new Error(`bad character "${ch}"`);v=((v<<5)|d)&0xffffffff;bits+=5;if(bits>=8){out.push((v>>(bits-8))&255);bits-=8}}
+ return Uint8Array.from(out);
+}
+const encodeShare=s=>{const body=[0x51,s.k,s.x,...s.data],c=crc16(body);return b32enc([...body,c>>8,c&255]).replace(/(.{4})(?=.)/g,'$1-')};
+function decodeShare(str){
+ const b=b32dec(str);
+ if(b.length<6||b[0]!==0x51)throw new Error('not a Quorum share');
+ const body=b.subarray(0,b.length-2),c=crc16(body);
+ if(((b[b.length-2]<<8)|b[b.length-1])!==c)throw new Error('checksum failed — a character is wrong or missing');
+ if(b[1]<2||b[2]<1)throw new Error('corrupt header');
+ return {k:b[1],x:b[2],data:Uint8Array.from(body.subarray(3))};
+}
+function parseShares(text){ // one share per line; returns {shares, errors:[{line,msg}]}
+ const shares=[],errors=[];
+ text.split(/\r?\n/).forEach((line,i)=>{const t=line.replace(/^.*?:\s*/,'').trim();if(!t)return;
+  try{shares.push(decodeShare(t))}catch(e){errors.push({line:i+1,msg:e.message})}});
+ return {shares,errors};
+}
+/*PURE-END*/
+if(typeof module!=='undefined')module.exports={mul,div,interp,split,combine,crc16,b32enc,b32dec,encodeShare,decodeShare,parseShares};
+</script>
+<script>
+const $=id=>document.getElementById(id),enc=new TextEncoder(),dec=new TextDecoder();
+const rand=n=>crypto.getRandomValues(new Uint8Array(n));
+const S={k:3,n:5,shares:[],reveal:2,curve:null,hidden:new Set()};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('show'),2400)}
+async function copy(text,what){try{await navigator.clipboard.writeText(text);toast(what+' copied')}catch(e){toast('Clipboard blocked — select the text and copy it')}}
+const escHtml=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// A 5×5 mirrored glyph from a hash of the share, so cards can be told apart at a glance.
+function glyph(bytes){
+ let h=2166136261;for(const b of bytes){h^=b;h=Math.imul(h,16777619)>>>0}
+ const hue=h%360,cells=[];let bits=h;
+ for(let y=0;y<5;y++)for(let x=0;x<3;x++){if(bits&1){cells.push([x,y]);if(x<2)cells.push([4-x,y])}bits=(bits>>>1)||Math.imul(h,y+7)>>>0}
+ return `<svg viewBox="0 0 5 5" style="background:hsl(${hue} 40% 92%)"><g fill="hsl(${hue} 55% 38%)">${cells.map(([x,y])=>`<rect x="${x}" y="${y}" width="1" height="1"/>`).join('')}</g></svg>`;
+}
+function setKN(k,n){S.n=clamp(n,2,20);S.k=clamp(k,2,S.n);$('kVal').textContent=S.k;$('nVal').textContent=S.n;
+ $('kn').textContent=`any ${S.k} of ${S.n} rebuild it · ${S.k-1} reveal nothing`;S.reveal=clamp(S.reveal,0,S.n)}
+function doSplit(){
+ const text=$('secret').value;
+ if(!text)return toast('Type a secret first');
+ const bytes=enc.encode(text);if(bytes.length>2000)return toast('Secret is too long (max 2 000 bytes)');
+ S.shares=split(bytes,S.k,S.n,rand).map(s=>({...s,code:encodeShare(s)}));
+ S.curve=null;renderCards();drawPlot();toast(`Split into ${S.n} shares — any ${S.k} rebuild the secret`);
+}
+function renderCards(){
+ const label=$('label').value.trim();
+ $('cards').innerHTML=S.shares.map((s,i)=>`<div class="card">${glyph(s.data)}<div class="t">Share ${s.x} of ${S.n}<small>needs ${s.k}${label?' · '+escHtml(label):''}</small></div><button data-copy="${i}">Copy</button><code>${s.code}</code></div>`).join('');
+ $('shareStat').textContent=S.shares.length?`${S.shares[0].code.replace(/-/g,'').length} characters each`:'';
+}
+function doCombine(){
+ const {shares,errors}=parseShares($('pasted').value),R=$('result'),V=$('verdict');
+ R.className='';V.innerHTML='';
+ const errHtml=errors.map(e=>`<div class="bad">Line ${e.line}: ${escHtml(e.msg)}</div>`).join('');
+ try{
+  const {secret,used,bad}=combine(shares);
+  R.textContent=dec.decode(secret);
+  V.innerHTML=`<div class="ok">Rebuilt from shares ${used.join(', ')}.</div>`+
+   (shares.length>used.length?(bad.length?`<div class="bad">Share${bad.length>1?'s':''} ${bad.join(', ')} do${bad.length>1?'':'es'} not fit this polynomial — ${bad.length>1?'they belong':'it belongs'} to a different split or one of the first ${used.length} is wrong.</div>`:`<div class="ok">${shares.length-used.length} spare share${shares.length-used.length>1?'s':''} agree${shares.length-used.length>1?'':'s'} with the result.</div>`):'')+errHtml;
+ }catch(e){R.className='bad';R.textContent=e.message;V.innerHTML=errHtml}
+}
+function toCombine(){
+ if(!S.shares.length)return toast('Split something first');
+ const pick=[...S.shares].sort(()=>Math.random()-.5).slice(0,S.k).sort((a,b)=>a.x-b.x);
+ $('pasted').value=pick.map(s=>`Share ${s.x}: ${s.code}`).join('\n');setTab('combine');doCombine();
+}
+/* ---------- the picture: a real-valued stand-in for one byte's polynomial ---------- */
+function makeCurve(){
+ const byte=enc.encode($('secret').value)[0]??0,coef=[byte];
+ for(let j=1;j<S.k;j++)coef.push((Math.random()-.5)*160/Math.pow(S.n,j-1));
+ const pts=[];for(let x=1;x<=S.n;x++)pts.push({x,y:coef.reduce((a,c,j)=>a+c*x**j,0)});
+ S.curve={byte,coef,pts};S.hidden=new Set();
+}
+const lagR=(pts,x)=>pts.reduce((acc,p,i)=>acc+p.y*pts.reduce((m,q,j)=>j===i?m:m*(x-q.x)/(p.x-q.x),1),0);
+function revealed(){return S.curve.pts.filter((p,i)=>i<S.reveal&&!S.hidden.has(p.x))}
+let anim=0;
+function drawPlot(){
+ const cv=$('plot');if(!cv.clientWidth)return;
+ if(!S.curve)makeCurve();
+ const dpr=Math.min(3,devicePixelRatio||1),W=cv.clientWidth,H=cv.clientHeight;
+ if(cv.width!==W*dpr||cv.height!==H*dpr){cv.width=W*dpr;cv.height=H*dpr}
+ const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+ const css=getComputedStyle(document.documentElement),C=v=>css.getPropertyValue(v).trim();
+ const {pts,coef}=S.curve,rev=revealed(),k=S.k,n=S.n,m=rev.length;
+ const ys=pts.map(p=>p.y).concat(coef[0]),lo=Math.min(...ys)-40,hi=Math.max(...ys)+40;
+ const pad={l:44,r:16,t:16,b:30},X=x=>pad.l+(W-pad.l-pad.r)*x/(n+.4),Y=y=>H-pad.b-(H-pad.t-pad.b)*(y-lo)/(hi-lo);
+ ctx.strokeStyle=C('--line');ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(X(0),pad.t);ctx.lineTo(X(0),H-pad.b);ctx.lineTo(W-pad.r,H-pad.b);ctx.stroke();
+ ctx.fillStyle=C('--muted');ctx.font='12px ui-sans-serif,system-ui';ctx.textAlign='center';
+ for(let x=0;x<=n;x++)ctx.fillText(x===0?'x=0':x,X(x),H-10);
+ const curve=(fn,color,width,alpha)=>{ctx.save();ctx.beginPath();ctx.rect(pad.l-8,0,W-pad.l-pad.r+8,H-pad.b);ctx.clip();ctx.beginPath();for(let i=0;i<=120;i++){const x=i/120*(n+.3),y=fn(x);i?ctx.lineTo(X(x),Y(y)):ctx.moveTo(X(x),Y(y))}ctx.strokeStyle=color;ctx.lineWidth=width;ctx.globalAlpha=alpha;ctx.stroke();ctx.restore()};
+ const t=performance.now()/1000;
+ if(m<k){ // the family of degree-(k-1) curves through the revealed points, anchored off-screen so only x = 0 is seen to vary
+  const phantom=[];for(let j=0;j<k-1-m;j++){const x=n+2+j;phantom.push({x,y:coef.reduce((a,c,i)=>a+c*x**i,0)})}
+  const fam=s=>x=>lagR([...rev,...phantom,{x:0,y:s}],x);
+  for(let i=0;i<=10;i++)curve(fam(lo+40+(hi-lo-80)*i/10),C('--acc'),1,.18);
+  const s=lo+40+(hi-lo-80)*(Math.sin(t*1.1)*.5+.5);curve(fam(s),C('--acc'),2.5,1);
+  ctx.fillStyle=C('--acc');ctx.beginPath();ctx.arc(X(0),Y(s),5,0,7);ctx.fill();
+  ctx.textAlign='left';ctx.font='bold 14px ui-sans-serif,system-ui';ctx.fillText('?',X(0)+9,Y(s)+5);
+ }else{curve(x=>lagR(rev.slice(0,k),x),C('--acc'),2.5,1);
+  ctx.fillStyle=C('--acc');ctx.beginPath();ctx.arc(X(0),Y(coef[0]),6,0,7);ctx.fill();
+  ctx.textAlign='left';ctx.font='bold 14px ui-sans-serif,system-ui';ctx.fillText(`${S.curve.byte} = "${String.fromCharCode(S.curve.byte)}"`,X(0)+10,Y(coef[0])+5)}
+ for(const p of pts){const on=rev.includes(p);ctx.beginPath();ctx.arc(X(p.x),Y(p.y),on?7:6,0,7);
+  ctx.fillStyle=on?C('--ink'):C('--panel');ctx.strokeStyle=C('--ink');ctx.lineWidth=2;ctx.fill();ctx.stroke()}
+ $('revVal').textContent=m;
+ $('whyStat').textContent=m<k?`${m} of ${k} needed — the secret could still be anything`:`${m} ≥ ${k} — the curve is fixed, x = 0 gives the byte`;
+ $('whyText').textContent=m<k?`Each filled point is a share that has been handed over. Every one of the sweeping curves passes through all of them, and each one crosses x = 0 somewhere different: an attacker holding ${m} share${m===1?'':'s'} has no idea which. Reveal ${k-m} more to lock the curve.`:`With ${k} points there is exactly one curve of degree ${k-1} through them. Its height at x = 0 is the byte ${S.curve.byte}, the first character of the secret. Hollow points are the shares you did not need.`;
+ cancelAnimationFrame(anim);if(m<k&&document.querySelector('main').dataset.tab==='why')anim=requestAnimationFrame(drawPlot);
+}
+$('plot').addEventListener('pointerdown',e=>{ // tap a point to hand that share over, or take it back
+ if(!S.curve)return;const r=e.currentTarget.getBoundingClientRect(),W=r.width,H=r.height,x=e.clientX-r.left,y=e.clientY-r.top;
+ const {pts,coef}=S.curve,ys=pts.map(p=>p.y).concat(coef[0]),lo=Math.min(...ys)-40,hi=Math.max(...ys)+40;
+ const X=px=>44+(W-60)*px/(S.n+.4),Y=py=>H-30-(H-46)*(py-lo)/(hi-lo);
+ let best=null,bd=28*28;for(const p of pts){const d=(X(p.x)-x)**2+(Y(p.y)-y)**2;if(d<bd){bd=d;best=p}}
+ if(!best)return;const i=pts.indexOf(best);
+ if(i<S.reveal&&!S.hidden.has(best.x))S.hidden.add(best.x);else{S.hidden.delete(best.x);if(i>=S.reveal)S.reveal=i+1}
+ drawPlot();
+});
+function setReveal(d){S.hidden=new Set();S.reveal=clamp(S.reveal+d,0,S.n);drawPlot()}
+/* ---------- tabs, theme, files ---------- */
+function setTab(t){document.querySelector('main').dataset.tab=t;for(const b of document.querySelectorAll('nav button'))b.setAttribute('aria-pressed',b.dataset.tab===t);if(t==='why')requestAnimationFrame(drawPlot)}
+function setTheme(th){document.documentElement.dataset.theme=th;$('theme').textContent=th==='dark'?'Light':'Dark';try{localStorage.setItem('quorum-theme',th)}catch(e){}drawPlot()}
+const today=()=>{const d=new Date(),z=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`};
+function save(){
+ const data={app:'Quorum',version:1,savedAt:new Date().toISOString(),k:S.k,n:S.n,label:$('label').value,shares:S.shares.map(s=>s.code),pasted:$('pasted').value,tab:document.querySelector('main').dataset.tab};
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,1)],{type:'application/json'}));a.download=`quorum-${today()}.json`;
+ document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);toast(`Saved quorum-${today()}.json (shares and settings, not the secret)`);
+}
+function load(d){
+ if(!d||d.app!=='Quorum'||d.version!==1)throw new Error('Not a Quorum file (expected "app":"Quorum", "version":1).');
+ const shares=(d.shares||[]).map(c=>{const s=decodeShare(String(c));return {...s,code:encodeShare(s)}});
+ setKN(+d.k||2,+d.n||2);$('label').value=String(d.label??'');$('pasted').value=String(d.pasted??'');
+ S.shares=shares;S.curve=null;renderCards();setTab(['split','combine','why'].includes(d.tab)?d.tab:'split');toast('Opened: '+shares.length+' shares restored');
+}
+$('file').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{load(JSON.parse(r.result))}catch(err){toast('Could not open: '+(err instanceof SyntaxError?'that file is not JSON.':err.message))}};r.readAsText(f);e.target.value=''};
+/* ---------- wiring ---------- */
+$('kDown').onclick=()=>setKN(S.k-1,S.n);$('kUp').onclick=()=>setKN(S.k+1,S.n);
+$('nDown').onclick=()=>setKN(S.k,S.n-1);$('nUp').onclick=()=>setKN(S.k,S.n+1);
+$('doSplit').onclick=doSplit;$('doCombine').onclick=doCombine;$('toCombine').onclick=toCombine;
+$('label').addEventListener('input',renderCards);
+$('cards').onclick=e=>{const b=e.target.closest('button[data-copy]');if(b)copy(S.shares[+b.dataset.copy].code,'Share '+S.shares[+b.dataset.copy].x)};
+$('copyAll').onclick=()=>S.shares.length?copy(S.shares.map(s=>`Share ${s.x} of ${S.n} (need ${s.k}): ${s.code}`).join('\n'),'All shares'):toast('Nothing to copy');
+$('print').onclick=()=>window.print();
+$('copyResult').onclick=()=>$('result').textContent&&!$('result').classList.contains('bad')?copy($('result').textContent,'Secret'):toast('Nothing recovered yet');
+$('revDown').onclick=()=>setReveal(-1);$('revUp').onclick=()=>setReveal(1);
+$('save').onclick=save;$('open').onclick=()=>$('file').click();
+$('theme').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+document.querySelector('nav').onclick=e=>{const b=e.target.closest('button');if(b)setTab(b.dataset.tab)};
+const help=on=>$('help').toggleAttribute('open',on);
+$('helpBtn').onclick=()=>help(true);$('helpClose').onclick=()=>help(false);$('help').onclick=e=>{if(e.target===$('help'))help(false)};
+addEventListener('keydown',e=>{
+ const mod=e.ctrlKey||e.metaKey,typing=e.target.closest('input,textarea,select,[contenteditable]');
+ if(mod&&e.key==='/'){e.preventDefault();return help(!$('help').hasAttribute('open'))}
+ if(e.key==='Escape')return help(false);
+ if(mod&&e.key==='Enter'){e.preventDefault();const t=document.querySelector('main').dataset.tab;return t==='combine'?doCombine():doSplit()}
+ if(mod&&!e.shiftKey&&e.key.toLowerCase()==='s'){e.preventDefault();return save()}
+ if(mod&&!e.shiftKey&&e.key.toLowerCase()==='o'){e.preventDefault();return $('file').click()}
+ if(typing||mod||e.altKey)return;
+ const k=e.key.toLowerCase();
+ if(k==='1')setTab('split');else if(k==='2')setTab('combine');else if(k==='3')setTab('why');
+ else if(k==='t')$('theme').click();else if(k==='[')setReveal(-1);else if(k===']')setReveal(1);else if(k==='?')help(true);
+});
+new ResizeObserver(()=>drawPlot()).observe($('plot'));
+(function init(){
+ let th=null;try{th=localStorage.getItem('quorum-theme')}catch(e){}
+ setTheme(th||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'));
+ setKN(3,5);doSplit();
+ const pick=[...S.shares].sort(()=>Math.random()-.5).slice(0,S.k).sort((a,b)=>a.x-b.x);
+ $('pasted').value=pick.map(s=>`Share ${s.x}: ${s.code}`).join('\n');doCombine();
+})();
+</script>
+</body>
+</html>
+
+</body></html>

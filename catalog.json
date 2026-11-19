@@ -2460,7 +2460,168 @@
         }
       ],
       "category": "tool"
+    },
+    "gordian": {
+      "title": "Gordian",
+      "engine": "Claude",
+      "description": "Draw one closed loop that crosses itself, tap crossings to flip which strand is on top, and it computes the Alexander polynomial, determinant, writhe and tricolorability and names the knot from a table of prime knots.",
+      "source_file": "Gordian-Claude.html",
+      "first_published": "2026-11-18",
+      "last_updated": "2026-11-18",
+      "version": 1,
+      "sha": "5ef47f0f26c4",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-18",
+          "sha": "5ef47f0f26c4"
+        }
+      ],
+      "category": "edu",
+      "thumb": {
+        "actions": [
+          {
+            "wait": 1200
+          },
+          {
+            "key": "Escape"
+          },
+          {
+            "selector_click": "button[data-preset=\"0\"]"
+          },
+          {
+            "wait": 1200
+          }
+        ]
+      }
+    },
+    "morphogen-studio": {
+      "title": "Morphogen Studio",
+      "engine": "Grok",
+      "description": "A real-time Gray-Scott reaction-diffusion simulator: pick a preset or set the feed, kill and diffusion rates yourself, paint activator onto the canvas and watch spots, stripes and worms organise themselves.",
+      "source_file": "Morphogen Studio-Grok.html",
+      "first_published": "2026-11-18",
+      "last_updated": "2026-11-18",
+      "version": 1,
+      "sha": "714329eafd3e",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-18",
+          "sha": "714329eafd3e"
+        }
+      ],
+      "category": "sim"
+    },
+    "quorum": {
+      "title": "Quorum",
+      "engine": "Claude",
+      "description": "Split a password or recovery phrase into n shares so that any k of them rebuild it and fewer reveal nothing (Shamir's secret sharing over GF(256)), print the shares as cards, combine them again, and watch a curve explain why k-1 shares carry no information.",
+      "source_file": "Quorum-Claude.html",
+      "first_published": "2026-11-19",
+      "last_updated": "2026-11-19",
+      "version": 1,
+      "sha": "9be19844072f",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-19",
+          "sha": "9be19844072f"
+        }
+      ],
+      "category": "tool"
+    },
+    "drawbag": {
+      "title": "Drawbag",
+      "engine": "ChatGPT",
+      "description": "Fill a bag with marked and plain tokens, choose a handful size and whether tokens go back, then draw handfuls or run a hundred trials and compare what turned up with the exact probability distribution.",
+      "source_file": "drawbag-codex.html",
+      "first_published": "2026-11-18",
+      "last_updated": "2026-11-18",
+      "version": 1,
+      "sha": "fa723a79b4dc",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-18",
+          "sha": "fa723a79b4dc"
+        }
+      ],
+      "category": "edu"
+    },
+    "palette-lift": {
+      "title": "Palette Lift",
+      "engine": "Muse",
+      "description": "Drop in a picture and it lifts out the eight colours that carry it, each with a hex code to tap and copy, plus a harmony built from the top colour; palettes can be named, kept and saved as JSON, all in the browser.",
+      "source_file": "palette-lift-muse.html",
+      "first_published": "2026-11-18",
+      "last_updated": "2026-11-18",
+      "version": 1,
+      "sha": "c8f6d44794bc",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-18",
+          "sha": "c8f6d44794bc"
+        }
+      ],
+      "category": "image",
+      "thumb": {
+        "actions": [
+          {
+            "wait": 1200
+          },
+          {
+            "selector_click": "button[data-sample=\"neon\"]"
+          },
+          {
+            "wait": 1200
+          },
+          {
+            "eval": "window.getSelection().removeAllRanges(); window.scrollTo(0, 260)"
+          },
+          {
+            "wait": 400
+          }
+        ]
+      }
+    },
+    "rayprism": {
+      "title": "RayPrism",
+      "engine": "Gemini",
+      "description": "A 2D optical bench: drag prisms, mirrors and a laser emitter around, sweep their rotation and watch multi-wavelength rays refract, disperse by Cauchy's law and trap themselves in total internal reflection.",
+      "source_file": "rayprism-gemini.html",
+      "first_published": "2026-11-18",
+      "last_updated": "2026-11-18",
+      "version": 1,
+      "sha": "267268f3e3c8",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-18",
+          "sha": "267268f3e3c8"
+        }
+      ],
+      "category": "sim"
+    },
+    "trailnote": {
+      "title": "Trailnote",
+      "engine": "ChatGPT",
+      "description": "Import a GPX track (or explore the fictional example), move a cursor along the route to see distance and elevation at every point, and attach notes to places along the way; notebooks save and reopen as files.",
+      "source_file": "trailnote-codex.html",
+      "first_published": "2026-11-18",
+      "last_updated": "2026-11-18",
+      "version": 1,
+      "sha": "406b88d18061",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-18",
+          "sha": "406b88d18061"
+        }
+      ],
+      "category": "tool"
     }
   },
-  "generated": "2026-11-17"
+  "generated": "2026-11-19"
 }

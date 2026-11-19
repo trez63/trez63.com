@@ -1,0 +1,729 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light" />
+    <!-- Empty inline icon: stops the browser fetching /favicon.ico. -->
+    <link rel="icon" href="data:," />
+    <title>Palette Lift</title>
+    <style>
+      /* ============ Palette & base ============ */
+      :root {
+        --paper: #fdf6e9; --panel: #f6ecd7; --ink: #23201b; --ink-soft: #5c5546;
+        --accent: #c81e3a; --accent-dark: #a31530; --teal: #0f766e;
+        --line: #ddd0b4; --radius: 14px;
+      }
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        margin: 0; background: var(--paper); color: var(--ink); line-height: 1.5;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+      }
+      main { max-width: 880px; margin: 0 auto; padding: 28px 20px 64px; }
+      h1 { font-size: 2rem; margin: 0 0 4px; letter-spacing: -0.01em; }
+      h2 { font-size: 1.15rem; margin: 0 0 12px; }
+      .subtitle { margin: 0 0 28px; color: var(--ink-soft); max-width: 56ch; }
+      section { margin-bottom: 36px; }
+      .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; }
+      button {
+        font: inherit; min-height: 44px; padding: 10px 18px; border-radius: 10px;
+        border: 1px solid var(--ink); background: var(--paper); color: var(--ink); cursor: pointer;
+      }
+      button:active { transform: translateY(1px); }
+      .btn-accent { background: var(--accent); border-color: var(--accent); color: #fff; }
+      .btn-accent:active { background: var(--accent-dark); }
+      .btn-teal { background: var(--teal); border-color: var(--teal); color: #fff; }
+      .btn-small { padding: 8px 14px; font-size: 0.92rem; }
+      input[type="text"] {
+        font: inherit; min-height: 44px; padding: 10px 12px; width: 100%;
+        border: 1px solid var(--ink-soft); border-radius: 10px; background: #fff; color: var(--ink);
+      }
+      .hint { color: var(--ink-soft); font-size: 0.9rem; }
+      .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+
+      /* ============ Drop zone & preview ============ */
+      .dropzone {
+        border: 2px dashed var(--ink-soft); border-radius: var(--radius);
+        padding: 28px 20px; text-align: center; cursor: pointer; background: var(--paper);
+      }
+      .dropzone.dragging { border-color: var(--accent); background: #fbeed3; }
+      .dropzone p { margin: 0 0 6px; }
+      .dropzone .big { font-size: 1.1rem; font-weight: 600; }
+      .samples { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+      .samples span { align-self: center; color: var(--ink-soft); }
+      .preview-wrap { margin-top: 20px; }
+      #preview {
+        display: block; width: 100%; height: auto; border-radius: 10px;
+        border: 1px solid var(--line); background: #fff;
+      }
+      .preview-meta { margin: 8px 2px 0; color: var(--ink-soft); font-size: 0.92rem; }
+
+      /* ============ Swatch grids ============ */
+      .swatch-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+      .swatch {
+        padding: 0; border: 1px solid var(--line); border-radius: 12px;
+        overflow: hidden; background: #fff; text-align: left; height: auto;
+      }
+      .swatch .chip { display: block; height: 76px; }
+      .swatch .meta { display: block; padding: 8px 10px 10px; }
+      .swatch .hex { display: block; font-weight: 600; font-size: 0.98rem; }
+      .swatch .share, .swatch .role { display: block; color: var(--ink-soft); font-size: 0.85rem; }
+      .swatch.copied { outline: 3px solid var(--teal); outline-offset: -3px; }
+      @media (max-width: 560px) {
+        .swatch-grid { grid-template-columns: repeat(2, 1fr); }
+        main { padding: 20px 14px 56px; }
+      }
+
+      /* ============ Keep / file rows ============ */
+      .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+      .row .grow { flex: 1 1 220px; }
+      .kept-list { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 12px; }
+      .kept-item {
+        display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+        background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px;
+      }
+      .kept-item .name { font-weight: 600; flex: 1 1 140px; overflow-wrap: anywhere; }
+      .dots { display: flex; gap: 4px; flex-wrap: wrap; }
+      .dot { width: 20px; height: 20px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.18); }
+      .empty-note { color: var(--ink-soft); margin: 12px 0 0; }
+
+      /* ============ Toast ============ */
+      .toast {
+        position: fixed; left: 50%; bottom: 24px; z-index: 10;
+        transform: translateX(-50%) translateY(16px);
+        background: var(--ink); color: var(--paper); padding: 12px 20px;
+        border-radius: 999px; font-size: 0.95rem; text-align: center;
+        max-width: calc(100vw - 32px); opacity: 0; pointer-events: none;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+      }
+      .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+      .visually-hidden {
+        position: absolute; width: 1px; height: 1px;
+        overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { transition: none !important; animation: none !important; }
+        button:active { transform: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <!-- ============ Header ============ -->
+      <h1>Palette Lift</h1>
+      <p class="subtitle">
+        Drop in any picture and lift out its colours — the eight shades that
+        carry the image, each with its hex code ready to tap and copy.
+        Everything happens on this device; your picture never leaves it.
+      </p>
+
+      <!-- ============ Picture picker ============ -->
+      <section class="panel" aria-label="Choose a picture">
+        <div class="dropzone" id="dropzone" role="button" tabindex="0"
+             aria-label="Choose an image file, or drop one here">
+          <p class="big">Tap to choose a picture, or drop one here</p>
+          <p class="hint">JPG, PNG, WebP or GIF — the file stays on your device.</p>
+        </div>
+        <input class="visually-hidden" type="file" id="imageInput"
+               accept="image/jpeg,image/png,image/webp,image/gif" />
+        <div class="samples">
+          <span>Or try a painted sample:</span>
+          <button type="button" class="btn-small" data-sample="sunset">Sunset</button>
+          <button type="button" class="btn-small" data-sample="forest">Forest</button>
+          <button type="button" class="btn-small" data-sample="neon">Neon city</button>
+        </div>
+        <div class="preview-wrap">
+          <canvas id="preview" width="640" height="400"></canvas>
+          <p class="preview-meta" id="previewMeta"></p>
+        </div>
+      </section>
+
+      <!-- ============ Extracted palette ============ -->
+      <section aria-label="Extracted palette">
+        <h2>Palette</h2>
+        <div class="swatch-grid" id="paletteGrid"></div>
+        <p class="hint">Tap a swatch to copy its hex code. Most common colour first.</p>
+        <div class="row" style="margin-top:14px">
+          <button type="button" class="btn-teal" id="copyCssBtn">Copy as CSS variables</button>
+        </div>
+      </section>
+
+      <!-- ============ Harmony strip ============ -->
+      <section aria-label="Colour harmony">
+        <h2>Harmony <span class="hint">— built from the top colour</span></h2>
+        <div class="swatch-grid" id="harmonyGrid"></div>
+      </section>
+
+      <!-- ============ Keep this palette ============ -->
+      <section class="panel" aria-label="Kept palettes">
+        <h2>Keep this palette</h2>
+        <div class="row">
+          <div class="grow">
+            <label class="visually-hidden" for="keepName">Palette name</label>
+            <input type="text" id="keepName" maxlength="60"
+                   placeholder="Give this palette a name…" autocomplete="off" />
+          </div>
+          <button type="button" class="btn-accent" id="keepBtn">Keep</button>
+        </div>
+        <ul class="kept-list" id="keptList"></ul>
+        <p class="empty-note" id="keptEmpty">No palettes kept yet.</p>
+        <div class="row" style="margin-top:18px">
+          <button type="button" id="saveBtn">Save palettes (JSON)</button>
+          <button type="button" id="openBtn">Open palettes (JSON)</button>
+          <input class="visually-hidden" type="file" id="jsonInput" accept=".json,application/json" />
+        </div>
+        <p class="hint" style="margin-bottom:0">
+          Shortcuts (when not typing): <span class="mono">S</span> save ·
+          <span class="mono">O</span> open · <span class="mono">C</span> copy CSS variables.
+        </p>
+      </section>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script>
+      "use strict";
+
+      /* ---- State ---- */
+      var STORAGE_KEY = "palette-lift.kept.v1";
+      var MAX_KEPT = 50;
+      var currentPalette = [];   // [{hex, pct|null}] — pct null for loaded palettes
+      var keptPalettes = loadKept();
+
+      var els = {
+        dropzone: document.getElementById("dropzone"),
+        imageInput: document.getElementById("imageInput"),
+        jsonInput: document.getElementById("jsonInput"),
+        preview: document.getElementById("preview"),
+        previewMeta: document.getElementById("previewMeta"),
+        paletteGrid: document.getElementById("paletteGrid"),
+        harmonyGrid: document.getElementById("harmonyGrid"),
+        keepName: document.getElementById("keepName"),
+        keptList: document.getElementById("keptList"),
+        keptEmpty: document.getElementById("keptEmpty"),
+        toast: document.getElementById("toast")
+      };
+
+      /* ---- Toast — one small helper for every confirmation / rejection ---- */
+      var toastTimer = null;
+      function toast(message) {
+        els.toast.textContent = message;
+        els.toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () {
+          els.toast.classList.remove("show");
+        }, 2200);
+      }
+
+      /* ---- Colour helpers — hex <-> rgb <-> hsl, weighted distance ---- */
+      function rgbToHex(r, g, b) {
+        function part(v) { return ("0" + Math.round(v).toString(16)).slice(-2); }
+        return "#" + part(r) + part(g) + part(b);
+      }
+      function hexToRgb(hex) {
+        return {
+          r: parseInt(hex.slice(1, 3), 16),
+          g: parseInt(hex.slice(3, 5), 16),
+          b: parseInt(hex.slice(5, 7), 16)
+        };
+      }
+      // "Redmean" weighted distance — cheap approximation of perceived difference.
+      function colourDistance(a, b) {
+        var rMean = (a.r + b.r) / 2;
+        var dr = a.r - b.r, dg = a.g - b.g, db = a.b - b.b;
+        return Math.sqrt(
+          (2 + rMean / 256) * dr * dr + 4 * dg * dg + (2 + (255 - rMean) / 256) * db * db
+        );
+      }
+      function rgbToHsl(r, g, b) {
+        r /= 255; g /= 255; b /= 255;
+        var max = Math.max(r, g, b), min = Math.min(r, g, b);
+        var h = 0, s = 0, l = (max + min) / 2;
+        if (max !== min) {
+          var d = max - min;
+          s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+          if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+          else if (max === g) h = ((b - r) / d + 2) / 6;
+          else h = ((r - g) / d + 4) / 6;
+        }
+        return { h: h * 360, s: s * 100, l: l * 100 };
+      }
+      function hslToHex(h, s, l) {
+        h = ((h % 360) + 360) % 360 / 360; s /= 100; l /= 100;
+        var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        var p = 2 * l - q;
+        function channel(t) {
+          if (t < 0) t += 1; if (t > 1) t -= 1;
+          if (t < 1 / 6) return p + (q - p) * 6 * t;
+          if (t < 1 / 2) return q;
+          if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+          return p;
+        }
+        return rgbToHex(channel(h + 1 / 3) * 255, channel(h) * 255, channel(h - 1 / 3) * 255);
+      }
+
+      /* ---- Clipboard — Clipboard API first, textarea fallback ---- */
+      function copyText(text, doneMessage) {
+        function fallback() {
+          var ta = document.createElement("textarea");
+          ta.value = text;
+          ta.style.position = "fixed"; ta.style.opacity = "0";
+          document.body.appendChild(ta);
+          ta.select();
+          try { document.execCommand("copy"); toast(doneMessage); }
+          catch (e) { toast("Copy failed — the code is " + text); }
+          document.body.removeChild(ta);
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(
+            function () { toast(doneMessage); }, fallback);
+        } else { fallback(); }
+      }
+
+      /* ---- Extraction — shrink, bucket to 12-bit, rank, keep distinct 8 ---- */
+      function extractPalette(source, width, height) {
+        var scale = Math.min(1, 120 / Math.max(width, height));
+        var w = Math.max(1, Math.round(width * scale));
+        var h = Math.max(1, Math.round(height * scale));
+        var small = document.createElement("canvas");
+        small.width = w; small.height = h;
+        var ctx = small.getContext("2d");
+        ctx.drawImage(source, 0, 0, w, h);
+        var data = ctx.getImageData(0, 0, w, h).data;
+
+        // Bucket every opaque-enough pixel by its top 4 bits per channel.
+        var buckets = new Map();
+        var total = 0;
+        for (var i = 0; i < data.length; i += 4) {
+          if (data[i + 3] < 200) continue;
+          var r = data[i], g = data[i + 1], b = data[i + 2];
+          var key = ((r >> 4) << 8) | ((g >> 4) << 4) | (b >> 4);
+          var bucket = buckets.get(key);
+          if (!bucket) { bucket = { count: 0, r: 0, g: 0, b: 0 }; buckets.set(key, bucket); }
+          bucket.count++; bucket.r += r; bucket.g += g; bucket.b += b;
+          total++;
+        }
+        if (total === 0) return [];
+
+        // Average each bucket, then rank by pixel count, most common first.
+        var ranked = [];
+        buckets.forEach(function (bucket) {
+          ranked.push({
+            count: bucket.count,
+            rgb: {
+              r: bucket.r / bucket.count,
+              g: bucket.g / bucket.count,
+              b: bucket.b / bucket.count
+            }
+          });
+        });
+        ranked.sort(function (a, b) { return b.count - a.count; });
+
+        // Greedily keep colours at least `threshold` apart; if the picture
+        // is nearly one colour, relax the rule step by step until we have 8
+        // (or run out of buckets).
+        var picked = [];
+        var thresholds = [42, 28, 16, 0];
+        for (var t = 0; t < thresholds.length && picked.length < 8; t++) {
+          for (var j = 0; j < ranked.length && picked.length < 8; j++) {
+            var candidate = ranked[j];
+            if (picked.indexOf(candidate) !== -1) continue;
+            var distinct = true;
+            for (var k = 0; k < picked.length; k++) {
+              if (colourDistance(candidate.rgb, picked[k].rgb) < thresholds[t]) {
+                distinct = false; break;
+              }
+            }
+            if (distinct) picked.push(candidate);
+          }
+        }
+        return picked.map(function (entry) {
+          return {
+            hex: rgbToHex(entry.rgb.r, entry.rgb.g, entry.rgb.b),
+            pct: (entry.count / total) * 100
+          };
+        });
+      }
+
+      /* ---- Painted samples — gradients and shapes, no image files ---- */
+      function makeCanvas(w, h) {
+        var c = document.createElement("canvas");
+        c.width = w; c.height = h;
+        return c;
+      }
+      function paintSunset() {
+        var c = makeCanvas(640, 400), x = c.getContext("2d");
+        var sky = x.createLinearGradient(0, 0, 0, 280);
+        sky.addColorStop(0, "#2e1a47"); sky.addColorStop(0.45, "#8e2a5c");
+        sky.addColorStop(0.75, "#e2543e"); sky.addColorStop(1, "#ffb347");
+        x.fillStyle = sky; x.fillRect(0, 0, 640, 280);
+        x.fillStyle = "#ffd98a";
+        x.beginPath(); x.arc(320, 262, 52, 0, Math.PI * 2); x.fill();
+        var sea = x.createLinearGradient(0, 280, 0, 400);
+        sea.addColorStop(0, "#e88a4e"); sea.addColorStop(1, "#3a2a5e");
+        x.fillStyle = sea; x.fillRect(0, 280, 640, 120);
+        x.fillStyle = "#241536";
+        x.beginPath();
+        x.moveTo(0, 280); x.lineTo(150, 218); x.lineTo(300, 280); x.closePath(); x.fill();
+        x.beginPath();
+        x.moveTo(640, 280); x.lineTo(500, 228); x.lineTo(380, 280); x.closePath(); x.fill();
+        x.fillStyle = "rgba(255,217,138,0.55)";
+        x.fillRect(292, 292, 56, 5); x.fillRect(302, 308, 36, 4); x.fillRect(298, 324, 44, 4);
+        return c;
+      }
+      function paintForest() {
+        var c = makeCanvas(640, 400), x = c.getContext("2d");
+        var sky = x.createLinearGradient(0, 0, 0, 400);
+        sky.addColorStop(0, "#cfe8d8"); sky.addColorStop(1, "#e9f2df");
+        x.fillStyle = sky; x.fillRect(0, 0, 640, 400);
+        x.fillStyle = "#f4e3ac";
+        x.beginPath(); x.arc(540, 70, 34, 0, Math.PI * 2); x.fill();
+        function hill(colour, base, peak) {
+          x.fillStyle = colour;
+          x.beginPath();
+          x.moveTo(0, 400); x.lineTo(0, base);
+          x.quadraticCurveTo(320, peak, 640, base);
+          x.lineTo(640, 400); x.closePath(); x.fill();
+        }
+        hill("#7fae7a", 250, 190); hill("#4d7d52", 300, 240); hill("#2c5a38", 350, 300);
+        function tree(tx, ty, size, colour) {
+          x.fillStyle = "#5a4230"; x.fillRect(tx - 3, ty, 6, 14);
+          x.fillStyle = colour;
+          for (var i = 0; i < 3; i++) {
+            var w = size * (1 - i * 0.24), top = ty - size * (0.45 + i * 0.34);
+            x.beginPath();
+            x.moveTo(tx - w / 2, ty - size * i * 0.3);
+            x.lineTo(tx, top);
+            x.lineTo(tx + w / 2, ty - size * i * 0.3);
+            x.closePath(); x.fill();
+          }
+        }
+        tree(90, 330, 90, "#1f4d2e"); tree(210, 352, 110, "#276239");
+        tree(360, 338, 84, "#1f4d2e"); tree(480, 358, 118, "#2e7043");
+        tree(580, 330, 78, "#276239"); tree(160, 306, 60, "#35794a");
+        tree(430, 312, 58, "#35794a");
+        return c;
+      }
+      function paintNeon() {
+        var c = makeCanvas(640, 400), x = c.getContext("2d");
+        var sky = x.createLinearGradient(0, 0, 0, 400);
+        sky.addColorStop(0, "#070b26"); sky.addColorStop(1, "#1d1440");
+        x.fillStyle = sky; x.fillRect(0, 0, 640, 400);
+        x.fillStyle = "#e8ecff";
+        x.beginPath(); x.arc(90, 62, 26, 0, Math.PI * 2); x.fill();
+        x.fillStyle = "#070b26";
+        x.beginPath(); x.arc(104, 54, 22, 0, Math.PI * 2); x.fill();
+        var stars = [[180,40],[300,80],[420,36],[560,110],[240,130],[500,60],[360,150],[60,160]];
+        x.fillStyle = "#aebaff";
+        stars.forEach(function (s) { x.fillRect(s[0], s[1], 3, 3); });
+        var buildings = [
+          [0, 170, 90, 230, "#12173a"], [100, 130, 80, 270, "#0d1030"], [190, 200, 100, 200, "#151a42"],
+          [300, 110, 84, 290, "#0d1030"], [394, 180, 96, 220, "#12173a"], [500, 140, 76, 260, "#151a42"],
+          [586, 210, 54, 190, "#0d1030"]
+        ];
+        var windowColours = ["#22d3ee", "#f472b6", "#facc15", "#a78bfa"];
+        buildings.forEach(function (b, bi) {
+          x.fillStyle = b[4]; x.fillRect(b[0], b[1], b[2], b[3]);
+          for (var wy = b[1] + 14; wy < 386; wy += 22) {
+            for (var wx = b[0] + 10; wx < b[0] + b[2] - 12; wx += 20) {
+              if ((wx * 7 + wy * 13 + bi * 31) % 5 < 2) {
+                x.fillStyle = windowColours[(wx + wy + bi) % windowColours.length];
+                x.fillRect(wx, wy, 9, 12);
+              }
+            }
+          }
+        });
+        x.fillStyle = "#05060f"; x.fillRect(0, 392, 640, 8);
+        x.fillStyle = "#f472b6"; x.fillRect(190, 188, 100, 5);
+        x.fillStyle = "#22d3ee"; x.fillRect(300, 98, 84, 5);
+        return c;
+      }
+      var SAMPLES = { sunset: paintSunset, forest: paintForest, neon: paintNeon };
+      var SAMPLE_NAMES = { sunset: "Sunset", forest: "Forest", neon: "Neon city" };
+
+      /* ---- Rendering — preview, palette swatches, harmony strip ---- */
+      function showSource(source, width, height, label) {
+        var ctx = els.preview.getContext("2d");
+        els.preview.width = width; els.preview.height = height;
+        ctx.drawImage(source, 0, 0);
+        els.previewMeta.textContent = label + " — " + width + " × " + height + " px";
+        setPalette(extractPalette(source, width, height));
+      }
+      function formatPct(pct) {
+        var s = pct.toFixed(1);
+        if (s.slice(-2) === ".0") s = s.slice(0, -2);
+        return s + "% of picture";
+      }
+      function makeSwatch(hex, subText, roleText) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "swatch";
+        btn.setAttribute("aria-label", "Copy hex code " + hex);
+        var chip = document.createElement("span");
+        chip.className = "chip"; chip.style.display = "block";
+        chip.style.background = hex;
+        var meta = document.createElement("span");
+        meta.className = "meta"; meta.style.display = "block";
+        var hexEl = document.createElement("span");
+        hexEl.className = "hex mono"; hexEl.textContent = hex;
+        meta.appendChild(hexEl);
+        if (roleText) {
+          var role = document.createElement("span");
+          role.className = "role"; role.textContent = roleText;
+          meta.appendChild(role);
+        }
+        if (subText) {
+          var sub = document.createElement("span");
+          sub.className = "share"; sub.textContent = subText;
+          meta.appendChild(sub);
+        }
+        btn.appendChild(chip); btn.appendChild(meta);
+        btn.addEventListener("click", function () {
+          copyText(hex, "Copied " + hex);
+          var original = hexEl.textContent;
+          hexEl.textContent = "Copied";
+          btn.classList.add("copied");
+          setTimeout(function () {
+            hexEl.textContent = original;
+            btn.classList.remove("copied");
+          }, 1200);
+        });
+        return btn;
+      }
+      function setPalette(colours) {
+        currentPalette = colours;
+        els.paletteGrid.innerHTML = "";
+        colours.forEach(function (c) {
+          els.paletteGrid.appendChild(
+            makeSwatch(c.hex, c.pct === null ? "" : formatPct(c.pct), ""));
+        });
+        renderHarmony();
+      }
+      function renderHarmony() {
+        els.harmonyGrid.innerHTML = "";
+        if (!currentPalette.length) return;
+        var top = hexToRgb(currentPalette[0].hex);
+        var hsl = rgbToHsl(top.r, top.g, top.b);
+        var items = [
+          { label: "Base", hex: currentPalette[0].hex },
+          { label: "Complementary", hex: hslToHex(hsl.h + 180, hsl.s, hsl.l) },
+          { label: "Analogous −30°", hex: hslToHex(hsl.h - 30, hsl.s, hsl.l) },
+          { label: "Analogous +30°", hex: hslToHex(hsl.h + 30, hsl.s, hsl.l) }
+        ];
+        items.forEach(function (item) {
+          els.harmonyGrid.appendChild(makeSwatch(item.hex, "", item.label));
+        });
+      }
+
+      /* ---- Kept palettes — localStorage, Keep / Load / Delete ---- */
+      function loadKept() {
+        try {
+          var raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return [];
+          var parsed = JSON.parse(raw);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (e) { return []; }
+      }
+      function persistKept() {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(keptPalettes)); }
+        catch (e) { /* storage unavailable — list still works for this visit */ }
+      }
+      function nameTaken(name) {
+        var wanted = name.trim().toLowerCase();
+        return keptPalettes.some(function (p) { return p.name.toLowerCase() === wanted; });
+      }
+      function renderKept() {
+        els.keptList.innerHTML = "";
+        els.keptEmpty.style.display = keptPalettes.length ? "none" : "";
+        keptPalettes.forEach(function (palette) {
+          var li = document.createElement("li");
+          li.className = "kept-item";
+          var name = document.createElement("span");
+          name.className = "name"; name.textContent = palette.name;
+          var dots = document.createElement("span");
+          dots.className = "dots";
+          palette.colors.forEach(function (hex) {
+            var d = document.createElement("span");
+            d.className = "dot"; d.style.background = hex; d.title = hex;
+            dots.appendChild(d);
+          });
+          var loadBtn = document.createElement("button");
+          loadBtn.type = "button"; loadBtn.className = "btn-small";
+          loadBtn.textContent = "Load";
+          loadBtn.addEventListener("click", function () {
+            setPalette(palette.colors.map(function (hex) {
+              return { hex: hex, pct: null };
+            }));
+            toast("Loaded “" + palette.name + "”");
+          });
+          var delBtn = document.createElement("button");
+          delBtn.type = "button"; delBtn.className = "btn-small";
+          delBtn.textContent = "Delete";
+          delBtn.addEventListener("click", function () {
+            keptPalettes = keptPalettes.filter(function (p) { return p !== palette; });
+            persistKept(); renderKept();
+            toast("Deleted “" + palette.name + "”");
+          });
+          li.appendChild(name); li.appendChild(dots); li.appendChild(loadBtn); li.appendChild(delBtn);
+          els.keptList.appendChild(li);
+        });
+      }
+      document.getElementById("keepBtn").addEventListener("click", function () {
+        var name = els.keepName.value.trim();
+        if (!name) { toast("Give the palette a name first."); els.keepName.focus(); return; }
+        if (!currentPalette.length) { toast("No palette to keep yet."); return; }
+        if (nameTaken(name)) { toast("A palette named “" + name + "” is already kept."); return; }
+        if (keptPalettes.length >= MAX_KEPT) {
+          toast("You already keep 50 palettes — delete one to make room."); return;
+        }
+        keptPalettes.push({
+          name: name,
+          colors: currentPalette.map(function (c) { return c.hex; })
+        });
+        persistKept(); renderKept();
+        els.keepName.value = "";
+        toast("Kept “" + name + "”");
+      });
+
+      /* ---- Copy CSS variables, Save JSON, Open JSON (fully validated) ---- */
+      document.getElementById("copyCssBtn").addEventListener("click", copyCss);
+      function copyCss() {
+        if (!currentPalette.length) { toast("No palette to copy yet."); return; }
+        var lines = currentPalette.map(function (c, i) {
+          return "  --palette-" + (i + 1) + ": " + c.hex + ";";
+        });
+        copyText(":root {\n" + lines.join("\n") + "\n}", "Copied CSS variables");
+      }
+      function saveJson() {
+        var payload = { app: "palette-lift", version: 1, palettes: keptPalettes };
+        var blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url; a.download = "palette-lift-palettes.json";
+        document.body.appendChild(a); a.click();
+        document.body.removeChild(a);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+        toast("Saved " + keptPalettes.length + " palette(s) as JSON");
+      }
+      document.getElementById("saveBtn").addEventListener("click", saveJson);
+      document.getElementById("openBtn").addEventListener("click", function () {
+        els.jsonInput.click();
+      });
+      els.jsonInput.addEventListener("change", function () {
+        var file = els.jsonInput.files[0];
+        els.jsonInput.value = "";
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function () {
+          var checked = validateImport(reader.result);
+          if (!checked) { toast("That file is not a valid Palette Lift export — nothing changed."); return; }
+          keptPalettes = checked;
+          persistKept(); renderKept();
+          toast("Opened " + checked.length + " palette(s)");
+        };
+        reader.onerror = function () { toast("Could not read that file."); };
+        reader.readAsText(file);
+      });
+      // Returns a clean palettes array, or null if anything at all is off.
+      function validateImport(text) {
+        var data;
+        try { data = JSON.parse(text); } catch (e) { return null; }
+        if (!data || typeof data !== "object" || Array.isArray(data)) return null;
+        if (data.app !== "palette-lift" || data.version !== 1) return null;
+        if (!Array.isArray(data.palettes) || data.palettes.length > MAX_KEPT) return null;
+        var seen = {};
+        var clean = [];
+        for (var i = 0; i < data.palettes.length; i++) {
+          var p = data.palettes[i];
+          if (!p || typeof p !== "object") return null;
+          if (typeof p.name !== "string") return null;
+          var name = p.name.trim();
+          if (!name || name.length > 60) return null;
+          var key = name.toLowerCase();
+          if (seen[key]) return null;
+          seen[key] = true;
+          if (!Array.isArray(p.colors) || p.colors.length < 3 || p.colors.length > 10) return null;
+          var colors = [];
+          for (var j = 0; j < p.colors.length; j++) {
+            if (typeof p.colors[j] !== "string" || !/^#[0-9a-fA-F]{6}$/.test(p.colors[j])) return null;
+            colors.push(p.colors[j].toLowerCase());
+          }
+          clean.push({ name: name, colors: colors });
+        }
+        return clean;
+      }
+
+      /* ---- Image input — picker, drag & drop, sample buttons ---- */
+      function handleImageFile(file) {
+        if (!file) return;
+        if (!/^image\/(jpeg|png|webp|gif)$/.test(file.type)) {
+          toast("That file is not a JPG, PNG, WebP or GIF image."); return;
+        }
+        var url = URL.createObjectURL(file);
+        var img = new Image();
+        img.onload = function () {
+          showSource(img, img.naturalWidth, img.naturalHeight, file.name);
+          URL.revokeObjectURL(url);
+        };
+        img.onerror = function () {
+          URL.revokeObjectURL(url);
+          toast("That image could not be read.");
+        };
+        img.src = url;
+      }
+      els.dropzone.addEventListener("click", function () { els.imageInput.click(); });
+      els.dropzone.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); els.imageInput.click(); }
+      });
+      els.imageInput.addEventListener("change", function () {
+        handleImageFile(els.imageInput.files[0]);
+        els.imageInput.value = "";
+      });
+      ["dragenter", "dragover"].forEach(function (type) {
+        els.dropzone.addEventListener(type, function (e) {
+          e.preventDefault(); els.dropzone.classList.add("dragging");
+        });
+      });
+      ["dragleave", "drop"].forEach(function (type) {
+        els.dropzone.addEventListener(type, function (e) {
+          e.preventDefault(); els.dropzone.classList.remove("dragging");
+        });
+      });
+      els.dropzone.addEventListener("drop", function (e) {
+        var files = e.dataTransfer && e.dataTransfer.files;
+        if (files && files.length) handleImageFile(files[0]);
+      });
+      document.querySelectorAll("[data-sample]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var key = btn.getAttribute("data-sample");
+          var canvas = SAMPLES[key]();
+          showSource(canvas, canvas.width, canvas.height,
+            SAMPLE_NAMES[key] + " (painted sample)");
+        });
+      });
+
+      /* ---- Keyboard shortcuts — one function per key, never while typing ---- */
+      document.addEventListener("keydown", function (e) {
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
+        var target = e.target;
+        var typing = target && (
+          target.tagName === "INPUT" || target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT" || target.isContentEditable);
+        if (typing) return;
+        var key = e.key.toLowerCase();
+        if (key === "s") { e.preventDefault(); saveJson(); }
+        else if (key === "o") { e.preventDefault(); els.jsonInput.click(); }
+        else if (key === "c") { e.preventDefault(); copyCss(); }
+      });
+
+      /* ---- Init — Sunset is painted and lifted before anything is tapped ---- */
+      (function init() {
+        var sunset = paintSunset();
+        showSource(sunset, sunset.width, sunset.height, "Sunset (painted sample)");
+        renderKept();
+      })();
+    </script>
+  </body>
+</html>

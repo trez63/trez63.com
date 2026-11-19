@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RayPrism — Optical Ray-Tracing & Dispersion Studio</title>
+    <style>
+        :root {
+            --bg: #060911; --panel: #0e1422; --card: #182136; --border: #2c3854;
+            --text: #f8fafc; --sub: #94a3b8; --accent: #38bdf8; --accent-hover: #0284c7;
+            --gold: #fbbf24; --emerald: #10b981; --shadow: rgba(0,0,0,0.65);
+        }
+        [data-theme="light"] {
+            --bg: #f1f5f9; --panel: #ffffff; --card: #f8fafc; --border: #cbd5e1;
+            --text: #0f172a; --sub: #64748b; --accent: #0284c7; --accent-hover: #0369a1;
+            --gold: #d97706; --emerald: #059669; --shadow: rgba(0,0,0,0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+
+        header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; z-index: 10; }
+        .brand { font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em; }
+        .prism-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+        .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        button, label.btn-label, select { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; user-select: none; transition: 0.15s; outline: none; }
+        button:hover, label.btn-label:hover { border-color: var(--accent); color: var(--accent); }
+        button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+        button.primary:hover { background: var(--accent-hover); color: #fff; }
+        input[type="file"] { display: none; }
+
+        .metrics-bar { background: var(--panel); border-bottom: 1px solid var(--border); padding: 10px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: 12px; font-size: 0.8rem; z-index: 10; }
+        .metric-card { background: var(--bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); }
+        .metric-title { color: var(--sub); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+        .metric-val { font-size: 1rem; font-weight: 700; color: var(--text); }
+
+        main { flex: 1; padding: 16px; max-width: 1360px; width: 100%; margin: 0 auto; display: grid; grid-template-columns: 315px 1fr; gap: 16px; }
+        .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; box-shadow: 0 4px 6px var(--shadow); display: flex; flex-direction: column; gap: 12px; }
+        .section-title { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sub); display: flex; justify-content: space-between; align-items: center; }
+
+        .form-group { margin-bottom: 4px; }
+        .form-group label { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--sub); margin-bottom: 4px; font-weight: 500; }
+        .form-group select, .form-group input[type="range"] { width: 100%; accent-color: var(--accent); }
+
+        .bench-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; height: 460px; position: relative; overflow: hidden; }
+        canvas { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
+        canvas:active { cursor: grabbing; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 200; padding: 16px; }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 440px; padding: 20px; box-shadow: 0 20px 25px -5px var(--shadow); }
+        .modal h3 { font-size: 1.1rem; margin-bottom: 12px; }
+
+        .shortcut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem; margin: 12px 0 16px; }
+        .shortcut-row { display: flex; justify-content: space-between; background: var(--card); padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border); }
+        kbd { background: var(--panel); border: 1px solid var(--border); padding: 1px 5px; border-radius: 3px; font-weight: 600; font-size: 0.75rem; }
+
+        @media (max-width: 850px) {
+            header { flex-direction: column; align-items: stretch; }
+            .actions { justify-content: space-between; }
+            main { grid-template-columns: 1fr; padding: 8px; }
+            .metrics-bar { grid-template-columns: repeat(2, 1fr); }
+            .bench-box { height: 350px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand"><div class="prism-dot"></div> RayPrism Photonics Studio</div>
+        <div class="actions">
+            <button id="addPrismBtn" class="primary">🔺 + Prism</button>
+            <button id="addMirrorBtn">🪞 + Mirror</button>
+            <button id="saveBtn">💾 Save JSON</button>
+            <label class="btn-label" for="openFile">📂 Open JSON</label>
+            <input type="file" id="openFile" accept=".json">
+            <button id="themeBtn">🌓 Theme</button>
+            <button id="helpBtn">❓ Help</button>
+        </div>
+    </header>
+
+    <div class="metrics-bar">
+        <div class="metric-card"><div class="metric-title">Base Refractive Index</div><div class="metric-val" id="mIor" style="color:var(--accent);">1.62 (Flint)</div></div>
+        <div class="metric-card"><div class="metric-title">Critical TIR Angle</div><div class="metric-val" id="mCrit" style="color:var(--gold);">38.1°</div></div>
+        <div class="metric-card"><div class="metric-title">Chromatic Spread</div><div class="metric-val" id="mDisp">High (0.045)</div></div>
+        <div class="metric-card"><div class="metric-title">Traced Segments</div><div class="metric-val" id="mRays" style="color:var(--emerald);">28 Rays</div></div>
+    </div>
+
+    <main>
+        <!-- Optical Bench Controls -->
+        <div class="panel">
+            <div class="section-title"><span>Optical Bench &amp; Dispersion</span></div>
+
+            <div class="form-group">
+                <label>Experiment Preset</label>
+                <select id="cfgPreset">
+                    <option value="newton">Newtonian Prism Dispersion</option>
+                    <option value="tir">Total Internal Reflection Trap</option>
+                    <option value="periscope">Dual-Mirror Periscope Relay</option>
+                    <option value="diamond">High-Index Diamond Doublet</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Emitter Beam Angle: <span id="valBeamAngle">-8</span>°</label>
+                <input type="range" id="cfgBeamAngle" min="-40" max="40" step="1" value="-8">
+            </div>
+
+            <div class="form-group">
+                <label>Glass Base Index (n₀): <span id="valIor">1.62</span></label>
+                <input type="range" id="cfgIor" min="1.33" max="2.42" step="0.01" value="1.62">
+            </div>
+
+            <div class="form-group">
+                <label>Cauchy Dispersion (B): <span id="valDisp">0.045</span></label>
+                <input type="range" id="cfgDisp" min="0.000" max="0.090" step="0.005" value="0.045">
+            </div>
+
+            <div class="form-group">
+                <label>Selected Optic Rotation: <span id="valRot">0</span>°</label>
+                <input type="range" id="cfgRot" min="-180" max="180" step="2" value="0">
+            </div>
+
+            <p style="font-size:0.76rem; color:var(--sub); line-height:1.45; margin-top:4px;">
+                <strong>Tap &amp; drag</strong> any prism, mirror, or the laser emitter directly on the optical bench. Use the rotation slider to sweep through Snell's Law refraction and Total Internal Reflection.
+            </p>
+        </div>
+
+        <!-- Optical Bench Canvas -->
+        <div class="panel">
+            <div class="section-title"><span>Live Multi-Wavelength Ray-Tracing Canvas (410nm – 680nm)</span></div>
+            <div class="bench-box">
+                <canvas id="optCanvas"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal">
+            <h3>RayPrism Guide &amp; Shortcuts</h3>
+            <p style="font-size:0.85rem; color:var(--sub); line-height:1.4; margin-bottom:10px;">Real-time 2D Snell's Law ray-tracer with Cauchy chromatic dispersion and Total Internal Reflection.</p>
+            <div class="shortcut-grid">
+                <div class="shortcut-row"><span>Add Prism</span> <kbd>P</kbd></div>
+                <div class="shortcut-row"><span>Add Mirror</span> <kbd>M</kbd></div>
+                <div class="shortcut-row"><span>Reset Bench</span> <kbd>R</kbd></div>
+                <div class="shortcut-row"><span>Save Bench</span> <kbd>S</kbd></div>
+                <div class="shortcut-row"><span>Open Bench</span> <kbd>O</kbd></div>
+                <div class="shortcut-row"><span>Toggle Theme</span> <kbd>T</kbd></div>
+                <div class="shortcut-row"><span>Close Modal</span> <kbd>Esc</kbd></div>
+            </div>
+            <button id="closeHelpBtn" class="primary" style="width:100%; justify-content:center; margin-top:10px;">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Spectral Wavelengths (Red -> Violet) ---
+        const SPECTRUM = [
+            { nm: 680, color: '#ff3b30', offset: -0.50 },
+            { nm: 615, color: '#ff9500', offset: -0.33 },
+            { nm: 580, color: '#ffcc00', offset: -0.16 },
+            { nm: 530, color: '#34c759', offset:  0.00 },
+            { nm: 485, color: '#00c7be', offset:  0.17 },
+            { nm: 450, color: '#007aff', offset:  0.34 },
+            { nm: 410, color: '#af52de', offset:  0.50 }
+        ];
+
+        // --- Optical Bench State (Normalized 0..1 coordinates) ---
+        let bench = {
+            emitter: { x: 0.12, y: 0.54, angle: -8 },
+            ior: 1.62,
+            dispersion: 0.045,
+            selectedIdx: 0,
+            optics: []
+        };
+
+        const PRESETS = {
+            newton: {
+                emitter: { x: 0.12, y: 0.56, angle: -10 },
+                ior: 1.62, dispersion: 0.045, selectedIdx: 0,
+                optics: [
+                    { type: 'prism', x: 0.44, y: 0.48, size: 95, rot: 0 },
+                    { type: 'mirror', x: 0.78, y: 0.72, size: 110, rot: -28 }
+                ]
+            },
+            tir: {
+                emitter: { x: 0.14, y: 0.34, angle: 16 },
+                ior: 1.78, dispersion: 0.030, selectedIdx: 0,
+                optics: [
+                    { type: 'prism', x: 0.48, y: 0.48, size: 125, rot: 32 }
+                ]
+            },
+            periscope: {
+                emitter: { x: 0.12, y: 0.72, angle: 0 },
+                ior: 1.52, dispersion: 0.015, selectedIdx: 0,
+                optics: [
+                    { type: 'mirror', x: 0.38, y: 0.72, size: 105, rot: -45 },
+                    { type: 'mirror', x: 0.38, y: 0.28, size: 105, rot: -45 },
+                    { type: 'prism', x: 0.68, y: 0.28, size: 85, rot: 12 }
+                ]
+            },
+            diamond: {
+                emitter: { x: 0.12, y: 0.52, angle: -6 },
+                ior: 2.41, dispersion: 0.075, selectedIdx: 0,
+                optics: [
+                    { type: 'prism', x: 0.42, y: 0.48, size: 90, rot: 4 },
+                    { type: 'prism', x: 0.68, y: 0.56, size: 90, rot: 180 }
+                ]
+            }
+        };
+
+        const canvas = document.getElementById('optCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // --- Geometry Helpers for Optical Polygons ---
+        function getOpticSegments(opt, w, h) {
+            const cx = opt.x * w, cy = opt.y * h;
+            const rad = (opt.rot * Math.PI) / 180;
+            const cos = Math.cos(rad), sin = Math.sin(rad);
+            const rotPt = (px, py) => ({ x: cx + px * cos - py * sin, y: cy + px * sin + py * cos });
+
+            if (opt.type === 'mirror') {
+                const half = opt.size * 0.55;
+                const p1 = rotPt(-half, 0), p2 = rotPt(half, 0);
+                return [{ a: p1, b: p2, type: 'mirror' }];
+            } else {
+                // Equilateral dispersive glass prism
+                const r = opt.size * 0.65;
+                const v0 = rotPt(0, -r);
+                const v1 = rotPt(r * 0.866, r * 0.5);
+                const v2 = rotPt(-r * 0.866, r * 0.5);
+                return [
+                    { a: v0, b: v1, type: 'glass' },
+                    { a: v1, b: v2, type: 'glass' },
+                    { a: v2, b: v0, type: 'glass' }
+                ];
+            }
+        }
+
+        function rayIntersect(ox, oy, dx, dy, seg) {
+            const x1 = seg.a.x, y1 = seg.a.y, x2 = seg.b.x, y2 = seg.b.y;
+            const sx = x2 - x1, sy = y2 - y1;
+            const denom = dx * sy - dy * sx;
+            if (Math.abs(denom) < 1e-6) return null;
+
+            const t = ((x1 - ox) * sy - (y1 - oy) * sx) / denom;
+            const u = ((x1 - ox) * dy - (y1 - oy) * dx) / denom;
+            if (t > 0.5 && u >= 0 && u <= 1) {
+                const len = Math.hypot(sx, sy);
+                let nx = -sy / len, ny = sx / len;
+                const entering = (dx * nx + dy * ny) < 0;
+                if (!entering) { nx = -nx; ny = -ny; }
+                return { t, x: ox + dx * t, y: oy + dy * t, nx, ny, entering, type: seg.type };
+            }
+            return null;
+        }
+
+        // --- Snell's Law + Reflection Tracer ---
+        function traceRay(ox, oy, dx, dy, nGlass, color, maxBounces = 12) {
+            const segments = [];
+            let cx = ox, cy = oy, cdx = dx, cdy = dy;
+            let insideGlass = false;
+
+            const allWalls = [];
+            bench.optics.forEach(opt => allWalls.push(...getOpticSegments(opt, canvas.width, canvas.height)));
+
+            for (let bounce = 0; bounce < maxBounces; bounce++) {
+                let closest = null;
+                for (let seg of allWalls) {
+                    const hit = rayIntersect(cx, cy, cdx, cdy, seg);
+                    if (hit && (!closest || hit.t < closest.t)) closest = hit;
+                }
+
+                if (!closest) {
+                    segments.push({ x1: cx, y1: cy, x2: cx + cdx * 1600, y2: cy + cdy * 1600, color });
+                    break;
+                }
+
+                segments.push({ x1: cx, y1: cy, x2: closest.x, y2: closest.y, color });
+
+                if (closest.type === 'mirror') {
+                    // Specular Reflection: R = I - 2(I·N)N
+                    const dot = cdx * closest.nx + cdy * closest.ny;
+                    cdx = cdx - 2 * dot * closest.nx;
+                    cdy = cdy - 2 * dot * closest.ny;
+                    cx = closest.x + cdx * 0.6;
+                    cy = closest.y + cdy * 0.6;
+                } else {
+                    // Snell's Law Refraction or Total Internal Reflection
+                    const n1 = insideGlass ? nGlass : 1.0;
+                    const n2 = insideGlass ? 1.0 : nGlass;
+                    const eta = n1 / n2;
+                    const cosI = -(cdx * closest.nx + cdy * closest.ny);
+                    const sinT2 = eta * eta * (1.0 - cosI * cosI);
+
+                    if (sinT2 > 1.0) {
+                        // Total Internal Reflection!
+                        const dot = cdx * closest.nx + cdy * closest.ny;
+                        cdx = cdx - 2 * dot * closest.nx;
+                        cdy = cdy - 2 * dot * closest.ny;
+                    } else {
+                        const cosT = Math.sqrt(1.0 - sinT2);
+                        cdx = eta * cdx + (eta * cosI - cosT) * closest.nx;
+                        cdy = eta * cdy + (eta * cosI - cosT) * closest.ny;
+                        insideGlass = !insideGlass;
+                    }
+                    const mag = Math.hypot(cdx, cdy) || 1;
+                    cdx /= mag;
+                    cdy /= mag;
+                    cx = closest.x + cdx * 0.6;
+                    cy = closest.y + cdy * 0.6;
+                }
+            }
+            return segments;
+        }
+
+        // --- Render Optical Bench & Rays ---
+        function renderBench() {
+            const w = canvas.parentElement.clientWidth;
+            const h = canvas.parentElement.clientHeight;
+            if (canvas.width !== w || canvas.height !== h) {
+                canvas.width = w;
+                canvas.height = h;
+            }
+
+            const styles = getComputedStyle(document.documentElement);
+            const accent = styles.getPropertyValue('--accent').trim();
+            const gold = styles.getPropertyValue('--gold').trim();
+            const borderCol = styles.getPropertyValue('--border').trim();
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Subtle Optical Breadboard Grid
+            ctx.fillStyle = borderCol;
+            ctx.globalAlpha = 0.35;
+            for (let gx = 24; gx < w; gx += 32) {
+                for (let gy = 24; gy < h; gy += 32) {
+                    ctx.fillRect(gx, gy, 1.5, 1.5);
+                }
+            }
+            ctx.globalAlpha = 1.0;
+
+            // Trace all 7 spectral wavelengths
+            const ex = bench.emitter.x * w, ey = bench.emitter.y * h;
+            const eRad = (bench.emitter.angle * Math.PI) / 180;
+            const dx = Math.cos(eRad), dy = Math.sin(eRad);
+            let totalSegments = 0;
+
+            ctx.save();
+            ctx.globalCompositeOperation = document.documentElement.getAttribute('data-theme') === 'dark' ? 'screen' : 'source-over';
+            SPECTRUM.forEach(band => {
+                const nWave = bench.ior + band.offset * bench.dispersion * 2.2;
+                const raySegs = traceRay(ex + dx * 18, ey + dy * 18, dx, dy, nWave, band.color);
+                totalSegments += raySegs.length;
+
+                ctx.strokeStyle = band.color;
+                ctx.lineWidth = 2.2;
+                ctx.globalAlpha = 0.85;
+                raySegs.forEach(s => {
+                    ctx.beginPath();
+                    ctx.moveTo(s.x1, s.y1);
+                    ctx.lineTo(s.x2, s.y2);
+                    ctx.stroke();
+                });
+            });
+            ctx.restore();
+
+            // Draw Optical Elements (Prisms & Mirrors)
+            bench.optics.forEach((opt, idx) => {
+                const segs = getOpticSegments(opt, w, h);
+                const isSel = idx === bench.selectedIdx;
+
+                if (opt.type === 'prism') {
+                    ctx.beginPath();
+                    ctx.moveTo(segs[0].a.x, segs[0].a.y);
+                    ctx.lineTo(segs[1].a.x, segs[1].a.y);
+                    ctx.lineTo(segs[2].a.x, segs[2].a.y);
+                    ctx.closePath();
+                    ctx.fillStyle = 'rgba(56, 189, 248, 0.14)';
+                    ctx.fill();
+                    ctx.strokeStyle = isSel ? gold : accent;
+                    ctx.lineWidth = isSel ? 2.5 : 1.8;
+                    ctx.stroke();
+                } else {
+                    ctx.beginPath();
+                    ctx.moveTo(segs[0].a.x, segs[0].a.y);
+                    ctx.lineTo(segs[0].b.x, segs[0].b.y);
+                    ctx.strokeStyle = isSel ? gold : '#e2e8f0';
+                    ctx.lineWidth = 4.5;
+                    ctx.stroke();
+                }
+            });
+
+            // Draw Collimated White Light Laser Emitter
+            ctx.save();
+            ctx.translate(ex, ey);
+            ctx.rotate(eRad);
+            ctx.fillStyle = '#1e293b';
+            ctx.strokeStyle = accent;
+            ctx.lineWidth = 2;
+            ctx.fillRect(-18, -10, 36, 20);
+            ctx.strokeRect(-18, -10, 36, 20);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(14, -4, 5, 8);
+            ctx.restore();
+
+            // Update Telemetry Metrics
+            const critDeg = (Math.asin(1 / bench.ior) * 180) / Math.PI;
+            document.getElementById('mIor').innerText = `${bench.ior.toFixed(2)}`;
+            document.getElementById('mCrit').innerText = `${critDeg.toFixed(1)}°`;
+            document.getElementById('mDisp').innerText = bench.dispersion.toFixed(3);
+            document.getElementById('mRays').innerText = `${totalSegments} Segs`;
+        }
+
+        // --- Touch / Pointer Dragging on Bench ---
+        let dragTarget = null; // 'emitter' or index in bench.optics
+
+        canvas.addEventListener('pointerdown', e => {
+            const rect = canvas.getBoundingClientRect();
+            const px = e.clientX - rect.left, py = e.clientY - rect.top;
+            const w = canvas.width, h = canvas.height;
+
+            if (Math.hypot(px - bench.emitter.x * w, py - bench.emitter.y * h) < 32) {
+                dragTarget = 'emitter';
+                return;
+            }
+
+            for (let i = bench.optics.length - 1; i >= 0; i--) {
+                const opt = bench.optics[i];
+                if (Math.hypot(px - opt.x * w, py - opt.y * h) < 55) {
+                    dragTarget = i;
+                    bench.selectedIdx = i;
+                    syncUI();
+                    renderBench();
+                    return;
+                }
+            }
+        });
+
+        window.addEventListener('pointermove', e => {
+            if (dragTarget === null) return;
+            const rect = canvas.getBoundingClientRect();
+            const nx = Math.min(0.95, Math.max(0.05, (e.clientX - rect.left) / rect.width));
+            const ny = Math.min(0.92, Math.max(0.08, (e.clientY - rect.top) / rect.height));
+
+            if (dragTarget === 'emitter') {
+                bench.emitter.x = nx;
+                bench.emitter.y = ny;
+            } else if (bench.optics[dragTarget]) {
+                bench.optics[dragTarget].x = nx;
+                bench.optics[dragTarget].y = ny;
+            }
+            renderBench();
+        });
+
+        window.addEventListener('pointerup', () => dragTarget = null);
+        window.addEventListener('resize', renderBench);
+
+        // --- UI Controls & Persistence ---
+        function syncUI() {
+            document.getElementById('cfgBeamAngle').value = bench.emitter.angle;
+            document.getElementById('valBeamAngle').innerText = bench.emitter.angle;
+            document.getElementById('cfgIor').value = bench.ior;
+            document.getElementById('valIor').innerText = bench.ior.toFixed(2);
+            document.getElementById('cfgDisp').value = bench.dispersion;
+            document.getElementById('valDisp').innerText = bench.dispersion.toFixed(3);
+
+            const sel = bench.optics[bench.selectedIdx];
+            if (sel) {
+                document.getElementById('cfgRot').value = sel.rot;
+                document.getElementById('valRot').innerText = sel.rot;
+            }
+        }
+
+        document.getElementById('cfgPreset').addEventListener('change', e => {
+            bench = JSON.parse(JSON.stringify(PRESETS[e.target.value]));
+            syncUI();
+            renderBench();
+        });
+
+        document.getElementById('cfgBeamAngle').addEventListener('input', e => {
+            bench.emitter.angle = parseInt(e.target.value);
+            syncUI();
+            renderBench();
+        });
+
+        document.getElementById('cfgIor').addEventListener('input', e => {
+            bench.ior = parseFloat(e.target.value);
+            syncUI();
+            renderBench();
+        });
+
+        document.getElementById('cfgDisp').addEventListener('input', e => {
+            bench.dispersion = parseFloat(e.target.value);
+            syncUI();
+            renderBench();
+        });
+
+        document.getElementById('cfgRot').addEventListener('input', e => {
+            const sel = bench.optics[bench.selectedIdx];
+            if (sel) {
+                sel.rot = parseInt(e.target.value);
+                syncUI();
+                renderBench();
+            }
+        });
+
+        document.getElementById('addPrismBtn').addEventListener('click', () => {
+            bench.optics.push({ type: 'prism', x: 0.55, y: 0.50, size: 90, rot: 15 });
+            bench.selectedIdx = bench.optics.length - 1;
+            syncUI();
+            renderBench();
+        });
+
+        document.getElementById('addMirrorBtn').addEventListener('click', () => {
+            bench.optics.push({ type: 'mirror', x: 0.65, y: 0.35, size: 105, rot: -35 });
+            bench.selectedIdx = bench.optics.length - 1;
+            syncUI();
+            renderBench();
+        });
+
+        document.getElementById('saveBtn').addEventListener('click', exportJSON);
+        document.getElementById('openFile').addEventListener('change', importJSON);
+
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(bench, null, 2));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            a.setAttribute("download", `rayprism_bench_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        function importJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = evt => {
+                try {
+                    const data = JSON.parse(evt.target.result);
+                    if (data.emitter && Array.isArray(data.optics)) {
+                        bench = data;
+                        syncUI();
+                        renderBench();
+                    } else alert('Invalid RayPrism JSON file.');
+                } catch { alert('Error reading JSON file.'); }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Theme & Shortcuts (Zero Key Overlap) ---
+        const helpModal = document.getElementById('helpModal');
+        document.getElementById('helpBtn').addEventListener('click', () => helpModal.classList.add('open'));
+        document.getElementById('closeHelpBtn').addEventListener('click', () => helpModal.classList.remove('open'));
+        document.getElementById('themeBtn').addEventListener('click', () => {
+            const cur = document.documentElement.getAttribute('data-theme');
+            document.documentElement.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+            renderBench();
+        });
+
+        // P = Add Prism, M = Add Mirror, R = Reset Bench, S = Save JSON, O = Open JSON, T = Theme, Esc = Close Modal
+        window.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+            const k = e.key.toLowerCase();
+            if (k === 'p') { e.preventDefault(); document.getElementById('addPrismBtn').click(); }
+            if (k === 'm') { e.preventDefault(); document.getElementById('addMirrorBtn').click(); }
+            if (k === 'r') {
+                e.preventDefault();
+                document.getElementById('cfgPreset').value = 'newton';
+                bench = JSON.parse(JSON.stringify(PRESETS.newton));
+                syncUI();
+                renderBench();
+            }
+            if (k === 's') { e.preventDefault(); exportJSON(); }
+            if (k === 'o') { e.preventDefault(); document.getElementById('openFile').click(); }
+            if (k === 't') { e.preventDefault(); document.getElementById('themeBtn').click(); }
+            if (e.key === 'Escape') helpModal.classList.remove('open');
+        });
+
+        // Pre-loaded 5-Second Impressive Demo State
+        bench = JSON.parse(JSON.stringify(PRESETS.newton));
+        syncUI();
+        renderBench();
+    </script>
+</body>
+</html>

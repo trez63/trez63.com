@@ -3,13 +3,41 @@
   <title>trez63 — one small app a day</title>
   <link>https://trez63.com/</link>
   <description>Every day ChatGPT, Claude, Gemini, Grok and Muse each build a single-page app from the same one-line prompt. Play them all.</description>
-  <lastBuildDate>Thu, 19 Nov 2026 12:00:00 +0000</lastBuildDate>
+  <lastBuildDate>Fri, 20 Nov 2026 12:00:00 +0000</lastBuildDate>
   <item>
     <title>Quorum (Claude)</title>
     <link>https://trez63.com/p/quorum.html</link>
     <guid isPermaLink="true">https://trez63.com/p/quorum.html</guid>
     <pubDate>Thu, 19 Nov 2026 12:00:00 +0000</pubDate>
     <description>Split a password or recovery phrase into n shares so that any k of them rebuild it and fewer reveal nothing (Shamir&#x27;s secret sharing over GF(256)), print the shares as cards, combine them again, and watch a curve explain why k-1 shares carry no information.</description>
+  </item>
+  <item>
+    <title>Interference Atelier (Grok)</title>
+    <link>https://trez63.com/p/interference-atelier.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/interference-atelier.html</guid>
+    <pubDate>Thu, 19 Nov 2026 12:00:00 +0000</pubDate>
+    <description>Click to drop wave sources on a canvas and watch their ripples interfere in real time; drag them around, tune speed, wavelength and decay, randomise or pause, and save a composition as JSON.</description>
+  </item>
+  <item>
+    <title>Afterwords (ChatGPT)</title>
+    <link>https://trez63.com/p/afterwords.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/afterwords.html</guid>
+    <pubDate>Thu, 19 Nov 2026 12:00:00 +0000</pubDate>
+    <description>Found poetry: paste a passage (or use the one provided), tap the words you want to keep in their original order, place line breaks, then lay the poem out as a printed page or a blackout of the source and export it as an SVG.</description>
+  </item>
+  <item>
+    <title>GeoTecton (Gemini)</title>
+    <link>https://trez63.com/p/geotecton.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/geotecton.html</guid>
+    <pubDate>Thu, 19 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A cross-section of crust and mantle you can tap to set off earthquakes: choose subduction, spreading ridge or continental collision, tune convergence rate, heat flux and fault friction, rupture the fault and read the P and S waves off the seismograph.</description>
+  </item>
+  <item>
+    <title>Typeflow (Muse)</title>
+    <link>https://trez63.com/p/typeflow.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/typeflow.html</guid>
+    <pubDate>Thu, 19 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A typing test: pick one of the built-in passages or paste your own, type it out and see words per minute, accuracy, errors and time, with your recent runs and best score kept in a list you can save and reopen.</description>
   </item>
   <item>
     <title>Gordian (Claude)</title>
@@ -325,33 +353,5 @@
     <guid isPermaLink="true">https://trez63.com/p/keycuts.html</guid>
     <pubDate>Sun, 08 Nov 2026 12:00:00 +0000</pubDate>
     <description>A keyboard shortcut trainer. Pick VS Code, Gmail, Chrome or macOS, read the action and press its combo on your keyboard or the on-screen keys; misses go into a needs-work pile, a learn mode shows flip cards, and you can add your own shortcuts and save progress as JSON.</description>
-  </item>
-  <item>
-    <title>Rename Studio (Muse)</title>
-    <link>https://trez63.com/p/rename-studio.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/rename-studio.html</guid>
-    <pubDate>Sun, 08 Nov 2026 12:00:00 +0000</pubDate>
-    <description>Plan a batch rename before touching any files. Build a naming pattern from date, client, project, name and counter tokens, watch the new name for every file update as you type with duplicates flagged, then copy the names or download the plan as text.</description>
-  </item>
-  <item>
-    <title>Strata (Claude)</title>
-    <link>https://trez63.com/p/strata.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/strata.html</guid>
-    <pubDate>Sun, 08 Nov 2026 12:00:00 +0000</pubDate>
-    <description>Paste an employee CSV and it draws the org chart, measures layers and span of control, flags unknown managers and reporting cycles, then lets you drag people to try a reorg and keeps the diff.</description>
-  </item>
-  <item>
-    <title>ImpactForge (Grok)</title>
-    <link>https://trez63.com/p/imapactforge.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/imapactforge.html</guid>
-    <pubDate>Sun, 08 Nov 2026 12:00:00 +0000</pubDate>
-    <description>An impact-versus-effort matrix. Add tasks, drag them into the do-now, schedule, delegate and eliminate quadrants, and get them ranked by impact density.</description>
-  </item>
-  <item>
-    <title>Subject Line Lab (Muse)</title>
-    <link>https://trez63.com/p/subject-line-lab.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/subject-line-lab.html</guid>
-    <pubDate>Sun, 08 Nov 2026 12:00:00 +0000</pubDate>
-    <description>Type an email subject line and get an instant score with a checklist, see how it lands in a phone and desktop inbox next to other mail, and keep the winners.</description>
   </item>
 </channel></rss>

@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="dark" />
+<!-- Empty inline icon: stops the browser fetching /favicon.ico. -->
+<link rel="icon" href="data:," />
+<title>TYPEFLOW</title>
+<style>
+  /* ============ Palette & base ============ */
+  :root{
+    --bg:#0c1f18;
+    --surface:#14291f;
+    --surface-2:#1b352a;
+    --cream:#f2ecdd;
+    --muted:#9db8a8;
+    --gold:#e8b44a;
+    --green:#7fd08a;
+    --red:#ff6b5e;
+    --line:#2a4a3a;
+    --radius:14px;
+  }
+  *{ box-sizing:border-box; }
+  html{ -webkit-text-size-adjust:100%; }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--cream);
+    font-family:ui-sans-system, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height:1.45;
+  }
+  button, input, textarea{ font:inherit; color:inherit; }
+  button{ min-height:44px; cursor:pointer; }
+
+  /* ============ Layout ============ */
+  .wrap{ max-width:860px; margin:0 auto; padding:20px 16px 48px; }
+
+  /* ============ Header ============ */
+  header.top{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px; flex-wrap:wrap; margin-bottom:18px;
+  }
+  h1.logo{
+    margin:0; font-size:clamp(28px, 6vw, 40px); letter-spacing:.14em;
+    font-weight:800; line-height:1;
+  }
+  h1.logo .flow{ color:var(--gold); }
+  .best-chip{
+    background:var(--surface-2); border:1px solid var(--line);
+    border-radius:999px; padding:8px 16px; font-size:15px; white-space:nowrap;
+  }
+  .best-chip strong{ color:var(--gold); font-size:18px; }
+
+  /* ============ Passage chips ============ */
+  .chips{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+  .chip{
+    background:var(--surface); border:1px solid var(--line); color:var(--cream);
+    border-radius:999px; padding:8px 16px; font-size:15px;
+  }
+  .chip[aria-pressed="true"]{ background:var(--gold); border-color:var(--gold); color:#241a02; font-weight:700; }
+  .chip.custom-add{ border-style:dashed; color:var(--gold); }
+
+  /* ============ Custom text panel ============ */
+  .custom-panel{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:14px; margin-bottom:14px;
+  }
+  .custom-panel label{ display:block; font-weight:600; margin-bottom:8px; }
+  .custom-panel textarea{
+    width:100%; min-height:96px; resize:vertical;
+    background:var(--surface-2); border:1px solid var(--line); border-radius:10px;
+    padding:10px 12px; color:var(--cream);
+  }
+  .custom-panel .row{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px; }
+  .char-count{ color:var(--muted); font-size:14px; margin-right:auto; }
+
+  /* ============ Buttons ============ */
+  .btn{
+    background:var(--surface-2); border:1px solid var(--line); color:var(--cream);
+    border-radius:10px; padding:10px 18px; font-size:15px; font-weight:600;
+  }
+  .btn.primary{ background:var(--gold); border-color:var(--gold); color:#241a02; }
+  .btn:active{ transform:translateY(1px); }
+  .controls{ display:flex; flex-wrap:wrap; gap:8px; margin:16px 0 6px; }
+
+  /* ============ Stat cards ============ */
+  .stats{
+    display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:14px;
+  }
+  .stat{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:12px 10px; text-align:center;
+  }
+  .stat .num{ font-size:clamp(24px, 6vw, 34px); font-weight:800; line-height:1.1; }
+  .stat .lab{ color:var(--muted); font-size:12px; letter-spacing:.12em; text-transform:uppercase; margin-top:2px; }
+  .stat .num.bad{ color:var(--red); }
+
+  /* ============ Passage ============ */
+  .passage{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:22px 20px; cursor:text; outline-offset:3px;
+  }
+  .passage p{
+    margin:0;
+    font-family:Georgia, "Iowan Old Style", "Times New Roman", serif;
+    font-size:clamp(21px, 4.6vw, 27px);
+    line-height:1.9;
+    color:var(--muted);
+  }
+  .passage .word{ white-space:nowrap; }       /* words never split across lines */
+  .passage .ch{ border-radius:3px; }
+  .passage .ch.ok{ color:var(--green); }
+  .passage .ch.bad{ color:var(--red); text-decoration:underline; text-underline-offset:4px; }
+  .passage .ch.next{
+    background:var(--gold); color:#241a02;
+    animation:caret-blink 1.1s steps(1) infinite;
+  }
+  @keyframes caret-blink{ 50%{ background:transparent; color:inherit; } }
+  .hint{ color:var(--muted); font-size:14px; margin:10px 2px 0; }
+
+  /* The real typing input: nearly invisible, but focusable so the
+     on-screen keyboard appears on touch devices. It lives in the flow
+     (nothing paints over it); users tap the passage, which focuses it. */
+  #typer{
+    display:block; width:24px; height:24px; margin:6px 0 0 2px;
+    opacity:.01; border:0; padding:0; background:transparent; color:transparent;
+    caret-color:transparent;
+  }
+
+  /* ============ Results panel ============ */
+  .results{
+    background:var(--surface-2); border:1px solid var(--gold); border-radius:var(--radius);
+    padding:18px; margin-top:16px;
+  }
+  .results h2{ margin:0 0 10px; font-size:22px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .badge{
+    background:var(--gold); color:#241a02; font-size:13px; font-weight:800;
+    border-radius:999px; padding:4px 12px; letter-spacing:.04em;
+  }
+  .results dl{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(110px, 1fr));
+    gap:10px; margin:0 0 12px;
+  }
+  .results dl div{ background:var(--surface); border-radius:10px; padding:10px; text-align:center; }
+  .results dt{ color:var(--muted); font-size:12px; letter-spacing:.1em; text-transform:uppercase; }
+  .results dd{ margin:2px 0 0; font-size:24px; font-weight:800; }
+  .tricky{ margin:0; color:var(--cream); }
+  .tricky .key{
+    display:inline-block; background:var(--surface); border:1px solid var(--line);
+    border-radius:8px; padding:2px 10px; margin:0 2px; font-weight:700; color:var(--red);
+  }
+
+  /* ============ Recent runs & messages ============ */
+  h2.section{ font-size:18px; margin:26px 0 10px; }
+  .runs{ list-style:none; margin:0; padding:0; display:grid; gap:8px; }
+  .runs li{
+    background:var(--surface); border:1px solid var(--line); border-radius:10px;
+    padding:10px 14px; display:flex; flex-wrap:wrap; gap:4px 14px; align-items:baseline;
+  }
+  .runs .wpm{ font-weight:800; color:var(--gold); font-size:17px; }
+  .runs .meta{ color:var(--muted); font-size:14px; }
+  .runs .name{ font-weight:600; }
+  .empty-note{ color:var(--muted); margin:0; }
+  .msg{
+    margin-top:14px; padding:10px 14px; border-radius:10px; font-size:15px;
+    background:var(--surface); border:1px solid var(--line);
+  }
+  .msg.err{ border-color:var(--red); color:var(--red); }
+  .msg.ok{ border-color:var(--green); color:var(--green); }
+  .keys-hint{ color:var(--muted); font-size:13px; margin-top:22px; }
+  .keys-hint kbd{
+    background:var(--surface-2); border:1px solid var(--line); border-bottom-width:2px;
+    border-radius:5px; padding:0 6px; font-family:inherit; font-size:12px;
+  }
+  [hidden]{ display:none !important; }
+
+  /* ============ Small screens ============ */
+  @media (max-width:560px){
+    .stats{ grid-template-columns:repeat(2, 1fr); }
+    .controls .btn{ flex:1 1 44%; }
+    .passage{ padding:18px 14px; }
+  }
+
+  /* ============ Reduced motion ============ */
+  @media (prefers-reduced-motion: reduce){
+    .passage .ch.next{ animation:none; }
+    .btn:active{ transform:none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== Header ===== -->
+  <header class="top">
+    <h1 class="logo">TYPE<span class="flow">FLOW</span></h1>
+    <div class="best-chip" id="bestChip">Best WPM&nbsp;<strong>—</strong></div>
+  </header>
+
+  <!-- ===== Passage picker ===== -->
+  <div class="chips" id="chips" role="group" aria-label="Choose a passage"></div>
+
+  <!-- ===== Custom text panel ===== -->
+  <section class="custom-panel" id="customPanel" hidden>
+    <label for="customText">Your own text (10–500 characters)</label>
+    <textarea id="customText" rows="4" maxlength="600"
+      placeholder="Type or paste anything — a quote, a paragraph from your notes, song lyrics you know by heart…"></textarea>
+    <div class="row">
+      <span class="char-count" id="charCount">0 / 500</span>
+      <button class="btn" id="useCustomBtn" type="button">Use this text</button>
+      <button class="btn primary" id="keepCustomBtn" type="button">Keep it in my list</button>
+    </div>
+  </section>
+
+  <!-- ===== Live stats ===== -->
+  <div class="stats" aria-live="off">
+    <div class="stat"><div class="num" id="statWpm">0</div><div class="lab">WPM</div></div>
+    <div class="stat"><div class="num" id="statAcc">100%</div><div class="lab">Accuracy</div></div>
+    <div class="stat"><div class="num" id="statTime">0:00</div><div class="lab">Time</div></div>
+    <div class="stat"><div class="num" id="statErr">0</div><div class="lab">Errors</div></div>
+  </div>
+
+  <!-- ===== Passage to type ===== -->
+  <div class="passage" id="passageBox" tabindex="0" role="button"
+       aria-label="Typing passage. Activate to start typing.">
+    <p id="passageText"></p>
+  </div>
+  <p class="hint" id="hint">Tap the passage and start typing — the clock starts on your first keystroke.</p>
+
+  <!-- The hidden input that actually receives keystrokes -->
+  <input id="typer" type="text" autocomplete="off" autocorrect="off"
+         autocapitalize="off" spellcheck="false" aria-label="Typing input" />
+
+  <!-- ===== Controls ===== -->
+  <div class="controls">
+    <button class="btn" id="restartBtn" type="button">↺ Restart</button>
+    <button class="btn" id="newBtn" type="button">🎲 New passage</button>
+    <button class="btn" id="saveBtn" type="button">Save JSON</button>
+    <button class="btn" id="openBtn" type="button">Open JSON</button>
+    <input id="fileInput" type="file" accept=".json,application/json" hidden />
+  </div>
+
+  <!-- ===== Results panel ===== -->
+  <section class="results" id="resultsPanel" hidden>
+    <h2>Run complete <span class="badge" id="bestBadge" hidden>★ New best!</span></h2>
+    <dl>
+      <div><dt>WPM</dt><dd id="resWpm">0</dd></div>
+      <div><dt>Accuracy</dt><dd id="resAcc">0%</dd></div>
+      <div><dt>Errors</dt><dd id="resErr">0</dd></div>
+      <div><dt>Time</dt><dd id="resTime">0:00</dd></div>
+    </dl>
+    <p class="tricky" id="trickyLine"></p>
+  </section>
+
+  <!-- ===== Recent runs ===== -->
+  <h2 class="section">Recent runs</h2>
+  <p class="empty-note" id="runsEmpty">No runs yet — finish a passage and your results will land here.</p>
+  <ul class="runs" id="runsList"></ul>
+
+  <div class="msg" id="msg" role="status" hidden></div>
+
+  <p class="keys-hint">
+    Shortcuts (when not typing): <kbd>R</kbd> restart · <kbd>N</kbd> new passage ·
+    <kbd>S</kbd> save · <kbd>O</kbd> open · <kbd>Esc</kbd> stop typing
+  </p>
+</div>
+
+<script>
+"use strict";
+/* ================================================================
+   TYPEFLOW — a typing speed & accuracy trainer.
+   Sections: Data · State · Persistence · Rendering · Typing engine
+             Stats · Results · Custom text · Save/Open · Keyboard
+   ================================================================ */
+
+/* ---------- Data: built-in passages ---------- */
+var BUILT_INS = [
+  { name: "Morning Market", text: "The morning market wakes before the city does. Vendors roll up steel shutters, stack crates of oranges into bright pyramids, and call out prices that drift across the square like gulls. By eight the aisles are full of neighbours trading news along with bread, and the smell of fresh coffee finds every corner." },
+  { name: "The Map", text: "A good map is a promise, not a picture. It tells you which roads are worth the climb, where the river bends away from the trail, and how far the next shelter really is. Fold it wrong and the journey changes; read it well and the mountain feels smaller than it looks." },
+  { name: "The Lighthouse", text: "The old lighthouse keeper wrote the weather in a ledger every night for forty years. Rain, wind, fog, and the occasional clear sky, each line in the same careful hand. When the light was finally automated, the town kept the books, because somebody has to remember what the sea was doing." }
+];
+var MAX_CUSTOM = 10;      // most custom passages kept
+var MAX_RUNS = 10;        // most recent runs kept
+var LS_KEY = "typeflow-autosave-v1";
+
+/* ---------- State ---------- */
+var customTexts = [];     // [{name, text}] saved by the user
+var bestWpm = 0;          // best finished WPM, 0 = none yet
+var recentRuns = [];      // [{wpm, accuracy, errors, secs, passage, date}]
+var current = null;       // {name, text} passage being typed
+var typed = "";           // characters typed so far
+var startedAt = null;     // timestamp of first keystroke, null = not started
+var finished = false;     // true once the passage is complete
+var timerId = null;       // setInterval handle for the clock
+var keyErrors = {};       // expected char -> times mistyped
+var counted = [];         // per-position flag: mistake already tallied
+
+/* ---------- DOM handles ---------- */
+function $(id){ return document.getElementById(id); }
+var chipsEl = $("chips"), passageTextEl = $("passageText"), passageBox = $("passageBox"),
+    typerEl = $("typer"), customPanel = $("customPanel"), customTextEl = $("customText"),
+    msgEl = $("msg");
+
+/* ---------- Small helpers ---------- */
+function fmtTime(secs){
+  secs = Math.max(0, Math.floor(secs));
+  return Math.floor(secs / 60) + ":" + String(secs % 60).padStart(2, "0");
+}
+function elapsedSecs(){
+  return startedAt === null ? 0 : (Date.now() - startedAt) / 1000;
+}
+function showMsg(text, kind){
+  msgEl.textContent = text;
+  msgEl.className = "msg" + (kind ? " " + kind : "");
+  msgEl.hidden = false;
+}
+function cleanCustomText(raw){
+  // Line breaks become spaces; squeeze repeats; trim the ends.
+  return raw.replace(/\s+/g, " ").trim();
+}
+function customName(text){
+  var words = text.split(" ").slice(0, 3).join(" ");
+  return words.length > 24 ? words.slice(0, 24).trim() + "…" : words;
+}
+
+/* ---------- Persistence: localStorage autosave ---------- */
+function autosave(){
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify({
+      app: "typeflow", version: 1,
+      bestWpm: bestWpm, results: recentRuns, customTexts: customTexts
+    }));
+  } catch (e) { /* storage unavailable — the app still works in-memory */ }
+}
+function autoload(){
+  try {
+    var raw = localStorage.getItem(LS_KEY);
+    if (!raw) return;
+    var data = validateSave(JSON.parse(raw));
+    if (data) applyData(data);   // a corrupt autosave is simply ignored
+  } catch (e) { /* ignore */ }
+}
+
+/* ---------- Save-file validation (shared by Open + autosave) ---------- */
+function isNum(n){ return typeof n === "number" && isFinite(n); }
+function validateSave(d){
+  if (!d || typeof d !== "object") return null;
+  if (d.app !== "typeflow" || d.version !== 1) return null;
+  if (!isNum(d.bestWpm) || d.bestWpm < 0 || d.bestWpm > 400) return null;
+  if (!Array.isArray(d.results) || !Array.isArray(d.customTexts)) return null;
+
+  var results = [];
+  for (var i = 0; i < d.results.length; i++){
+    var r = d.results[i];
+    if (!r || typeof r !== "object") return null;
+    if (!isNum(r.wpm) || r.wpm < 0 || r.wpm > 400) return null;
+    if (!isNum(r.accuracy) || r.accuracy < 0 || r.accuracy > 100) return null;
+    if (!isNum(r.errors) || r.errors < 0 || r.errors > 100000) return null;
+    if (!isNum(r.secs) || r.secs <= 0 || r.secs > 86400) return null;
+    if (typeof r.passage !== "string" || r.passage.length < 1 || r.passage.length > 80) return null;
+    if (typeof r.date !== "string" || isNaN(Date.parse(r.date))) return null;
+    results.push({ wpm: Math.round(r.wpm), accuracy: Math.round(r.accuracy),
+      errors: Math.floor(r.errors), secs: Math.round(r.secs * 10) / 10,
+      passage: r.passage, date: r.date });
+  }
+  var customs = [];
+  for (var j = 0; j < d.customTexts.length; j++){
+    var c = d.customTexts[j];
+    var text = typeof c === "string" ? c : (c && typeof c.text === "string" ? c.text : null);
+    if (text === null) return null;
+    text = cleanCustomText(text);
+    if (text.length < 10 || text.length > 500) return null;
+    customs.push({ name: (c && typeof c.name === "string" && c.name) ? c.name.slice(0, 40) : customName(text), text: text });
+    if (customs.length > MAX_CUSTOM) return null;
+  }
+  return { bestWpm: Math.round(d.bestWpm), results: results.slice(0, MAX_RUNS), customTexts: customs };
+}
+function applyData(data){
+  bestWpm = data.bestWpm;
+  recentRuns = data.results;
+  customTexts = data.customTexts;
+  renderBest(); renderRuns(); renderChips();
+}
+
+/* ---------- Rendering: chips ---------- */
+function allPassages(){ return BUILT_INS.concat(customTexts); }
+function renderChips(){
+  chipsEl.innerHTML = "";
+  allPassages().forEach(function(p){
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "chip"; b.textContent = p.name;
+    b.setAttribute("aria-pressed", current && current.text === p.text ? "true" : "false");
+    b.addEventListener("click", function(){
+      customPanel.hidden = true;
+      setPassage(p);
+      focusTyper();
+    });
+    chipsEl.appendChild(b);
+  });
+  var add = document.createElement("button");
+  add.type = "button"; add.className = "chip custom-add"; add.textContent = "+ Custom text";
+  add.setAttribute("aria-pressed", customPanel.hidden ? "false" : "true");
+  add.addEventListener("click", function(){
+    customPanel.hidden = !customPanel.hidden;
+    add.setAttribute("aria-pressed", customPanel.hidden ? "false" : "true");
+    if (!customPanel.hidden) customTextEl.focus();
+  });
+  chipsEl.appendChild(add);
+}
+
+/* ---------- Rendering: passage with per-character spans ---------- */
+function renderPassage(){
+  passageTextEl.innerHTML = "";
+  // Split into words so a word (plus its trailing space) never breaks mid-word.
+  var parts = current.text.split(/( )/); // keeps the spaces as their own pieces
+  var idx = 0;
+  parts.forEach(function(part){
+    if (part === "") return;
+    var wrap = document.createElement("span");
+    if (part !== " ") wrap.className = "word";
+    for (var k = 0; k < part.length; k++){
+      var s = document.createElement("span");
+      s.className = "ch"; s.dataset.i = idx;
+      s.textContent = part[k];
+      wrap.appendChild(s); idx++;
+    }
+    passageTextEl.appendChild(wrap);
+  });
+  paintChars();
+}
+function paintChars(){
+  var spans = passageTextEl.querySelectorAll(".ch");
+  for (var i = 0; i < spans.length; i++){
+    var cls = "ch";
+    if (i < typed.length) cls += typed[i] === current.text[i] ? " ok" : " bad";
+    else if (i === typed.length && !finished) cls += " next";
+    spans[i].className = cls;
+  }
+}
+
+/* ---------- Rendering: stats, best chip, recent runs ---------- */
+function counts(){
+  var correct = 0;
+  for (var i = 0; i < typed.length; i++) if (typed[i] === current.text[i]) correct++;
+  return { correct: correct, errors: typed.length - correct };
+}
+function currentWpm(){
+  var mins = elapsedSecs() / 60;
+  if (mins <= 0) return 0;
+  return Math.round((counts().correct / 5) / mins);
+}
+function currentAccuracy(){
+  if (typed.length === 0) return 100;
+  return Math.round((counts().correct / typed.length) * 100);
+}
+function renderStats(){
+  $("statWpm").textContent = startedAt === null ? 0 : currentWpm();
+  $("statAcc").textContent = currentAccuracy() + "%";
+  $("statTime").textContent = fmtTime(elapsedSecs());
+  var err = counts().errors;
+  $("statErr").textContent = err;
+  $("statErr").classList.toggle("bad", err > 0);
+}
+function renderBest(){
+  $("bestChip").innerHTML = "Best WPM&nbsp;<strong>" + (bestWpm > 0 ? bestWpm : "—") + "</strong>";
+}
+function renderRuns(){
+  var list = $("runsList");
+  list.innerHTML = "";
+  $("runsEmpty").hidden = recentRuns.length > 0;
+  recentRuns.forEach(function(r){
+    var li = document.createElement("li");
+    var d = new Date(r.date);
+    li.innerHTML = "";
+    var w = document.createElement("span"); w.className = "wpm"; w.textContent = r.wpm + " WPM";
+    var n = document.createElement("span"); n.className = "name"; n.textContent = r.passage;
+    var m = document.createElement("span"); m.className = "meta";
+    m.textContent = r.accuracy + "% accurate · " + r.errors + " errors · " + fmtTime(r.secs) +
+      " · " + d.toLocaleDateString() + " " + d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    li.appendChild(w); li.appendChild(n); li.appendChild(m);
+    list.appendChild(li);
+  });
+}
+
+/* ---------- Typing engine ---------- */
+function setPassage(p){
+  current = p;
+  resetRun();
+  renderChips();
+  renderPassage();
+}
+function resetRun(){
+  typed = ""; startedAt = null; finished = false;
+  keyErrors = {}; counted = [];
+  if (timerId !== null){ clearInterval(timerId); timerId = null; }
+  typerEl.value = "";
+  $("resultsPanel").hidden = true;
+  renderPassage();
+  renderStats();
+}
+function startClock(){
+  startedAt = Date.now();
+  timerId = setInterval(renderStats, 200);
+}
+function focusTyper(){ typerEl.focus({ preventScroll: true }); }
+
+typerEl.addEventListener("input", function(){
+  if (finished || !current) return;
+  var val = typerEl.value.slice(0, current.text.length);
+  if (val.length < typed.length){ typed = val; }        // backspace(s)
+  else {
+    // Tally each brand-new character's mistake once per position.
+    for (var i = typed.length; i < val.length; i++){
+      if (val[i] !== current.text[i] && !counted[i]){
+        counted[i] = true;
+        var expected = current.text[i];
+        keyErrors[expected] = (keyErrors[expected] || 0) + 1;
+      }
+    }
+    typed = val;
+  }
+  if (startedAt === null && typed.length > 0) startClock();
+  paintChars();
+  renderStats();
+  if (typed.length >= current.text.length) finishRun();
+});
+typerEl.addEventListener("keydown", function(e){
+  if (e.key === "Escape"){ typerEl.blur(); passageBox.focus(); }
+});
+passageBox.addEventListener("click", focusTyper);
+passageBox.addEventListener("keydown", function(e){
+  if (e.key === "Enter" || e.key === " "){ e.preventDefault(); focusTyper(); }
+});
+
+/* ---------- Results ---------- */
+function finishRun(){
+  finished = true;
+  if (timerId !== null){ clearInterval(timerId); timerId = null; }
+  var secs = Math.max(elapsedSecs(), 0.1);
+  var wpm = Math.round((counts().correct / 5) / (secs / 60));
+  var acc = currentAccuracy();
+  var err = counts().errors;
+  var isBest = wpm > bestWpm;
+  if (isBest) bestWpm = wpm;
+
+  $("resWpm").textContent = wpm;
+  $("resAcc").textContent = acc + "%";
+  $("resErr").textContent = err;
+  $("resTime").textContent = fmtTime(secs);
+  $("bestBadge").hidden = !isBest;
+
+  // The three trickiest keys: expected characters mistyped most often.
+  var tricky = Object.keys(keyErrors)
+    .sort(function(a, b){ return keyErrors[b] - keyErrors[a]; })
+    .slice(0, 3);
+  var line = $("trickyLine");
+  if (tricky.length === 0){
+    line.textContent = "Flawless — no tricky keys this run.";
+  } else {
+    line.textContent = "Trickiest keys: ";
+    tricky.forEach(function(k, i){
+      var s = document.createElement("span");
+      s.className = "key";
+      s.textContent = (k === " " ? "space" : k) + " ×" + keyErrors[k];
+      line.appendChild(s);
+      if (i < tricky.length - 1) line.appendChild(document.createTextNode(" "));
+    });
+  }
+  $("resultsPanel").hidden = false;
+
+  recentRuns.unshift({ wpm: wpm, accuracy: acc, errors: err,
+    secs: Math.round(secs * 10) / 10, passage: current.name,
+    date: new Date().toISOString() });
+  recentRuns = recentRuns.slice(0, MAX_RUNS);
+  renderBest(); renderRuns(); autosave();
+  paintChars();
+}
+
+/* ---------- Controls ---------- */
+$("restartBtn").addEventListener("click", function(){ resetRun(); focusTyper(); });
+$("newBtn").addEventListener("click", newPassage);
+function newPassage(){
+  var pool = allPassages();
+  if (pool.length < 2) return;
+  var next;
+  do { next = pool[Math.floor(Math.random() * pool.length)]; }
+  while (current && next.text === current.text);
+  customPanel.hidden = true;
+  setPassage(next);
+  focusTyper();
+}
+
+/* ---------- Custom text ---------- */
+function updateCharCount(){
+  var n = cleanCustomText(customTextEl.value).length;
+  $("charCount").textContent = n + " / 500" + (n > 0 && n < 10 ? " — needs at least 10" : "");
+}
+customTextEl.addEventListener("input", updateCharCount);
+function readCustomText(){
+  var text = cleanCustomText(customTextEl.value);
+  if (text.length < 10 || text.length > 500){
+    showMsg("Custom text must be 10–500 characters (yours is " + text.length + ").", "err");
+    return null;
+  }
+  return text;
+}
+$("useCustomBtn").addEventListener("click", function(){
+  var text = readCustomText();
+  if (text === null) return;
+  customPanel.hidden = true;
+  setPassage({ name: "Custom text", text: text });
+  showMsg("Typing your custom text — it isn't saved to your list.", "ok");
+  focusTyper();
+});
+$("keepCustomBtn").addEventListener("click", function(){
+  var text = readCustomText();
+  if (text === null) return;
+  if (customTexts.some(function(c){ return c.text === text; })){
+    showMsg("That text is already in your list.", "err");
+    return;
+  }
+  if (customTexts.length >= MAX_CUSTOM){
+    showMsg("Your list is full (10 custom texts).", "err");
+    return;
+  }
+  var entry = { name: customName(text), text: text };
+  customTexts.push(entry);
+  autosave();
+  customPanel.hidden = true;
+  setPassage(entry);
+  showMsg("Saved to your passage list.", "ok");
+  focusTyper();
+});
+
+/* ---------- Save / Open JSON ---------- */
+$("saveBtn").addEventListener("click", saveJson);
+function saveJson(){
+  var payload = { app: "typeflow", version: 1, bestWpm: bestWpm,
+    results: recentRuns, customTexts: customTexts };
+  var blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url; a.download = "typeflow-save.json";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  showMsg("Saved typeflow-save.json.", "ok");
+}
+$("openBtn").addEventListener("click", function(){ $("fileInput").click(); });
+$("fileInput").addEventListener("change", function(){
+  var file = this.files && this.files[0];
+  this.value = "";                       // allow re-picking the same file
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(){
+    var data = null;
+    try { data = validateSave(JSON.parse(String(reader.result))); }
+    catch (e) { data = null; }
+    if (data === null){
+      // Rejected: current data stays exactly as it was.
+      showMsg("That file isn't a valid TYPEFLOW save — nothing was changed.", "err");
+      return;
+    }
+    applyData(data);
+    autosave();
+    if (current && !allPassages().some(function(p){ return p.text === current.text; })){
+      setPassage(BUILT_INS[0]);
+    } else {
+      renderChips();
+    }
+    showMsg("Save loaded: best " + bestWpm + " WPM, " + recentRuns.length +
+      " recent run(s), " + customTexts.length + " custom text(s).", "ok");
+  };
+  reader.onerror = function(){ showMsg("Couldn't read that file — nothing was changed.", "err"); };
+  reader.readAsText(file);
+});
+
+/* ---------- Global keyboard shortcuts ----------
+   One function per key. Shortcuts never fire while typing in the
+   passage input or the custom-text box; Esc is handled on the
+   input itself (above) so it can stop an active run. */
+document.addEventListener("keydown", function(e){
+  var t = e.target;
+  var typing = t === typerEl || t === customTextEl ||
+    (t && (t.tagName === "TEXTAREA" || (t.tagName === "INPUT" && t.type === "text")));
+  if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
+  var k = e.key.toLowerCase();
+  if (k === "r"){ e.preventDefault(); resetRun(); focusTyper(); }
+  else if (k === "n"){ e.preventDefault(); newPassage(); }
+  else if (k === "s"){ e.preventDefault(); saveJson(); }
+  else if (k === "o"){ e.preventDefault(); $("fileInput").click(); }
+});
+
+/* ---------- Boot ---------- */
+autoload();                       // restore best / runs / customs if present
+renderBest();
+renderRuns();
+setPassage(BUILT_INS[0]);         // first passage is on screen immediately
+updateCharCount();
+// Fine-pointer devices (mouse/trackpad): focus the input on load so
+// typing can start at once. Touch devices wait for a tap on the passage.
+if (window.matchMedia && window.matchMedia("(pointer: fine)").matches) focusTyper();
+</script>
+</body>
+</html>

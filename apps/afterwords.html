@@ -1,0 +1,335 @@
+<!doctype html>
+<!-- Afterwords | Created 2026-11-19 (America/Los_Angeles)
+Purpose: Find a poem inside a passage of prose and create a portable poetry page.
+Main interaction: Choose words in their original reading order, place line breaks,
+and switch between the extracted poem and a blackout reading of its source.
+Visual approach: An oversized serif title, lavender-gray worktable, warm paper,
+rust editorial marks, quiet folio numbers and a framed typographic specimen.
+Distinct from Trailnote, Drawbag and Paper Cinema: the collection's first found-poetry
+studio. Language selection and lineation create the work, rather than a geographic
+notebook, chance experiment or frame-based drawing. Everything lives in one HTML. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#e6e2e7">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Afterwords — Find the poem</title>
+<style>
+:root{color-scheme:light;--desk:#e6e2e7;--paper:#fffdf7;--ink:#28252b;--muted:#665f6b;--line:#bbb3bf;--rust:#963e26;--wash:#f5dfd2;--serif:Georgia,"Times New Roman",serif;--sans:system-ui,-apple-system,"Segoe UI",sans-serif;--mono:ui-monospace,SFMono-Regular,Consolas,monospace;font:16px/1.5 var(--sans);color:var(--ink);background:var(--desk)}
+*,*::before,*::after{box-sizing:border-box}body{margin:0;min-height:100vh}button,input,textarea,select{font:inherit;color:inherit}button,select{touch-action:manipulation}button{display:inline-flex;justify-content:center;align-items:center;gap:7px;min-height:44px;min-width:44px;padding:10px 16px;border:1px solid #918796;border-radius:3px;background:transparent;font-size:.88rem;font-weight:620;line-height:1.2;cursor:pointer}button.primary{background:var(--ink);border-color:var(--ink);color:var(--paper)}button.quiet{border-color:transparent;padding-inline:9px}button:disabled{opacity:.42;cursor:default}button svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--rust);outline-offset:3px}input[type=text],select,textarea{font-size:16px;min-width:0;max-width:100%;min-height:44px;padding:9px 10px;border:1px solid #aaa0ad;border-radius:2px;background:#fffdf8}textarea{display:block;width:100%;resize:vertical;line-height:1.6}select{padding-right:25px;cursor:pointer}[hidden]{display:none!important}h1,h2,h3,p{margin:0}summary{cursor:pointer;min-height:44px;display:list-item;padding:10px 0;line-height:1.4}summary::marker{color:var(--rust)}.app{max-width:1500px;margin:auto;padding:23px 40px 35px;padding-top:max(23px,env(safe-area-inset-top));padding-left:max(40px,env(safe-area-inset-left));padding-right:max(40px,env(safe-area-inset-right));padding-bottom:max(35px,env(safe-area-inset-bottom))}.eyebrow{font:500 .68rem/1.4 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}.number{font-variant-numeric:tabular-nums}.actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.mast{display:flex;justify-content:space-between;align-items:center;gap:18px;border-bottom:1px solid #8e8494;padding-bottom:17px}.imprint{display:flex;align-items:center;gap:11px;font-size:.77rem;font-weight:700;letter-spacing:.075em;text-transform:uppercase}.imprint svg{width:29px;height:31px;flex:none}.mast .primary{background:var(--rust);border-color:var(--rust)}.mast .quiet{margin-left:3px}.hero{display:grid;grid-template-columns:1fr auto;align-items:end;gap:25px;padding:24px 0 21px}.hero h1{font-family:var(--serif);font-size:clamp(4rem,7.9vw,7.2rem);font-weight:400;line-height:.94;letter-spacing:-.07em}.hero h1 em{font-weight:400;color:var(--rust)}.hero p{max-width:26ch;font-size:1rem;line-height:1.55;color:var(--muted);padding-bottom:4px}.hero p strong{color:var(--ink);font-weight:600}.edition{display:inline-block;font:500 .66rem var(--mono);letter-spacing:.1em;color:var(--rust);vertical-align:top;margin:13px 0 0 17px}.status{font-size:.9rem;color:var(--rust);font-weight:600;overflow-wrap:anywhere}.status:not(:empty){padding:0 0 14px}
+.sourceEditor{border-block:1px solid var(--line);margin-bottom:24px}.sourceEditor>summary{font-size:.9rem;font-weight:600;padding-block:12px}.sourceEditor>summary span{font-weight:400;color:var(--muted);margin-left:10px}.sourceEditorBody{padding:3px 0 18px;display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:20px;align-items:start}.sourceEditor label{display:block;font-size:.83rem;font-weight:650;margin-bottom:7px}.sourceEditor textarea{min-height:150px;background:#f6f3f5}.sourceEditor .editorAside{padding-top:26px}.sourceEditor .editorAside p{font-size:.84rem;line-height:1.6;color:var(--muted);margin-bottom:14px}.sourceEditor .editorAside .actions{display:grid;gap:7px}.sourceEditor .editorAside button{width:100%}.sourceCount{font:500 .67rem/1.5 var(--mono);color:var(--muted);margin-top:7px}
+.work{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(350px,.88fr);gap:28px;align-items:start}.sourceColumn,.poemColumn{min-width:0}.sectionHead{display:flex;justify-content:space-between;align-items:center;gap:14px;padding-bottom:12px;min-height:52px}.sectionHead h2{font-size:.98rem;font-weight:650;letter-spacing:-.025em}.sectionHead h2 span{font:500 .68rem var(--mono);color:var(--rust);margin-right:11px}.sectionHead .actions{gap:2px}.sectionHead .quiet{font-size:.8rem}.selectionCount{font:500 .65rem/1.4 var(--mono);color:var(--muted);text-align:right}.sourceSheet{background:var(--paper);border:1px solid #c6bdc9;box-shadow:0 3px 0 #d8d1db;padding:22px 23px 19px;position:relative}.sourceSheet::before{content:"";position:absolute;top:22px;bottom:22px;left:13px;width:1px;background:#e7c4b4}.sheetNote{font:500 .63rem/1.5 var(--mono);letter-spacing:.05em;color:var(--muted);padding-left:8px;padding-bottom:17px;border-bottom:1px solid #ddd3ce;margin-bottom:13px;text-transform:uppercase}.sourceWords{font-family:var(--serif);font-size:1.27rem;line-height:1.7;overflow-wrap:anywhere;min-height:180px}.sourceWords .word{display:inline;min-height:44px;min-width:0;max-width:100%;padding:9px 5px;margin:1px 1px 3px 0;border:1px solid transparent;border-bottom:2px solid transparent;border-radius:2px;background:transparent;color:#69616c;font-family:var(--serif);font-size:1.17rem;font-weight:400;line-height:1.35;vertical-align:baseline;overflow-wrap:anywhere;white-space:normal}.sourceWords .word[aria-pressed=true],.sourceWords .word.selected{background:var(--wash);border-bottom-color:var(--rust);color:#552c22}.sourceWords .word:focus-visible{outline-offset:1px}.sheetFoot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:17px;border-top:1px solid #ddd3ce;margin-top:14px;font:500 .62rem/1.4 var(--mono);letter-spacing:.04em;color:var(--muted)}.sheetFoot .smallStar{font-family:var(--serif);font-size:1.3rem;color:var(--rust)}
+.lineation{padding-top:23px}.lineationHeader{display:flex;justify-content:space-between;align-items:baseline;gap:12px;border-bottom:1px solid var(--line);padding-bottom:9px;margin-bottom:11px}.lineation h3{font-family:var(--serif);font-size:1.38rem;font-weight:400;letter-spacing:-.03em}.lineation p{font-size:.81rem;line-height:1.55;color:var(--muted);margin-bottom:12px}.selectedWords{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.selectedWords button{min-height:44px;padding:8px 11px;border-color:#b0a5b5;font-weight:500;font-size:.86rem;background:#efeaf0;overflow-wrap:anywhere;max-width:100%}.selectedWords button[aria-pressed=true]{border-color:var(--rust);color:#75321e;background:#f4dfd2}.selectedWords .selected-word,.selectedWords .chosen-word{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.selectedWords .line-break{flex-basis:100%;height:0}.lineation details{margin-top:15px;border-top:1px solid var(--line)}.lineation details summary{font-size:.82rem;font-weight:600}.lineation textarea{min-height:90px;background:#f4f0f4;font-family:var(--serif);line-height:1.7}
+.poemColumn{border-left:1px solid var(--line);padding-left:28px}.poemColumn .sectionHead{padding-bottom:13px}.poemColumn .sectionHead .eyebrow{font-size:.6rem;letter-spacing:.04em}.pageSettings{display:grid;grid-template-columns:minmax(0,1fr) 120px;gap:10px;padding:12px 0 14px;border-top:1px solid var(--line)}.field{display:block;min-width:0}.field>span{display:block;font:500 .62rem/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}.field input,.field select{width:100%}.titleField{grid-column:1/-1}.creditField{grid-column:1/-1}.titleField input{font-family:var(--serif);font-size:1.15rem}.creditField input{font-size:16px}.previewFrame{background:#d5cdd8;border:1px solid #b6abbc;padding:14px;box-shadow:inset 0 0 0 5px #e0d9e3}.preview{background:var(--paper);box-shadow:0 2px 8px #433b4e1a;min-width:0;overflow:hidden}.preview svg{display:block;width:100%;height:auto}.preview:empty{aspect-ratio:600/760}.exportBar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:13px}.exportBar p{font-size:.75rem;line-height:1.5;color:var(--muted);max-width:26ch}.exportBar button{flex:none;background:var(--paper);border-color:#8b7e90}.footer{display:flex;justify-content:space-between;gap:15px;align-items:baseline;margin-top:31px;padding-top:14px;border-top:1px solid #a49aa9;color:var(--muted);font-size:.74rem}.footer .eyebrow{font-size:.61rem;white-space:nowrap}
+dialog{width:min(500px,calc(100% - 28px));max-height:calc(100vh - 28px);max-height:calc(100dvh - max(28px,env(safe-area-inset-top) + env(safe-area-inset-bottom)));overflow:auto;overscroll-behavior:contain;padding:26px;border:1px solid #a396ad;border-radius:4px;background:var(--paper);color:var(--ink);box-shadow:0 18px 80px #31273645}dialog::backdrop{background:#29223199}dialog h2{font:400 2rem/1.1 var(--serif);letter-spacing:-.045em;margin-bottom:15px}dialog p,dialog li{font-size:.93rem;line-height:1.6;overflow-wrap:anywhere}dialog p+p{margin-top:10px}dialog ol{padding-left:21px}dialog li+li{margin-top:9px}dialog .actions{margin-top:17px}#manual{margin-top:16px;border-top:1px solid var(--line)}#manual summary{font-size:.83rem;font-weight:600}#fileText{font:16px/1.45 var(--mono);max-height:180px}#selectText{margin-top:8px}
+@media(hover:hover){button:enabled:hover{background:#d9d1dd}.primary:enabled:hover{background:#413745}.mast .primary:enabled:hover{background:#7e311e}.word:enabled:hover{background:#efe6dd}.word[aria-pressed=true]:enabled:hover{background:#edcab6}.exportBar button:enabled:hover{background:#eee4ee}}
+@media(max-width:1150px){.app{padding-inline:max(26px,env(safe-area-inset-left)) max(26px,env(safe-area-inset-right))}.work{gap:22px;grid-template-columns:minmax(0,1.1fr) minmax(330px,.9fr)}.poemColumn{padding-left:22px}.sourceSheet{padding-inline:21px}.sourceWords .word{font-size:1.1rem}.sourceEditorBody{grid-template-columns:minmax(0,1fr) 210px}.hero h1{font-size:6rem}.exportBar{align-items:flex-start;flex-direction:column}.exportBar p{max-width:none}.exportBar button{width:100%}}
+@media(max-width:880px){.app{padding:20px 22px 30px;padding-top:max(20px,env(safe-area-inset-top));padding-left:max(22px,env(safe-area-inset-left));padding-right:max(22px,env(safe-area-inset-right));padding-bottom:max(30px,env(safe-area-inset-bottom))}.work{grid-template-columns:minmax(0,1fr);gap:30px}.poemColumn{padding-left:0;border-left:0;border-top:1px solid var(--line);padding-top:14px}.hero{align-items:start;grid-template-columns:1fr;padding-top:23px;gap:13px}.hero h1{font-size:clamp(4rem,12vw,6.4rem)}.hero p{max-width:none}.sourceWords .word{font-size:1.2rem}.sourceEditorBody{grid-template-columns:minmax(0,1fr)}.sourceEditor .editorAside{padding:0;display:flex;gap:20px;align-items:center}.sourceEditor .editorAside p{flex:1;margin:0}.sourceEditor .editorAside .actions{display:flex;flex-wrap:wrap}.sourceEditor .editorAside button{width:auto}.pageSettings{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 120px}.titleField{grid-column:1/3}.creditField{grid-column:1/3;grid-row:2}.pageSettings>.field:last-child{grid-column:3;grid-row:2}.previewFrame{max-width:600px;margin-inline:auto;width:100%}.exportBar{flex-direction:row;align-items:center;max-width:600px;margin-inline:auto}.exportBar button{width:auto}.exportBar p{max-width:36ch}.footer{align-items:flex-start}}
+@media(max-width:510px){.app{padding-top:max(15px,env(safe-area-inset-top));padding-left:max(13px,env(safe-area-inset-left));padding-right:max(13px,env(safe-area-inset-right))}.mast{gap:12px;flex-wrap:wrap;padding-bottom:14px}.imprint{font-size:.67rem;gap:7px;letter-spacing:.05em}.imprint svg{width:24px;height:26px}.mast button{padding-inline:11px;font-size:.81rem}.mast .actions{gap:4px}.mast .quiet{margin-left:0;padding-inline:6px}.hero{padding-block:22px 18px}.hero h1{font-size:clamp(3.6rem,16vw,5rem)}.hero p{font-size:.92rem}.edition{font-size:.57rem;margin:9px 0 0 8px}.sourceEditor{margin-bottom:18px}.sourceEditor>summary{font-size:.86rem}.sourceEditor>summary span{display:block;margin:3px 0 0 18px;font-size:.78rem}.sourceEditor .editorAside{display:block}.sourceEditor .editorAside p{margin-bottom:12px}.sourceEditor .editorAside .actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}.sourceEditor .editorAside button{width:100%;font-size:.8rem;padding-inline:9px}.sectionHead{gap:8px;flex-wrap:wrap}.sectionHead h2{font-size:.94rem}.sectionHead h2 span{margin-right:7px;font-size:.63rem}.sectionHead .actions{margin-left:auto}.selectionCount{font-size:.61rem}.sourceSheet{padding:17px 15px 14px}.sourceSheet::before{left:7px;top:17px;bottom:17px}.sheetNote{font-size:.58rem;padding:0 0 12px 4px;margin-bottom:9px}.sourceWords .word{font-size:1.1rem;padding:9px 4px;line-height:1.4}.sheetFoot{font-size:.55rem;padding-top:12px;margin-top:10px}.lineation{padding-top:19px}.lineationHeader .eyebrow{font-size:.58rem}.lineation h3{font-size:1.3rem}.lineation p{font-size:.79rem}.pageSettings{grid-template-columns:minmax(0,1fr) 120px;gap:10px}.titleField,.creditField{grid-column:1/-1;grid-row:auto}.pageSettings>.field:last-child{grid-column:auto;grid-row:auto}.previewFrame{padding:10px;box-shadow:inset 0 0 0 4px #e0d9e3}.exportBar{align-items:flex-start;gap:10px}.exportBar p{font-size:.71rem}.exportBar button{font-size:.8rem;padding-inline:12px}.footer{flex-direction:column;gap:8px;margin-top:24px}.footer .eyebrow{font-size:.56rem}dialog{padding:21px}}
+@media(max-width:360px){.mast .actions{width:100%}.mast .quiet{margin-left:auto}.hero h1{font-size:3.7rem}.edition{display:none}.sectionHead .quiet{padding-inline:6px}.sourceWords .word{font-size:1.04rem}.lineationHeader{align-items:flex-start;flex-direction:column;gap:3px}.exportBar{flex-direction:column}.exportBar button{width:100%}.exportBar p{max-width:none}}
+.sourceWords .word{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+.sourceWords .word{display:inline-flex;min-width:44px}</style>
+</head>
+<body>
+<main class="app">
+ <header class="mast">
+  <div class="imprint"><svg viewBox="0 0 30 32" aria-hidden="true"><path d="M3 5h24M3 12h17M3 19h24M3 26h14" fill="none" stroke="#28252b" stroke-width="2"/><path d="m17 25 8-8m-8 8 1-5m-1 5 5-1" fill="none" stroke="#963e26" stroke-width="2"/></svg>A found-poetry studio</div>
+  <nav class="actions" aria-label="Poem files and help"><button id="open" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19V6h7l2 2h8v3M3 19l3-7h15l-3 7H3Z"/></svg>Open</button><button id="save" type="button" class="primary"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 17v4h16v-4"/></svg>Save</button><button id="help" type="button" class="quiet" aria-haspopup="dialog">Guide</button></nav>
+  <input id="file" type="file" accept=".json,application/json" hidden>
+ </header>
+ <section class="hero" aria-labelledby="app-title"><h1 id="app-title">After<em>words.</em><span class="edition">VOL. 01</span></h1><p><strong>Find the poem hiding in your prose.</strong><br>Choose a few words. Leave a little space.</p></section>
+ <noscript><p>Enable JavaScript in your browser to select words and create your poetry page.</p></noscript>
+ <p id="status" class="status" role="status" aria-live="polite" aria-atomic="true"></p>
+ <details id="sourceEditor" class="sourceEditor"><summary>Bring your own passage <span>or begin with the original example below</span></summary>
+  <div class="sourceEditorBody"><div><label for="source">Source passage</label><textarea id="source" maxlength="8000" rows="6" spellcheck="true" placeholder="Paste a passage of your own writing…"></textarea><p id="sourceCount" class="sourceCount">Up to 400 words · 8,000 characters</p></div><div class="editorAside"><p>A poem keeps the source’s word order and punctuation. Applying a new passage starts a new word selection.</p><div class="actions"><button id="applySource" type="button" class="primary">Use this passage</button><button id="sample" type="button">Try the example</button></div></div></div>
+ </details>
+ <div class="work">
+  <section class="sourceColumn" aria-labelledby="source-title">
+   <div class="sectionHead"><h2 id="source-title"><span>01</span>Uncover the words</h2><div class="actions"><button id="undo" type="button" class="quiet">Undo</button><button id="clear" type="button" class="quiet">Clear selection</button></div></div>
+   <div class="sourceSheet"><p class="sheetNote">Tap a word to keep it. Tap again to let it go.</p><div id="sourceWords" class="sourceWords" aria-label="Choose words from the source passage"></div><div class="sheetFoot"><span id="selectionCount" class="selectionCount">0 words selected</span><span>READING ORDER IS PRESERVED</span><span class="smallStar" aria-hidden="true">✳</span></div></div>
+   <section class="lineation" aria-labelledby="lineation-title"><div class="lineationHeader"><h3 id="lineation-title">Give it room to breathe.</h3><span class="eyebrow">Your line breaks</span></div><p>Select a chosen word below to end a line after it. Select it again to join the next line.</p><div id="selectedWords" class="selectedWords" aria-label="Place line breaks after selected words"></div><details><summary>Read or copy the poem as text</summary><label for="poemText" class="eyebrow">Your poem</label><textarea id="poemText" rows="5" readonly spellcheck="false"></textarea></details></section>
+  </section>
+  <section class="poemColumn" aria-labelledby="poem-title">
+   <div class="sectionHead"><h2 id="poem-title"><span>02</span>The finished page</h2><span class="eyebrow">A small edition of one</span></div>
+   <div class="pageSettings"><label class="field titleField" for="title"><span>Poem title</span><input id="title" type="text" maxlength="100" autocomplete="off" placeholder="Untitled"></label><label class="field creditField" for="credit"><span>Byline or source credit</span><input id="credit" type="text" maxlength="160" autocomplete="off" placeholder="Your name or source credit"></label><label class="field" for="view"><span>Page</span><select id="view"><option value="poem">Poem</option><option value="blackout">Blackout</option></select></label><label class="field" for="style"><span>Ink</span><select id="style"><option value="ink">Carbon</option><option value="rust">Rust</option></select></label></div>
+   <div class="previewFrame"><div id="preview" class="preview" aria-label="Finished poetry page preview"></div></div>
+   <div class="exportBar"><p>Export this page as an SVG to keep, share or print from your browser.</p><button id="exportSVG" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H5v18h14V8l-5-5v5h5M8 15h8M12 11v8"/></svg>Export page</button></div>
+  </section>
+ </div>
+ <footer class="footer"><p>Your words stay here. Save a notebook file to keep your passage, poem and page settings.</p><span class="eyebrow">Made of words &amp; a little white space</span></footer>
+</main>
+<dialog id="guideDialog" aria-labelledby="guide-title"><h2 id="guide-title">A poem, already there.</h2><ol><li>Tap words in the passage to keep them. The poem follows the original reading order, including the punctuation attached to each word.</li><li>Under <strong>Give it room to breathe</strong>, tap a chosen word to place a line break after it. All controls also work with Tab and the usual button keys.</li><li>Add a title and credit. Choose <strong>Poem</strong> for the extracted reading, or <strong>Blackout</strong> to reveal it inside the original passage.</li><li><strong>Export page</strong> saves the finished SVG. <strong>Save</strong> keeps the complete editable notebook; <strong>Open</strong> restores that notebook later.</li></ol><p>Use <strong>Bring your own passage</strong> to paste new writing. The editor accepts up to 400 words and 8,000 characters. The included passage was written for Afterwords.</p><p>On an iPhone, use the offered share control and choose Save to Files when available. Download and complete file text are also provided.</p><div class="actions"><button type="button" class="primary" data-close>Find my poem</button></div></dialog>
+<dialog id="fileDialog" aria-labelledby="fileHeading"><h2 id="fileHeading">Save your notebook</h2><p id="fileInfo"></p><div class="actions"><button id="share" type="button">Share or save to Files</button><button id="again" type="button">Download again</button></div><details id="manual"><summary>Complete file text</summary><label for="fileText" class="eyebrow">Copy all of this text to save manually</label><textarea id="fileText" rows="5" readonly spellcheck="false"></textarea><button id="selectText" type="button">Select text</button></details><div class="actions"><button type="button" class="primary" data-close>Done</button></div></dialog>
+<dialog id="confirmDialog" aria-labelledby="confirm-title"><h2 id="confirm-title">Begin another reading?</h2><p id="confText"></p><div class="actions"><button id="keep" type="button" class="primary" autofocus>Keep current work</button><button id="replace" type="button">Replace</button></div></dialog>
+<script>
+(() => { 'use strict';
+const MAX_FILE_BYTES = 131072;
+const MAX_WORDS = 400;
+const MAX_SOURCE_LENGTH = 8000;
+
+function exactKeys(value, expected) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const keys = Object.keys(value);
+  return keys.length === expected.length && expected.every(key => Object.prototype.hasOwnProperty.call(value,key));
+}
+function tokens(source) {
+  if (typeof source !== 'string') throw Error('The passage must be plain text.');
+  if (source.length > MAX_SOURCE_LENGTH) throw Error('Use a passage of 8,000 characters or fewer.');
+  const words = source.match(/\S+/gu) || [];
+  if (words.length > MAX_WORDS) throw Error('Use a passage of 400 words or fewer.');
+  return words;
+}
+function validateState(value) {
+  if (!exactKeys(value,['title','credit','source','draft','selected','breaks','style','view'])) throw Error('The saved poem has an unexpected structure.');
+  if (typeof value.title !== 'string' || value.title.length > 100) throw Error('The title must contain at most 100 characters.');
+  if (typeof value.credit !== 'string' || value.credit.length > 160) throw Error('The credit must contain at most 160 characters.');
+  if (typeof value.draft !== 'string' || value.draft.length > MAX_SOURCE_LENGTH) throw Error('The passage draft must contain at most 8,000 characters.');
+  const words = tokens(value.source);
+  if (!['ink','rust'].includes(value.style)) throw Error('This poem uses an unsupported ink style.');
+  if (!['poem','blackout'].includes(value.view)) throw Error('This poem uses an unsupported page view.');
+  const checkIndices = (list,label) => {
+    if (!Array.isArray(list) || list.length > words.length) throw Error('The saved '+label+' list is invalid.');
+    let previous = -1;
+    for (const index of list) {
+      if (!Number.isInteger(index) || index <= previous || index >= words.length) throw Error('The saved '+label+' list has an invalid or repeated word.');
+      previous = index;
+    }
+    return list.slice();
+  };
+  const selected = checkIndices(value.selected,'selected-word');
+  const breaks = checkIndices(value.breaks,'line-break');
+  const selection = new Set(selected);
+  for (const index of breaks) {
+    if (!selection.has(index) || index === selected[selected.length-1]) throw Error('Each line break must follow a selected word before the end of the poem.');
+  }
+  return {title:value.title,credit:value.credit,source:value.source,draft:value.draft,selected,breaks,style:value.style,view:value.view};
+}
+function checkFileText(text) {
+  if (typeof text !== 'string') throw Error('Choose a text file saved by Afterwords.');
+  if (text.length > MAX_FILE_BYTES) throw Error('Choose an Afterwords file of 128 KiB or less.');
+  let bytes = 0;
+  for (const character of text) {
+    const code = character.codePointAt(0);
+    bytes += code < 128 ? 1 : code < 2048 ? 2 : code < 65536 ? 3 : 4;
+    if (bytes > MAX_FILE_BYTES) throw Error('Choose an Afterwords file of 128 KiB or less.');
+  }
+}
+function serializeSession(state) {
+  const text = JSON.stringify({app:'afterwords',version:1,workspace:validateState(state)},null,2);
+  checkFileText(text);
+  return text;
+}
+function readSession(text) {
+  checkFileText(text);
+  let value;
+  try { value = JSON.parse(text.replace(/^\uFEFF/,'')); }
+  catch (_) { throw Error('This is not valid JSON. Choose a saved Afterwords poem.'); }
+  if (!exactKeys(value,['app','version','workspace']) || value.app !== 'afterwords') throw Error('This file is not an Afterwords poem.');
+  if (value.version !== 1) throw Error('This Afterwords file version is not supported.');
+  return validateState(value.workspace);
+}
+function poemLines(state) {
+  const words = tokens(state.source);
+  const breaks = new Set(state.breaks);
+  const lines = [];
+  let line = [];
+  for (const index of state.selected) {
+    line.push(words[index]);
+    if (breaks.has(index)) { lines.push(line.join(' ')); line=[]; }
+  }
+  if (line.length) lines.push(line.join(' '));
+  return lines;
+}
+function toggleWord(state,index) {
+  const next = validateState(state);
+  const count = tokens(next.source).length;
+  if (!Number.isInteger(index) || index < 0 || index >= count) throw Error('Choose a word from the passage.');
+  if (next.selected.includes(index)) next.selected = next.selected.filter(value => value !== index);
+  else next.selected.push(index);
+  next.selected.sort((a,b)=>a-b);
+  const remaining = new Set(next.selected), last = next.selected[next.selected.length-1];
+  next.breaks = next.breaks.filter(value => remaining.has(value) && value !== last);
+  return next;
+}
+function setBreak(state,index,on) {
+  const next = validateState(state);
+  if (typeof on !== 'boolean' || !Number.isInteger(index) || !next.selected.includes(index)) throw Error('Choose a selected word for the line break.');
+  if (on && index === next.selected[next.selected.length-1]) throw Error('A line break belongs between words, not after the final word.');
+  next.breaks = next.breaks.filter(value => value !== index);
+  if (on) next.breaks.push(index);
+  next.breaks.sort((a,b)=>a-b);
+  return next;
+}
+function makeExample() {
+  const source = 'We arrived at the station after the rain had stopped. My sister carried a paper bag of oranges, and I offered to carry her coat while she searched for a missing ticket. Beyond the shuttered kiosk, a little light shone from the window of a repair shop. Someone inside was mending a radio. Its quiet music came through the open door and followed us past the ordinary work of the evening: folding chairs, sweeping steps, bringing bicycles inside. We crossed the square and waited beside the fountain. She said she would call when the train reached the coast. I watched the water settle. Perhaps it was enough to remember that we could always find our way home.';
+  const words = tokens(source), wanted = ['We','carry','a','little','light','through','the','ordinary','and','call','it','home.'];
+  const selected = [];
+  let cursor = 0;
+  for (const word of wanted) {
+    const index = words.findIndex((candidate,i) => i >= cursor && candidate === word);
+    if (index < 0) throw Error('The example passage is incomplete.');
+    selected.push(index);cursor=index+1;
+  }
+  return {title:'A little light',credit:'An original passage for Afterwords',source,draft:source,selected,breaks:[selected[1],selected[4],selected[7]],style:'ink',view:'poem'};
+}
+
+function escapeText(value){return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+let measuringContext;
+function measure(text,size,family='Georgia'){
+  try{if(!measuringContext)measuringContext=document.createElement('canvas').getContext('2d');if(measuringContext){measuringContext.font=size+'px '+family;return measuringContext.measureText(text).width;}}catch{}
+  return Array.from(text).length*size*.62;
+}
+function splitLong(text,width,size){
+  const chars=Array.from(text),result=[];let start=0;
+  while(start<chars.length){let lo=1,hi=chars.length-start;while(lo<hi){const mid=Math.ceil((lo+hi)/2);if(measure(chars.slice(start,start+mid).join(''),size)<=width)lo=mid;else hi=mid-1;}result.push(chars.slice(start,start+lo).join(''));start+=lo;}
+  return result;
+}
+function wrapLine(line,width,size){
+  const lines=[];let current='';
+  for(const word of line.split(/\s+/u).filter(Boolean)){
+    const fragments=measure(word,size)>width?splitLong(word,width,size):[word];
+    for(let j=0;j<fragments.length;j++){const next=(current?current+' ':'')+fragments[j];if(current&&measure(next,size)>width){lines.push(current);current='';}current+=(current?' ':'')+fragments[j];if(j<fragments.length-1){lines.push(current);current='';}}
+  }
+  if(current)lines.push(current);return lines.length?lines:[''];
+}
+function posterSVG(work){
+  const ink=work.style==='rust'?'#983d29':'#27242d',accent=work.style==='rust'?'#983d29':'#7e6a99';
+  let parts=[],y=122;
+  const title=wrapLine(work.title||'Untitled',480,31);
+  for(const line of title){parts.push(`<text x="60" y="${y}" font-size="31">${escapeText(line)}</text>`);y+=38;}
+  y+=22;
+  if(work.view==='poem'){
+    const sourceLines=poemLines(work),size=work.selected.length>45?30:42,leading=size*1.35;
+    if(!sourceLines.length)parts.push(`<text x="60" y="${y+30}" font-size="21" fill="#77717e">Choose words to uncover your poem.</text>`);
+    for(const line of sourceLines){for(const wrapped of wrapLine(line,480,size)){y+=leading;parts.push(`<text x="60" y="${y.toFixed(2)}" font-size="${size}">${escapeText(wrapped)}</text>`);}}
+  }else{
+    const words=tokens(work.source),selected=new Set(work.selected);let x=60;y+=26;
+    for(let i=0;i<words.length;i++){
+      const fragments=measure(words[i],18)>480?splitLong(words[i],480,18):[words[i]];
+      for(let j=0;j<fragments.length;j++){
+        const word=fragments[j],width=measure(word,18);
+        if(x+width>540.1&&x>60){x=60;y+=29;}
+        if(selected.has(i))parts.push(`<text x="${x.toFixed(2)}" y="${y}" font-size="18">${escapeText(word)}</text>`);
+        else parts.push(`<rect x="${(x-.8).toFixed(2)}" y="${y-16}" width="${(width+1.6).toFixed(2)}" height="20" rx="1"/>`);
+        x+=width+measure(' ',18);if(j<fragments.length-1){x=60;y+=29;}
+      }
+    }
+    if(!words.length)parts.push(`<text x="60" y="${y}" font-size="21" fill="#77717e">Add a passage to begin.</text>`);
+  }
+  const creditLines=wrapLine(work.credit,480,13),height=Math.max(760,Math.ceil(y+105+creditLines.length*19));
+  let footer='';creditLines.forEach((line,i)=>{footer+=`<text x="60" y="${height-64-(creditLines.length-1-i)*19}" font-size="13" fill="#6a6470">${escapeText(line)}</text>`;});
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="${height}" viewBox="0 0 600 ${height}" role="img" aria-labelledby="posterTitle"><title id="posterTitle">${escapeText(work.title||'Untitled')} · ${work.view==='poem'?'Found poem':'Blackout page'}</title><rect width="600" height="${height}" fill="#fffdf7"/><path d="M60 62H540" stroke="${accent}" stroke-width="1"/><text x="60" y="46" font-family="sans-serif" font-size="10" letter-spacing="2" fill="${ink}">AFTERWORDS / ${work.view==='poem'?'FOUND POEM':'BLACKOUT STUDY'}</text><g fill="${ink}" font-family="Georgia, 'Times New Roman', serif">${parts.join('')}${footer}</g><path d="M60 ${height-43}H540" stroke="${accent}"/><text x="540" y="${height-24}" text-anchor="end" font-family="sans-serif" font-size="9" letter-spacing="1.5" fill="${ink}">${work.selected.length} WORDS KEPT</text></svg>`;
+}
+
+const get=id=>document.getElementById(id);
+let state=makeExample(),baseline=JSON.stringify(state),pending=null,reading=false,prepared=null,editGroup='',frame=0;
+const history=[];
+function clone(value){return JSON.parse(JSON.stringify(value));}
+function say(message){get('status').textContent=message;}
+function remember(group=''){if(group&&editGroup===group)return;history.push(clone(state));if(history.length>40)history.shift();editGroup=group;get('undo').disabled=false;}
+function updateDraft(){const count=(state.draft.match(/\S+/gu)||[]).length;get('sourceCount').textContent=count+' / 400 words · '+state.draft.length+' / 8,000 characters';get('applySource').disabled=state.draft===state.source;}
+function preview(){get('preview').innerHTML=posterSVG(state);get('poemText').value=poemLines(state).join('\n');}
+function schedulePreview(){if(frame)return;frame=requestAnimationFrame(()=>{frame=0;preview();});}
+function selection(){
+  const selected=new Set(state.selected),words=tokens(state.source);
+  for(const button of get('sourceWords').querySelectorAll('[data-word]')){const chosen=selected.has(Number(button.dataset.word));button.setAttribute('aria-pressed',String(chosen));button.classList.toggle('chosen',chosen);}
+  get('selectionCount').textContent=state.selected.length+' of '+words.length+' words kept';get('clear').disabled=!state.selected.length;
+  get('selectedWords').innerHTML=state.selected.length?state.selected.map((index,pos)=>`<button type="button" class="break-word${state.breaks.includes(index)?' has-break':''}" data-break="${index}" aria-pressed="${state.breaks.includes(index)}" aria-label="Line break after word ${pos+1}, ${escapeText(words[index])}"${pos===state.selected.length-1?' disabled':''}>${escapeText(words[index])}<span aria-hidden="true">${state.breaks.includes(index)?' ↵':' ·'}</span></button>`).join(''):'<p class="empty">Choose words above. Your line-break controls will appear here.</p>';
+  preview();
+}
+function paint(){
+  for(const key of ['title','credit','style','view'])get(key).value=state[key];get('source').value=state.draft;updateDraft();
+  get('sourceWords').innerHTML=tokens(state.source).map((word,i)=>`<button type="button" class="word" data-word="${i}" aria-pressed="false" aria-label="Keep word ${i+1}, ${escapeText(word)}">${escapeText(word)}</button>`).join('')||'<p class="empty">Open “Your passage” and paste some writing to begin.</p>';
+  get('undo').disabled=!history.length;selection();
+}
+get('sourceWords').addEventListener('click',event=>{const b=event.target.closest('[data-word]');if(!b)return;remember();state=toggleWord(state,Number(b.dataset.word));selection();});
+get('selectedWords').addEventListener('click',event=>{const b=event.target.closest('[data-break]');if(!b||b.disabled)return;const i=Number(b.dataset.break);remember();state=setBreak(state,i,!state.breaks.includes(i));selection();get('selectedWords').querySelector(`[data-break="${i}"]`)?.focus();});
+get('clear').addEventListener('click',()=>{if(!state.selected.length)return;remember();state.selected=[];state.breaks=[];selection();say('Selection cleared. Undo can bring it back.');});
+get('undo').addEventListener('click',()=>{if(!history.length)return;state=history.pop();editGroup='';paint();say('Last edit undone.');});
+for(const key of ['title','credit']){
+  get(key).addEventListener('input',()=>{remember(key);state[key]=get(key).value;schedulePreview();});
+  get(key).addEventListener('change',()=>{editGroup='';});
+}
+for(const key of ['style','view'])get(key).addEventListener('change',()=>{remember();state[key]=get(key).value;preview();});
+get('source').addEventListener('input',()=>{remember('draft');state.draft=get('source').value;updateDraft();});
+get('source').addEventListener('change',()=>{editGroup='';});
+get('applySource').addEventListener('click',()=>{
+  try{tokens(state.draft);const next={...clone(state),source:state.draft,selected:[],breaks:[]};
+    if(state.selected.length)offerReplacement(next,'applySource','Use this passage and start a new word selection? Your title and page style will stay. Undo can restore the earlier poem.',false);
+    else loadWork(next,false);
+  }catch(error){say(error.message+' Your current poem is unchanged.');}
+});
+get('sample').addEventListener('click',()=>offerReplacement(makeExample(),'sample','Replace this poem and passage with the original example? Choose Keep to save your work first.',false));
+
+const dialogOrigins=new Map();
+function show(id,origin){dialogOrigins.set(id,origin);get(id).showModal();}
+for(const d of document.querySelectorAll('dialog'))d.addEventListener('close',()=>{
+  if(d.id==='confirmDialog')pending=null;
+  if(d.id==='fileDialog'){prepared=null;get('fileText').value='';}
+  const origin=get(dialogOrigins.get(d.id));if(origin&&!origin.disabled)origin.focus();
+});
+for(const b of document.querySelectorAll('[data-close]'))b.addEventListener('click',()=>b.closest('dialog').close());
+get('help').addEventListener('click',()=>show('guideDialog','help'));
+function loadWork(next,fromFile){remember();editGroup='';state=next;if(fromFile)baseline=JSON.stringify(next);paint();say(fromFile?'Poem opened. All words and page settings restored.':'Passage ready. Choose the words you want to keep.');}
+function offerReplacement(next,origin,message,fromFile){
+  if(JSON.stringify(state)===baseline){loadWork(next,fromFile);return;}
+  pending={next,fromFile};get('confText').textContent=message;show('confirmDialog',origin);get('keep').focus();
+}
+get('keep').addEventListener('click',()=>{pending=null;get('confirmDialog').close();say('Current work kept.');});
+get('confirmDialog').addEventListener('cancel',()=>{pending=null;});
+get('replace').addEventListener('click',()=>{const p=pending;pending=null;get('confirmDialog').close();if(p)loadWork(p.next,p.fromFile);});
+function readLocal(file){
+  if(typeof file.text==='function')return file.text();
+  if(typeof FileReader==='undefined')throw Error('This browser could not read the local file.');
+  return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=r.onabort=()=>reject(Error('The file could not be read.'));r.readAsText(file);});
+}
+get('open').addEventListener('click',()=>{if(reading)return;get('file').value='';try{get('file').click();}catch{say('The local file picker could not open.');}});
+get('file').addEventListener('cancel',()=>say('Open canceled. Your work is unchanged.'));
+get('file').addEventListener('change',async()=>{
+  const file=get('file').files?.[0];if(!file||reading)return;reading=true;get('open').disabled=true;
+  try{
+    if(file.size>MAX_FILE_BYTES)throw Error('Choose an Afterwords JSON file of 128 KB or less.');
+    const next=readSession(await readLocal(file));
+    if(['guideDialog','fileDialog','confirmDialog'].some(id=>get(id).open))throw Error('Close the current dialog and open your file again.');
+    offerReplacement(next,'open','Open this saved poem in place of your current work? Choose Keep to save your edits first.',true);
+  }catch(error){say(error.message+' Your current work is unchanged.');}
+  finally{reading=false;get('open').disabled=false;get('file').value='';}
+});
+function downloadFile(){
+  if(!prepared)return;let url;const a=document.createElement('a');
+  try{
+    try{if(prepared.blob)url=URL.createObjectURL(prepared.blob);}catch{}
+    a.href=url||'data:'+prepared.type+';charset=utf-8,'+encodeURIComponent(prepared.text);a.download=prepared.name;document.body.append(a);a.click();
+    get('fileInfo').textContent='Download requested: '+prepared.name+'. On iPhone, Share can also offer Save to Files.';
+  }catch{get('fileInfo').textContent='Copy the complete file text below and save it as '+prepared.name+'.';}
+  finally{a.remove();if(url)setTimeout(()=>URL.revokeObjectURL(url),60000);}
+}
+function prepareFile(art){
+  try{
+    const text=art?posterSVG(state):serializeSession(state),type=art?'image/svg+xml':'application/json';
+    const stem=state.title.trim().toLowerCase().replace(/[^a-z0-9_-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,64)||'poem';
+    const name=stem+'-afterwords.'+(art?'svg':'json');prepared={text,type,name,blob:null,file:null};
+    try{prepared.blob=new Blob([text],{type});const f=new File([prepared.blob],name,{type});if(navigator.share&&navigator.canShare?.({files:[f]}))prepared.file=f;}catch{}
+    get('fileHeading').textContent=art?'Export your page':'Save your poem';get('fileText').value=text;get('share').hidden=!prepared.file;get('manual').hidden=false;
+    downloadFile();show('fileDialog',art?'exportSVG':'save');
+  }catch(error){say('Could not prepare the file. '+error.message);}
+}
+get('save').addEventListener('click',()=>prepareFile(false));
+get('exportSVG').addEventListener('click',()=>prepareFile(true));
+get('again').addEventListener('click',downloadFile);
+get('selectText').addEventListener('click',()=>{get('fileText').focus();get('fileText').select();});
+get('share').addEventListener('click',async()=>{
+  const p=prepared;if(!p?.file)return;
+  try{await navigator.share({files:[p.file]});if(p===prepared)get('fileInfo').textContent='Share sheet completed.';}
+  catch(error){if(p===prepared)get('fileInfo').textContent=error.name==='AbortError'?'Sharing canceled. Your poem is still open.':'Use Download again or the complete file text.';}
+});
+paint();
+
+})();
+</script>
+</body>
+</html>
+

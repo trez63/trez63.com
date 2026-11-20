@@ -2621,7 +2621,79 @@
         }
       ],
       "category": "tool"
+    },
+    "interference-atelier": {
+      "title": "Interference Atelier",
+      "engine": "Grok",
+      "description": "Click to drop wave sources on a canvas and watch their ripples interfere in real time; drag them around, tune speed, wavelength and decay, randomise or pause, and save a composition as JSON.",
+      "source_file": "Interference Atelier-grok.html",
+      "first_published": "2026-11-19",
+      "last_updated": "2026-11-19",
+      "version": 1,
+      "sha": "1a6684b461a5",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-19",
+          "sha": "1a6684b461a5"
+        }
+      ],
+      "category": "sim"
+    },
+    "afterwords": {
+      "title": "Afterwords",
+      "engine": "ChatGPT",
+      "description": "Found poetry: paste a passage (or use the one provided), tap the words you want to keep in their original order, place line breaks, then lay the poem out as a printed page or a blackout of the source and export it as an SVG.",
+      "source_file": "afterwords-codex.html",
+      "first_published": "2026-11-19",
+      "last_updated": "2026-11-19",
+      "version": 1,
+      "sha": "69eab7d40c8f",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-19",
+          "sha": "69eab7d40c8f"
+        }
+      ],
+      "category": "text"
+    },
+    "geotecton": {
+      "title": "GeoTecton",
+      "engine": "Gemini",
+      "description": "A cross-section of crust and mantle you can tap to set off earthquakes: choose subduction, spreading ridge or continental collision, tune convergence rate, heat flux and fault friction, rupture the fault and read the P and S waves off the seismograph.",
+      "source_file": "geotecton-gemini.html",
+      "first_published": "2026-11-19",
+      "last_updated": "2026-11-19",
+      "version": 1,
+      "sha": "61b11870bce5",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-19",
+          "sha": "61b11870bce5"
+        }
+      ],
+      "category": "sim"
+    },
+    "typeflow": {
+      "title": "Typeflow",
+      "engine": "Muse",
+      "description": "A typing test: pick one of the built-in passages or paste your own, type it out and see words per minute, accuracy, errors and time, with your recent runs and best score kept in a list you can save and reopen.",
+      "source_file": "typeflow-muse.html",
+      "first_published": "2026-11-19",
+      "last_updated": "2026-11-19",
+      "version": 1,
+      "sha": "8d7e5e73adca",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-19",
+          "sha": "8d7e5e73adca"
+        }
+      ],
+      "category": "focus"
     }
   },
-  "generated": "2026-11-19"
+  "generated": "2026-11-20"
 }

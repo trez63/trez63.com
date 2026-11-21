@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Epicycle Sketch</title>
+<style>
+:root {
+  --bg:#0d1117; --fg:#e6edf3; --panel:#161b22; --accent:#58a6ff; --trail:#58a6ff;
+  --circle:#30363d; --btn:#21262d; --border:#30363d; --safe-b:env(safe-area-inset-bottom);
+}
+[data-theme="light"] {
+  --bg:#f6f8fa; --fg:#1f2328; --panel:#ffffff; --accent:#0969da; --trail:#0969da;
+  --circle:#d0d7de; --btn:#f6f8fa; --border:#d0d7de;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,sans-serif;overflow:hidden;touch-action:none}
+#app{display:flex;flex-direction:column;height:100%;padding-bottom:var(--safe-b)}
+canvas{flex:1;display:block;background:var(--bg);cursor:crosshair}
+#ui{background:var(--panel);border-top:1px solid var(--border);padding:8px 12px 8px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center}
+button,input[type=range]{background:var(--btn);color:var(--fg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:15px;min-height:44px;touch-action:manipulation}
+button:active{transform:scale(0.97)}
+input[type=range]{width:100px;min-height:auto;padding:0}
+label{font-size:13px;opacity:.8;display:flex;align-items:center;gap:4px}
+#help{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:10;padding:20px}
+#help.on{display:flex}
+#help div{background:var(--panel);padding:24px;border-radius:16px;max-width:480px;max-height:80vh;overflow:auto;border:1px solid var(--border)}
+#help h2{margin-bottom:12px}
+#help p,#help li{margin:6px 0;line-height:1.4}
+#status{font-size:12px;opacity:.7;margin-left:auto}
+@media(max-width:600px){#ui{padding:6px 8px 6px}button{padding:12px 10px;font-size:14px}}
+</style>
+</head>
+<body>
+<div id="app">
+<canvas id="c"></canvas>
+<div id="ui">
+<button id="drawBtn">Draw</button>
+<button id="animBtn">Animate</button>
+<button id="clearBtn">Clear</button>
+<button id="randBtn">Random</button>
+<button id="soundBtn">Sound</button>
+<label>Harmonics <input type="range" id="harm" min="1" max="80" value="24"></label>
+<label>Speed <input type="range" id="spd" min="0.2" max="3" step="0.1" value="1"></label>
+<button id="themeBtn">Theme</button>
+<button id="saveBtn">Save</button>
+<button id="openBtn">Open</button>
+<button id="helpBtn">?</button>
+<span id="status">Heart demo · 24 harmonics</span>
+</div>
+</div>
+<div id="help">
+<div>
+<h2>Epicycle Sketch</h2>
+<p>Draw a closed shape. The app computes its discrete Fourier series and rebuilds it with rotating circles (epicycles). The same coefficients become a harmonic sound.</p>
+<ul>
+<li><b>Mouse / Touch</b> – draw path (release to finish)</li>
+<li><b>Space</b> – play / pause animation</li>
+<li><b>C</b> – clear & enter draw mode</li>
+<li><b>R</b> – random parametric shape</li>
+<li><b>P</b> – toggle sound</li>
+<li><b>↑ / ↓</b> – more / fewer harmonics</li>
+<li><b>← / →</b> – slower / faster</li>
+<li><b>T</b> – theme</li>
+<li><b>S</b> – save JSON</li>
+<li><b>O</b> – open JSON</li>
+<li><b>H</b> or <b>?</b> – this help</li>
+</ul>
+<p>Tip: keep drawings reasonably smooth. More harmonics = finer detail, heavier computation.</p>
+<button id="closeHelp" style="margin-top:12px;width:100%">Close</button>
+</div>
+</div>
+<input type="file" id="file" accept=".json" hidden>
+<script>
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const statusEl=document.getElementById('status');
+let W,H,cx,cy,scale=1,theme=localStorage.getItem('theme')||'dark';
+document.documentElement.dataset.theme=theme;
+let drawing=false,points=[],coeffs=[],maxH=24,speed=1,playing=true,soundOn=false;
+let time=0,trail=[],audioCtx,oscs=[],gains=[];
+const heart=()=>{const p=[];for(let i=0;i<120;i++){const t=i/120*Math.PI*2;const x=16*Math.sin(t)**3;const y=13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t);p.push({x:x*8,y:-y*8})}return p};
+function resize(){W=canvas.width=canvas.clientWidth;H=canvas.height=canvas.clientHeight;cx=W/2;cy=H/2;scale=Math.min(W,H)/400}window.addEventListener('resize',resize);resize();
+function dft(pts){const N=pts.length;if(!N)return[];const c=[];for(let k=0;k<N;k++){let re=0,im=0;for(let n=0;n<N;n++){const phi=2*Math.PI*k*n/N;const co=Math.cos(phi),si=-Math.sin(phi);re+=pts[n].x*co-pts[n].y*si;im+=pts[n].x*si+pts[n].y*co}re/=N;im/=N;c.push({f:k,a:Math.hypot(re,im),p:Math.atan2(im,re)})}return c.sort((a,b)=>b.a-a.a).slice(0,maxH)}
+function randomShape(){const p=[];const n=80+Math.random()*60|0;const arms=2+Math.random()*5|0;const amp=40+Math.random()*60;for(let i=0;i<n;i++){const t=i/n*Math.PI*2;const r=amp*(1+0.4*Math.sin(arms*t)+0.2*Math.sin(3*t));p.push({x:r*Math.cos(t),y:r*Math.sin(t)})}return p}
+function setPoints(p){points=p;coeffs=dft(points);trail=[];time=0;updateStatus()}
+function updateStatus(){statusEl.textContent=`${points.length?points.length+' pts':'no path'} · ${coeffs.length} harmonics`}
+function draw(){
+  ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--bg');
+  ctx.fillRect(0,0,W,H);
+  if(!coeffs.length){requestAnimationFrame(draw);return}
+  let x=cx,y=cy;
+  ctx.save();ctx.translate(cx,cy);ctx.scale(scale,scale);
+  // trail
+  if(trail.length>1){ctx.beginPath();ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--trail');ctx.lineWidth=2/scale;ctx.globalAlpha=0.6;for(let i=0;i<trail.length;i++){i?ctx.lineTo(trail[i].x,trail[i].y):ctx.moveTo(trail[i].x,trail[i].y)}ctx.stroke();ctx.globalAlpha=1}
+  // epicycles
+  for(let i=0;i<coeffs.length;i++){
+    const c=coeffs[i],prevX=x,prevY=y;
+    const freq=c.f===0?0:c.f;
+    x+=c.a*Math.cos(freq*time+c.p);
+    y+=c.a*Math.sin(freq*time+c.p);
+    ctx.beginPath();ctx.arc(prevX-cx,prevY-cy,c.a,0,Math.PI*2);ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--circle');ctx.lineWidth=1/scale;ctx.stroke();
+    ctx.beginPath();ctx.moveTo(prevX-cx,prevY-cy);ctx.lineTo(x-cx,y-cy);ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--accent');ctx.lineWidth=1.5/scale;ctx.stroke();
+  }
+  if(playing){trail.push({x:x-cx,y:y-cy});if(trail.length>600)trail.shift()}
+  ctx.restore();
+  if(playing)time+=0.02*speed;
+  requestAnimationFrame(draw);
+}
+function startSound(){stopSound();if(!coeffs.length)return;audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();const fund=110;oscs=[];gains=[];coeffs.slice(1,13).forEach(c=>{if(c.a<1)return;const o=audioCtx.createOscillator();const g=audioCtx.createGain();o.frequency.value=fund*c.f;o.type='sine';g.gain.value=Math.min(0.08,c.a/400);o.connect(g);g.connect(audioCtx.destination);o.start();oscs.push(o);gains.push(g)})}
+function stopSound(){oscs.forEach(o=>o.stop());oscs=[];gains=[];soundOn=false;document.getElementById('soundBtn').textContent='Sound'}
+function save(){const data={points,maxH,speed,theme};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data)],{type:'application/json'}));a.download='epicycle-sketch.json';a.click()}
+function openFile(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(d.points)setPoints(d.points);if(d.maxH){maxH=d.maxH;document.getElementById('harm').value=maxH}if(d.speed){speed=d.speed;document.getElementById('spd').value=speed}if(d.theme){theme=d.theme;document.documentElement.dataset.theme=theme;localStorage.setItem('theme',theme)}coeffs=dft(points)}catch{alert('Invalid file')}};r.readAsText(f)}
+function toggleTheme(){theme=theme==='dark'?'light':'dark';document.documentElement.dataset.theme=theme;localStorage.setItem('theme',theme)}
+function toggleHelp(){document.getElementById('help').classList.toggle('on')}
+// events
+canvas.addEventListener('pointerdown',e=>{drawing=true;points=[];trail=[];coeffs=[];const r=canvas.getBoundingClientRect();points.push({x:(e.clientX-r.left-cx)/scale,y:(e.clientY-r.top-cy)/scale})});
+canvas.addEventListener('pointermove',e=>{if(!drawing)return;const r=canvas.getBoundingClientRect();const p={x:(e.clientX-r.left-cx)/scale,y:(e.clientY-r.top-cy)/scale};if(points.length&&Math.hypot(p.x-points.at(-1).x,p.y-points.at(-1).y)<4)return;points.push(p)});
+canvas.addEventListener('pointerup',()=>{if(drawing&&points.length>8){setPoints(points)}drawing=false});
+document.getElementById('drawBtn').onclick=()=>{drawing=true;points=[];coeffs=[];trail=[];updateStatus()};
+document.getElementById('animBtn').onclick=()=>playing=!playing;
+document.getElementById('clearBtn').onclick=()=>{points=[];coeffs=[];trail=[];updateStatus()};
+document.getElementById('randBtn').onclick=()=>setPoints(randomShape());
+document.getElementById('soundBtn').onclick=()=>{soundOn=!soundOn;if(soundOn)startSound();else stopSound();document.getElementById('soundBtn').textContent=soundOn?'Stop':'Sound'};
+document.getElementById('harm').oninput=e=>{maxH=+e.target.value;if(points.length)coeffs=dft(points);updateStatus()};
+document.getElementById('spd').oninput=e=>speed=+e.target.value;
+document.getElementById('themeBtn').onclick=toggleTheme;
+document.getElementById('saveBtn').onclick=save;
+document.getElementById('openBtn').onclick=()=>document.getElementById('file').click();
+document.getElementById('file').onchange=openFile;
+document.getElementById('helpBtn').onclick=toggleHelp;
+document.getElementById('closeHelp').onclick=toggleHelp;
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT')return;
+  const k=e.key.toLowerCase();
+  if(k===' '||e.code==='Space'){e.preventDefault();playing=!playing}
+  else if(k==='c'){points=[];coeffs=[];trail=[];drawing=true;updateStatus()}
+  else if(k==='r')setPoints(randomShape());
+  else if(k==='p'){soundOn=!soundOn;if(soundOn)startSound();else stopSound();document.getElementById('soundBtn').textContent=soundOn?'Stop':'Sound'}
+  else if(e.key==='ArrowUp'){maxH=Math.min(80,maxH+2);document.getElementById('harm').value=maxH;if(points.length)coeffs=dft(points);updateStatus()}
+  else if(e.key==='ArrowDown'){maxH=Math.max(1,maxH-2);document.getElementById('harm').value=maxH;if(points.length)coeffs=dft(points);updateStatus()}
+  else if(e.key==='ArrowRight'){speed=Math.min(3,speed+0.1);document.getElementById('spd').value=speed.toFixed(1)}
+  else if(e.key==='ArrowLeft'){speed=Math.max(0.2,speed-0.1);document.getElementById('spd').value=speed.toFixed(1)}
+  else if(k==='t')toggleTheme();
+  else if(k==='s')save();
+  else if(k==='o')document.getElementById('file').click();
+  else if(k==='h'||e.key==='?')toggleHelp();
+});
+// demo
+setPoints(heart());
+draw();
+</script>
+</body>
+</html>

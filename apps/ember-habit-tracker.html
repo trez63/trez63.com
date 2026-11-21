@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<link rel="icon" href="data:,">
+<title>EMBER Habit Tracker</title>
+<style>
+  /* ============ Palette & base ============ */
+  :root{
+    --paper:#FBF3E4; --card:#FFFDF7; --ink:#2B2118; --taupe:#8A7B68;
+    --hair:#EADFC8; --terra:#C65D3B; --orange:#E8833A; --gold:#E9A426;
+    --green:#5F7A54; --cream-cell:#F6EDDA; --cream-text:#FFF6E3;
+    --shadow:0 2px 10px rgba(90,55,20,.08), 0 1px 3px rgba(90,55,20,.06);
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.45; padding:20px 14px 40px;
+  }
+  .wrap{max-width:720px;margin:0 auto}
+  button{font:inherit;cursor:pointer}
+  :focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+  /* ============ Header ============ */
+  header{padding:10px 4px 16px}
+  h1{font-size:42px;line-height:1.05;margin:0;letter-spacing:.5px;font-weight:800}
+  .dateline{margin:8px 0 0;color:var(--taupe);font-size:16px}
+  .dateline strong{color:var(--ink);font-weight:600}
+
+  /* ============ Today summary card ============ */
+  .summary{
+    background:linear-gradient(135deg,#33200f 0%,#4a2812 52%,#653114 100%);
+    color:var(--cream-text);border-radius:18px;padding:20px;
+    box-shadow:0 8px 24px rgba(60,30,5,.25);margin-bottom:22px;
+  }
+  .summary .big{font-size:30px;font-weight:800;line-height:1.15;margin:0}
+  .summary .big .gold{color:var(--gold)}
+  .summary .status{margin:6px 0 0;font-size:15px;color:#f3ddba}
+  .bar{height:12px;border-radius:99px;background:rgba(255,246,227,.22);overflow:hidden;margin:14px 0 16px}
+  .bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold),var(--orange));transition:width .35s ease;width:0%}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{
+    background:rgba(255,246,227,.13);border:1px solid rgba(255,246,227,.28);
+    color:var(--cream-text);border-radius:99px;padding:7px 12px;font-size:13.5px;font-weight:600;
+  }
+  .chip.dim{opacity:.75;font-weight:500}
+
+  /* ============ Section headings ============ */
+  h2{font-size:21px;margin:24px 4px 12px;font-weight:750}
+
+  /* ============ Habit cards ============ */
+  .habit{
+    background:var(--card);border:1px solid var(--hair);border-radius:16px;
+    box-shadow:var(--shadow);padding:16px;margin-bottom:16px;
+  }
+  .habit-top{display:flex;align-items:center;gap:8px}
+  .habit-num{
+    flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:var(--cream-cell);
+    color:var(--terra);font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;
+  }
+  .habit-name{font-size:19px;font-weight:700;flex:1 1 auto;min-width:0;overflow-wrap:break-word}
+  .icon-btn{
+    flex:0 0 auto;min-width:44px;min-height:44px;border:1px solid var(--hair);
+    background:#fff;border-radius:10px;color:var(--taupe);font-size:16px;
+    display:inline-flex;align-items:center;justify-content:center;padding:0 10px;
+  }
+  .icon-btn.armed{background:var(--terra);border-color:var(--terra);color:#fff;font-size:13px;font-weight:700}
+  .rename-input{
+    flex:1 1 auto;min-width:0;font:inherit;font-size:19px;font-weight:700;color:var(--ink);
+    border:2px solid var(--terra);border-radius:8px;padding:8px 10px;background:#fff;min-height:44px;
+  }
+  .tags{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 12px}
+  .tag{font-size:12.5px;font-weight:600;border-radius:99px;padding:5px 10px;background:#f3ead3;color:var(--taupe)}
+  .tag.streak{background:#f9e3d3;color:#9c3f1e}
+  .tag.on{background:#e2ecd9;color:var(--green)}
+  .weekdays,.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .weekdays{margin-bottom:6px}
+  .weekdays span{text-align:center;font-size:12px;font-weight:700;color:var(--taupe);letter-spacing:.5px}
+  .cell{
+    min-height:44px;border:1px solid var(--hair);border-radius:10px;background:var(--cream-cell);
+    color:var(--ink);font-size:15px;font-weight:600;padding:0;
+    display:flex;align-items:center;justify-content:center;
+    transition:transform .08s ease, background .15s ease;
+  }
+  .cell:active{transform:scale(.96)}
+  .cell.done{background:linear-gradient(135deg,var(--terra),var(--orange));border-color:transparent;color:#fff}
+  .cell.today{outline:3px solid var(--ink);outline-offset:-1px;font-weight:800}
+  .cell.done.today{outline-color:var(--terra)}
+  .cell .future{opacity:.4}
+  .grid-hint{margin:10px 0 0;font-size:12.5px;color:var(--taupe)}
+
+  /* ============ Empty state ============ */
+  .empty{
+    border:2px dashed var(--hair);border-radius:16px;background:var(--card);
+    padding:28px 18px;text-align:center;color:var(--taupe);font-size:15px;margin-bottom:16px;
+  }
+  .empty strong{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
+
+  /* ============ Add-habit form ============ */
+  .add-card{background:var(--card);border:1px solid var(--hair);border-radius:16px;box-shadow:var(--shadow);padding:16px}
+  .add-row{display:flex;gap:8px;flex-wrap:wrap}
+  .add-row input[type="text"]{
+    flex:2 1 200px;min-height:48px;font:inherit;font-size:16px;color:var(--ink);
+    border:1px solid var(--hair);border-radius:10px;padding:10px 12px;background:#fff;
+  }
+  .add-row select{
+    flex:1 1 130px;min-height:48px;font:inherit;font-size:15px;color:var(--ink);
+    border:1px solid var(--hair);border-radius:10px;padding:10px;background:#fff;
+  }
+  .btn{
+    min-height:48px;border-radius:10px;border:1px solid var(--hair);background:#fff;color:var(--ink);
+    font-weight:700;font-size:15px;padding:10px 18px;
+  }
+  .btn.primary{background:linear-gradient(135deg,var(--terra),var(--orange));border-color:transparent;color:#fff}
+  .btn:active{transform:scale(.98)}
+
+  /* ============ Stats row ============ */
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:22px}
+  .stat{background:var(--card);border:1px solid var(--hair);border-radius:14px;box-shadow:var(--shadow);padding:14px 8px;text-align:center}
+  .stat .num{font-size:28px;font-weight:800;line-height:1.1;color:var(--terra)}
+  .stat .lbl{font-size:12.5px;color:var(--taupe);font-weight:600;margin-top:2px}
+
+  /* ============ Save / Open / toast ============ */
+  .file-row{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+  .file-row .btn{flex:1 1 150px}
+  .toast{min-height:24px;margin:12px 4px 0;font-size:14.5px;font-weight:600;color:var(--green)}
+  .toast.err{color:#a8321f}
+  .keys-hint{text-align:center;color:var(--taupe);font-size:13px;margin:14px 4px 0}
+
+  /* ============ Small screens ============ */
+  @media (max-width:520px){
+    body{padding:14px 10px 32px}
+    h1{font-size:36px}
+    .summary .big{font-size:26px}
+    .weekdays,.grid{gap:5px}
+    .cell{min-height:42px;font-size:14px;border-radius:8px}
+    .stat .num{font-size:24px}
+    .habit{padding:13px}
+  }
+
+  /* ============ Reduced motion ============ */
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{transition:none !important;animation:none !important}
+    .cell:active,.btn:active{transform:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== Header ===== -->
+  <header>
+    <h1>EMBER 🔥</h1>
+    <p class="dateline"><strong id="todayLine">Today</strong> · tap a day to mark a habit done.</p>
+  </header>
+
+  <!-- ===== Today summary ===== -->
+  <section class="summary" aria-label="Today summary">
+    <p class="big"><span class="gold" id="doneToday">0</span> of <span id="totalToday">0</span> done today</p>
+    <p class="status" id="statusMsg"></p>
+    <div class="bar" role="progressbar" aria-label="Today's progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="barWrap">
+      <div class="bar-fill" id="barFill"></div>
+    </div>
+    <div class="chips" id="chips"></div>
+  </section>
+
+  <!-- ===== Habits ===== -->
+  <h2>Your habits</h2>
+  <div id="habitList"></div>
+
+  <!-- ===== Add habit ===== -->
+  <h2>Add a habit</h2>
+  <form class="add-card" id="addForm">
+    <div class="add-row">
+      <input type="text" id="newName" maxlength="60" placeholder="New habit — e.g. Meditate 10 minutes" autocomplete="off" aria-label="New habit name">
+      <select id="newTarget" aria-label="How often per week">
+        <option value="7" selected>Every day</option>
+        <option value="6">6×/week</option>
+        <option value="5">5×/week</option>
+        <option value="4">4×/week</option>
+        <option value="3">3×/week</option>
+        <option value="2">2×/week</option>
+        <option value="1">1×/week</option>
+      </select>
+      <button type="submit" class="btn primary">Add habit</button>
+    </div>
+  </form>
+
+  <!-- ===== Stats ===== -->
+  <div class="stats" aria-label="Statistics">
+    <div class="stat"><div class="num" id="statCheckins">0</div><div class="lbl">Total check-ins</div></div>
+    <div class="stat"><div class="num" id="statLongest">0</div><div class="lbl">Longest streak</div></div>
+    <div class="stat"><div class="num" id="statPerfect">0</div><div class="lbl">Perfect days · 28 days</div></div>
+  </div>
+
+  <!-- ===== Save / Open ===== -->
+  <div class="file-row">
+    <button type="button" class="btn" id="saveBtn">💾 Save (JSON)</button>
+    <button type="button" class="btn" id="openBtn">📂 Open saved file</button>
+    <input type="file" id="fileInput" accept=".json,application/json" hidden>
+  </div>
+  <p class="toast" id="toast" aria-live="polite"></p>
+  <p class="keys-hint">Keys 1–9 toggle habits 1–9 for today · S save · O open</p>
+
+</div>
+
+<script>
+"use strict";
+/* =====================================================================
+   EMBER — pure date / streak / validation logic (no DOM in this part)
+   ===================================================================== */
+var STORAGE_KEY = "ember-habits-v1";
+
+/* Format a local Date as YYYY-MM-DD (local time, never UTC-shifted). */
+function toKey(d){
+  var m = String(d.getMonth()+1).padStart(2,"0");
+  var day = String(d.getDate()).padStart(2,"0");
+  return d.getFullYear()+"-"+m+"-"+day;
+}
+function todayKey(){ return toKey(new Date()); }
+
+/* Key of the date n days before the given key's date (n may be negative). */
+function keyMinus(key, n){
+  var p = key.split("-");
+  var d = new Date(Number(p[0]), Number(p[1])-1, Number(p[2]));
+  d.setDate(d.getDate()-n);
+  return toKey(d);
+}
+function keyPlus(key, n){ return keyMinus(key, -n); }
+
+/* Strict YYYY-MM-DD check against the real calendar (rejects 2026-02-30). */
+function isRealDateKey(s){
+  if(typeof s !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  var p = s.split("-");
+  var y = Number(p[0]), m = Number(p[1]), d = Number(p[2]);
+  if(m < 1 || m > 12 || d < 1 || d > 31) return false;
+  var dt = new Date(y, m-1, d);
+  return dt.getFullYear()===y && dt.getMonth()===m-1 && dt.getDate()===d;
+}
+
+/* Current streak: consecutive done days back from today, or from
+   yesterday when today is not done yet (streak still alive). */
+function currentStreak(doneSet, today){
+  var start = doneSet.has(today) ? today : keyMinus(today, 1);
+  var n = 0, k = start;
+  while(doneSet.has(k)){ n++; k = keyMinus(k, 1); }
+  return n;
+}
+
+/* Best streak: longest run of consecutive done days anywhere in history. */
+function bestStreak(doneSet){
+  var best = 0;
+  doneSet.forEach(function(k){
+    if(!doneSet.has(keyMinus(k, 1))){           /* k starts a run */
+      var n = 0, cur = k;
+      while(doneSet.has(cur)){ n++; cur = keyPlus(cur, 1); }
+      if(n > best) best = n;
+    }
+  });
+  return best;
+}
+
+/* Done days within the last n days including today. */
+function countLastNDays(doneSet, today, n){
+  var c = 0;
+  for(var i = 0; i < n; i++) if(doneSet.has(keyMinus(today, i))) c++;
+  return c;
+}
+
+/* Perfect days in the last 28 days: every habit done that day. */
+function perfectDays(habits, today){
+  if(!habits.length) return 0;
+  var sets = habits.map(function(h){ return new Set(h.done); });
+  var c = 0;
+  for(var i = 0; i < 28; i++){
+    var k = keyMinus(today, i);
+    if(sets.every(function(s){ return s.has(k); })) c++;
+  }
+  return c;
+}
+
+/* The 28 grid keys, oldest first, today last. */
+function last28Keys(today){
+  var out = [];
+  for(var i = 27; i >= 0; i--) out.push(keyMinus(today, i));
+  return out;
+}
+
+/* Validate a parsed save file. Returns {ok:true, habits} (done dates
+   de-duplicated and sorted) or {ok:false, error}. Pure — touches nothing. */
+function validateSaveData(data){
+  function bad(msg){ return {ok:false, error:msg}; }
+  if(!data || typeof data !== "object" || Array.isArray(data)) return bad("File is not an EMBER save file.");
+  if(data.app !== "ember") return bad("File is not an EMBER save file (missing app marker).");
+  if(data.version !== 1) return bad("Unsupported EMBER save version.");
+  if(!Array.isArray(data.habits)) return bad("Save file has no habits list.");
+  if(data.habits.length > 50) return bad("Save file has too many habits (max 50).");
+  var ids = {}, habits = [];
+  for(var i = 0; i < data.habits.length; i++){
+    var h = data.habits[i];
+    if(!h || typeof h !== "object" || Array.isArray(h)) return bad("Habit "+(i+1)+" is not an object.");
+    if(typeof h.id !== "string" || h.id.trim() === "") return bad("Habit "+(i+1)+" has a missing or empty id.");
+    if(ids[h.id]) return bad("Save file has a duplicate habit id.");
+    ids[h.id] = true;
+    if(typeof h.name !== "string" || h.name.trim() === "" || h.name.length > 60)
+      return bad("Habit "+(i+1)+" has an invalid name.");
+    if(!Number.isInteger(h.target) || h.target < 1 || h.target > 7)
+      return bad("Habit “"+h.name+"” has an invalid weekly target.");
+    if(!Array.isArray(h.done)) return bad("Habit “"+h.name+"” has no done list.");
+    if(h.done.length > 366) return bad("Habit “"+h.name+"” has too many done dates (max 366).");
+    var seen = {}, done = [];
+    for(var j = 0; j < h.done.length; j++){
+      if(!isRealDateKey(h.done[j])) return bad("Habit “"+h.name+"” has an invalid date: "+String(h.done[j]));
+      if(!seen[h.done[j]]){ seen[h.done[j]] = true; done.push(h.done[j]); }
+    }
+    done.sort();
+    habits.push({id:h.id, name:h.name, target:h.target, done:done});
+  }
+  return {ok:true, habits:habits};
+}
+
+/* Seed habits: offsets are days ago, resolved against the day opened. */
+function seedHabits(today){
+  var defs = [
+    {name:"Morning walk",        target:7, offsets:[0,1,2,3,4,5,7,8,9,10,11,12,14,15,16,18,19,21,22,23,25,26]},
+    {name:"Read 20 minutes",     target:5, offsets:[0,1,2,4,5,7,8,11,12,14,15,18,19,21,22,25]},
+    {name:"Drink 2L water",      target:7, offsets:[0,1,2,3,4,5,6,7,8,9,10,11,13,14,15,16,18,19,20,21,22,24,25,26]},
+    {name:"Stretch 10 minutes",  target:3, offsets:[1,2,3,6,8,9,13,15,16,20,22,24,27]},
+    {name:"No sugar after 8pm",  target:5, offsets:[0,1,2,3,5,6,7,9,10,12,13,14,17,18,19,21,24,26]}
+  ];
+  return defs.map(function(d, i){
+    return {
+      id:"seed-"+(i+1), name:d.name, target:d.target,
+      done:d.offsets.map(function(o){ return keyMinus(today, o); }).sort()
+    };
+  });
+}
+
+/* =====================================================================
+   State + persistence
+   ===================================================================== */
+var TODAY = todayKey();
+var habits = loadHabits();
+
+function loadHabits(){
+  try{
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      var v = validateSaveData(JSON.parse(raw));
+      if(v.ok) return v.habits;
+    }
+  }catch(e){ /* storage unavailable or corrupt — fall through to seed */ }
+  return seedHabits(TODAY);
+}
+function persist(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({app:"ember", version:1, habits:habits}));
+  }catch(e){ /* private mode etc. — app still works in memory */ }
+}
+
+/* =====================================================================
+   DOM rendering
+   ===================================================================== */
+var $ = function(id){ return document.getElementById(id); };
+var listEl = $("habitList"), toastEl = $("toast"), toastTimer = null;
+
+function showToast(msg, isErr){
+  toastEl.textContent = msg;
+  toastEl.className = "toast" + (isErr ? " err" : "");
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ toastEl.textContent = ""; }, 5000);
+}
+
+function targetLabel(t){ return t === 7 ? "Daily" : t + "× / week"; }
+
+function render(){
+  TODAY = todayKey();
+  renderSummary();
+  renderHabits();
+  renderStats();
+}
+
+function renderSummary(){
+  var total = habits.length;
+  var doneCount = habits.filter(function(h){ return h.done.indexOf(TODAY) !== -1; }).length;
+  $("doneToday").textContent = doneCount;
+  $("totalToday").textContent = total;
+  var pct = total ? Math.round(doneCount/total*100) : 0;
+  $("barFill").style.width = pct + "%";
+  $("barWrap").setAttribute("aria-valuenow", String(pct));
+  var msg;
+  if(total === 0) msg = "Nothing tracked yet — add a habit below to light your first ember.";
+  else if(doneCount === total) msg = "All done — every ember is glowing today. 🔥";
+  else if(doneCount === 0) msg = "Nothing checked in yet today — one tap lights the first ember.";
+  else msg = "Keep going — " + (total-doneCount) + " more to finish the day.";
+  $("statusMsg").textContent = msg;
+  var chips = $("chips");
+  chips.innerHTML = "";
+  habits.forEach(function(h){
+    var s = currentStreak(new Set(h.done), TODAY);
+    var chip = document.createElement("span");
+    chip.className = "chip" + (h.done.indexOf(TODAY) !== -1 ? "" : " dim");
+    chip.textContent = "🔥 " + h.name + " — " + s + "-day streak";
+    chips.appendChild(chip);
+  });
+  if(!total){
+    var c = document.createElement("span");
+    c.className = "chip dim"; c.textContent = "No habits yet";
+    chips.appendChild(c);
+  }
+}
+
+function renderHabits(){
+  listEl.innerHTML = "";
+  if(!habits.length){
+    var empty = document.createElement("div");
+    empty.className = "empty";
+    empty.innerHTML = "<strong>Nothing tracked yet</strong>Add a habit below, or open a saved file to bring your embers back.";
+    listEl.appendChild(empty);
+    return;
+  }
+  var keys = last28Keys(TODAY);
+  habits.forEach(function(h, idx){ listEl.appendChild(habitCard(h, idx, keys)); });
+}
+
+function habitCard(h, idx, keys){
+  var set = new Set(h.done);
+  var streak = currentStreak(set, TODAY);
+  var best = bestStreak(set);
+  var last7 = countLastNDays(set, TODAY, 7);
+
+  var card = document.createElement("article");
+  card.className = "habit";
+
+  /* --- top row: number, name, rename, delete --- */
+  var top = document.createElement("div"); top.className = "habit-top";
+  var num = document.createElement("span"); num.className = "habit-num"; num.textContent = idx+1;
+  var name = document.createElement("span"); name.className = "habit-name"; name.textContent = h.name;
+  var ren = document.createElement("button");
+  ren.type = "button"; ren.className = "icon-btn"; ren.textContent = "✎";
+  ren.setAttribute("aria-label", "Rename " + h.name); ren.title = "Rename";
+  ren.addEventListener("click", function(){ startRename(h, top, name, ren); });
+  var del = document.createElement("button");
+  del.type = "button"; del.className = "icon-btn"; del.textContent = "✕";
+  del.setAttribute("aria-label", "Delete " + h.name); del.title = "Delete";
+  del.addEventListener("click", function(){
+    if(del.dataset.armed === "1"){
+      habits = habits.filter(function(x){ return x.id !== h.id; });
+      persist(); render(); showToast("Deleted “" + h.name + "”.");
+    } else {
+      del.dataset.armed = "1"; del.textContent = "Sure?"; del.classList.add("armed");
+      setTimeout(function(){
+        if(del.isConnected){ delete del.dataset.armed; del.textContent = "✕"; del.classList.remove("armed"); }
+      }, 3000);
+    }
+  });
+  top.appendChild(num); top.appendChild(name); top.appendChild(ren); top.appendChild(del);
+  card.appendChild(top);
+
+  /* --- meta tags --- */
+  var tags = document.createElement("div"); tags.className = "tags";
+  tags.appendChild(makeTag("🔥 " + streak + "-day streak", "tag streak"));
+  tags.appendChild(makeTag("Best " + best, "tag"));
+  tags.appendChild(makeTag(targetLabel(h.target) + " · " + last7 + " of last 7 days", "tag"));
+  if(last7 >= h.target) tags.appendChild(makeTag("✓ On track this week", "tag on"));
+  card.appendChild(tags);
+
+  /* --- weekday header (Monday-first) --- */
+  var wd = document.createElement("div"); wd.className = "weekdays"; wd.setAttribute("aria-hidden","true");
+  ["M","T","W","T","F","S","S"].forEach(function(L){
+    var s = document.createElement("span"); s.textContent = L; wd.appendChild(s);
+  });
+  card.appendChild(wd);
+
+  /* --- 28-day grid --- */
+  var grid = document.createElement("div"); grid.className = "grid";
+  keys.forEach(function(k){
+    var cell = document.createElement("button");
+    cell.type = "button";
+    cell.className = "cell" + (set.has(k) ? " done" : "") + (k === TODAY ? " today" : "");
+    cell.textContent = Number(k.split("-")[2]);
+    var nice = new Date(Number(k.split("-")[0]), Number(k.split("-")[1])-1, Number(k.split("-")[2]))
+      .toLocaleDateString(undefined, {weekday:"long", month:"long", day:"numeric"});
+    cell.setAttribute("aria-label", h.name + ", " + nice + (set.has(k) ? " — done" : " — not done") + ". Tap to toggle.");
+    cell.setAttribute("aria-pressed", set.has(k) ? "true" : "false");
+    cell.addEventListener("click", function(){ toggleDay(h.id, k); });
+    grid.appendChild(cell);
+  });
+  card.appendChild(grid);
+
+  /* --- hint line --- */
+  var hint = document.createElement("p"); hint.className = "grid-hint";
+  hint.textContent = "Tap any day to toggle it. Today is outlined" +
+    (idx < 9 ? " — key " + (idx+1) + " toggles this habit for today." : ".");
+  card.appendChild(hint);
+  return card;
+}
+
+function makeTag(text, cls){
+  var s = document.createElement("span"); s.className = cls; s.textContent = text; return s;
+}
+
+function renderStats(){
+  var total = habits.reduce(function(a,h){ return a + h.done.length; }, 0);
+  var longest = habits.reduce(function(a,h){ return Math.max(a, bestStreak(new Set(h.done))); }, 0);
+  $("statCheckins").textContent = total;
+  $("statLongest").textContent = longest;
+  $("statPerfect").textContent = perfectDays(habits, TODAY);
+}
+
+/* =====================================================================
+   Actions: toggle, rename, add
+   ===================================================================== */
+function toggleDay(id, key){
+  var h = habits.filter(function(x){ return x.id === id; })[0];
+  if(!h) return;
+  var i = h.done.indexOf(key);
+  if(i === -1){ h.done.push(key); h.done.sort(); } else { h.done.splice(i, 1); }
+  persist(); render();
+}
+
+function startRename(h, top, nameEl, renBtn){
+  if(top.querySelector(".rename-input")) return;
+  var input = document.createElement("input");
+  input.type = "text"; input.className = "rename-input"; input.maxLength = 60;
+  input.value = h.name; input.setAttribute("aria-label", "New name for " + h.name);
+  top.replaceChild(input, nameEl);
+  renBtn.style.display = "none";
+  input.focus(); input.select();
+  var cancelled = false;
+  function commit(){
+    if(cancelled) return;
+    var v = input.value.trim();
+    if(v){ h.name = v.slice(0,60); persist(); showToast("Renamed to “" + h.name + "”."); }
+    render();
+  }
+  input.addEventListener("keydown", function(e){
+    if(e.key === "Enter"){ e.preventDefault(); commit(); }
+    else if(e.key === "Escape"){ cancelled = true; render(); }
+  });
+  input.addEventListener("blur", commit);
+}
+
+$("addForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  var name = $("newName").value.trim().slice(0,60);
+  if(!name){ showToast("Type a habit name first.", true); $("newName").focus(); return; }
+  habits.push({
+    id: "h" + Date.now().toString(36) + Math.floor(Math.random()*1e6).toString(36),
+    name: name, target: parseInt($("newTarget").value, 10) || 7, done: []
+  });
+  $("newName").value = "";
+  persist(); render(); showToast("Added “" + name + "” — tap today to light it up.");
+});
+
+/* =====================================================================
+   Save / Open
+   ===================================================================== */
+function saveToFile(){
+  var payload = {app:"ember", version:1, habits:habits};
+  var blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url; a.download = "ember-habits-" + todayKey() + ".json";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  showToast("Saved " + habits.length + " habit" + (habits.length === 1 ? "" : "s") + " to a JSON file.");
+}
+
+var fileInput = $("fileInput");
+function openFilePicker(){ fileInput.value = ""; fileInput.click(); }
+fileInput.addEventListener("change", function(){
+  var f = fileInput.files && fileInput.files[0];
+  if(!f) return;
+  var reader = new FileReader();
+  reader.onload = function(){
+    var data;
+    try{ data = JSON.parse(String(reader.result)); }
+    catch(e){ showToast("That file is not valid JSON — nothing was changed.", true); return; }
+    var v = validateSaveData(data);   /* fully validated BEFORE replacing */
+    if(!v.ok){ showToast("File rejected: " + v.error + " Your current habits are untouched.", true); return; }
+    habits = v.habits;
+    persist(); render();
+    showToast("Loaded " + habits.length + " habit" + (habits.length === 1 ? "" : "s") + " from file.");
+  };
+  reader.onerror = function(){ showToast("Could not read that file — nothing was changed.", true); };
+  reader.readAsText(f);
+});
+
+$("saveBtn").addEventListener("click", saveToFile);
+$("openBtn").addEventListener("click", openFilePicker);
+
+/* =====================================================================
+   Keyboard: 1–9 toggle today · S save · O open (one function per key)
+   ===================================================================== */
+document.addEventListener("keydown", function(e){
+  if(e.ctrlKey || e.metaKey || e.altKey) return;
+  var t = e.target;
+  if(t && (t.tagName === "INPUT" || t.tagName === "SELECT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+  if(/^[1-9]$/.test(e.key)){
+    var idx = Number(e.key) - 1;
+    if(habits[idx]) toggleDay(habits[idx].id, todayKey());
+  } else if(e.key === "s" || e.key === "S"){ saveToFile(); }
+  else if(e.key === "o" || e.key === "O"){ openFilePicker(); }
+});
+
+/* =====================================================================
+   Init
+   ===================================================================== */
+$("todayLine").textContent = new Date().toLocaleDateString(undefined,
+  {weekday:"long", year:"numeric", month:"long", day:"numeric"});
+persist();   /* make sure the seed itself is stored for next visit */
+render();
+</script>
+</body>
+</html>

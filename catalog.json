@@ -2693,7 +2693,104 @@
         }
       ],
       "category": "focus"
+    },
+    "epicycle-sketch": {
+      "title": "Epicycle Sketch",
+      "engine": "Grok",
+      "description": "Draw a closed shape with the mouse (or load a random one) and watch it rebuilt from rotating circles: the app takes the discrete Fourier series of your path and animates the epicycles, with sliders for how many harmonics and how fast, and the same coefficients played back as a chord.",
+      "source_file": "Epicycle Sketch-grok.html",
+      "first_published": "2026-11-20",
+      "last_updated": "2026-11-20",
+      "version": 1,
+      "sha": "0b8e90209c22",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-20",
+          "sha": "0b8e90209c22"
+        }
+      ],
+      "thumb": {
+        "actions": [
+          {
+            "wait": 5500
+          }
+        ]
+      },
+      "category": "art"
+    },
+    "solder": {
+      "title": "Solder",
+      "engine": "Claude",
+      "description": "A pocket circuit lab: drag wires, resistors, batteries, capacitors, switches, LEDs and lamps onto a grid and the board simulates it live, with node voltages and branch currents, flowing current dots, glowing LEDs, a scope for the selected part and presets like an RC timer and a voltage divider.",
+      "source_file": "Solder-Claude.html",
+      "first_published": "2026-11-20",
+      "last_updated": "2026-11-20",
+      "version": 1,
+      "sha": "5ea1a379cbf7",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-20",
+          "sha": "5ea1a379cbf7"
+        }
+      ],
+      "category": "sim"
+    },
+    "ember-habit-tracker": {
+      "title": "Ember",
+      "engine": "Muse",
+      "description": "A habit tracker: add habits with a weekly target, tap a day on each habit's calendar to mark it done, and watch today's progress bar, streaks, perfect days and total check-ins, with the whole thing saved to and reopened from a JSON file.",
+      "source_file": "ember-habit-tracker-muse.html",
+      "first_published": "2026-11-20",
+      "last_updated": "2026-11-20",
+      "version": 1,
+      "sha": "6ac1f0f227b9",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-20",
+          "sha": "6ac1f0f227b9"
+        }
+      ],
+      "category": "focus"
+    },
+    "inbetween": {
+      "title": "Inbetween",
+      "engine": "ChatGPT",
+      "description": "A cubic-bezier easing editor: drag the two handles or type their coordinates, set a duration, play your curve side by side with constant speed, scrub the playhead to inspect any moment, then copy the CSS transition declarations or save the study as a file.",
+      "source_file": "inbetween-codex.html",
+      "first_published": "2026-11-20",
+      "last_updated": "2026-11-20",
+      "version": 1,
+      "sha": "8fa12894cacc",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-20",
+          "sha": "8fa12894cacc"
+        }
+      ],
+      "category": "dev"
+    },
+    "trussfem": {
+      "title": "TrussFEM",
+      "engine": "Gemini",
+      "description": "A 2D truss finite-element solver: pick a preset bridge, crane or roof span, drag its joints to reshape it and read the live axial stresses, deflection and safety factor as the direct-stiffness method re-solves, with sliders for load, cross-section and deflection magnification.",
+      "source_file": "trussfem-gemini.html",
+      "first_published": "2026-11-20",
+      "last_updated": "2026-11-20",
+      "version": 1,
+      "sha": "4ab3e5c8ddb3",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-20",
+          "sha": "4ab3e5c8ddb3"
+        }
+      ],
+      "category": "sim"
     }
   },
-  "generated": "2026-11-20"
+  "generated": "2026-11-21"
 }

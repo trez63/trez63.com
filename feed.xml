@@ -3,7 +3,42 @@
   <title>trez63 — one small app a day</title>
   <link>https://trez63.com/</link>
   <description>Every day ChatGPT, Claude, Gemini, Grok and Muse each build a single-page app from the same one-line prompt. Play them all.</description>
-  <lastBuildDate>Fri, 20 Nov 2026 12:00:00 +0000</lastBuildDate>
+  <lastBuildDate>Sat, 21 Nov 2026 12:00:00 +0000</lastBuildDate>
+  <item>
+    <title>Epicycle Sketch (Grok)</title>
+    <link>https://trez63.com/p/epicycle-sketch.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/epicycle-sketch.html</guid>
+    <pubDate>Fri, 20 Nov 2026 12:00:00 +0000</pubDate>
+    <description>Draw a closed shape with the mouse (or load a random one) and watch it rebuilt from rotating circles: the app takes the discrete Fourier series of your path and animates the epicycles, with sliders for how many harmonics and how fast, and the same coefficients played back as a chord.</description>
+  </item>
+  <item>
+    <title>Solder (Claude)</title>
+    <link>https://trez63.com/p/solder.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/solder.html</guid>
+    <pubDate>Fri, 20 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A pocket circuit lab: drag wires, resistors, batteries, capacitors, switches, LEDs and lamps onto a grid and the board simulates it live, with node voltages and branch currents, flowing current dots, glowing LEDs, a scope for the selected part and presets like an RC timer and a voltage divider.</description>
+  </item>
+  <item>
+    <title>Ember (Muse)</title>
+    <link>https://trez63.com/p/ember-habit-tracker.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/ember-habit-tracker.html</guid>
+    <pubDate>Fri, 20 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A habit tracker: add habits with a weekly target, tap a day on each habit&#x27;s calendar to mark it done, and watch today&#x27;s progress bar, streaks, perfect days and total check-ins, with the whole thing saved to and reopened from a JSON file.</description>
+  </item>
+  <item>
+    <title>Inbetween (ChatGPT)</title>
+    <link>https://trez63.com/p/inbetween.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/inbetween.html</guid>
+    <pubDate>Fri, 20 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A cubic-bezier easing editor: drag the two handles or type their coordinates, set a duration, play your curve side by side with constant speed, scrub the playhead to inspect any moment, then copy the CSS transition declarations or save the study as a file.</description>
+  </item>
+  <item>
+    <title>TrussFEM (Gemini)</title>
+    <link>https://trez63.com/p/trussfem.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/trussfem.html</guid>
+    <pubDate>Fri, 20 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A 2D truss finite-element solver: pick a preset bridge, crane or roof span, drag its joints to reshape it and read the live axial stresses, deflection and safety factor as the direct-stiffness method re-solves, with sliders for load, cross-section and deflection magnification.</description>
+  </item>
   <item>
     <title>Quorum (Claude)</title>
     <link>https://trez63.com/p/quorum.html</link>
@@ -318,40 +353,5 @@
     <guid isPermaLink="true">https://trez63.com/p/umbra.html</guid>
     <pubDate>Tue, 10 Nov 2026 12:00:00 +0000</pubDate>
     <description>A sun and shadow planner for a 50 m site. Place buildings and trees, set a date, city or latitude and longitude and the map rotation, then scrub or play through the day to watch the shadows move; a colour map shows how many hours of direct sun each patch of ground gets, and scenes save and reopen as JSON.</description>
-  </item>
-  <item>
-    <title>Nib (Claude)</title>
-    <link>https://trez63.com/p/nib.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/nib.html</guid>
-    <pubDate>Mon, 09 Nov 2026 12:00:00 +0000</pubDate>
-    <description>A typeface drawn by one pen. Every letter is a bare skeleton of lines and arcs, and a single nib swept along it makes the shape — drag the pen pad to turn and widen the nib, adjust slant, x-height, bowls and wobble, tap any glyph to see its construction, and export the result as a real TrueType font you can install.</description>
-  </item>
-  <item>
-    <title>Fourier Epicycles Studio (Grok)</title>
-    <link>https://trez63.com/p/fourier-epicycles-studio.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/fourier-epicycles-studio.html</guid>
-    <pubDate>Mon, 09 Nov 2026 12:00:00 +0000</pubDate>
-    <description>Draw any closed shape and watch it redrawn by a chain of rotating circles. The app takes the discrete Fourier transform of your path and traces it back with epicycles; slide the number of terms up and down to see the reconstruction sharpen or blur, change the speed, and save or reload a drawing as JSON.</description>
-  </item>
-  <item>
-    <title>Breathe (Muse)</title>
-    <link>https://trez63.com/p/breathe.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/breathe.html</guid>
-    <pubDate>Mon, 09 Nov 2026 12:00:00 +0000</pubDate>
-    <description>A guided breathing pacer. Pick box, 4-7-8, coherent or deep-slow breathing and a session length and follow the circle as it grows and shrinks, or switch to hold mode and press the circle to breathe in and let go to breathe out; sessions are logged on the device and can be saved as JSON.</description>
-  </item>
-  <item>
-    <title>CelestialTrace (Gemini)</title>
-    <link>https://trez63.com/p/celestialtrace.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/celestialtrace.html</guid>
-    <pubDate>Mon, 09 Nov 2026 12:00:00 +0000</pubDate>
-    <description>A gravitational N-body sandbox. Drag on the canvas to launch a planet with a velocity vector and watch it orbit, slingshot or merge with the other bodies, tune the gravitational constant, trail length and collision mode, and save or reload a system as JSON.</description>
-  </item>
-  <item>
-    <title>Keycuts (Muse)</title>
-    <link>https://trez63.com/p/keycuts.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/keycuts.html</guid>
-    <pubDate>Sun, 08 Nov 2026 12:00:00 +0000</pubDate>
-    <description>A keyboard shortcut trainer. Pick VS Code, Gmail, Chrome or macOS, read the action and press its combo on your keyboard or the on-screen keys; misses go into a needs-work pile, a learn mode shows flip cards, and you can add your own shortcuts and save progress as JSON.</description>
   </item>
 </channel></rss>

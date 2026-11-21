@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TrussFEM — Structural Finite-Element Stress Studio</title>
+    <style>
+        :root {
+            --bg: #070a10; --panel: #101522; --card: #192134; --border: #2c3752;
+            --text: #f8fafc; --sub: #94a3b8; --accent: #3b82f6; --accent-hover: #2563eb;
+            --tension: #06b6d4; --comp: #f43f5e; --emerald: #10b981; --shadow: rgba(0,0,0,0.65);
+        }
+        [data-theme="light"] {
+            --bg: #f1f5f9; --panel: #ffffff; --card: #f8fafc; --border: #cbd5e1;
+            --text: #0f172a; --sub: #64748b; --accent: #2563eb; --accent-hover: #1d4ed8;
+            --tension: #0284c7; --comp: #e11d48; --emerald: #059669; --shadow: rgba(0,0,0,0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+
+        header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; z-index: 10; }
+        .brand { font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em; }
+        .beam-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+        .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        button, label.btn-label, select { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; user-select: none; transition: 0.15s; outline: none; }
+        button:hover, label.btn-label:hover { border-color: var(--accent); color: var(--accent); }
+        button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+        button.primary:hover { background: var(--accent-hover); color: #fff; }
+        input[type="file"] { display: none; }
+
+        .metrics-bar { background: var(--panel); border-bottom: 1px solid var(--border); padding: 10px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: 12px; font-size: 0.8rem; z-index: 10; }
+        .metric-card { background: var(--bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); }
+        .metric-title { color: var(--sub); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+        .metric-val { font-size: 1rem; font-weight: 700; color: var(--text); }
+
+        main { flex: 1; padding: 16px; max-width: 1360px; width: 100%; margin: 0 auto; display: grid; grid-template-columns: 315px 1fr; gap: 16px; }
+        .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; box-shadow: 0 4px 6px var(--shadow); display: flex; flex-direction: column; gap: 12px; }
+        .section-title { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sub); display: flex; justify-content: space-between; align-items: center; }
+
+        .form-group { margin-bottom: 4px; }
+        .form-group label { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--sub); margin-bottom: 4px; font-weight: 500; }
+        .form-group select, .form-group input[type="range"] { width: 100%; accent-color: var(--accent); }
+
+        .cad-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; height: 460px; position: relative; overflow: hidden; }
+        canvas { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
+        canvas:active { cursor: grabbing; }
+
+        .legend { display: flex; gap: 14px; font-size: 0.75rem; color: var(--sub); flex-wrap: wrap; }
+        .legend span { display: inline-flex; align-items: center; gap: 5px; }
+        .swatch { width: 10px; height: 10px; border-radius: 2px; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 200; padding: 16px; }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 440px; padding: 20px; box-shadow: 0 20px 25px -5px var(--shadow); }
+        .modal h3 { font-size: 1.1rem; margin-bottom: 12px; }
+
+        .shortcut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem; margin: 12px 0 16px; }
+        .shortcut-row { display: flex; justify-content: space-between; background: var(--card); padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border); }
+        kbd { background: var(--panel); border: 1px solid var(--border); padding: 1px 5px; border-radius: 3px; font-weight: 600; font-size: 0.75rem; }
+
+        @media (max-width: 850px) {
+            header { flex-direction: column; align-items: stretch; }
+            .actions { justify-content: space-between; }
+            main { grid-template-columns: 1fr; padding: 8px; }
+            .metrics-bar { grid-template-columns: repeat(2, 1fr); }
+            .cad-box { height: 350px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand"><div class="beam-dot"></div> TrussFEM Direct Stiffness Solver</div>
+        <div class="actions">
+            <button id="loadBtn" class="primary">⬇️ +50 kN Load</button>
+            <button id="resetBtn">📐 Reset Span</button>
+            <button id="saveBtn">💾 Save JSON</button>
+            <label class="btn-label" for="openFile">📂 Open JSON</label>
+            <input type="file" id="openFile" accept=".json">
+            <button id="themeBtn">🌓 Theme</button>
+            <button id="helpBtn">❓ Help</button>
+        </div>
+    </header>
+
+    <div class="metrics-bar">
+        <div class="metric-card"><div class="metric-title">Max Tensile Stress</div><div class="metric-val" id="mTension" style="color:var(--tension);">+142.8 MPa</div></div>
+        <div class="metric-card"><div class="metric-title">Max Compression</div><div class="metric-val" id="mComp" style="color:var(--comp);">-168.4 MPa</div></div>
+        <div class="metric-card"><div class="metric-title">Peak Deflection</div><div class="metric-val" id="mDefl">14.2 mm</div></div>
+        <div class="metric-card"><div class="metric-title">Safety Factor (SF)</div><div class="metric-val" id="mSafety" style="color:var(--emerald);">2.08 (Safe)</div></div>
+    </div>
+
+    <main>
+        <!-- Structural Parameters -->
+        <div class="panel">
+            <div class="section-title"><span>Finite-Element Truss Controls</span></div>
+
+            <div class="form-group">
+                <label>Structural Topology Preset</label>
+                <select id="cfgPreset">
+                    <option value="pratt">Pratt Highway Truss (4-Bay)</option>
+                    <option value="warren">Warren Equilateral Bridge</option>
+                    <option value="cantilever">Tower Crane Cantilever Boom</option>
+                    <option value="arch">Tied-Arch Roof Span</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Point Load Magnitude: <span id="valLoad">180</span> kN</label>
+                <input type="range" id="cfgLoad" min="20" max="450" step="10" value="180">
+            </div>
+
+            <div class="form-group">
+                <label>Steel Cross-Section Area: <span id="valArea">24</span> cm²</label>
+                <input type="range" id="cfgArea" min="8" max="60" step="2" value="24">
+            </div>
+
+            <div class="form-group">
+                <label>Deflection Magnification: <span id="valMag">35</span>×</label>
+                <input type="range" id="cfgMag" min="1" max="90" step="1" value="35">
+            </div>
+
+            <div class="legend">
+                <span><i class="swatch" style="background:var(--tension)"></i> Tension (+)</span>
+                <span><i class="swatch" style="background:var(--comp)"></i> Compression (−)</span>
+                <span><i class="swatch" style="background:var(--emerald)"></i> Pin/Roller Support</span>
+            </div>
+
+            <p style="font-size:0.76rem; color:var(--sub); line-height:1.45; margin-top:4px;">
+                <strong>Drag any joint node</strong> to optimize truss depth and geometry in real time. Dashed lines show undeformed geometry; solid colored bars show live deformed axial stress.
+            </p>
+        </div>
+
+        <!-- Structural FEM Viewport -->
+        <div class="panel">
+            <div class="section-title"><span>Live Matrix Stiffness [K]{u}={F} Deformation &amp; Axial Stress Field</span></div>
+            <div class="cad-box">
+                <canvas id="femCanvas"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal">
+            <h3>TrussFEM Guide &amp; Shortcuts</h3>
+            <p style="font-size:0.85rem; color:var(--sub); line-height:1.4; margin-bottom:10px;">Real-time 2D Direct Stiffness Finite-Element solver computing exact nodal displacements, axial member stresses, and structural safety factors.</p>
+            <div class="shortcut-grid">
+                <div class="shortcut-row"><span>Add +50 kN Load</span> <kbd>Space</kbd></div>
+                <div class="shortcut-row"><span>Reset Span</span> <kbd>R</kbd></div>
+                <div class="shortcut-row"><span>Save Model</span> <kbd>S</kbd></div>
+                <div class="shortcut-row"><span>Open Model</span> <kbd>O</kbd></div>
+                <div class="shortcut-row"><span>Toggle Theme</span> <kbd>T</kbd></div>
+                <div class="shortcut-row"><span>Close Modal</span> <kbd>Esc</kbd></div>
+            </div>
+            <button id="closeHelpBtn" class="primary" style="width:100%; justify-content:center; margin-top:10px;">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Structural FEM State (Normalized Coordinates 0..1 representing 16m x 9m bay) ---
+        const SPAN_M = 16.0;
+        const HEIGHT_M = 9.0;
+        const E_STEEL = 200e9;      // 200 GPa Young's Modulus
+        const YIELD_STRESS = 350e6; // 350 MPa A992 Structural Steel
+
+        let model = {
+            loadKn: 180,
+            areaCm2: 24,
+            exaggeration: 35,
+            nodes: [], // { x, y, fixX, fixY, loadFactor }
+            bars: []   // [i, j]
+        };
+
+        const PRESETS = {
+            pratt: {
+                loadKn: 180, areaCm2: 24, exaggeration: 35,
+                nodes: [
+                    { x: 0.14, y: 0.68, fixX: true,  fixY: true,  loadFactor: 0 },   // 0 Left Pin
+                    { x: 0.32, y: 0.68, fixX: false, fixY: false, loadFactor: 0.6 }, // 1 Bottom
+                    { x: 0.50, y: 0.68, fixX: false, fixY: false, loadFactor: 1.0 }, // 2 Bottom Center
+                    { x: 0.68, y: 0.68, fixX: false, fixY: false, loadFactor: 0.6 }, // 3 Bottom
+                    { x: 0.86, y: 0.68, fixX: false, fixY: true,  loadFactor: 0 },   // 4 Right Roller
+                    { x: 0.32, y: 0.34, fixX: false, fixY: false, loadFactor: 0 },   // 5 Top
+                    { x: 0.50, y: 0.34, fixX: false, fixY: false, loadFactor: 0 },   // 6 Top Center
+                    { x: 0.68, y: 0.34, fixX: false, fixY: false, loadFactor: 0 }    // 7 Top
+                ],
+                bars: [
+                    [0,1],[1,2],[2,3],[3,4], // Bottom chord
+                    [5,6],[6,7],             // Top chord
+                    [0,5],[4,7],             // End posts
+                    [1,5],[2,6],[3,7],       // Verticals
+                    [5,2],[7,2]              // Pratt tension diagonals
+                ]
+            },
+            warren: {
+                loadKn: 160, areaCm2: 22, exaggeration: 35,
+                nodes: [
+                    { x: 0.14, y: 0.68, fixX: true,  fixY: true,  loadFactor: 0 },
+                    { x: 0.38, y: 0.68, fixX: false, fixY: false, loadFactor: 0.8 },
+                    { x: 0.62, y: 0.68, fixX: false, fixY: false, loadFactor: 0.8 },
+                    { x: 0.86, y: 0.68, fixX: false, fixY: true,  loadFactor: 0 },
+                    { x: 0.26, y: 0.34, fixX: false, fixY: false, loadFactor: 0 },
+                    { x: 0.50, y: 0.34, fixX: false, fixY: false, loadFactor: 0 },
+                    { x: 0.74, y: 0.34, fixX: false, fixY: false, loadFactor: 0 }
+                ],
+                bars: [
+                    [0,1],[1,2],[2,3],
+                    [4,5],[5,6],
+                    [0,4],[4,1],[1,5],[5,2],[2,6],[6,3]
+                ]
+            },
+            cantilever: {
+                loadKn: 120, areaCm2: 28, exaggeration: 28,
+                nodes: [
+                    { x: 0.16, y: 0.26, fixX: true,  fixY: true,  loadFactor: 0 },
+                    { x: 0.16, y: 0.68, fixX: true,  fixY: true,  loadFactor: 0 },
+                    { x: 0.42, y: 0.32, fixX: false, fixY: false, loadFactor: 0 },
+                    { x: 0.42, y: 0.68, fixX: false, fixY: false, loadFactor: 0 },
+                    { x: 0.68, y: 0.38, fixX: false, fixY: false, loadFactor: 0 },
+                    { x: 0.68, y: 0.68, fixX: false, fixY: false, loadFactor: 0 },
+                    { x: 0.88, y: 0.48, fixX: false, fixY: false, loadFactor: 1.0 }
+                ],
+                bars: [
+                    [0,2],[2,4],[4,6],
+                    [1,3],[3,5],[5,6],
+                    [2,3],[4,5],
+                    [0,3],[2,5]
+                ]
+            },
+            arch: {
+                loadKn: 200, areaCm2: 24, exaggeration: 35,
+                nodes: [
+                    { x: 0.14, y: 0.70, fixX: true,  fixY: true,  loadFactor: 0 },
+                    { x: 0.32, y: 0.70, fixX: false, fixY: false, loadFactor: 0.6 },
+                    { x: 0.50, y: 0.70, fixX: false, fixY: false, loadFactor: 1.0 },
+                    { x: 0.68, y: 0.70, fixX: false, fixY: false, loadFactor: 0.6 },
+                    { x: 0.86, y: 0.70, fixX: false, fixY: true,  loadFactor: 0 },
+                    { x: 0.32, y: 0.38, fixX: false, fixY: false, loadFactor: 0 },
+                    { x: 0.50, y: 0.28, fixX: false, fixY: false, loadFactor: 0 },
+                    { x: 0.68, y: 0.38, fixX: false, fixY: false, loadFactor: 0 }
+                ],
+                bars: [
+                    [0,1],[1,2],[2,3],[3,4],
+                    [0,5],[5,6],[6,7],[7,4],
+                    [1,5],[2,6],[3,7],
+                    [1,6],[3,6]
+                ]
+            }
+        };
+
+        // --- 2D Direct Stiffness Matrix Solver [K]{u} = {F} ---
+        function solveFEM() {
+            const n = model.nodes.length;
+            const dof = n * 2;
+            const K = Array.from({ length: dof }, () => new Float64Array(dof));
+            const F = new Float64Array(dof);
+            const A = model.areaCm2 * 1e-4; // m^2
+
+            // Assemble Global Stiffness Matrix
+            for (const [i, j] of model.bars) {
+                const ni = model.nodes[i], nj = model.nodes[j];
+                const dx = (nj.x - ni.x) * SPAN_M;
+                const dy = -(nj.y - ni.y) * HEIGHT_M;
+                const L = Math.hypot(dx, dy) || 1e-4;
+                const c = dx / L, s = dy / L;
+                const k = (E_STEEL * A) / L;
+
+                const cc = k * c * c, ss = k * s * s, cs = k * c * s;
+                const map = [2 * i, 2 * i + 1, 2 * j, 2 * j + 1];
+                const local = [
+                    [ cc,  cs, -cc, -cs],
+                    [ cs,  ss, -cs, -ss],
+                    [-cc, -cs,  cc,  cs],
+                    [-cs, -ss,  cs,  ss]
+                ];
+
+                for (let r = 0; r < 4; r++) {
+                    for (let col = 0; col < 4; col++) {
+                        K[map[r]][map[col]] += local[r][col];
+                    }
+                }
+            }
+
+            // Apply Point Loads & Kinematic Boundary Conditions
+            for (let i = 0; i < n; i++) {
+                const node = model.nodes[i];
+                F[2 * i + 1] = -(node.loadFactor || 0) * model.loadKn * 1000;
+
+                if (node.fixX) applyDirichlet(K, F, 2 * i);
+                if (node.fixY) applyDirichlet(K, F, 2 * i + 1);
+            }
+
+            const U = gaussianElimination(K, F);
+
+            // Post-process member axial stresses & deflections
+            let maxTension = 0, maxComp = 0, maxDefl = 0;
+            for (let i = 0; i < n; i++) {
+                maxDefl = Math.max(maxDefl, Math.hypot(U[2 * i], U[2 * i + 1]));
+            }
+
+            const barResults = model.bars.map(([i, j]) => {
+                const ni = model.nodes[i], nj = model.nodes[j];
+                const dx = (nj.x - ni.x) * SPAN_M;
+                const dy = -(nj.y - ni.y) * HEIGHT_M;
+                const L = Math.hypot(dx, dy) || 1e-4;
+                const c = dx / L, s = dy / L;
+
+                const stretch = (U[2 * j] - U[2 * i]) * c + (U[2 * j + 1] - U[2 * i + 1]) * s;
+                const stressPa = (E_STEEL / L) * stretch; // +Tension, -Compression
+                if (stressPa > maxTension) maxTension = stressPa;
+                if (stressPa < maxComp) maxComp = stressPa;
+                return { i, j, stressPa };
+            });
+
+            const peakStress = Math.max(maxTension, Math.abs(maxComp), 1e4);
+            const sf = YIELD_STRESS / peakStress;
+
+            document.getElementById('mTension').innerText = `+${(maxTension / 1e6).toFixed(1)} MPa`;
+            document.getElementById('mComp').innerText = `${(maxComp / 1e6).toFixed(1)} MPa`;
+            document.getElementById('mDefl').innerText = `${(maxDefl * 1000).toFixed(1)} mm`;
+
+            const sfEl = document.getElementById('mSafety');
+            sfEl.innerText = sf >= 1.5 ? `${sf.toFixed(2)} (Safe)` : `${sf.toFixed(2)} (Yield Risk!)`;
+            sfEl.style.color = sf >= 1.5 ? 'var(--emerald)' : 'var(--comp)';
+
+            return { U, barResults, peakStress };
+        }
+
+        function applyDirichlet(K, F, idx) {
+            for (let k = 0; k < K.length; k++) {
+                K[idx][k] = 0;
+                K[k][idx] = 0;
+            }
+            K[idx][idx] = 1;
+            F[idx] = 0;
+        }
+
+        function gaussianElimination(A, b) {
+            const n = b.length;
+            const x = new Float64Array(n);
+
+            for (let i = 0; i < n; i++) {
+                let maxRow = i;
+                for (let k = i + 1; k < n; k++) {
+                    if (Math.abs(A[k][i]) > Math.abs(A[maxRow][i])) maxRow = k;
+                }
+                [A[i], A[maxRow]] = [A[maxRow], A[i]];
+                [b[i], b[maxRow]] = [b[maxRow], b[i]];
+
+                if (Math.abs(A[i][i]) < 1e-8) continue;
+                for (let k = i + 1; k < n; k++) {
+                    const factor = A[k][i] / A[i][i];
+                    for (let j = i; j < n; j++) A[k][j] -= factor * A[i][j];
+                    b[k] -= factor * b[i];
+                }
+            }
+
+            for (let i = n - 1; i >= 0; i--) {
+                if (Math.abs(A[i][i]) < 1e-8) { x[i] = 0; continue; }
+                let sum = b[i];
+                for (let j = i + 1; j < n; j++) sum -= A[i][j] * x[j];
+                x[i] = sum / A[i][i];
+            }
+            return x;
+        }
+
+        // --- CAD Viewport Renderer ---
+        const canvas = document.getElementById('femCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function renderFEM() {
+            const w = canvas.parentElement.clientWidth;
+            const h = canvas.parentElement.clientHeight;
+            if (canvas.width !== w || canvas.height !== h) {
+                canvas.width = w;
+                canvas.height = h;
+            }
+
+            const { U, barResults, peakStress } = solveFEM();
+            const styles = getComputedStyle(document.documentElement);
+            const tensionCol = styles.getPropertyValue('--tension').trim();
+            const compCol = styles.getPropertyValue('--comp').trim();
+            const emerald = styles.getPropertyValue('--emerald').trim();
+            const borderCol = styles.getPropertyValue('--border').trim();
+            const textCol = styles.getPropertyValue('--text').trim();
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Subtle Blueprint Grid
+            ctx.strokeStyle = borderCol;
+            ctx.globalAlpha = 0.25;
+            ctx.lineWidth = 1;
+            for (let gx = 32; gx < w; gx += 32) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, h); ctx.stroke(); }
+            for (let gy = 32; gy < h; gy += 32) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(w, gy); ctx.stroke(); }
+            ctx.globalAlpha = 1.0;
+
+            // Compute deformed screen coordinates
+            const scaleX = w / SPAN_M, scaleY = h / HEIGHT_M;
+            const defPts = model.nodes.map((node, i) => ({
+                ox: node.x * w,
+                oy: node.y * h,
+                dx: node.x * w + U[2 * i] * scaleX * model.exaggeration,
+                dy: node.y * h - U[2 * i + 1] * scaleY * model.exaggeration
+            }));
+
+            // 1. Undeformed Ghost Reference Skeleton
+            ctx.setLineDash([4, 4]);
+            ctx.strokeStyle = borderCol;
+            ctx.lineWidth = 1.5;
+            barResults.forEach(b => {
+                ctx.beginPath();
+                ctx.moveTo(defPts[b.i].ox, defPts[b.i].oy);
+                ctx.lineTo(defPts[b.j].ox, defPts[b.j].oy);
+                ctx.stroke();
+            });
+            ctx.setLineDash([]);
+
+            // 2. Deformed Stress-Colored Truss Members
+            barResults.forEach(b => {
+                const ratio = Math.min(1, Math.abs(b.stressPa) / Math.max(peakStress, 1e6));
+                ctx.strokeStyle = b.stressPa >= 0 ? tensionCol : compCol;
+                ctx.lineWidth = 3.2 + ratio * 4.5;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(defPts[b.i].dx, defPts[b.i].dy);
+                ctx.lineTo(defPts[b.j].dx, defPts[b.j].dy);
+                ctx.stroke();
+            });
+
+            // 3. Supports, Load Arrows & Joint Pins
+            model.nodes.forEach((node, i) => {
+                const pt = defPts[i];
+
+                // Support symbols (Triangle Pin / Roller)
+                if (node.fixX || node.fixY) {
+                    ctx.fillStyle = emerald;
+                    ctx.beginPath();
+                    ctx.moveTo(pt.ox, pt.oy + 5);
+                    ctx.lineTo(pt.ox - 11, pt.oy + 22);
+                    ctx.lineTo(pt.ox + 11, pt.oy + 22);
+                    ctx.closePath();
+                    ctx.fill();
+                    if (!node.fixX) {
+                        ctx.beginPath();
+                        ctx.arc(pt.ox - 6, pt.oy + 26, 3, 0, Math.PI * 2);
+                        ctx.arc(pt.ox + 6, pt.oy + 26, 3, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                // Point Load Vector Arrow
+                if (node.loadFactor > 0) {
+                    const arrowLen = 24 + node.loadFactor * (model.loadKn / 12);
+                    ctx.strokeStyle = '#f59e0b';
+                    ctx.fillStyle = '#f59e0b';
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    ctx.moveTo(pt.dx, pt.dy + 8);
+                    ctx.lineTo(pt.dx, pt.dy + 8 + arrowLen);
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.moveTo(pt.dx, pt.dy + 12 + arrowLen);
+                    ctx.lineTo(pt.dx - 5, pt.dy + 3 + arrowLen);
+                    ctx.lineTo(pt.dx + 5, pt.dy + 3 + arrowLen);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+
+                // Joint Node Gusset Pin
+                ctx.fillStyle = textCol;
+                ctx.beginPath();
+                ctx.arc(pt.dx, pt.dy, 5.5, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        // --- Touch / Pointer Joint Dragging ---
+        let dragNodeIdx = null;
+
+        canvas.addEventListener('pointerdown', e => {
+            const rect = canvas.getBoundingClientRect();
+            const px = e.clientX - rect.left, py = e.clientY - rect.top;
+            const w = canvas.width, h = canvas.height;
+
+            for (let i = 0; i < model.nodes.length; i++) {
+                const nx = model.nodes[i].x * w, ny = model.nodes[i].y * h;
+                if (Math.hypot(px - nx, py - ny) < 28) {
+                    dragNodeIdx = i;
+                    return;
+                }
+            }
+        });
+
+        window.addEventListener('pointermove', e => {
+            if (dragNodeIdx === null) return;
+            const rect = canvas.getBoundingClientRect();
+            model.nodes[dragNodeIdx].x = Number(Math.min(0.94, Math.max(0.06, (e.clientX - rect.left) / rect.width)).toFixed(3));
+            model.nodes[dragNodeIdx].y = Number(Math.min(0.88, Math.max(0.12, (e.clientY - rect.top) / rect.height)).toFixed(3));
+            renderFEM();
+        });
+
+        window.addEventListener('pointerup', () => dragNodeIdx = null);
+        window.addEventListener('resize', renderFEM);
+
+        // --- Controls & Persistence ---
+        function syncUI() {
+            document.getElementById('cfgLoad').value = model.loadKn;
+            document.getElementById('valLoad').innerText = model.loadKn;
+            document.getElementById('cfgArea').value = model.areaCm2;
+            document.getElementById('valArea').innerText = model.areaCm2;
+            document.getElementById('cfgMag').value = model.exaggeration;
+            document.getElementById('valMag').innerText = model.exaggeration;
+        }
+
+        document.getElementById('cfgPreset').addEventListener('change', e => {
+            model = JSON.parse(JSON.stringify(PRESETS[e.target.value]));
+            syncUI();
+            renderFEM();
+        });
+
+        document.getElementById('cfgLoad').addEventListener('input', e => { model.loadKn = parseInt(e.target.value); syncUI(); renderFEM(); });
+        document.getElementById('cfgArea').addEventListener('input', e => { model.areaCm2 = parseInt(e.target.value); syncUI(); renderFEM(); });
+        document.getElementById('cfgMag').addEventListener('input', e => { model.exaggeration = parseInt(e.target.value); syncUI(); renderFEM(); });
+
+        document.getElementById('loadBtn').addEventListener('click', () => {
+            model.loadKn = Math.min(450, model.loadKn + 50);
+            syncUI();
+            renderFEM();
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            document.getElementById('cfgPreset').value = 'pratt';
+            model = JSON.parse(JSON.stringify(PRESETS.pratt));
+            syncUI();
+            renderFEM();
+        });
+
+        document.getElementById('saveBtn').addEventListener('click', exportJSON);
+        document.getElementById('openFile').addEventListener('change', importJSON);
+
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(model, null, 2));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            a.setAttribute("download", `trussfem_model_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        function importJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = evt => {
+                try {
+                    const data = JSON.parse(evt.target.result);
+                    if (Array.isArray(data.nodes) && Array.isArray(data.bars)) {
+                        model = data;
+                        syncUI();
+                        renderFEM();
+                    } else alert('Invalid TrussFEM JSON file.');
+                } catch { alert('Error reading JSON file.'); }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Theme & Shortcuts (Zero Key Overlap) ---
+        const helpModal = document.getElementById('helpModal');
+        document.getElementById('helpBtn').addEventListener('click', () => helpModal.classList.add('open'));
+        document.getElementById('closeHelpBtn').addEventListener('click', () => helpModal.classList.remove('open'));
+        document.getElementById('themeBtn').addEventListener('click', () => {
+            const cur = document.documentElement.getAttribute('data-theme');
+            document.documentElement.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+            renderFEM();
+        });
+
+        // Space = Add +50 kN Load, R = Reset Span, S = Save JSON, O = Open JSON, T = Theme, Esc = Close Modal
+        window.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+            const k = e.key.toLowerCase();
+            if (e.code === 'Space') { e.preventDefault(); document.getElementById('loadBtn').click(); }
+            if (k === 'r') { e.preventDefault(); document.getElementById('resetBtn').click(); }
+            if (k === 's') { e.preventDefault(); exportJSON(); }
+            if (k === 'o') { e.preventDefault(); document.getElementById('openFile').click(); }
+            if (k === 't') { e.preventDefault(); document.getElementById('themeBtn').click(); }
+            if (e.key === 'Escape') helpModal.classList.remove('open');
+        });
+
+        // Pre-loaded 5-Second Impressive Demo State
+        model = JSON.parse(JSON.stringify(PRESETS.pratt));
+        syncUI();
+        renderFEM();
+    </script>
+</body>
+</html>

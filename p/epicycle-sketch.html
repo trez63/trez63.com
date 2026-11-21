@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Epicycle Sketch — trez63</title>
+<meta name="description" content="Draw a closed shape with the mouse (or load a random one) and watch it rebuilt from rotating circles: the app takes the discrete Fourier series of your path and animates the epicycles, with sliders for how many harmonics and how fast, and the same coefficients played back as a chord.">
+<link rel="canonical" href="https://trez63.com/p/epicycle-sketch.html">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="trez63">
+<meta property="og:title" content="Epicycle Sketch — built by Grok">
+<meta property="og:description" content="Draw a closed shape with the mouse (or load a random one) and watch it rebuilt from rotating circles: the app takes the discrete Fourier series of your path and animates the epicycles, with sliders for how many harmonics and how fast, and the same coefficients played back as a chord.">
+<meta property="og:image" content="https://trez63.com/thumbs/epicycle-sketch.webp">
+<meta property="og:url" content="https://trez63.com/p/epicycle-sketch.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Epicycle Sketch — built by Grok">
+<meta name="twitter:description" content="Draw a closed shape with the mouse (or load a random one) and watch it rebuilt from rotating circles: the app takes the discrete Fourier series of your path and animates the epicycles, with sliders for how many harmonics and how fast, and the same coefficients played back as a chord.">
+<meta name="twitter:image" content="https://trez63.com/thumbs/epicycle-sketch.webp">
+<style>
+:root{--bg:#eff1f5;--panel:#fff;--line:#dce1e9;--fg:#17212d;--mute:#677180;--acc:#244fe5;--acc-fg:#fff;--yellow:#e5ff80;--claude:#c25a2c;--chatgpt:#2c816b;--muse:#6b4fe0;--gemini:#244fe5;--grok:#17212d;--llama:#0866ff;--mistral:#d9781a;--deepseek:#4d6bfe;--copilot:#6b4fe0;--other:#677180;color-scheme:light}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{display:flex;flex-direction:column;background:var(--bg);color:var(--fg);font:13px Arial,Helvetica,sans-serif}
+.bar{display:flex;align-items:center;gap:12px;padding:0 16px;height:52px;background:var(--panel);border-bottom:1px solid #d5dbe5;flex:none}
+.bar a{color:inherit;text-decoration:none}
+.back{color:var(--mute)} .back:hover{color:var(--fg)}
+.title{font-weight:800;font-size:16px;letter-spacing:-.4px}
+.badge{font:10px "Courier New",monospace;letter-spacing:.8px;text-transform:uppercase;padding:4px 7px;border-radius:4px;color:#fff}
+.badge.claude{background:var(--claude)}.badge.chatgpt{background:var(--chatgpt)}.badge.muse{background:var(--muse)}.badge.gemini{background:var(--gemini)}.badge.grok{background:var(--grok)}.badge.llama{background:var(--llama)}.badge.mistral{background:var(--mistral)}.badge.deepseek{background:var(--deepseek)}.badge.copilot{background:var(--copilot)}.badge.other{background:var(--other)}
+.desc{color:var(--mute);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:1;min-width:0}
+.raw{color:var(--mute);white-space:nowrap;font:11px "Courier New",monospace;letter-spacing:.5px} .raw:hover{color:var(--fg)}
+.back img{height:36px;width:auto;display:block}
+button.like.nudge:not(.on){background:var(--yellow);border-color:var(--fg);color:var(--fg);animation:nudge .5s ease-out 2}
+button.like.nudge:not(.on) i{color:var(--fg)}
+button.like.nudge:not(.on)::after{content:"Like it?";margin-left:3px}
+@keyframes nudge{50%{transform:scale(1.12)}}
+@media (prefers-reduced-motion:reduce){button.like.nudge{animation:none}}
+.step{display:inline-flex;align-items:center;height:30px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:#fff;font-weight:700;font-size:11px;white-space:nowrap}
+.step:hover{border-color:var(--acc);color:var(--acc)}
+.step.go{background:var(--fg);border-color:var(--fg);color:#fff} .step.go:hover{color:#fff;filter:brightness(1.25)}
+.step:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+@media (max-width:640px){.title{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.step.rnd{display:none}.bar{gap:8px;padding:0 10px}}
+iframe{flex:1;border:0;width:100%;background:#fff}
+@media (max-width:640px){.desc,.raw{display:none}}
+
+button.like{font:700 11px Arial,Helvetica,sans-serif;display:inline-flex;align-items:center;gap:5px;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--fg);border-radius:6px;padding:5px 9px;white-space:nowrap;line-height:1}
+button.like i{font-style:normal;font-size:13px;line-height:1;color:var(--mute)}
+button.like b{font-variant-numeric:tabular-nums;min-width:1ch;text-align:right}
+button.like:hover{border-color:var(--acc)}
+button.like:hover i{color:var(--acc)}
+button.like:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+button.like.on{background:var(--acc-soft,#eef2ff);border-color:var(--acc);color:var(--acc);cursor:default}
+button.like.on i{color:var(--acc)}
+
+</style>
+<script>(()=>{try{const L=localStorage,P=new URLSearchParams(location.search);let g=P.get('ab');
+if(g==='a'||g==='b')L.setItem('ab2',g);g=L.getItem('ab2');if(!g){g=Math.random()<.5?'a':'b';L.setItem('ab2',g);}
+window.AB=g;}catch(e){window.AB=''}})();</script>
+<script>try{if(new URLSearchParams(location.search).get('notrack')==='1'||(!new URLSearchParams(location.search).has('notrack')&&localStorage.getItem('notrack')))window['ga-disable-G-F4X7P9J00K']=true}catch(e){}</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-F4X7P9J00K"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-F4X7P9J00K');</script>
+</head>
+<body>
+<div class="bar">
+  <a class="back" href="../" title="All apps"><img src="../assets/mark-192.png" alt="trez63" width="192" height="192"></a>
+  <span class="title">Epicycle Sketch</span>
+  <span class="badge grok">Grok</span>
+  <span class="desc">Draw a closed shape with the mouse (or load a random one) and watch it rebuilt from rotating circles: the app takes the discrete Fourier series of your path and animates the epicycles, with sliders for how many harmonics and how fast, and the same coefficients played back as a chord.</span>
+  <a class="raw" href="../apps/epicycle-sketch.html" title="Open the app on its own, full window">open raw ↗</a>
+  <button class="like" type="button" data-slug="epicycle-sketch" data-n="0" aria-pressed="false" title="Like this app" aria-label="Like Epicycle Sketch"><i aria-hidden="true">♥</i><b>0</b></button>
+  <a class="step" href="trussfem.html" title="Previous: TrussFEM" aria-label="Previous app: TrussFEM">←</a>
+  <a class="step rnd" id="lucky" href="../" title="Open a random app">Surprise me</a>
+  <a class="step go" href="ember-habit-tracker.html" title="Next: Ember">Next app →</a>
+</div>
+<iframe src="../apps/epicycle-sketch.html" title="Epicycle Sketch" allow="clipboard-write; fullscreen; autoplay" allowfullscreen></iframe>
+<script>
+(function(){
+  // Likes are counted by Abacus (abacus.jasoncameron.dev), one counter per app. No account, no cookies;
+  // this browser remembers what it liked in localStorage. Counts baked into the page are the last snapshot.
+  const API='https://abacus.jasoncameron.dev', NS='trez63.com';
+  const store=(s)=>({get(k){try{return s.getItem(k)}catch(e){return null}},set(k,v){try{s.setItem(k,v)}catch(e){}}});
+  const ls=store(window.localStorage), ss=store(window.sessionStorage);
+  const btns=[...document.querySelectorAll('button.like')];
+  const put=(b,n)=>{ b.dataset.n=n; b.querySelector('b').textContent=n; const c=b.closest('.card'); if(c) c.dataset.likes=n; };
+  const raise=(b,n)=>{ if(n>(+b.dataset.n||0)) put(b,n); };
+  const mark=(b,on)=>{ b.classList.toggle('on',on); b.setAttribute('aria-pressed',on); b.title=on?'You liked this':'Like this app'; };
+  btns.forEach(b=>{
+    const slug=b.dataset.slug;
+    if(ls.get('liked:'+slug)) mark(b,true);
+    b.addEventListener('click',async ev=>{
+      ev.preventDefault(); ev.stopPropagation();
+      if(b.classList.contains('on')||b.dataset.busy) return;
+      const before=+b.dataset.n||0; b.dataset.busy=1; mark(b,true); put(b,before+1);
+      try{
+        const r=await fetch(API+'/hit/'+NS+'/'+slug); if(!r.ok) throw 0;
+        const j=await r.json(); ls.set('liked:'+slug,'1'); raise(b,+j.value||0); ss.set('likes:'+slug,b.dataset.n+'|'+Date.now());
+      }catch(e){ mark(b,false); put(b,before); }
+      delete b.dataset.busy;
+    });
+  });
+  // Anything this browser already knows needs no request: counts fetched earlier this session, and its own likes.
+  btns.forEach(b=>{ const c=(ss.get('likes:'+b.dataset.slug)||'').split('|'); if(c[0]) raise(b,+c[0]||0);
+    if(ls.get('liked:'+b.dataset.slug)) raise(b,1); });
+  // Live counts. The service has no "all counters" call and allows 30 requests per 10s per visitor, so requests
+  // go through one queue capped at 24 per 10s: what is on screen first, everything else when "Most liked" is chosen.
+  const queue=[], seen=new Set(), sent=[]; let total=0, done=0;
+  const changed=()=>document.dispatchEvent(new CustomEvent('likes:update',{detail:{done,total,pending:queue.length}}));
+  const want=(b,front)=>{ const slug=b.dataset.slug; if(seen.has(slug)) return; seen.add(slug);
+    const c=(ss.get('likes:'+slug)||'').split('|'); if(c[1] && Date.now()-c[1]<600000) return;
+    total++; front?queue.unshift(b):queue.push(b); };
+  setInterval(()=>{ if(!queue.length) return;
+    const now=Date.now(); while(sent.length && now-sent[0]>10000) sent.shift();
+    if(sent.length>=24) return;
+    const b=queue.shift(); sent.push(now);
+    fetch(API+'/get/'+NS+'/'+b.dataset.slug).then(async r=>{
+      if(r.status===429){ queue.push(b); return; }   // over the limit: try this one again later
+      if(r.ok||r.status===404){ raise(b,r.ok?(+(await r.json()).value||0):0); ss.set('likes:'+b.dataset.slug,b.dataset.n+'|'+Date.now()); }
+      done++;
+    }).catch(()=>{ done++; }).finally(changed);
+  },80);
+  if('IntersectionObserver' in window){
+    const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ want(e.target,true); io.unobserve(e.target); } }),{rootMargin:'200px'});
+    btns.forEach(b=>io.observe(b));
+  } else btns.slice(0,12).forEach(b=>want(b,true));
+  window.trezLikes={ loadAll(){ btns.forEach(b=>want(b,false)); changed(); } };
+})();
+
+(()=>{ try{
+  const P=new URLSearchParams(location.search);
+  if(P.has('notrack')) localStorage.setItem('notrack',P.get('notrack')==='0'?'':'1');
+  if(localStorage.getItem('notrack')) return;
+  const day=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles'}).format(new Date()).replace(/-/g,'');
+  const hit=k=>fetch('https://abacus.jasoncameron.dev/hit/trez63.com/'+k,{keepalive:true}).catch(()=>{});
+  const slug=(location.pathname.match(/\/p\/([^/]+)\.html$/)||[])[1];
+  hit('stat-v-'+day);
+  if(slug){ hit('stat-o-'+day); hit('stat-open-'+slug); }
+  if(localStorage.getItem('seen')!==day){ localStorage.setItem('seen',day); hit('stat-u-'+day);
+    if(/reddit\.com|redd\.it/i.test(document.referrer)) hit('stat-r-'+day); }
+  if(window.AB){ const ab='stat-ab2-'+window.AB+'-';
+    if(!localStorage.getItem('ab2c')){ localStorage.setItem('ab2c','1'); hit(ab+'u'); }
+    hit(ab+(slug?'o':'h'));
+    document.addEventListener('click',e=>{ const t=e.target.closest&&e.target.closest('button.like:not(.on)'); if(t) hit(ab+'l'); },true);
+    // the nudge (bucket b, app pages): 25 seconds of the page being visible, and not liked yet
+    if(window.AB==='b' && slug){ let left=25; const tick=setInterval(()=>{ if(document.hidden) return; if(--left>0) return; clearInterval(tick);
+      const b=document.querySelector('.bar button.like'); if(b && !b.classList.contains('on')){ b.classList.add('nudge'); hit(ab+'n'); } },1000); } }
+}catch(e){} })();
+
+document.getElementById('lucky').addEventListener('click',async e=>{ e.preventDefault();
+  try{ const all=Object.keys((await (await fetch('../catalog.json')).json()).apps).filter(s=>s!=='epicycle-sketch');
+    location.href=all[Math.floor(Math.random()*all.length)]+'.html'; }catch(x){ location.href='../'; } });
+</script>
+</body>
+</html>

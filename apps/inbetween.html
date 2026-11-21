@@ -1,0 +1,310 @@
+<!doctype html>
+<!-- Inbetween | Created 2026-11-20 (America/Los_Angeles)
+Purpose: Design a cubic Bezier animation timing curve and take its CSS into a website.
+Main interaction: Move two control handles, compare the resulting motion with constant speed,
+and scrub the shared playhead to inspect the same moment in both animations.
+Visual approach: Electric cobalt masthead, white coordinate plate, yellow handle markers,
+magenta motion specimen and a broad laboratory comparison stage.
+Distinct from Spanwright, Poise and Belfry: this is the collection's first animation-timing
+designer, translating a visual motion curve into reusable CSS. Every resource is inline. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2449ee">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Inbetween · Give motion a shape</title>
+<style>
+:root{color-scheme:light;--blue:#2449ee;--blue-dark:#1835b0;--ink:#152143;--muted:#56617d;--paper:#f4f5f9;--line:#c6ccdc;--yellow:#ffe45e;--pink:#d32978;--sans:system-ui,-apple-system,"Segoe UI",sans-serif;--mono:ui-monospace,SFMono-Regular,Consolas,monospace;font:16px/1.5 var(--sans);background:var(--paper);color:var(--ink)}
+*,*::before,*::after{box-sizing:border-box}body{margin:0;min-height:100vh}button,input,select,textarea{font:inherit;color:inherit}button,select{touch-action:manipulation}button{display:inline-flex;justify-content:center;align-items:center;gap:8px;min-height:44px;min-width:44px;padding:10px 17px;border:1px solid #a9b1c8;border-radius:5px;background:white;font-size:.89rem;line-height:1.2;font-weight:650;cursor:pointer}button.primary{color:white;background:var(--blue);border-color:var(--blue)}button.quiet{border-color:transparent;background:transparent;padding-inline:10px}button:disabled{opacity:.42;cursor:default}button svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--pink);outline-offset:3px}input[type=text],input[type=number],select,textarea{font-size:16px;min-width:0;max-width:100%;min-height:44px;padding:9px 11px;border:1px solid #a9b2ca;border-radius:4px;background:white}input[type=number]{width:100%;font-family:var(--mono);font-size:16px;font-variant-numeric:tabular-nums}textarea{display:block;width:100%;resize:vertical;line-height:1.55}select{padding-right:28px;cursor:pointer}input[type=range]{min-height:44px;width:100%;min-width:0;display:block;margin:0;accent-color:var(--blue);cursor:pointer}fieldset{min-width:0;margin:0;padding:0;border:0}legend{padding:0}[hidden]{display:none!important}h1,h2,h3,p{margin:0}.actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.eyebrow{font:500 .68rem/1.4 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}.number{font-variant-numeric:tabular-nums}.caption{display:block;margin-bottom:6px;font-size:.79rem;font-weight:650}.app{max-width:1500px;margin:auto;padding:22px 38px 32px;padding-top:max(22px,env(safe-area-inset-top));padding-left:max(38px,env(safe-area-inset-left));padding-right:max(38px,env(safe-area-inset-right));padding-bottom:max(32px,env(safe-area-inset-bottom))}
+.mast{background:var(--blue);color:white;padding:22px 30px 29px;border-radius:9px;position:relative;overflow:hidden}.mastTop{display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap}.brandNote{display:flex;align-items:center;gap:10px;font:500 .68rem/1.4 var(--mono);letter-spacing:.1em;color:#dce4ff;text-transform:uppercase}.brandGlyph{width:32px;height:28px;flex:none}.mast button{background:transparent;color:white;border-color:#9eb2ff}.mast button.primary{color:#18214a;background:var(--yellow);border-color:var(--yellow)}.mast button.quiet{border-color:transparent}.mast button:focus-visible{outline-color:var(--yellow)}.hero{display:flex;justify-content:space-between;align-items:end;gap:25px;padding-top:29px}.hero h1{font-size:clamp(3.2rem,7vw,6.5rem);font-weight:780;line-height:.98;letter-spacing:-.075em}.hero p{max-width:27ch;color:#e1e8ff;font-size:.95rem;line-height:1.55;padding-bottom:4px}.hero strong{color:white;font-weight:650}.motionMark{display:inline-block;position:relative;width:49px;height:49px;margin-left:16px;vertical-align:baseline;border:2px solid #b7c8ff;border-radius:50%;transform:translateY(1px)}.motionMark::before{content:"";position:absolute;width:17px;height:17px;left:24px;top:14px;background:var(--yellow);border-radius:50%}.motionMark::after{content:"";position:absolute;left:7px;right:20px;top:22px;border-top:2px solid #b7c8ff}.status{font-size:.91rem;font-weight:650;color:#8f2259;overflow-wrap:anywhere}.status:not(:empty){padding:14px 0 0}
+.studyBar{display:flex;align-items:end;gap:20px;justify-content:space-between;padding:23px 1px 19px}.nameField{flex:1;min-width:0;max-width:650px}.nameField input{display:block;width:100%;font-size:1.38rem;letter-spacing:-.035em;font-weight:650;background:transparent;border:0;border-bottom:1px solid #9fa9c5;border-radius:0;padding:4px 0 8px;min-height:46px}.nameField .caption{font:500 .67rem/1.4 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.studyBar .eyebrow{font-size:.62rem;text-align:right;padding-bottom:8px}.work{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(280px,.75fr);gap:23px;align-items:stretch}.curvePlate{min-width:0;background:white;border:1px solid var(--line);border-radius:7px;overflow:hidden}.sectionHead{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 21px;border-bottom:1px solid var(--line)}.sectionHead h2{font-size:1rem;letter-spacing:-.025em;font-weight:700}.folio{font:600 .67rem/1 var(--mono);color:var(--blue);margin-right:10px}.sectionHead .eyebrow{font-size:.6rem;letter-spacing:.06em}#graph{width:100%;aspect-ratio:680/420;background:#fff;position:relative}#graph>svg{display:block;width:100%;height:100%}#graph svg [data-handle]{touch-action:none;cursor:grab}#graph svg [data-handle]:active{cursor:grabbing}.curveFoot{display:flex;gap:12px;justify-content:space-between;align-items:center;padding:12px 21px;border-top:1px solid #e1e5ee;background:#f8f9fd;font-size:.79rem;color:var(--muted)}.curveFoot p{max-width:50ch}.legend{display:flex;align-items:center;gap:7px;font:500 .61rem var(--mono);white-space:nowrap}.legend::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--yellow);border:1px solid #85732d}
+.controls{min-width:0;border:1px solid var(--line);background:#ebeffa;border-radius:7px;padding:17px 20px 21px}.controlsHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px}.controlsHead h2{font-size:1rem;font-weight:700;letter-spacing:-.025em}.controlsHead button{min-height:44px}.presetField{display:block;margin-bottom:18px}.presetField select{width:100%}.points{display:grid;grid-template-columns:1fr 1fr;gap:16px;border-top:1px solid #bdc7df;padding-top:15px}.point legend{display:flex;align-items:center;gap:7px;font-size:.8rem;font-weight:700;margin-bottom:10px}.pointNumber{display:inline-flex;justify-content:center;align-items:center;width:23px;height:23px;background:var(--yellow);border:1px solid #d1ba49;border-radius:50%;font:650 .7rem var(--mono)}.coordinateField{display:grid;grid-template-columns:15px minmax(0,1fr);gap:5px;align-items:center;margin-top:7px}.coordinateField>span{font:600 .75rem var(--mono);color:var(--muted)}.coordinateNote{font-size:.73rem;line-height:1.55;color:var(--muted);padding-top:12px}.durationField{padding-top:19px;margin-top:17px;border-top:1px solid #bdc7df}.durationHead{display:flex;justify-content:space-between;align-items:center;gap:10px}.durationHead label{font-size:.84rem;font-weight:650}#durationText{font:600 .83rem var(--mono);color:var(--blue)}.durationLimits{display:flex;justify-content:space-between;font:400 .62rem var(--mono);color:var(--muted);margin-top:-2px}
+.comparison{margin-top:24px;border:1px solid var(--line);border-radius:7px;background:#fff;overflow:hidden}.comparisonHead{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:16px 21px;border-bottom:1px solid var(--line)}.comparisonTitle h2{font-size:1rem;font-weight:700;letter-spacing:-.025em}.comparisonTitle p{color:var(--muted);font-size:.79rem;margin-top:3px}.comparisonHead .actions{gap:6px}.comparisonHead .primary{min-width:90px}.motionStage{display:grid;grid-template-columns:minmax(0,1fr) 200px;gap:18px;align-items:center;padding:6px 21px 3px}#demo{width:100%;min-width:0;aspect-ratio:680/200;position:relative}#demo>svg{display:block;width:100%;height:100%}.motionReadings{display:grid;gap:15px;border-left:1px solid var(--line);padding-left:20px}.motionReadings .caption{font:500 .62rem/1.4 var(--mono);color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin-bottom:3px}.reading{font-size:1.8rem;font-weight:650;line-height:1.1;letter-spacing:-.055em}.reading.pink{color:var(--pink)}.playhead{padding:13px 21px 17px;border-top:1px solid #e0e5ee;background:#f8f9fd}.playheadTop{display:flex;align-items:baseline;gap:15px;justify-content:space-between}.playheadTop label{font-size:.83rem;font-weight:650}.playheadTop p{font-size:.73rem;color:var(--muted)}.playhead input{margin-top:3px}.codePanel{margin-top:23px;display:grid;grid-template-columns:260px minmax(0,1fr) auto;gap:23px;align-items:center;padding:22px;border:1px solid var(--line);border-radius:7px;background:#e6ebf7}.codeLead h2{font-size:1.05rem;font-weight:700;letter-spacing:-.025em}.codeLead p{font-size:.79rem;line-height:1.55;color:var(--muted);margin-top:6px}#cssOutput{font:16px/1.65 var(--mono);background:#f9fbff;min-height:91px;resize:vertical;border-color:#b4bed5;white-space:pre;overflow:auto}.codePanel button{background:#fff;white-space:nowrap}.footer{display:flex;justify-content:space-between;gap:18px;margin-top:21px;color:var(--muted);font-size:.74rem}.footer .eyebrow{font-size:.58rem;letter-spacing:.07em;white-space:nowrap}
+dialog{width:min(500px,calc(100% - 28px));max-height:calc(100vh - 28px);max-height:calc(100dvh - max(28px,env(safe-area-inset-top) + env(safe-area-inset-bottom)));overflow:auto;overscroll-behavior:contain;border:1px solid #aab5d2;border-radius:8px;padding:25px;background:white;color:var(--ink);box-shadow:0 18px 90px #1523473d}dialog::backdrop{background:#101d4c99}dialog h2{font-size:1.8rem;line-height:1.2;letter-spacing:-.05em;margin-bottom:13px}dialog p,dialog li{font-size:.93rem;line-height:1.6;overflow-wrap:anywhere}dialog p+p{margin-top:10px}dialog ol{padding-left:21px}dialog li+li{margin-top:8px}dialog .actions{margin-top:17px}summary{min-height:44px;padding:10px 0;cursor:pointer;font-size:.83rem;font-weight:650}#manual{margin-top:16px;border-top:1px solid var(--line)}#fileText{font:16px/1.45 var(--mono);max-height:180px}#selectText{margin-top:8px}
+@media(hover:hover){button:enabled:hover{filter:brightness(.94)}.mast button:enabled:hover{background:#3158ff;filter:none}.mast button.primary:enabled:hover{background:#ffec8e}.quiet:enabled:hover{background:#dae2f6}}
+@media(max-width:1150px){.app{padding-inline:max(25px,env(safe-area-inset-left)) max(25px,env(safe-area-inset-right))}.work{grid-template-columns:minmax(0,1.5fr) minmax(270px,.85fr);gap:18px}.controls{padding-inline:17px}.mast{padding-inline:25px}.hero h1{font-size:5rem}.motionMark{width:38px;height:38px;margin-left:10px}.motionMark::before{left:18px;top:10px;width:14px;height:14px}.motionMark::after{left:5px;right:17px;top:17px}.points{gap:12px}.codePanel{grid-template-columns:210px minmax(0,1fr);gap:18px}.codePanel button{grid-column:2;justify-self:end}.motionStage{grid-template-columns:minmax(0,1fr) 140px}.reading{font-size:1.55rem}}
+@media(max-width:820px){.app{padding:16px 18px 28px;padding-top:max(16px,env(safe-area-inset-top));padding-left:max(18px,env(safe-area-inset-left));padding-right:max(18px,env(safe-area-inset-right));padding-bottom:max(28px,env(safe-area-inset-bottom))}.mast{padding:20px 23px 24px}.hero{align-items:start;flex-direction:column;gap:13px;padding-top:25px}.hero h1{font-size:clamp(3.8rem,9.5vw,5.7rem)}.hero p{max-width:52ch;font-size:.9rem}.work{grid-template-columns:minmax(0,1fr);gap:17px}.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:25px;padding:15px 20px 18px}.controlsHead{grid-column:1/-1;margin-bottom:8px}.presetField{grid-column:1;margin-bottom:0;align-self:start}.points{grid-column:2;grid-row:2/5;padding-top:0;border:0}.durationField{grid-column:1;margin-top:13px;padding-top:12px}.coordinateNote{grid-column:1/-1;font-size:.75rem;padding-top:13px}.studyBar{padding-block:18px 16px;gap:14px}.studyBar .eyebrow{display:none}.nameField{max-width:none}.comparison{margin-top:19px}.comparisonHead{padding:15px 19px}.motionStage{grid-template-columns:minmax(0,1fr) 120px;padding-inline:15px;gap:10px}.motionReadings{padding-left:14px}.reading{font-size:1.4rem}.codePanel{grid-template-columns:minmax(0,1fr) auto;padding:19px;gap:14px}.codeLead{grid-column:1/-1}.codeLead p{max-width:70ch}#cssOutput{grid-column:1}.codePanel button{grid-column:2;grid-row:2;align-self:stretch}.footer{align-items:flex-start}}
+@media(max-width:510px){.app{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right));padding-top:max(12px,env(safe-area-inset-top))}.mast{padding:17px 17px 23px}.mastTop{gap:15px}.brandNote{font-size:.6rem;letter-spacing:.07em}.brandGlyph{width:27px;height:24px}.mast .actions{gap:5px}.mast button{padding-inline:11px;font-size:.83rem}.hero{padding-top:22px}.hero h1{font-size:clamp(3.1rem,12.5vw,4.2rem)}.hero p{font-size:.86rem;max-width:34ch}.motionMark{display:none}.nameField input{font-size:1.25rem}.sectionHead{padding:14px 15px}.sectionHead .eyebrow{font-size:.54rem;letter-spacing:.03em}.sectionHead h2{font-size:.92rem}.folio{margin-right:7px;font-size:.62rem}.curveFoot{padding:11px 15px;font-size:.74rem;align-items:flex-start}.curveFoot p{max-width:30ch}.legend{font-size:.56rem}.controls{grid-template-columns:minmax(0,1fr);padding:14px 17px 17px;gap:0}.controlsHead{grid-column:1;margin-bottom:10px}.presetField{grid-column:1;margin-bottom:17px}.points{grid-column:1;grid-row:auto;border-top:1px solid #bdc7df;padding-top:14px;gap:22px}.durationField{grid-column:1;grid-row:auto;margin-top:17px;padding-top:14px}.coordinateNote{grid-column:1;padding-top:12px}.comparisonHead{align-items:flex-start;flex-direction:column;padding:14px 15px;gap:12px}.comparisonHead .actions{width:100%}.comparisonHead .primary{min-width:92px}.comparisonTitle p{font-size:.74rem}.motionStage{grid-template-columns:minmax(0,1fr);padding:4px 12px 14px;gap:4px}.motionReadings{display:grid;grid-template-columns:1fr 1fr;border-left:0;border-top:1px solid #e0e5ee;padding:12px 3px 0;gap:16px}.motionReadings .caption{font-size:.57rem}.reading{font-size:1.5rem}.playhead{padding:12px 15px 14px}.playheadTop{align-items:flex-start;flex-direction:column;gap:4px}.playheadTop p{font-size:.71rem}.codePanel{grid-template-columns:minmax(0,1fr);padding:16px;gap:12px;margin-top:19px}.codeLead{grid-column:1}#cssOutput{grid-column:1;font-size:16px;min-height:106px}.codePanel button{grid-column:1;grid-row:auto;width:100%}.footer{flex-direction:column;gap:7px;font-size:.7rem;margin-top:18px}.footer .eyebrow{font-size:.53rem}dialog{padding:21px}}
+@media(max-width:350px){.mast .actions{width:100%}.mast .quiet{margin-left:auto}.hero h1{font-size:3rem}.hero p{font-size:.83rem}.mast{padding-inline:14px}.sectionHead .eyebrow{max-width:100px;text-align:right}.curveFoot .legend{display:none}.curveFoot p{max-width:none}.controls{padding-inline:15px}.points{gap:15px}.point legend{font-size:.75rem}.coordinateField{grid-template-columns:12px minmax(0,1fr);gap:3px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main class="app">
+ <header class="mast">
+  <div class="mastTop"><div class="brandNote"><svg class="brandGlyph" viewBox="0 0 34 28" aria-hidden="true"><path d="M2 24C18 24 14 4 31 4" fill="none" stroke="#ffe45e" stroke-width="3"/><circle cx="2" cy="24" r="2" fill="white"/><circle cx="31" cy="4" r="2" fill="white"/></svg>A small laboratory for motion</div><nav class="actions" aria-label="Curve files and help"><button id="open" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19V6h7l2 2h8v3M3 19l3-7h15l-3 7H3z"/></svg>Open</button><button id="save" type="button" class="primary"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 17v4h16v-4"/></svg>Save</button><button id="help" type="button" class="quiet" aria-haspopup="dialog">Guide</button></nav></div>
+  <div class="hero"><h1>Inbetween<span class="motionMark" aria-hidden="true"></span></h1><p><strong>Give motion a shape.</strong><br>Design the moments between the start and the finish. Then take them into your website.</p></div>
+  <input id="file" type="file" accept=".json,application/json" hidden>
+ </header>
+ <noscript><p>Enable JavaScript to shape a curve and preview its motion.</p></noscript>
+ <p id="status" class="status" role="status" aria-live="polite" aria-atomic="true"></p>
+ <div class="studyBar"><label class="nameField" for="title"><span class="caption">Name your motion study</span><input id="title" type="text" maxlength="80" autocomplete="off" placeholder="Untitled motion"></label><p class="eyebrow">Two handles.<br>One distinctive arrival.</p></div>
+ <div class="work">
+  <section class="curvePlate" aria-labelledby="curve-title"><div class="sectionHead"><h2 id="curve-title"><span class="folio">01</span>Shape the curve</h2><span class="eyebrow">Time → &nbsp; Position ↑</span></div><div id="graph"></div><div class="curveFoot"><p>Drag either handle. Use the coordinates for precise changes.</p><span class="legend">Control point</span></div></section>
+  <aside class="controls" aria-labelledby="controls-title"><div class="controlsHead"><h2 id="controls-title">The coordinates</h2><button id="undo" type="button" class="quiet">Undo</button></div><label class="presetField" for="preset"><span class="caption">Start with a curve</span><select id="preset"><option value="">Choose a starting curve</option></select></label><div class="points"><fieldset class="point"><legend><span class="pointNumber">1</span>First handle</legend><label class="coordinateField" for="x1"><span>X</span><input id="x1" type="number" min="0" max="1" step="0.01" inputmode="decimal" aria-label="First handle X coordinate"></label><label class="coordinateField" for="y1"><span>Y</span><input id="y1" type="number" min="-1" max="2" step="0.01" inputmode="decimal" aria-label="First handle Y coordinate"></label></fieldset><fieldset class="point"><legend><span class="pointNumber">2</span>Second handle</legend><label class="coordinateField" for="x2"><span>X</span><input id="x2" type="number" min="0" max="1" step="0.01" inputmode="decimal" aria-label="Second handle X coordinate"></label><label class="coordinateField" for="y2"><span>Y</span><input id="y2" type="number" min="-1" max="2" step="0.01" inputmode="decimal" aria-label="Second handle Y coordinate"></label></fieldset></div><div class="durationField"><div class="durationHead"><label for="duration">Duration</label><output id="durationText" class="number">1,400 ms</output></div><input id="duration" type="range" min="250" max="4000" step="1" value="1400"><div class="durationLimits"><span>250 ms</span><span>4,000 ms</span></div></div><p class="coordinateNote">X stays between 0 and 1. Y can go below 0 or above 1 to create anticipation and overshoot.</p></aside>
+ </div>
+ <section class="comparison" aria-labelledby="comparison-title"><div class="comparisonHead"><div class="comparisonTitle"><h2 id="comparison-title"><span class="folio">02</span>See what changes</h2><p>Two journeys. The same duration. Your timing makes the difference.</p></div><div class="actions"><button id="play" type="button" class="primary">Play</button><button id="restart" type="button">Replay</button></div></div><div class="motionStage"><div id="demo"></div><div class="motionReadings"><div><span class="caption">Time elapsed</span><p id="progressText" class="reading number">35%</p></div><div><span class="caption">Your position</span><p id="easedText" class="reading pink number">—</p></div></div></div><div class="playhead"><div class="playheadTop"><label for="progress">Move the playhead</label><p>Inspect the motion at any moment. Opened files start paused.</p></div><input id="progress" type="range" min="0" max="1000" step="1" value="350"></div></section>
+ <section class="codePanel" aria-labelledby="code-title"><div class="codeLead"><h2 id="code-title"><span class="folio">03</span>Take the motion with you</h2><p>Use these declarations in a CSS rule for an element with a transitioning property.</p></div><label for="cssOutput" hidden>CSS declarations for this timing curve</label><textarea id="cssOutput" rows="3" readonly spellcheck="false" aria-label="CSS declarations for this timing curve"></textarea><button id="copyCSS" type="button">Copy CSS</button></section>
+ <footer class="footer"><p>Save an editable curve file to keep your coordinates, duration and playhead.</p><span class="eyebrow">Works offline · All motion stays here</span></footer>
+</main>
+<dialog id="guideDialog" aria-labelledby="guide-title"><h2 id="guide-title">Make the in-between matter.</h2><ol><li>Choose a starting curve, then drag either handle or edit its X and Y coordinates. The horizontal direction is time; the vertical direction is position.</li><li><strong>Play</strong> compares your curve with constant speed. <strong>Replay</strong> starts a fresh comparison. Move the playhead to inspect a particular moment.</li><li>Y values outside 0–1 can move the specimen backward or past its destination before it settles.</li><li><strong>Copy CSS</strong> copies the duration and timing declarations. Add a transitioning property, such as transform, in your own stylesheet.</li></ol><p><strong>Save</strong> keeps the complete editable study. <strong>Open</strong> restores your curve and playhead, paused. Motion starts when you choose Play or Replay.</p><p>On iPhone, use the offered share control and choose Save to Files when available. A download and complete file text are also provided.</p><p>Every action is available through the visible controls. Use Tab and the usual button and input keys to work from the keyboard.</p><div class="actions"><button type="button" class="primary" data-close>Back to the curve</button></div></dialog>
+<dialog id="fileDialog" aria-labelledby="fileHeading"><h2 id="fileHeading">Save your study</h2><p id="fileInfo"></p><div class="actions"><button id="share" type="button">Share or save to Files</button><button id="again" type="button">Download again</button></div><details id="manual"><summary>Complete file text</summary><label for="fileText" class="caption">Copy all of this text to save manually</label><textarea id="fileText" rows="5" readonly spellcheck="false"></textarea><button id="selectText" type="button">Select text</button></details><div class="actions"><button type="button" class="primary" data-close>Done</button></div></dialog>
+<dialog id="confirmDialog" aria-labelledby="confirm-title"><h2 id="confirm-title">Replace this study?</h2><p id="confText"></p><div class="actions"><button id="keep" type="button" class="primary" autofocus>Keep current study</button><button id="replace" type="button">Replace</button></div></dialog>
+<script>
+(() => { 'use strict';
+const MAX_FILE_BYTES = 65536;
+
+function exactKeys(value, expected) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const keys = Object.keys(value);
+  return keys.length === expected.length && expected.every(key => Object.prototype.hasOwnProperty.call(value,key));
+}
+function finiteRange(value, low, high) {
+  return typeof value === 'number' && Number.isFinite(value) && value >= low && value <= high;
+}
+function validateState(value) {
+  if (!exactKeys(value,['title','x1','y1','x2','y2','duration','progress'])) throw Error('The saved motion has an unexpected structure.');
+  if (typeof value.title !== 'string' || value.title.length > 80) throw Error('The motion title must contain at most 80 characters.');
+  if (!finiteRange(value.x1,0,1) || !finiteRange(value.x2,0,1)) throw Error('The control-point time values must be between 0 and 1.');
+  if (!finiteRange(value.y1,-1,2) || !finiteRange(value.y2,-1,2)) throw Error('The control-point position values must be between -1 and 2.');
+  if (!Number.isInteger(value.duration) || value.duration < 250 || value.duration > 4000) throw Error('The duration must be a whole number from 250 to 4,000 milliseconds.');
+  if (!finiteRange(value.progress,0,1)) throw Error('The saved playhead must be between 0 and 1.');
+  return {title:value.title,x1:value.x1,y1:value.y1,x2:value.x2,y2:value.y2,duration:value.duration,progress:value.progress};
+}
+function checkFileText(text) {
+  if (typeof text !== 'string') throw Error('Choose a text file saved by Inbetween.');
+  if (text.length > MAX_FILE_BYTES) throw Error('Choose an Inbetween file of 64 KiB or less.');
+  let bytes = 0;
+  for (const character of text) {
+    const code = character.codePointAt(0);
+    bytes += code < 128 ? 1 : code < 2048 ? 2 : code < 65536 ? 3 : 4;
+    if (bytes > MAX_FILE_BYTES) throw Error('Choose an Inbetween file of 64 KiB or less.');
+  }
+}
+function serializeSession(state) {
+  const text = JSON.stringify({app:'inbetween',version:1,workspace:validateState(state)},null,2);
+  checkFileText(text);
+  return text;
+}
+function readSession(text) {
+  checkFileText(text);
+  let value;
+  try { value = JSON.parse(text.replace(/^\uFEFF/,'')); }
+  catch (_) { throw Error('This is not valid JSON. Choose a saved Inbetween motion.'); }
+  if (!exactKeys(value,['app','version','workspace']) || value.app !== 'inbetween') throw Error('This file is not an Inbetween motion.');
+  if (value.version !== 1) throw Error('This Inbetween file version is not supported.');
+  return validateState(value.workspace);
+}
+function cubicAt(u, a, b) {
+  const v = 1-u;
+  return 3*v*v*u*a + 3*v*u*u*b + u*u*u;
+}
+function easing(t, state) {
+  if (!finiteRange(t,0,1)) throw Error('The playhead must be between 0 and 1.');
+  if (t === 0 || t === 1) return t;
+  if (state.x1 === state.y1 && state.x2 === state.y2) return t;
+  // Valid CSS time controls make x monotone, even with stationary tangents.
+  // Bisection remains stable where Newton iteration would divide by zero.
+  // Solve the reflected curve near the finish to avoid subtractive precision
+  // loss when a flat ending tangent makes a tiny x error visually significant.
+  const reverse = t > .5, target = reverse ? 1-t : t;
+  const a = reverse ? 1-state.x2 : state.x1;
+  const b = reverse ? 1-state.x1 : state.x2;
+  const output = u => reverse ? 1-cubicAt(u,1-state.y2,1-state.y1) : cubicAt(u,state.y1,state.y2);
+  let low = 0, high = 1;
+  for (let i=0;i<64;i++) {
+    const u = (low+high)/2;
+    const x = cubicAt(u,a,b);
+    if (x === target) return output(u);
+    if (x < target) low = u;
+    else high = u;
+  }
+  return output((low+high)/2);
+}
+function presets() {
+  return [
+    {id:'linear',name:'Constant speed',x1:0,y1:0,x2:1,y2:1},
+    {id:'ease',name:'Everyday ease',x1:.25,y1:.1,x2:.25,y2:1},
+    {id:'arrival',name:'Easy arrival',x1:.22,y1:1,x2:.36,y2:1},
+    {id:'departure',name:'Slow departure',x1:.55,y1:0,x2:1,y2:.45},
+    {id:'anticipation',name:'Pull back & spring',x1:.36,y1:-.45,x2:.66,y2:1.45},
+    {id:'sharp',name:'Quick middle',x1:.85,y1:0,x2:.15,y2:1}
+  ];
+}
+function makeDefault() {
+  return {title:'An easy arrival',x1:.22,y1:1,x2:.36,y2:1,duration:1400,progress:.35};
+}
+function cssValue(state) {
+  const work = validateState(state);
+  // Preserve every saved numeric value; CSS numbers allow exponent notation.
+  return 'cubic-bezier('+[work.x1,work.y1,work.x2,work.y2].map(value=>String(value)).join(', ')+')';
+}
+function copyCSS(state) {
+  const work = validateState(state);
+  return 'transition-duration: '+work.duration+'ms;\ntransition-timing-function: '+cssValue(work)+';';
+}
+
+const graphPoint=(x,y)=>({x:75+x*530,y:352-(y-graphRange.low)/(graphRange.high-graphRange.low)*300});
+function newGraphRange(work){return {low:Math.min(0,work.y1,work.y2)-.15,high:Math.max(1,work.y1,work.y2)+.15};}
+function graphMarkup(){
+  return `<svg viewBox="0 0 680 420" role="img" aria-labelledby="curveTitle curveDesc"><title id="curveTitle">Your motion curve</title><desc id="curveDesc">Horizontal position is elapsed time. Vertical position is movement. Drag the numbered handles, or edit the four coordinate fields.</desc><rect width="680" height="420" fill="#fbfbff"/><g id="graphGrid"></g><path id="linearGuide" fill="none" stroke="#b8bbd6" stroke-width="1.5" stroke-dasharray="5 6"/><path id="handleGuides" fill="none" stroke="#7a80b1" stroke-width="1.5"/><path id="curvePath" fill="none" stroke="#243cf2" stroke-width="5" stroke-linecap="round"/><path id="playheadGuide" fill="none" stroke="#e52b83" stroke-width="1.5" stroke-dasharray="4 4"/><circle id="playheadDot" r="7" fill="#e52b83" stroke="white" stroke-width="2"/>
+  <g id="handle1" data-handle="1" style="touch-action:none;cursor:grab"><circle r="44" fill="transparent"/><circle r="15" fill="#ffe45e" stroke="#252449" stroke-width="2"/><text text-anchor="middle" y="5" font-family="sans-serif" font-weight="700" font-size="14" fill="#252449">1</text></g>
+  <g id="handle2" data-handle="2" style="touch-action:none;cursor:grab"><circle r="44" fill="transparent"/><circle r="15" fill="#ffe45e" stroke="#252449" stroke-width="2"/><text text-anchor="middle" y="5" font-family="sans-serif" font-weight="700" font-size="14" fill="#252449">2</text></g>
+  <g font-family="sans-serif" font-size="12" fill="#646782"><text x="340" y="401" text-anchor="middle" letter-spacing="1.5">TIME →</text><text x="19" y="220" transform="rotate(-90 19 220)" text-anchor="middle" letter-spacing="1.5">MOVEMENT →</text></g></svg>`;
+}
+function curveArt(){
+  const start=graphPoint(0,0),end=graphPoint(1,1),p1=graphPoint(state.x1,state.y1),p2=graphPoint(state.x2,state.y2);
+  let grid='';for(let i=0;i<=4;i++){const x=75+i/4*530;grid+=`<path d="M${x} 52V352" stroke="#e5e5ef"/><text x="${x}" y="376" text-anchor="middle">${i*25}%</text>`;}
+  const ticks=[graphRange.low,0,.5,1,graphRange.high].filter((v,i,arr)=>arr.indexOf(v)===i);
+  for(const v of ticks){const y=graphPoint(0,v).y;grid+=`<path d="M75 ${y}H605" stroke="${v===0||v===1?'#c9cbe0':'#e5e5ef'}"/><text x="62" y="${y+4}" text-anchor="end">${Math.round(v*100)}%</text>`;}
+  get('graphGrid').innerHTML=`<g font-family="sans-serif" font-size="11" fill="#646782">${grid}</g>`;
+  get('linearGuide').setAttribute('d',`M${start.x} ${start.y}L${end.x} ${end.y}`);
+  get('handleGuides').setAttribute('d',`M${start.x} ${start.y}L${p1.x} ${p1.y}M${end.x} ${end.y}L${p2.x} ${p2.y}`);
+  get('curvePath').setAttribute('d',`M${start.x} ${start.y}C${p1.x} ${p1.y} ${p2.x} ${p2.y} ${end.x} ${end.y}`);
+  get('handle1').setAttribute('transform',`translate(${p1.x} ${p1.y})`);get('handle2').setAttribute('transform',`translate(${p2.x} ${p2.y})`);
+}
+function demoMarkup(){
+  return `<svg viewBox="0 0 1000 220" role="img" aria-labelledby="motionTitle"><title id="motionTitle">Compare your motion with constant speed at the same elapsed time</title><g font-family="sans-serif" font-size="12" fill="#555a77"><text x="28" y="55">YOUR CURVE</text><text x="28" y="143">CONSTANT SPEED</text></g><g id="demoTrack"></g><g id="designDot"><rect x="-22" y="-22" width="44" height="44" rx="10" fill="#e52b83"/><path d="M-7-7L7 0L-7 7Z" fill="white"/></g><g id="linearDot"><rect x="-22" y="-22" width="44" height="44" rx="10" fill="#c5c9e6"/><circle r="6" fill="#535978"/></g></svg>`;
+}
+function setDemoScale(){
+  let lo=0,hi=1;for(let i=0;i<=120;i++){const y=easing(i/120,state);lo=Math.min(lo,y);hi=Math.max(hi,y);}
+  // The convex hull bounds the curve; reserve enough room even between samples.
+  demoRange={low:Math.min(lo,state.y1<0?state.y1:0,state.y2<0?state.y2:0)-.08,high:Math.max(hi,state.y1>1?state.y1:1,state.y2>1?state.y2:1)+.08};
+  const a=demoX(0),b=demoX(1);let parts='';for(const y of [82,170])parts+=`<path d="M60 ${y}H940" stroke="#e0e2ef" stroke-width="2"/><path d="M${a} ${y}H${b}" stroke="#a8adc9" stroke-width="2"/><path d="M${a} ${y-10}V${y+10}M${b} ${y-10}V${y+10}" stroke="#646b97"/>`;
+  parts+=`<g font-family="sans-serif" font-size="11" fill="#646b97"><text x="${a}" y="208" text-anchor="middle">START</text><text x="${b}" y="208" text-anchor="middle">FINISH</text></g>`;get('demoTrack').innerHTML=parts;
+}
+function demoX(value){return 65+(value-demoRange.low)/(demoRange.high-demoRange.low)*870;}
+
+const get=id=>document.getElementById(id);
+let state=makeDefault(),baseline=JSON.stringify(state),graphRange=newGraphRange(state),demoRange;
+let playing=false,animationFrame=0,startTime=0,startProgress=0,drag=null,editGroup='',pending=null,prepared=null,reading=false;
+const history=[];
+function clone(v){return JSON.parse(JSON.stringify(v));}
+function say(message){get('status').textContent=message;}
+function remember(group=''){if(group&&group===editGroup)return;history.push(clone(state));if(history.length>50)history.shift();editGroup=group;get('undo').disabled=false;}
+function playhead(){
+  const output=easing(state.progress,state),p=graphPoint(state.progress,output),zero=graphPoint(state.progress,0);
+  get('playheadDot').setAttribute('cx',p.x);get('playheadDot').setAttribute('cy',p.y);
+  get('playheadGuide').setAttribute('d',`M75 ${p.y}H${p.x}V${zero.y}`);
+  get('designDot').setAttribute('transform',`translate(${demoX(output)} 82)`);
+  get('linearDot').setAttribute('transform',`translate(${demoX(state.progress)} 170)`);
+  get('progress').value=Math.round(state.progress*1000);get('progressText').textContent=(state.progress*100).toFixed(1)+'% time';get('easedText').textContent=(output*100).toFixed(1)+'% movement';
+  get('progress').setAttribute('aria-valuetext',(state.progress*100).toFixed(1)+' percent of time, '+(output*100).toFixed(1)+' percent movement');
+}
+function pause(){playing=false;if(animationFrame)cancelAnimationFrame(animationFrame);animationFrame=0;get('play').textContent='Play';get('play').setAttribute('aria-pressed','false');}
+function curveChanged(syncInputs=true,keepRange=false){
+  if(!keepRange)graphRange=newGraphRange(state);
+  if(syncInputs)for(const key of ['x1','y1','x2','y2'])get(key).value=state[key];
+  get('duration').value=state.duration;get('durationText').textContent=state.duration+' ms';get('cssOutput').value=copyCSS(state);curveArt();setDemoScale();playhead();
+}
+function paint(){
+  pause();get('title').value=state.title;get('graph').innerHTML=graphMarkup();get('demo').innerHTML=demoMarkup();get('undo').disabled=!history.length;curveChanged();
+}
+function tick(now){
+  if(!playing)return;state.progress=Math.min(1,startProgress+(now-startTime)/state.duration);playhead();
+  if(state.progress>=1){pause();say('Preview finished. Replay to watch it from the start.');}else animationFrame=requestAnimationFrame(tick);
+}
+function play(fromStart=false){
+  pause();if(fromStart||state.progress>=1)state.progress=0;startProgress=state.progress;startTime=performance.now();playing=true;get('play').textContent='Pause';get('play').setAttribute('aria-pressed','true');animationFrame=requestAnimationFrame(tick);
+}
+get('play').addEventListener('click',()=>playing?pause():play());get('restart').addEventListener('click',()=>play(true));
+get('progress').addEventListener('input',()=>{pause();state.progress=Number(get('progress').value)/1000;editGroup='';playhead();});
+get('duration').addEventListener('input',()=>{pause();remember('duration');state.duration=Number(get('duration').value);get('durationText').textContent=state.duration+' ms';get('cssOutput').value=copyCSS(state);});
+get('duration').addEventListener('change',()=>{editGroup='';});
+for(const key of ['x1','y1','x2','y2']){
+  const input=get(key),min=key[0]==='x'?0:-1,max=key[0]==='x'?1:2;
+  input.addEventListener('input',()=>{const v=input.valueAsNumber;if(!Number.isFinite(v)||v<min||v>max)return;pause();remember(key);state[key]=v;curveChanged(false);});
+  input.addEventListener('change',()=>{const v=input.valueAsNumber;if(!Number.isFinite(v)||v<min||v>max){input.value=state[key];say(key.toUpperCase()+' must be between '+min+' and '+max+'. The last valid value was kept.');}editGroup='';});
+}
+get('title').addEventListener('input',()=>{remember('title');state.title=get('title').value;});get('title').addEventListener('change',()=>{editGroup='';});
+get('preset').innerHTML='<option value="">Choose a starting point</option>'+presets().map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+get('preset').addEventListener('change',()=>{const p=presets().find(p=>p.id===get('preset').value);get('preset').value='';if(!p)return;pause();remember();for(const key of ['x1','y1','x2','y2'])state[key]=p[key];curveChanged();say(p.name+' curve applied.');});
+get('undo').addEventListener('click',()=>{if(!history.length)return;state=history.pop();editGroup='';paint();say('Last edit undone.');});
+function eventPoint(event){const svg=get('graph').querySelector('svg'),p=svg.createSVGPoint(),matrix=svg.getScreenCTM();if(!matrix)return null;p.x=event.clientX;p.y=event.clientY;return p.matrixTransform(matrix.inverse());}
+get('graph').addEventListener('pointerdown',event=>{
+  const h=event.target.closest('[data-handle]');if(!h||drag||event.button!==0||event.isPrimary===false)return;
+  pause();remember();drag={id:event.pointerId,handle:h.dataset.handle};try{get('graph').setPointerCapture(event.pointerId);}catch{}event.preventDefault();
+});
+get('graph').addEventListener('pointermove',event=>{
+  if(!drag||event.pointerId!==drag.id)return;const p=eventPoint(event);if(!p)return;
+  const round=v=>Math.round(v*100)/100;
+  state['x'+drag.handle]=round(Math.max(0,Math.min(1,(p.x-75)/530)));
+  state['y'+drag.handle]=round(Math.max(-1,Math.min(2,graphRange.low+(352-p.y)/300*(graphRange.high-graphRange.low))));
+  curveChanged(true,true);event.preventDefault();
+});
+function finishDrag(event){if(!drag||event.pointerId!==drag.id)return;drag=null;editGroup='';curveChanged();}
+get('graph').addEventListener('pointerup',finishDrag);get('graph').addEventListener('pointercancel',finishDrag);get('graph').addEventListener('lostpointercapture',finishDrag);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
+get('copyCSS').addEventListener('click',async()=>{
+  const text=copyCSS(state);get('cssOutput').value=text;
+  try{if(!navigator.clipboard?.writeText)throw Error();await navigator.clipboard.writeText(text);say('CSS copied. Apply it to the element you want to animate.');}
+  catch{get('cssOutput').focus();get('cssOutput').select();say('CSS selected. Use your browser’s Copy command.');}
+});
+
+const dialogOrigins=new Map();
+function show(id,origin){pause();dialogOrigins.set(id,origin);get(id).showModal();}
+for(const d of document.querySelectorAll('dialog'))d.addEventListener('close',()=>{
+  if(d.id==='confirmDialog')pending=null;
+  if(d.id==='fileDialog'){prepared=null;get('fileText').value='';}
+  const origin=get(dialogOrigins.get(d.id));if(origin&&!origin.disabled)origin.focus();
+});
+for(const b of document.querySelectorAll('[data-close]'))b.addEventListener('click',()=>b.closest('dialog').close());
+get('help').addEventListener('click',()=>show('guideDialog','help'));
+function loadWork(next){remember();editGroup='';state=next;baseline=JSON.stringify(next);paint();say('Motion opened. Press Play when you are ready.');}
+function offerWork(next){
+  if(JSON.stringify(state)===baseline){loadWork(next);return;}
+  pending=next;get('confText').textContent='Open the saved motion in place of this one? Choose Keep to save your current edits first.';show('confirmDialog','open');get('keep').focus();
+}
+get('keep').addEventListener('click',()=>{pending=null;get('confirmDialog').close();say('Current motion kept.');});
+get('confirmDialog').addEventListener('cancel',()=>{pending=null;});
+get('replace').addEventListener('click',()=>{const next=pending;pending=null;get('confirmDialog').close();if(next)loadWork(next);});
+function readLocal(file){
+  if(typeof file.text==='function')return file.text();
+  if(typeof FileReader==='undefined')throw Error('This browser could not read the local file.');
+  return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=r.onabort=()=>reject(Error('The file could not be read.'));r.readAsText(file);});
+}
+get('open').addEventListener('click',()=>{if(reading)return;pause();get('file').value='';try{get('file').click();}catch{say('The local file picker could not open.');}});
+get('file').addEventListener('cancel',()=>say('Open canceled. Your motion is unchanged.'));
+get('file').addEventListener('change',async()=>{
+  const file=get('file').files?.[0];if(!file||reading)return;pause();reading=true;get('open').disabled=true;
+  try{
+    if(file.size>MAX_FILE_BYTES)throw Error('Choose an Inbetween JSON file of 64 KB or less.');
+    const next=readSession(await readLocal(file));
+    if(['guideDialog','fileDialog','confirmDialog'].some(id=>get(id).open))throw Error('Close the current dialog and choose the file again.');
+    offerWork(next);
+  }catch(error){say(error.message+' Your current motion is unchanged.');}
+  finally{reading=false;get('open').disabled=false;get('file').value='';}
+});
+function downloadFile(){
+  if(!prepared)return;let url;const a=document.createElement('a');
+  try{
+    try{if(prepared.blob)url=URL.createObjectURL(prepared.blob);}catch{}
+    a.href=url||'data:application/json;charset=utf-8,'+encodeURIComponent(prepared.text);a.download=prepared.name;document.body.append(a);a.click();
+    get('fileInfo').textContent='Download requested: '+prepared.name+'. On iPhone, Share can also offer Save to Files.';
+  }catch{get('fileInfo').textContent='Copy the complete file text below and save it as '+prepared.name+'.';}
+  finally{a.remove();if(url)setTimeout(()=>URL.revokeObjectURL(url),60000);}
+}
+get('save').addEventListener('click',()=>{
+  pause();try{
+    const text=serializeSession(state),stem=state.title.trim().toLowerCase().replace(/[^a-z0-9_-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,64)||'motion';
+    const name=stem+'-inbetween.json';prepared={text,name,blob:null,file:null};
+    try{prepared.blob=new Blob([text],{type:'application/json'});const f=new File([prepared.blob],name,{type:'application/json'});if(navigator.share&&navigator.canShare?.({files:[f]}))prepared.file=f;}catch{}
+    get('fileHeading').textContent='Save your motion';get('fileText').value=text;get('share').hidden=!prepared.file;get('manual').hidden=false;
+    downloadFile();show('fileDialog','save');
+  }catch(error){say('Could not prepare the file. '+error.message);}
+});
+get('again').addEventListener('click',downloadFile);
+get('selectText').addEventListener('click',()=>{get('fileText').focus();get('fileText').select();});
+get('share').addEventListener('click',async()=>{
+  const p=prepared;if(!p?.file)return;
+  try{await navigator.share({files:[p.file]});if(p===prepared)get('fileInfo').textContent='Share sheet completed.';}
+  catch(error){if(p===prepared)get('fileInfo').textContent=error.name==='AbortError'?'Sharing canceled. Your motion is still open.':'Use Download again or the complete file text.';}
+});
+paint();
+
+})();
+</script>
+</body>
+</html>
+

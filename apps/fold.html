@@ -1,0 +1,276 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Daily Build 2026-11-21 — Fold</title>
+<style>
+:root{--bg:#f4f1ea;--fg:#1d1b17;--muted:#6f6a5e;--panel:#fffdf8;--line:#d9d3c6;--accent:#c2410c;--back:#d9d2c3;color-scheme:light}
+:root[data-theme=dark]{--bg:#15171c;--fg:#ece9e2;--muted:#9a978f;--panel:#1e2128;--line:#343841;--accent:#fb923c;--back:#4a4d55;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-text-size-adjust:100%}
+body{display:flex;flex-direction:column;min-height:100%;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+header{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+h1{font-size:22px;margin:0 6px 0 0;letter-spacing:.02em}
+h1 small{font-size:12px;color:var(--muted);font-weight:400;margin-left:6px}
+button,select,input{font:inherit;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:10px;min-height:44px;padding:0 12px;font-size:16px}
+button{cursor:pointer;min-width:44px}
+button:active{transform:translateY(1px)}
+button.primary{background:var(--accent);color:#fff;border-color:transparent}
+select{max-width:46vw}
+main{flex:1;display:flex;min-height:0}
+#stage{flex:1;position:relative;min-width:0}
+canvas{display:block;width:100%;height:100%;touch-action:none}
+#hint{position:absolute;left:12px;bottom:10px;font-size:13px;color:var(--muted);pointer-events:none}
+aside{width:320px;border-left:1px solid var(--line);padding:12px;overflow:auto;display:flex;flex-direction:column;gap:12px;background:var(--panel)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row.grow>*{flex:1}
+label.sl{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+input[type=range]{width:100%;min-height:44px;padding:0;accent-color:var(--accent)}
+input[type=number]{width:96px}
+#stats{font-size:14px;line-height:1.6}
+#stats b{font-weight:600}
+#net{width:100%;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+#toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90vw}
+#help{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:9}
+#help.on{display:flex}
+#help .card{background:var(--panel);border-radius:14px;padding:20px;max-width:560px;max-height:90vh;overflow:auto}
+#help h2{margin:0 0 8px}
+#help kbd{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:13px}
+#help p{margin:6px 0}
+#printArea{display:none}
+@media (max-width:760px){main{flex-direction:column}#stage{height:52vh;flex:none}aside{width:auto;border-left:0;border-top:1px solid var(--line);flex:1}select{max-width:none;flex:1}}
+@media print{body>*{display:none!important}#printArea{display:block!important}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Fold<small>polyhedra → paper nets</small></h1>
+  <select id="solid" aria-label="Solid"></select>
+  <button id="shuffle" title="New net (N)">Shuffle net</button>
+  <button id="save">Save</button><button id="open">Open</button>
+  <button id="theme" title="Theme (D)">◐</button>
+  <button id="helpBtn" title="Help (Ctrl+/)">?</button>
+  <input id="file" type="file" accept=".json,application/json" hidden>
+</header>
+<main>
+  <div id="stage"><canvas id="c"></canvas><div id="hint">drag to turn · tap a face to re-root the net</div></div>
+  <aside>
+    <label class="sl">Fold <span id="foldPct"></span>
+      <input id="fold" type="range" min="0" max="1000" value="1000"></label>
+    <div class="row grow"><button id="play" class="primary">Pause</button><button id="tabs">Tabs: on</button><button id="print">Print net</button></div>
+    <div class="row"><label class="sl">Edge length (mm)<input id="edge" type="number" min="5" max="300" step="1" value="30"></label><div id="paper" style="font-size:13px;color:var(--muted);flex:1"></div></div>
+    <div id="stats"></div>
+    <svg id="net" viewBox="0 0 10 10"></svg>
+  </aside>
+</main>
+<div id="toast"></div>
+<div id="help"><div class="card">
+  <h2>Fold</h2>
+  <p>Pick any of 18 Platonic, Archimedean and prism solids and watch it unfold into a flat net. <b>Shuffle</b> grows a different spanning tree of faces (a cube alone has 11 distinct nets). Tap a face on the model to make it the root of the net. Set the edge length and <b>Print</b> a tabbed net to cut out and glue.</p>
+  <p>Solid lines are cuts; dashed lines are folds. Stats show vertices, edges, faces, dihedral angles, paper area and the volume your model will enclose.</p>
+  <p><b>Keyboard</b> (not while typing in a field):<br>
+  <kbd>Space</kbd> play/pause · <kbd>F</kbd> fold · <kbd>U</kbd> unfold · <kbd>N</kbd> shuffle net · <kbd>[</kbd> <kbd>]</kbd> previous/next solid · <kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> turn · <kbd>T</kbd> tabs · <kbd>P</kbd> print · <kbd>D</kbd> theme · <kbd>Ctrl/⌘ S</kbd> save · <kbd>Ctrl/⌘ O</kbd> open · <kbd>Ctrl/⌘ /</kbd> help · <kbd>Esc</kbd> close</p>
+  <p><b>Save/Open</b> keep the solid, this exact net, fold, size and view as a JSON file. Downloads work when the file is opened directly (the artifact viewer blocks page downloads).</p>
+  <p><button id="closeHelp" class="primary">Close</button></p>
+</div></div>
+<div id="printArea"></div>
+<script>
+// ===== core (pure geometry, no DOM) =====
+const PHI=(1+Math.sqrt(5))/2;
+const V3={sub:(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]],add:(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]],mul:(a,s)=>[a[0]*s,a[1]*s,a[2]*s],
+  dot:(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2],cross:(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],
+  len:a=>Math.hypot(a[0],a[1],a[2]),norm:a=>V3.mul(a,1/(V3.len(a)||1))};
+const centroid=p=>V3.mul(p.reduce(V3.add,[0,0,0]),1/p.length);
+function normal(p){let n=[0,0,0];for(let i=0;i<p.length;i++){const a=p[i],b=p[(i+1)%p.length];n=V3.add(n,V3.cross(a,b));}return V3.norm(n);}
+const area=p=>V3.len(p.reduce((s,a,i)=>V3.add(s,V3.cross(a,p[(i+1)%p.length])),[0,0,0]))/2;
+// Rotate point x about the axis through A with unit direction u (Rodrigues).
+function rotate(x,A,u,t){const v=V3.sub(x,A),c=Math.cos(t),s=Math.sin(t);
+  return V3.add(A,V3.add(V3.add(V3.mul(v,c),V3.mul(V3.cross(u,v),s)),V3.mul(u,V3.dot(u,v)*(1-c))));}
+// Coordinate helpers: sign combinations, permutations, deduplicated point sets.
+const signs=v=>v.reduce((acc,x)=>acc.flatMap(p=>x?[[...p,x],[...p,-x]]:[[...p,0]]),[[]]);
+const cyc=v=>[v,[v[1],v[2],v[0]],[v[2],v[0],v[1]]];
+const perms=v=>[...cyc(v),...cyc([v[0],v[2],v[1]])];
+const uniq=pts=>{const m=new Map();pts.forEach(p=>m.set(p.map(x=>x.toFixed(6)).join(),p));return [...m.values()];};
+const ring=(n,r,z,off=0)=>Array.from({length:n},(_,i)=>[r*Math.cos(2*Math.PI*(i+off)/n),r*Math.sin(2*Math.PI*(i+off)/n),z]);
+// A solid is built from its vertices alone: edges are the shortest pairs, faces are read by walking
+// the edge graph with neighbours sorted around each vertex's outward direction.
+function build(name,V){
+  let L=Infinity;const d=(a,b)=>V3.len(V3.sub(a,b));
+  for(let i=0;i<V.length;i++)for(let j=i+1;j<V.length;j++)L=Math.min(L,d(V[i],V[j]));
+  const nb=V.map(()=>[]);
+  for(let i=0;i<V.length;i++)for(let j=i+1;j<V.length;j++)if(d(V[i],V[j])<L*1.001){nb[i].push(j);nb[j].push(i);}
+  V.forEach((v,i)=>{const n=V3.norm(v),e1=V3.norm(V3.cross(n,Math.abs(n[0])<.9?[1,0,0]:[0,1,0])),e2=V3.cross(n,e1);
+    const ang=j=>{const w=V3.sub(V[j],v);return Math.atan2(V3.dot(w,e2),V3.dot(w,e1));};nb[i].sort((a,b)=>ang(a)-ang(b));});
+  const seen=new Set(),F=[];
+  for(let u=0;u<V.length;u++)for(const v of nb[u]){if(seen.has(u+','+v))continue;const f=[];let a=u,b=v;
+    do{seen.add(a+','+b);f.push(a);const k=nb[b].indexOf(a),c=nb[b][(k+nb[b].length-1)%nb[b].length];a=b;b=c;}while(!(a===u&&b===v));
+    F.push(f);}
+  V=V.map(v=>V3.mul(v,1/L));
+  F.forEach(f=>{const p=f.map(i=>V[i]);if(V3.dot(normal(p),centroid(p))<0)f.reverse();});
+  return {name,V,F};
+}
+const edgesOf=P=>{const s=new Map();P.F.forEach(f=>f.forEach((a,i)=>{const b=f[(i+1)%f.length];s.set(Math.min(a,b)+'-'+Math.max(a,b),[a,b]);}));return [...s.values()];};
+// Conway-style operators that keep every edge equal: truncation at the regular-face ratio, and rectification (midpoints).
+function truncate(name,P){const p=P.F[0].length,f=1/(2+2*Math.sin(Math.PI*(p-2)/p/2));
+  return build(name,edgesOf(P).flatMap(([a,b])=>[V3.add(P.V[a],V3.mul(V3.sub(P.V[b],P.V[a]),f)),V3.add(P.V[b],V3.mul(V3.sub(P.V[a],P.V[b]),f))]));}
+const ambo=(name,P)=>build(name,edgesOf(P).map(([a,b])=>V3.mul(V3.add(P.V[a],P.V[b]),.5)));
+const prism=(name,n)=>{const r=1/(2*Math.sin(Math.PI/n));return build(name,[...ring(n,r,.5),...ring(n,r,-.5)]);};
+const antiprism=(name,n)=>{const r=1/(2*Math.sin(Math.PI/n)),h=Math.sqrt(1-2*r*r*(1-Math.cos(Math.PI/n)));return build(name,[...ring(n,r,h/2),...ring(n,r,-h/2,.5)]);};
+const T=1.839286755214161; // tribonacci constant, for the snub cube
+const SOLIDS=(()=>{const tet=build('Tetrahedron',[[1,1,1],[1,-1,-1],[-1,1,-1],[-1,-1,1]]),cube=build('Cube',signs([1,1,1])),
+  oct=build('Octahedron',uniq(perms([1,0,0]).flatMap(signs))),dod=build('Dodecahedron',[...signs([1,1,1]),...uniq(cyc([0,1/PHI,PHI]).flatMap(signs))]),
+  ico=build('Icosahedron',uniq(cyc([0,1,PHI]).flatMap(signs)));
+  const snub=[...cyc([1,1/T,T]).flatMap(signs).filter(p=>p.filter(x=>x<0).length%2===0),...cyc([1,T,1/T]).flatMap(signs).filter(p=>p.filter(x=>x<0).length%2===1)];
+  return [tet,cube,oct,dod,ico,truncate('Truncated tetrahedron',tet),ambo('Cuboctahedron',cube),truncate('Truncated cube',cube),truncate('Truncated octahedron',oct),
+    build('Rhombicuboctahedron',uniq(perms([1,1,1+Math.SQRT2]).flatMap(signs))),build('Snub cube',uniq(snub)),ambo('Icosidodecahedron',dod),
+    truncate('Truncated dodecahedron',dod),truncate('Truncated icosahedron',ico),
+    build('Rhombicosidodecahedron',uniq([...cyc([1,1,PHI**3]),...cyc([PHI**2,PHI,2*PHI]),...cyc([2+PHI,0,PHI**2])].flatMap(signs))),
+    prism('Pentagonal prism',5),prism('Hexagonal prism',6),antiprism('Square antiprism',4)];})();
+const NETS={Tetrahedron:2,Cube:11,Octahedron:11,Dodecahedron:43380,Icosahedron:43380};
+// Dual graph: for every face, its neighbours and the shared edge.
+function adjacency(P){const m=new Map(),adj=P.F.map(()=>[]);
+  P.F.forEach((f,i)=>f.forEach((a,k)=>{const b=f[(k+1)%f.length],key=Math.min(a,b)+'-'+Math.max(a,b);
+    if(m.has(key)){const j=m.get(key);adj[i].push({g:j,a,b});adj[j].push({g:i,a,b});}else m.set(key,i);}));return adj;}
+// Steepest-descent spanning tree: each face hangs from its lowest neighbour along a direction c,
+// then anything not reached from the chosen root is grafted onto the tree. Random c gives varied nets.
+function makeTree(P,adj,root,c){
+  const h=P.F.map(f=>V3.dot(centroid(f.map(i=>P.V[i])),c)),parent=P.F.map(()=>-1);
+  P.F.forEach((f,i)=>{let best=-1;adj[i].forEach(({g})=>{if(h[g]<h[i]&&(best<0||h[g]<h[best]))best=g;});parent[i]=best;});
+  parent[root]=-1;
+  for(;;){const reached=new Set([root]);let grew=true;
+    while(grew){grew=false;parent.forEach((p,i)=>{if(!reached.has(i)&&reached.has(p)){reached.add(i);grew=true;}});}
+    if(reached.size===P.F.length)return parent;
+    const u=P.F.findIndex((_,i)=>!reached.has(i)&&adj[i].some(({g})=>reached.has(g)));parent[u]=adj[u].find(({g})=>reached.has(g)).g;}
+}
+// Fold state t∈[0,1]: 1 is the solid, 0 the flat net. Every child subtree swings about its hinge
+// by the fraction (1−t) of the angle that makes it coplanar with its parent.
+function fold(P,parent,t){
+  const pos=P.F.map(f=>f.map(i=>P.V[i].slice())),kids=P.F.map(()=>[]);parent.forEach((p,i)=>{if(p>=0)kids[p].push(i);});
+  const subtree=f=>[f,...kids[f].flatMap(subtree)];
+  const visit=f=>kids[f].forEach(c=>{const sh=P.F[c].filter(i=>P.F[f].includes(i)),A=pos[c][P.F[c].indexOf(sh[0])],B=pos[c][P.F[c].indexOf(sh[1])];
+    const u=V3.norm(V3.sub(B,A)),nP=normal(pos[f]),nC=normal(pos[c]),ang=Math.atan2(V3.dot(V3.cross(nC,nP),u),V3.dot(nC,nP))*(1-t);
+    subtree(c).forEach(g=>pos[g]=pos[g].map(x=>rotate(x,A,u,ang)));visit(c);});
+  visit(parent.indexOf(-1));return pos;
+}
+// Flat net in 2D: fold to t=0 and express everything in the root face's plane.
+function net2D(P,parent){const pos=fold(P,parent,0),r=pos[parent.indexOf(-1)],n=normal(r),e1=V3.norm(V3.sub(r[1],r[0])),e2=V3.cross(n,e1),c=centroid(r);
+  return pos.map(f=>f.map(x=>{const v=V3.sub(x,c);return [V3.dot(v,e1),V3.dot(v,e2)];}));}
+// Convex polygon overlap by separating axes (touching along an edge does not count).
+function overlap(A,B,eps=1e-4){for(const P of [A,B])for(let i=0;i<P.length;i++){const a=P[i],b=P[(i+1)%P.length],nx=b[1]-a[1],ny=a[0]-b[0];
+  const pr=Q=>Q.map(p=>p[0]*nx+p[1]*ny),pa=pr(A),pb=pr(B);if(Math.max(...pa)<=Math.min(...pb)+eps||Math.max(...pb)<=Math.min(...pa)+eps)return false;}return true;}
+function overlaps(net){let n=0;for(let i=0;i<net.length;i++)for(let j=i+1;j<net.length;j++)if(overlap(net[i],net[j]))n++;return n;}
+function bestTree(P,adj,root,rng,tries=80){let best=null,bestN=Infinity;
+  for(let k=0;k<tries&&bestN>0;k++){const c=V3.norm([rng()-.5,rng()-.5,rng()-.5]),parent=makeTree(P,adj,root,c),n=overlaps(net2D(P,parent));if(n<bestN){bestN=n;best=parent;}}
+  return {parent:best,overlaps:bestN};}
+// Glue tabs: one per cut edge, placed on whichever side does not collide with another face.
+function tabs(P,parent,net,h){const out=[];const cut=(f,g)=>parent[f]!==g&&parent[g]!==f;
+  adjacency(P).forEach((L,f)=>L.forEach(({g,a,b})=>{if(f>g||!cut(f,g))return;
+    const mk=(face,hh)=>{const q=net[face],i=P.F[face].indexOf(a),j=P.F[face].indexOf(b),pA=q[i],pB=q[j],d=[pB[0]-pA[0],pB[1]-pA[1]],len=Math.hypot(...d),ux=d[0]/len,uy=d[1]/len;
+      const c=q.reduce((s,p)=>[s[0]+p[0],s[1]+p[1]],[0,0]).map(x=>x/q.length);let nx=-uy,ny=ux;if((c[0]-pA[0])*nx+(c[1]-pA[1])*ny>0){nx=-nx;ny=-ny;}
+      const k=Math.min(hh,len/3);return [pA,[pA[0]+ux*k+nx*hh,pA[1]+uy*k+ny*hh],[pB[0]-ux*k+nx*hh,pB[1]-uy*k+ny*hh],pB];};
+    for(const hh of [h,h/2]){for(const face of [f,g]){const t=mk(face,hh);if(!net.some((q,i)=>i!==face&&overlap(q,t)))return out.push(t);}}
+    out.push(mk(f,h/3));}));return out;}
+// A saved parent array must be a single rooted tree over all faces before fold() may recurse on it.
+function isTree(parent,n){if(!Array.isArray(parent)||parent.length!==n||parent.filter(p=>p===-1).length!==1)return false;
+  const kids=parent.map(()=>[]);for(const [i,p] of parent.entries()){if(p===-1)continue;if(!Number.isInteger(p)||p<0||p>=n)return false;kids[p].push(i);}
+  const st=[parent.indexOf(-1)],seen=new Set(st);while(st.length){const f=st.pop();for(const c of kids[f]){if(seen.has(c))return false;seen.add(c);st.push(c);}}return seen.size===n;}
+function stats(P){const faces=P.F.map(f=>f.map(i=>P.V[i])),E=edgesOf(P).length,dih=new Set();
+  adjacency(P).forEach((L,f)=>L.forEach(({g})=>{if(g>f)dih.add((180-Math.acos(Math.max(-1,Math.min(1,V3.dot(normal(faces[f]),normal(faces[g])))))*180/Math.PI).toFixed(1));}));
+  return {V:P.V.length,E,F:P.F.length,area:faces.reduce((s,p)=>s+area(p),0),volume:faces.reduce((s,p)=>s+V3.dot(centroid(p),normal(p))*area(p)/3,0),dihedral:[...dih].map(Number).sort((a,b)=>a-b)};}
+// ===== end core =====
+if(typeof document!=='undefined'){(()=>{
+const $=id=>document.getElementById(id),cv=$('c'),ctx=cv.getContext('2d');
+const COLORS={3:'#ef6f6c',4:'#f0b443',5:'#5fbf73',6:'#4ea3e8',8:'#a884e3',10:'#ea7fb0'};
+const S={solid:13,parent:null,t:1,playing:true,dir:-1,yaw:.6,pitch:-.5,edgeMm:30,tabs:true,adj:null,net:null,overlaps:0};
+let rng=Math.random,hits=[];
+const P=()=>SOLIDS[S.solid];
+const toast=(m,ms=2600)=>{const t=$('toast');t.textContent=m;t.style.opacity=1;clearTimeout(t._h);t._h=setTimeout(()=>t.style.opacity=0,ms);};
+function setSolid(i,parent){S.solid=(i+SOLIDS.length)%SOLIDS.length;$('solid').value=S.solid;S.adj=adjacency(P());
+  if(parent)S.parent=parent;else{ // root the net at the face currently facing the viewer, so it unfolds towards you
+    const z=P().F.map(f=>rotPt(normal(f.map(i=>P().V[i])))[2]),r=bestTree(P(),S.adj,z.indexOf(Math.max(...z)),rng);S.parent=r.parent;S.overlaps=r.overlaps;}
+  S.net=net2D(P(),S.parent);renderNet();renderStats();}
+function rotPt(p){const cy=Math.cos(S.yaw),sy=Math.sin(S.yaw),cp=Math.cos(S.pitch),sp=Math.sin(S.pitch),x=p[0]*cy+p[2]*sy,z=-p[0]*sy+p[2]*cy;return [x,p[1]*cp-z*sp,p[1]*sp+z*cp];}
+function reroot(root){const r=bestTree(P(),S.adj,root,rng);S.parent=r.parent;S.overlaps=r.overlaps;S.net=net2D(P(),S.parent);renderNet();if(r.overlaps)toast('Best net found still overlaps in '+r.overlaps+' place(s) — try Shuffle');}
+function renderStats(){const s=stats(P()),mm=S.edgeMm,n=NETS[P().name];
+  $('stats').innerHTML=`<b>${P().name}</b> — ${s.V} vertices · ${s.E} edges · ${s.F} faces (V−E+F = ${s.V-s.E+s.F})<br>Dihedral ${s.dihedral.join('° / ')}°${n?` · <b>${n.toLocaleString()}</b> distinct nets`:''}<br>Paper ${(s.area*mm*mm/100).toFixed(1)} cm² · volume ${(s.volume*mm**3/1000).toFixed(1)} cm³ at ${mm} mm edges`;}
+function netSVG(forPrint){const mm=S.edgeMm,net=S.net.map(f=>f.map(p=>[p[0]*mm,p[1]*mm])),tb=S.tabs?tabs(P(),S.parent,net,Math.min(mm*.3,9)):[];
+  const all=[...net,...tb].flat(),x0=Math.min(...all.map(p=>p[0]))-2,x1=Math.max(...all.map(p=>p[0]))+2,y0=Math.min(...all.map(p=>p[1]))-2,y1=Math.max(...all.map(p=>p[1]))+2,w=x1-x0,h=y1-y0;
+  const pt=p=>p[0].toFixed(2)+','+p[1].toFixed(2),ink=forPrint?'#000':getComputedStyle(document.documentElement).getPropertyValue('--fg');
+  let s='';net.forEach((f,i)=>{s+=`<polygon points="${f.map(pt).join(' ')}" fill="${forPrint?'none':COLORS[f.length]||'#999'}" fill-opacity=".85" stroke="none"/>`;});
+  S.adj.forEach((L,f)=>L.forEach(({g,a,b})=>{if(g<f)return;const q=net[f],A=q[P().F[f].indexOf(a)],B=q[P().F[f].indexOf(b)],fold=S.parent[f]===g||S.parent[g]===f;
+    s+=`<line x1="${A[0].toFixed(2)}" y1="${A[1].toFixed(2)}" x2="${B[0].toFixed(2)}" y2="${B[1].toFixed(2)}" stroke="${ink}" stroke-width="${fold?.25:.45}" ${fold?'stroke-dasharray="1.5 1"':''}/>`;}));
+  tb.forEach(t=>s+=`<polygon points="${t.map(pt).join(' ')}" fill="none" stroke="${ink}" stroke-width=".3" stroke-dasharray="1 .7"/>`);
+  return {svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${x0} ${y0} ${w} ${h}" width="${w}mm" height="${h}mm" stroke-linejoin="round">${s}</svg>`,w,h};}
+function renderNet(){const {svg,w,h}=netSVG(false);$('net').outerHTML=svg.replace('<svg ','<svg id="net" ').replace(/ width="[^"]*" height="[^"]*"/,'');
+  const fits=(pw,ph)=>(w<=pw&&h<=ph)||(w<=ph&&h<=pw),maxEdge=pg=>Math.floor(S.edgeMm*Math.max(Math.min(pg[0]/w,pg[1]/h),Math.min(pg[1]/w,pg[0]/h)));
+  $('paper').textContent=`Net ${w.toFixed(0)}×${h.toFixed(0)} mm — ${fits(190,277)?'fits A4':'A4 max edge '+maxEdge([190,277])+' mm'}, ${fits(196,259)?'fits Letter':'Letter max edge '+maxEdge([196,259])+' mm'}`;}
+// --- 3D view ---
+function resize(){const r=cv.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,3);cv.width=r.width*d;cv.height=r.height*d;ctx.setTransform(d,0,0,d,0,0);}
+function draw(){const W=cv.width/(devicePixelRatio||1),H=cv.height/(devicePixelRatio||1);ctx.clearRect(0,0,W,H);
+  const pos=fold(P(),S.parent,S.t),R=pos.map(f=>f.map(rotPt)),all=R.flat(),c=centroid(all),rad=Math.max(...all.map(p=>V3.len(V3.sub(p,c))))||1;
+  const D=4.5,sc=Math.min(W,H)*.42/rad,proj=p=>{const q=V3.sub(p,c),k=D/(D-q[2]/rad);return [W/2+q[0]*sc*k,H/2-q[1]*sc*k,q[2]];};
+  const light=V3.norm([-.4,.7,.6]),dark=document.documentElement.dataset.theme==='dark',back=getComputedStyle(document.documentElement).getPropertyValue('--back').trim();
+  const faces=R.map((f,i)=>({i,p:f.map(proj),n:normal(f)})).sort((a,b)=>Math.min(...a.p.map(q=>q[2]))-Math.min(...b.p.map(q=>q[2])));
+  hits=[];
+  for(const {i,p,n} of faces){const signed=p.reduce((s,q,k)=>s+(q[0]*p[(k+1)%p.length][1]-p[(k+1)%p.length][0]*q[1]),0),front=signed<0;
+    const sh=.55+.45*Math.max(0,V3.dot(n,light)*(front?1:-1)),col=front?COLORS[p.length]||'#999':back;
+    ctx.beginPath();p.forEach((q,k)=>k?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));ctx.closePath();
+    ctx.fillStyle=shade(col,sh);ctx.fill();
+    const f=P().F[i];for(let k=0;k<p.length;k++){const g=S.adj[i].find(e=>e.a===f[k]&&e.b===f[(k+1)%f.length]||e.b===f[k]&&e.a===f[(k+1)%f.length]).g,isFold=S.parent[i]===g||S.parent[g]===i;
+      ctx.beginPath();ctx.moveTo(p[k][0],p[k][1]);ctx.lineTo(p[(k+1)%p.length][0],p[(k+1)%p.length][1]);ctx.setLineDash(isFold?[4,4]:[]);ctx.lineWidth=isFold?1:1.8;ctx.strokeStyle=dark?'rgba(255,255,255,.75)':'rgba(20,18,12,.8)';ctx.stroke();}
+    ctx.setLineDash([]);if(front)hits.push({i,p});}
+}
+function shade(hex,k){const n=parseInt(hex.slice(1),16),f=v=>Math.round(Math.min(255,v*k));return `rgb(${f(n>>16)},${f(n>>8&255)},${f(n&255)})`;}
+const inPoly=(p,x,y)=>{let r=false;for(let i=0,j=p.length-1;i<p.length;j=i++){const a=p[i],b=p[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])r=!r;}return r;};
+let last=0;function loop(ts){if(S.playing){const dt=Math.min(.05,(ts-last)/1000||0);S.t+=S.dir*dt*.35;if(S.t<=0){S.t=0;S.dir=1;}if(S.t>=1){S.t=1;S.dir=-1;}syncFold();}last=ts;if(+$('fold').value!==Math.round(S.t*1000))syncFold();draw();requestAnimationFrame(loop);}
+function syncFold(){$('fold').value=Math.round(S.t*1000);$('foldPct').textContent=Math.round(S.t*100)+'%';}
+// --- controls ---
+SOLIDS.forEach((s,i)=>$('solid').append(new Option(s.name,i)));
+$('solid').onchange=e=>setSolid(+e.target.value);
+$('shuffle').onclick=()=>reroot(S.parent.indexOf(-1));
+$('fold').oninput=e=>{S.t=e.target.value/1000;S.playing=false;$('play').textContent='Play';syncFold();};
+$('play').onclick=()=>{S.playing=!S.playing;$('play').textContent=S.playing?'Pause':'Play';};
+$('tabs').onclick=()=>{S.tabs=!S.tabs;$('tabs').textContent='Tabs: '+(S.tabs?'on':'off');renderNet();};
+$('edge').onchange=e=>{S.edgeMm=Math.max(5,Math.min(300,+e.target.value||30));e.target.value=S.edgeMm;renderNet();renderStats();};
+$('print').onclick=()=>{$('printArea').innerHTML=netSVG(true).svg;window.print();};
+$('theme').onclick=()=>{const d=document.documentElement.dataset.theme==='dark';document.documentElement.dataset.theme=d?'light':'dark';renderNet();};
+$('helpBtn').onclick=()=>$('help').classList.toggle('on');$('closeHelp').onclick=()=>$('help').classList.remove('on');
+$('help').onclick=e=>{if(e.target===$('help'))$('help').classList.remove('on');};
+let drag=null;
+cv.onpointerdown=e=>{drag={x:e.clientX,y:e.clientY,yaw:S.yaw,pitch:S.pitch,moved:false};cv.setPointerCapture(e.pointerId);};
+cv.onpointermove=e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.hypot(dx,dy)>6)drag.moved=true;S.yaw=drag.yaw+dx*.01;S.pitch=Math.max(-1.5,Math.min(1.5,drag.pitch-dy*.01));};
+cv.onpointerup=e=>{if(drag&&!drag.moved){const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,h=[...hits].reverse().find(h=>inPoly(h.p,x,y));if(h)reroot(h.i);}drag=null;};
+cv.onpointercancel=()=>drag=null;
+// --- save / open ---
+function save(){const data={app:'Fold',version:1,solid:P().name,parent:S.parent,t:S.t,edgeMm:S.edgeMm,tabs:S.tabs,yaw:S.yaw,pitch:S.pitch};
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,1)],{type:'application/json'}));a.download='fold-'+new Date().toISOString().slice(0,10)+'.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);toast('Saved '+a.download);}
+function openFile(text){let d;try{d=JSON.parse(text);}catch{return toast('That file is not JSON.');}
+  const i=SOLIDS.findIndex(s=>s.name===d.solid);
+  if(d.app!=='Fold'||d.version!==1||i<0||!isTree(d.parent,SOLIDS[i].F.length))return toast('Not a Fold file (expected app "Fold", version 1).');
+  S.edgeMm=+d.edgeMm||30;$('edge').value=S.edgeMm;S.tabs=!!d.tabs;$('tabs').textContent='Tabs: '+(S.tabs?'on':'off');S.yaw=+d.yaw||0;S.pitch=+d.pitch||0;
+  setSolid(i,d.parent.map(Number));S.t=Math.max(0,Math.min(1,+d.t||0));S.playing=false;$('play').textContent='Play';syncFold();toast('Opened '+d.solid);}
+$('save').onclick=save;$('open').onclick=()=>$('file').click();
+$('file').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(openFile);e.target.value='';};
+// --- keyboard ---
+addEventListener('keydown',e=>{const t=e.target,typing=t.matches&&t.matches('input,textarea,select,[contenteditable]');if(typing)return;
+  const mod=e.ctrlKey||e.metaKey,k=e.key.toLowerCase();
+  if(mod&&k==='/'){$('help').classList.toggle('on');}else if(k==='escape'){$('help').classList.remove('on');}
+  else if(mod&&k==='s'){save();}else if(mod&&k==='o'){$('file').click();}else if(mod)return;
+  else if(k===' '){$('play').click();}else if(k==='f'){S.t=1;S.playing=false;$('play').textContent='Play';syncFold();}else if(k==='u'){S.t=0;S.playing=false;$('play').textContent='Play';syncFold();}
+  else if(k==='n'){$('shuffle').click();}else if(k==='t'){$('tabs').click();}else if(k==='d'){$('theme').click();}else if(k==='p'){$('print').click();}
+  else if(k==='['){setSolid(S.solid-1);}else if(k===']'){setSolid(S.solid+1);}
+  else if(k==='arrowleft'){S.yaw-=.1;}else if(k==='arrowright'){S.yaw+=.1;}else if(k==='arrowup'){S.pitch-=.1;}else if(k==='arrowdown'){S.pitch+=.1;}else return;
+  e.preventDefault();});
+addEventListener('resize',resize);
+if(matchMedia('(prefers-color-scheme: dark)').matches)document.documentElement.dataset.theme='dark';
+rng=(s=>()=>((s=(s*1664525+1013904223)>>>0)/4294967296))(7);
+resize();setSolid(13);syncFold();requestAnimationFrame(loop);
+window.Fold={S,SOLIDS,setSolid};
+})();}
+</script>
+</body>
+</html>
+
+</body></html>

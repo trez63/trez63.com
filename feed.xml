@@ -3,7 +3,28 @@
   <title>trez63 — one small app a day</title>
   <link>https://trez63.com/</link>
   <description>Every day ChatGPT, Claude, Gemini, Grok and Muse each build a single-page app from the same one-line prompt. Play them all.</description>
-  <lastBuildDate>Sat, 21 Nov 2026 12:00:00 +0000</lastBuildDate>
+  <lastBuildDate>Sun, 22 Nov 2026 12:00:00 +0000</lastBuildDate>
+  <item>
+    <title>Fold (Claude)</title>
+    <link>https://trez63.com/p/fold.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/fold.html</guid>
+    <pubDate>Sat, 21 Nov 2026 12:00:00 +0000</pubDate>
+    <description>Pick one of 18 Platonic, Archimedean and prism solids and watch it unfold into a flat paper net: shuffle to grow a different net, tap a face to re-root it, set an edge length in millimetres and print a tabbed net to cut out and glue, with vertex, edge, face, dihedral-angle, paper-area and volume stats alongside.</description>
+  </item>
+  <item>
+    <title>NeuroHodgkin (Gemini)</title>
+    <link>https://trez63.com/p/neurohodgkin.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/neurohodgkin.html</guid>
+    <pubDate>Sat, 21 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A Hodgkin-Huxley neuron lab: set the stimulus current and the sodium and potassium conductances or pick a preset like a TTX block or a demyelinated axon, fire a patch-clamp pulse and watch the membrane voltage and gating variables on an oscilloscope while the spike propagates along a 40-compartment myelinated axon.</description>
+  </item>
+  <item>
+    <title>Spin Decide (Muse)</title>
+    <link>https://trez63.com/p/spin-decide.html</link>
+    <guid isPermaLink="true">https://trez63.com/p/spin-decide.html</guid>
+    <pubDate>Sat, 21 Nov 2026 12:00:00 +0000</pubDate>
+    <description>A decision wheel: add your options or pick a preset, weight them, then flick the wheel, tap the hub or press Space to spin it, with a raffle mode that removes each winner, ticking sound, a winner history and your own presets saved to a file.</description>
+  </item>
   <item>
     <title>Epicycle Sketch (Grok)</title>
     <link>https://trez63.com/p/epicycle-sketch.html</link>
@@ -332,26 +353,5 @@
     <guid isPermaLink="true">https://trez63.com/p/ebru.html</guid>
     <pubDate>Thu, 12 Nov 2026 12:00:00 +0000</pubDate>
     <description>A paper-marbling bath. Tap to float ink drops that push the earlier ones aside, then drag a rake, comb, wave or swirl through them; every gesture is an exact closed-form deformation, so pictures replay perfectly from the saved gesture list, and you can start from stone, gelgit, nonpareil, bouquet, peacock or vortex presets, switch palettes and paper, undo, and export a 2000-px PNG.</description>
-  </item>
-  <item>
-    <title>Nash (Claude)</title>
-    <link>https://trez63.com/p/nash.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/nash.html</guid>
-    <pubDate>Wed, 11 Nov 2026 12:00:00 +0000</pubDate>
-    <description>Hex against a computer opponent you can watch think. You connect left to right, Nash connects top to bottom, and while it searches the board glows with where its Monte-Carlo tree search is spending attention; pick a 7, 9 or 11 board, quick to deep thinking time, ask for a hint, undo, and save or open games as JSON.</description>
-  </item>
-  <item>
-    <title>Paper Cinema (ChatGPT)</title>
-    <link>https://trez63.com/p/paper-cinema.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/paper-cinema.html</guid>
-    <pubDate>Wed, 11 Nov 2026 12:00:00 +0000</pubDate>
-    <description>A barrier-grid animation studio. Draw four 40×24 pixel frames with ink and erase tools, play them back or scrub a virtual shutter across the interlaced plate, and export a print kit with the plate and the slitted shutter at actual size so the animation works on paper; films save and reopen as JSON.</description>
-  </item>
-  <item>
-    <title>Umbra (Claude)</title>
-    <link>https://trez63.com/p/umbra.html</link>
-    <guid isPermaLink="true">https://trez63.com/p/umbra.html</guid>
-    <pubDate>Tue, 10 Nov 2026 12:00:00 +0000</pubDate>
-    <description>A sun and shadow planner for a 50 m site. Place buildings and trees, set a date, city or latitude and longitude and the map rotation, then scrub or play through the day to watch the shadows move; a colour map shows how many hours of direct sun each patch of ground gets, and scenes save and reopen as JSON.</description>
   </item>
 </channel></rss>

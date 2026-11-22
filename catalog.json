@@ -2790,7 +2790,61 @@
         }
       ],
       "category": "sim"
+    },
+    "fold": {
+      "title": "Fold",
+      "engine": "Claude",
+      "description": "Pick one of 18 Platonic, Archimedean and prism solids and watch it unfold into a flat paper net: shuffle to grow a different net, tap a face to re-root it, set an edge length in millimetres and print a tabbed net to cut out and glue, with vertex, edge, face, dihedral-angle, paper-area and volume stats alongside.",
+      "source_file": "Fold-Claude.html",
+      "first_published": "2026-11-21",
+      "last_updated": "2026-11-21",
+      "version": 1,
+      "sha": "251f80193b44",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-21",
+          "sha": "251f80193b44"
+        }
+      ],
+      "category": "edu"
+    },
+    "neurohodgkin": {
+      "title": "NeuroHodgkin",
+      "engine": "Gemini",
+      "description": "A Hodgkin-Huxley neuron lab: set the stimulus current and the sodium and potassium conductances or pick a preset like a TTX block or a demyelinated axon, fire a patch-clamp pulse and watch the membrane voltage and gating variables on an oscilloscope while the spike propagates along a 40-compartment myelinated axon.",
+      "source_file": "neurohodgkin-gemini.html",
+      "first_published": "2026-11-21",
+      "last_updated": "2026-11-21",
+      "version": 1,
+      "sha": "a20e326402fa",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-21",
+          "sha": "a20e326402fa"
+        }
+      ],
+      "category": "sim"
+    },
+    "spin-decide": {
+      "title": "Spin Decide",
+      "engine": "Muse",
+      "description": "A decision wheel: add your options or pick a preset, weight them, then flick the wheel, tap the hub or press Space to spin it, with a raffle mode that removes each winner, ticking sound, a winner history and your own presets saved to a file.",
+      "source_file": "spin-decide-muse.html",
+      "first_published": "2026-11-21",
+      "last_updated": "2026-11-21",
+      "version": 1,
+      "sha": "68286c868ebd",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-21",
+          "sha": "68286c868ebd"
+        }
+      ],
+      "category": "tool"
     }
   },
-  "generated": "2026-11-21"
+  "generated": "2026-11-22"
 }

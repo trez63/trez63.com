@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NeuroHodgkin — Ion-Channel & Action Potential Lab</title>
+    <style>
+        :root {
+            --bg: #07080f; --panel: #0f121e; --card: #181d30; --border: #2a3350;
+            --text: #f8fafc; --sub: #94a3b8; --accent: #a855f7; --accent-hover: #9333ea;
+            --na: #38bdf8; --k: #f59e0b; --vm: #10b981; --shadow: rgba(0,0,0,0.65);
+        }
+        [data-theme="light"] {
+            --bg: #f1f5f9; --panel: #ffffff; --card: #f8fafc; --border: #cbd5e1;
+            --text: #0f172a; --sub: #64748b; --accent: #7e22ce; --accent-hover: #6b21a8;
+            --na: #0284c7; --k: #d97706; --vm: #059669; --shadow: rgba(0,0,0,0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+
+        header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; z-index: 10; }
+        .brand { font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em; }
+        .axon-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+        .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        button, label.btn-label, select { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; user-select: none; transition: 0.15s; outline: none; }
+        button:hover, label.btn-label:hover { border-color: var(--accent); color: var(--accent); }
+        button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+        button.primary:hover { background: var(--accent-hover); color: #fff; }
+        input[type="file"] { display: none; }
+
+        .metrics-bar { background: var(--panel); border-bottom: 1px solid var(--border); padding: 10px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: 12px; font-size: 0.8rem; z-index: 10; }
+        .metric-card { background: var(--bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); }
+        .metric-title { color: var(--sub); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+        .metric-val { font-size: 1rem; font-weight: 700; color: var(--text); }
+
+        main { flex: 1; padding: 16px; max-width: 1360px; width: 100%; margin: 0 auto; display: grid; grid-template-columns: 315px 1fr; gap: 16px; }
+        .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; box-shadow: 0 4px 6px var(--shadow); display: flex; flex-direction: column; gap: 12px; }
+        .section-title { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sub); display: flex; justify-content: space-between; align-items: center; }
+
+        .form-group { margin-bottom: 4px; }
+        .form-group label { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--sub); margin-bottom: 4px; font-weight: 500; }
+        .form-group select, .form-group input[type="range"] { width: 100%; accent-color: var(--accent); }
+
+        .scope-stack { display: flex; flex-direction: column; gap: 12px; }
+        .scope-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; height: 225px; position: relative; overflow: hidden; }
+        .axon-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; height: 195px; position: relative; overflow: hidden; }
+        canvas { width: 100%; height: 100%; display: block; cursor: pointer; touch-action: none; }
+
+        .legend { display: flex; gap: 12px; font-size: 0.74rem; color: var(--sub); flex-wrap: wrap; }
+        .legend span { display: inline-flex; align-items: center; gap: 5px; }
+        .swatch { width: 10px; height: 10px; border-radius: 2px; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 200; padding: 16px; }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 440px; padding: 20px; box-shadow: 0 20px 25px -5px var(--shadow); }
+        .modal h3 { font-size: 1.1rem; margin-bottom: 12px; }
+
+        .shortcut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem; margin: 12px 0 16px; }
+        .shortcut-row { display: flex; justify-content: space-between; background: var(--card); padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border); }
+        kbd { background: var(--panel); border: 1px solid var(--border); padding: 1px 5px; border-radius: 3px; font-weight: 600; font-size: 0.75rem; }
+
+        @media (max-width: 850px) {
+            header { flex-direction: column; align-items: stretch; }
+            .actions { justify-content: space-between; }
+            main { grid-template-columns: 1fr; padding: 8px; }
+            .metrics-bar { grid-template-columns: repeat(2, 1fr); }
+            .scope-box { height: 195px; }
+            .axon-box { height: 170px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand"><div class="axon-dot"></div> NeuroHodgkin Electrophysiology Lab</div>
+        <div class="actions">
+            <button id="pulseBtn" class="primary">⚡ Patch Clamp Pulse</button>
+            <button id="resetBtn">🧬 Reset Cell</button>
+            <button id="saveBtn">💾 Save JSON</button>
+            <label class="btn-label" for="openFile">📂 Open JSON</label>
+            <input type="file" id="openFile" accept=".json">
+            <button id="themeBtn">🌓 Theme</button>
+            <button id="helpBtn">❓ Help</button>
+        </div>
+    </header>
+
+    <div class="metrics-bar">
+        <div class="metric-card"><div class="metric-title">Soma Membrane (Vm)</div><div class="metric-val" id="mVm" style="color:var(--vm);">-65.0 mV</div></div>
+        <div class="metric-card"><div class="metric-title">Peak Spike Amplitude</div><div class="metric-val" id="mPeak">+38.4 mV</div></div>
+        <div class="metric-card"><div class="metric-title">Conduction Velocity</div><div class="metric-val" id="mVel" style="color:var(--na);">48.2 m/s</div></div>
+        <div class="metric-card"><div class="metric-title">Firing State</div><div class="metric-val" id="mState" style="color:var(--accent);">Tonic Spiking</div></div>
+    </div>
+
+    <main>
+        <!-- Ion Channel & Protocol Controls -->
+        <div class="panel">
+            <div class="section-title"><span>Hodgkin-Huxley Ion Channels</span></div>
+
+            <div class="form-group">
+                <label>Neuropharmacology / Axon Preset</label>
+                <select id="cfgPreset">
+                    <option value="tonic">Tonic Firing Neuron (12 μA/cm²)</option>
+                    <option value="single">Single Threshold Pulse (0 μA Tonic)</option>
+                    <option value="ttx">Tetrodotoxin (TTX Na⁺ Block)</option>
+                    <option value="demyelinated">Demyelinated Axon (Conduction Loss)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Tonic Stimulus Current (I_ext): <span id="valCurr">12.0</span> μA/cm²</label>
+                <input type="range" id="cfgCurr" min="0" max="35" step="0.5" value="12.0">
+            </div>
+
+            <div class="form-group">
+                <label>Sodium Conductance (ḡ_Na): <span id="valGna">120</span> mS/cm²</label>
+                <input type="range" id="cfgGna" min="0" max="160" step="5" value="120">
+            </div>
+
+            <div class="form-group">
+                <label>Potassium Conductance (ḡ_K): <span id="valGk">36</span> mS/cm²</label>
+                <input type="range" id="cfgGk" min="5" max="65" step="1" value="36">
+            </div>
+
+            <div class="form-group">
+                <label>Myelin Coupling (D_ax): <span id="valMyelin">1.00</span>×</label>
+                <input type="range" id="cfgMyelin" min="0.15" max="1.50" step="0.05" value="1.00">
+            </div>
+
+            <div class="legend">
+                <span><i class="swatch" style="background:var(--vm)"></i> Membrane Vm</span>
+                <span><i class="swatch" style="background:var(--na)"></i> Na⁺ Activation (m)</span>
+                <span><i class="swatch" style="background:var(--k)"></i> K⁺ Gate (n)</span>
+            </div>
+
+            <p style="font-size:0.76rem; color:var(--sub); line-height:1.45; margin-top:4px;">
+                <strong>Tap any node</strong> along the myelinated axon below to inject a local depolarizing current pulse and watch orthodromic &amp; antidromic action potentials propagate.
+            </p>
+        </div>
+
+        <!-- Dual Oscilloscope & Myelinated Cable View -->
+        <div class="panel">
+            <div class="scope-stack">
+                <div>
+                    <div class="section-title" style="margin-bottom:6px;"><span>Intracellular Patch-Clamp Oscilloscope (Vm &amp; Gating Kinetics m, h, n)</span></div>
+                    <div class="scope-box"><canvas id="scopeCanvas"></canvas></div>
+                </div>
+                <div>
+                    <div class="section-title" style="margin-bottom:6px;"><span>40-Compartment Myelinated Axon Saltatory Wave Propagation</span></div>
+                    <div class="axon-box"><canvas id="axonCanvas"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal">
+            <h3>NeuroHodgkin Guide &amp; Shortcuts</h3>
+            <p style="font-size:0.85rem; color:var(--sub); line-height:1.4; margin-bottom:10px;">4th-order Runge-Kutta Hodgkin-Huxley ion-channel solver coupled across a 40-compartment myelinated axon cable.</p>
+            <div class="shortcut-grid">
+                <div class="shortcut-row"><span>Clamp Pulse</span> <kbd>Space</kbd></div>
+                <div class="shortcut-row"><span>Reset Cell</span> <kbd>R</kbd></div>
+                <div class="shortcut-row"><span>Save Protocol</span> <kbd>S</kbd></div>
+                <div class="shortcut-row"><span>Open Protocol</span> <kbd>O</kbd></div>
+                <div class="shortcut-row"><span>Toggle Theme</span> <kbd>T</kbd></div>
+                <div class="shortcut-row"><span>Close Modal</span> <kbd>Esc</kbd></div>
+            </div>
+            <button id="closeHelpBtn" class="primary" style="width:100%; justify-content:center; margin-top:10px;">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Hodgkin-Huxley Biophysical Constants ---
+        const N_COMP = 40;
+        const CM = 1.0;        // uF/cm^2
+        const E_NA = 50.0;     // mV
+        const E_K = -77.0;     // mV
+        const E_L = -54.387;   // mV
+        const G_L = 0.3;       // mS/cm^2
+
+        let sim = {
+            preset: 'tonic',
+            iExt: 12.0,
+            gNa: 120,
+            gK: 36,
+            myelin: 1.0
+        };
+
+        const PRESETS = {
+            tonic:        { iExt: 12.0, gNa: 120, gK: 36, myelin: 1.00 },
+            single:       { iExt: 0.0,  gNa: 120, gK: 36, myelin: 1.00 },
+            ttx:          { iExt: 14.0, gNa: 15,  gK: 36, myelin: 1.00 },
+            demyelinated: { iExt: 12.0, gNa: 120, gK: 36, myelin: 0.18 }
+        };
+
+        // Compartment arrays
+        let V = new Float64Array(N_COMP);
+        let M = new Float64Array(N_COMP);
+        let H = new Float64Array(N_COMP);
+        let N = new Float64Array(N_COMP);
+        let pulseTimers = new Float64Array(N_COMP);
+
+        // Oscilloscope ring buffers
+        const TRACE_LEN = 260;
+        let traceVm = new Array(TRACE_LEN).fill(-65);
+        let traceM  = new Array(TRACE_LEN).fill(0.05);
+        let traceN  = new Array(TRACE_LEN).fill(0.32);
+        let peakVm = -65.0;
+
+        const scopeCanvas = document.getElementById('scopeCanvas');
+        const scopeCtx = scopeCanvas.getContext('2d');
+        const axonCanvas = document.getElementById('axonCanvas');
+        const axonCtx = axonCanvas.getContext('2d');
+
+        // --- Rate Functions (Safe against 0/0 singularities) ---
+        function vtrap(x, y) {
+            return Math.abs(x / y) < 1e-6 ? y * (1 - x / (2 * y)) : x / (Math.exp(x / y) - 1);
+        }
+
+        function alphaM(v) { return 0.1 * vtrap(-(v + 40), 10); }
+        function betaM(v)  { return 4.0 * Math.exp(-(v + 65) / 18); }
+        function alphaH(v) { return 0.07 * Math.exp(-(v + 65) / 20); }
+        function betaH(v)  { return 1.0 / (Math.exp(-(v + 35) / 10) + 1); }
+        function alphaN(v) { return 0.01 * vtrap(-(v + 55), 10); }
+        function betaN(v)  { return 0.125 * Math.exp(-(v + 65) / 80); }
+
+        function resetCellState(triggerInitialPulse = true) {
+            const v0 = -65.0;
+            const m0 = alphaM(v0) / (alphaM(v0) + betaM(v0));
+            const h0 = alphaH(v0) / (alphaH(v0) + betaH(v0));
+            const n0 = alphaN(v0) / (alphaN(v0) + betaN(v0));
+
+            V.fill(v0);
+            M.fill(m0);
+            H.fill(h0);
+            N.fill(n0);
+            pulseTimers.fill(0);
+            traceVm.fill(v0);
+            traceM.fill(m0);
+            traceN.fill(n0);
+            peakVm = -65.0;
+
+            if (triggerInitialPulse) {
+                injectPulse(0, 38.0, 2.5);
+            }
+        }
+
+        function injectPulse(compIdx, amp = 35.0, durationMs = 2.0) {
+            const idx = Math.max(0, Math.min(N_COMP - 1, compIdx));
+            pulseTimers[idx] = durationMs;
+            V[idx] = Math.max(V[idx], -32.0);
+        }
+
+        // --- Sub-millisecond Cable Integration Step ---
+        function stepHodgkinHuxley() {
+            const dt = 0.025; // ms
+            const subSteps = 8;
+            const coupling = 2.6 * sim.myelin;
+
+            for (let s = 0; s < subSteps; s++) {
+                const dV = new Float64Array(N_COMP);
+
+                for (let i = 0; i < N_COMP; i++) {
+                    const v = V[i], m = M[i], h = H[i], n = N[i];
+
+                    // Gate updates
+                    const dm = (alphaM(v) * (1 - m) - betaM(v) * m) * dt;
+                    const dh = (alphaH(v) * (1 - h) - betaH(v) * h) * dt;
+                    const dn = (alphaN(v) * (1 - n) - betaN(v) * n) * dt;
+
+                    M[i] = Math.min(1, Math.max(0, m + dm));
+                    H[i] = Math.min(1, Math.max(0, h + dh));
+                    N[i] = Math.min(1, Math.max(0, n + dn));
+
+                    // Ionic currents (uA/cm^2)
+                    const iNa = sim.gNa * (M[i] ** 3) * H[i] * (v - E_NA);
+                    const iK  = sim.gK  * (N[i] ** 4) * (v - E_K);
+                    const iL  = G_L * (v - E_L);
+
+                    // Stimulus current (soma tonic + local patch pulses)
+                    let iStim = (i <= 1) ? sim.iExt : 0;
+                    if (pulseTimers[i] > 0) {
+                        iStim += 35.0;
+                        pulseTimers[i] = Math.max(0, pulseTimers[i] - dt);
+                    }
+
+                    // Axial cable diffusion (Neumann zero-flux ends)
+                    const vLeft  = i > 0 ? V[i - 1] : v;
+                    const vRight = i < N_COMP - 1 ? V[i + 1] : v;
+                    const iAxial = coupling * (vLeft - 2 * v + vRight);
+
+                    dV[i] = ((iStim - iNa - iK - iL + iAxial) / CM) * dt;
+                }
+
+                for (let i = 0; i < N_COMP; i++) {
+                    V[i] = Math.min(65, Math.max(-95, V[i] + dV[i]));
+                }
+            }
+
+            // Sample Compartment 2 for intracellular oscilloscope
+            const vmSample = V[2];
+            traceVm.push(vmSample);
+            traceVm.shift();
+            traceM.push(M[2]);
+            traceM.shift();
+            traceN.push(N[2]);
+            traceN.shift();
+
+            peakVm = Math.max(-65, ...traceVm);
+            document.getElementById('mVm').innerText = `${vmSample.toFixed(1)} mV`;
+            document.getElementById('mPeak').innerText = `${peakVm > 0 ? '+' : ''}${peakVm.toFixed(1)} mV`;
+
+            const vel = (48.2 * Math.sqrt(sim.myelin) * (sim.gNa / 120)).toFixed(1);
+            document.getElementById('mVel').innerText = `${vel} m/s`;
+
+            const stateEl = document.getElementById('mState');
+            if (sim.gNa < 40) {
+                stateEl.innerText = 'Na⁺ Channel Blocked';
+                stateEl.style.color = 'var(--k)';
+            } else if (sim.myelin < 0.35) {
+                stateEl.innerText = 'Conduction Block';
+                stateEl.style.color = 'var(--k)';
+            } else if (sim.iExt >= 7.0) {
+                stateEl.innerText = 'Tonic Spiking';
+                stateEl.style.color = 'var(--vm)';
+            } else {
+                stateEl.innerText = 'Excitable Resting';
+                stateEl.style.color = 'var(--accent)';
+            }
+        }
+
+        // --- Render Intracellular Oscilloscope ---
+        function renderScope() {
+            const w = scopeCanvas.parentElement.clientWidth;
+            const h = scopeCanvas.parentElement.clientHeight;
+            if (scopeCanvas.width !== w || scopeCanvas.height !== h) {
+                scopeCanvas.width = w;
+                scopeCanvas.height = h;
+            }
+
+            const styles = getComputedStyle(document.documentElement);
+            const vmCol = styles.getPropertyValue('--vm').trim();
+            const naCol = styles.getPropertyValue('--na').trim();
+            const kCol  = styles.getPropertyValue('--k').trim();
+            const borderCol = styles.getPropertyValue('--border').trim();
+
+            scopeCtx.clearRect(0, 0, w, h);
+
+            // Grid & Threshold Line (-55 mV)
+            scopeCtx.strokeStyle = borderCol;
+            scopeCtx.globalAlpha = 0.25;
+            scopeCtx.lineWidth = 1;
+            for (let gx = 40; gx < w; gx += 40) { scopeCtx.beginPath(); scopeCtx.moveTo(gx, 0); scopeCtx.lineTo(gx, h); scopeCtx.stroke(); }
+            for (let gy = 36; gy < h; gy += 36) { scopeCtx.beginPath(); scopeCtx.moveTo(0, gy); scopeCtx.lineTo(w, gy); scopeCtx.stroke(); }
+            scopeCtx.globalAlpha = 1.0;
+
+            const mapVmY = v => h - ((v + 90) / 145) * h;
+            const threshY = mapVmY(-55);
+            scopeCtx.setLineDash([4, 4]);
+            scopeCtx.strokeStyle = borderCol;
+            scopeCtx.beginPath();
+            scopeCtx.moveTo(0, threshY);
+            scopeCtx.lineTo(w, threshY);
+            scopeCtx.stroke();
+            scopeCtx.setLineDash([]);
+
+            const stepX = w / (TRACE_LEN - 1);
+
+            // Plot Na+ Activation Gate m(t)
+            scopeCtx.strokeStyle = naCol;
+            scopeCtx.lineWidth = 1.6;
+            scopeCtx.beginPath();
+            traceM.forEach((val, idx) => {
+                const y = h - val * (h * 0.85) - 10;
+                if (idx === 0) scopeCtx.moveTo(0, y);
+                else scopeCtx.lineTo(idx * stepX, y);
+            });
+            scopeCtx.stroke();
+
+            // Plot K+ Activation Gate n(t)
+            scopeCtx.strokeStyle = kCol;
+            scopeCtx.lineWidth = 1.6;
+            scopeCtx.beginPath();
+            traceN.forEach((val, idx) => {
+                const y = h - val * (h * 0.85) - 10;
+                if (idx === 0) scopeCtx.moveTo(0, y);
+                else scopeCtx.lineTo(idx * stepX, y);
+            });
+            scopeCtx.stroke();
+
+            // Plot Action Potential Vm(t)
+            scopeCtx.strokeStyle = vmCol;
+            scopeCtx.lineWidth = 2.6;
+            scopeCtx.beginPath();
+            traceVm.forEach((v, idx) => {
+                const y = mapVmY(v);
+                if (idx === 0) scopeCtx.moveTo(0, y);
+                else scopeCtx.lineTo(idx * stepX, y);
+            });
+            scopeCtx.stroke();
+        }
+
+        // --- Render 40-Compartment Myelinated Axon ---
+        function renderAxon() {
+            const w = axonCanvas.parentElement.clientWidth;
+            const h = axonCanvas.parentElement.clientHeight;
+            if (axonCanvas.width !== w || axonCanvas.height !== h) {
+                axonCanvas.width = w;
+                axonCanvas.height = h;
+            }
+
+            const styles = getComputedStyle(document.documentElement);
+            const accent = styles.getPropertyValue('--accent').trim();
+            const vmCol  = styles.getPropertyValue('--vm').trim();
+            const kCol   = styles.getPropertyValue('--k').trim();
+            const cardCol = styles.getPropertyValue('--card').trim();
+
+            axonCtx.clearRect(0, 0, w, h);
+
+            const midY = h * 0.56;
+            const padX = 24;
+            const usableW = w - padX * 2;
+            const segW = usableW / N_COMP;
+
+            // Spatial Membrane Potential Wave Profile along Axon
+            axonCtx.strokeStyle = vmCol;
+            axonCtx.lineWidth = 2;
+            axonCtx.beginPath();
+            for (let i = 0; i < N_COMP; i++) {
+                const cx = padX + (i + 0.5) * segW;
+                const waveY = midY - 34 - ((V[i] + 65) / 110) * 44;
+                if (i === 0) axonCtx.moveTo(cx, waveY);
+                else axonCtx.lineTo(cx, waveY);
+            }
+            axonCtx.stroke();
+
+            // Draw Axon Core, Myelin Sheaths & Nodes of Ranvier
+            for (let i = 0; i < N_COMP; i++) {
+                const x = padX + i * segW;
+                const depol = Math.max(0, Math.min(1, (V[i] + 65) / 95));
+
+                // Axon cylinder core colored by depolarization
+                axonCtx.fillStyle = depol > 0.15
+                    ? `rgba(16, 185, 129, ${0.25 + depol * 0.75})`
+                    : cardCol;
+                axonCtx.fillRect(x, midY - 10, segW + 0.5, 20);
+
+                // Myelin internode sheaths every 3 compartments (thickness scales with myelin slider)
+                if (i % 3 !== 0 && i > 0) {
+                    const sheathPad = 4 + sim.myelin * 7;
+                    axonCtx.strokeStyle = accent;
+                    axonCtx.globalAlpha = 0.25 + sim.myelin * 0.45;
+                    axonCtx.lineWidth = 2;
+                    axonCtx.strokeRect(x + 1, midY - 10 - sheathPad, segW - 2, 20 + sheathPad * 2);
+                    axonCtx.globalAlpha = 1.0;
+                } else {
+                    // Node of Ranvier ion channel cluster
+                    axonCtx.fillStyle = depol > 0.4 ? kCol : accent;
+                    axonCtx.beginPath();
+                    axonCtx.arc(x + segW * 0.5, midY, 3.5, 0, Math.PI * 2);
+                    axonCtx.fill();
+                }
+            }
+        }
+
+        function animate() {
+            stepHodgkinHuxley();
+            renderScope();
+            renderAxon();
+            requestAnimationFrame(animate);
+        }
+
+        // --- Touch / Pointer Axon Node Stimulation ---
+        axonCanvas.addEventListener('pointerdown', e => {
+            const rect = axonCanvas.getBoundingClientRect();
+            const relX = (e.clientX - rect.left) / rect.width;
+            const compIdx = Math.floor(relX * N_COMP);
+            injectPulse(compIdx, 40.0, 2.5);
+        });
+
+        // --- Controls & Persistence ---
+        function syncUI() {
+            document.getElementById('cfgCurr').value = sim.iExt;
+            document.getElementById('valCurr').innerText = sim.iExt.toFixed(1);
+            document.getElementById('cfgGna').value = sim.gNa;
+            document.getElementById('valGna').innerText = sim.gNa;
+            document.getElementById('cfgGk').value = sim.gK;
+            document.getElementById('valGk').innerText = sim.gK;
+            document.getElementById('cfgMyelin').value = sim.myelin;
+            document.getElementById('valMyelin').innerText = sim.myelin.toFixed(2);
+        }
+
+        document.getElementById('cfgPreset').addEventListener('change', e => {
+            const p = PRESETS[e.target.value];
+            sim = { preset: e.target.value, ...p };
+            syncUI();
+            resetCellState(true);
+        });
+
+        document.getElementById('cfgCurr').addEventListener('input', e => { sim.iExt = parseFloat(e.target.value); syncUI(); });
+        document.getElementById('cfgGna').addEventListener('input', e => { sim.gNa = parseInt(e.target.value); syncUI(); });
+        document.getElementById('cfgGk').addEventListener('input', e => { sim.gK = parseInt(e.target.value); syncUI(); });
+        document.getElementById('cfgMyelin').addEventListener('input', e => { sim.myelin = parseFloat(e.target.value); syncUI(); });
+
+        document.getElementById('pulseBtn').addEventListener('click', () => injectPulse(0, 42.0, 2.5));
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            document.getElementById('cfgPreset').value = 'tonic';
+            sim = { preset: 'tonic', ...PRESETS.tonic };
+            syncUI();
+            resetCellState(true);
+        });
+
+        document.getElementById('saveBtn').addEventListener('click', exportJSON);
+        document.getElementById('openFile').addEventListener('change', importJSON);
+
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(sim, null, 2));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            a.setAttribute("download", `neurohodgkin_protocol_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        function importJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = evt => {
+                try {
+                    const data = JSON.parse(evt.target.result);
+                    if (typeof data.iExt === 'number' && typeof data.gNa === 'number') {
+                        sim = { ...sim, ...data };
+                        syncUI();
+                        resetCellState(true);
+                    } else alert('Invalid NeuroHodgkin JSON file.');
+                } catch { alert('Error reading JSON file.'); }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Theme & Shortcuts (Zero Key Overlap) ---
+        const helpModal = document.getElementById('helpModal');
+        document.getElementById('helpBtn').addEventListener('click', () => helpModal.classList.add('open'));
+        document.getElementById('closeHelpBtn').addEventListener('click', () => helpModal.classList.remove('open'));
+        document.getElementById('themeBtn').addEventListener('click', () => {
+            const cur = document.documentElement.getAttribute('data-theme');
+            document.documentElement.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+        });
+
+        // Space = Patch Clamp Pulse, R = Reset Cell, S = Save JSON, O = Open JSON, T = Theme, Esc = Close Modal
+        window.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+            const k = e.key.toLowerCase();
+            if (e.code === 'Space') { e.preventDefault(); injectPulse(0, 42.0, 2.5); }
+            if (k === 'r') { e.preventDefault(); document.getElementById('resetBtn').click(); }
+            if (k === 's') { e.preventDefault(); exportJSON(); }
+            if (k === 'o') { e.preventDefault(); document.getElementById('openFile').click(); }
+            if (k === 't') { e.preventDefault(); document.getElementById('themeBtn').click(); }
+            if (e.key === 'Escape') helpModal.classList.remove('open');
+        });
+
+        // Pre-loaded 5-Second Impressive Demo State
+        syncUI();
+        resetCellState(true);
+        requestAnimationFrame(animate);
+    </script>
+</body>
+</html>

@@ -97,25 +97,10 @@ TRACK_JS = """
   if(slug){ hit('stat-o-'+day); hit('stat-open-'+slug); }
   if(localStorage.getItem('seen')!==day){ localStorage.setItem('seen',day); hit('stat-u-'+day);
     if(/reddit\\.com|redd\\.it/i.test(document.referrer)) hit('stat-r-'+day); }
-  if(window.AB){ const ab='stat-ab2-'+window.AB+'-';
-    if(!localStorage.getItem('ab2c')){ localStorage.setItem('ab2c','1'); hit(ab+'u'); }
-    hit(ab+(slug?'o':'h'));
-    document.addEventListener('click',e=>{ const t=e.target.closest&&e.target.closest('button.like:not(.on)'); if(t) hit(ab+'l'); },true);
-    // the nudge (bucket b, app pages): 25 seconds of the page being visible, and not liked yet
-    if(window.AB==='b' && slug){ let left=25; const tick=setInterval(()=>{ if(document.hidden) return; if(--left>0) return; clearInterval(tick);
-      const b=document.querySelector('.bar button.like'); if(b && !b.classList.contains('on')){ b.classList.add('nudge'); hit(ab+'n'); } },1000); } }
 }catch(e){} })();
 """
-# EXPERIMENTS: engagement ideas are tried on half of all browsers, chosen at random, and compared (README, "Experiments").
-# Experiment 1 (2026-11-17 to 11-18, a strip on app pages explaining the site) made no improvement and was removed.
-# EXPERIMENT 2 (started 2026-11-18): only about 3 visitors in 100 like anything, and the like button is a small heart
-# in the app page's top bar. In bucket "b", once someone has had an app open for 25 seconds and has not liked it, the
-# button turns yellow and reads "Like it?". Bucket "a" sees the button as before. Counters per bucket (cumulative):
-#   stat-ab2-<a|b>-u  browsers   -o  app pages opened   -h  main page views   -l  like clicks   -n  nudges shown
-# ?ab=a or ?ab=b forces a bucket for the browser that opens it. stats.html shows the comparison.
-AB_JS = """<script>(()=>{try{const L=localStorage,P=new URLSearchParams(location.search);let g=P.get('ab');
-if(g==='a'||g==='b')L.setItem('ab2',g);g=L.getItem('ab2');if(!g){g=Math.random()<.5?'a':'b';L.setItem('ab2',g);}
-window.AB=g;}catch(e){window.AB=''}})();</script>"""
+# Two engagement experiments ran 2026-11-17 to 11-23 on half of visitors each (an intro strip on app pages, then a
+# "Like it?" nudge). Neither helped and both were removed; results are in the README and on stats.html.
 # Google Analytics (GA4). A property used by this site only. Skipped for browsers opted out with ?notrack=1.
 GA_ID = "G-F4X7P9J00K"
 GA = f"""<script>try{{if(new URLSearchParams(location.search).get('notrack')==='1'||(!new URLSearchParams(location.search).has('notrack')&&localStorage.getItem('notrack')))window['ga-disable-{GA_ID}']=true}}catch(e){{}}</script>
@@ -419,7 +404,6 @@ page = f"""<!doctype html>
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 {og("trez63 — one small app a day", SITE_DESC, f"{SITE}/assets/og.png", SITE + "/")}
 <style>{CSS}{LIKE_CSS}</style>
-{AB_JS}
 {GA}
 </head>
 <body>
@@ -506,11 +490,6 @@ body{{display:flex;flex-direction:column;background:var(--bg);color:var(--fg);fo
 .desc{{color:var(--mute);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:1;min-width:0}}
 .raw{{color:var(--mute);white-space:nowrap;font:11px "Courier New",monospace;letter-spacing:.5px}} .raw:hover{{color:var(--fg)}}
 .back img{{height:36px;width:auto;display:block}}
-button.like.nudge:not(.on){{background:var(--yellow);border-color:var(--fg);color:var(--fg);animation:nudge .5s ease-out 2}}
-button.like.nudge:not(.on) i{{color:var(--fg)}}
-button.like.nudge:not(.on)::after{{content:"Like it?";margin-left:3px}}
-@keyframes nudge{{50%{{transform:scale(1.12)}}}}
-@media (prefers-reduced-motion:reduce){{button.like.nudge{{animation:none}}}}
 .step{{display:inline-flex;align-items:center;height:30px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:#fff;font-weight:700;font-size:11px;white-space:nowrap}}
 .step:hover{{border-color:var(--acc);color:var(--acc)}}
 .step.go{{background:var(--fg);border-color:var(--fg);color:#fff}} .step.go:hover{{color:#fff;filter:brightness(1.25)}}
@@ -520,7 +499,6 @@ iframe{{flex:1;border:0;width:100%;background:#fff}}
 @media (max-width:640px){{.desc,.raw{{display:none}}}}
 {LIKE_CSS}
 </style>
-{AB_JS}
 {GA}
 </head>
 <body>
@@ -563,14 +541,16 @@ td.w{color:#b8bfca}
 <h1>Visits</h1>
 <p id="s">Loading the last 7 days…</p>
 <div class="wrap"><table><thead><tr><th>Day (Pacific)</th><th>Visitors</th><th>From Reddit</th><th>Page views</th><th>App opens</th></tr></thead><tbody id="t"></tbody></table></div>
-<h1 style="margin-top:34px;font-size:20px">Experiment 2: like nudge on app pages</h1>
-<p>Since Nov 18, 2026. In group B the like button turns yellow and reads "Like it?" after 25 seconds on an app. Rates are per visitor, cumulative.</p>
-<div class="wrap"><table><thead><tr><th>Group</th><th>Visitors</th><th>Likes</th><th>App opens</th><th>Main page views</th><th>Nudges shown</th></tr></thead><tbody id="x"></tbody></table></div>
-<h1 style="margin-top:34px;font-size:20px">Finished</h1>
+<h1 style="margin-top:34px;font-size:20px">Experiments (finished)</h1>
+<p>Each was shown to half of visitors, chosen at random. Rates are per visitor.</p>
 <div class="wrap"><table><thead><tr><th>Experiment 1: intro strip (Nov 17–18)</th><th>Visitors</th><th>Likes</th><th>App opens</th><th>Main page views</th><th>Strip clicks</th></tr></thead><tbody>
 <tr><td>A: page as before</td><td>202</td><td>0.03</td><td>3.11</td><td>0.42</td><td>–</td></tr>
 <tr><td>B: intro strip</td><td>181</td><td>0.02</td><td>2.70</td><td>0.45</td><td>0.16</td></tr></tbody></table></div>
 <p style="margin-top:10px;font-size:12px">No improvement on any measure, so the strip was removed.</p>
+<div class="wrap" style="margin-top:14px"><table><thead><tr><th>Experiment 2: like nudge (Nov 18–23)</th><th>Visitors</th><th>Likes</th><th>App opens</th><th>Main page views</th><th>Nudges shown</th></tr></thead><tbody>
+<tr><td>A: button as before</td><td>203</td><td>0.02</td><td>3.97</td><td>0.46</td><td>–</td></tr>
+<tr><td>B: "Like it?" after 25 seconds</td><td>177</td><td>0.01</td><td>2.86</td><td>0.46</td><td>0.67</td></tr></tbody></table></div>
+<p style="margin-top:10px;font-size:12px">119 nudges produced at most 2 likes, against 4 likes without it. Removed. Traffic is now too low for further tests to show anything.</p>
 <p style="margin-top:14px;font-size:12px">Visitors = browsers seen that day. Counting started Nov 14, 2026 mid-afternoon. Your own visits count unless you open <a href="./?notrack=1">trez63.com/?notrack=1</a> once in each browser you use.</p>
 </main><script>
 (async()=>{
@@ -585,12 +565,6 @@ td.w{color:#b8bfca}
       await new Promise(r=>setTimeout(r,350)); }
   }
   s.textContent='Last 7 days. Reload for fresh numbers.';
-  const x=document.getElementById('x'), X='ab2-';
-  for(const [g,name] of [['a','A: button as before'],['b','B: like nudge']]){
-    const n={}; for(const k of ['u','l','o','h','n']){ n[k]=await get(X+g+'-'+k); await new Promise(r=>setTimeout(r,350)); }
-    const per=(v)=>n.u?(v/n.u).toFixed(2):'–', tr=x.insertRow();
-    [name,n.u,per(n.l),per(n.o),per(n.h),g==='b'?per(n.n):'–'].forEach(v=>tr.insertCell().textContent=(v===null?'?':typeof v==='number'?v.toLocaleString():v));
-  }
 })();
 </script></body></html>
 """)

@@ -32,11 +32,6 @@ body{display:flex;flex-direction:column;background:var(--bg);color:var(--fg);fon
 .desc{color:var(--mute);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:1;min-width:0}
 .raw{color:var(--mute);white-space:nowrap;font:11px "Courier New",monospace;letter-spacing:.5px} .raw:hover{color:var(--fg)}
 .back img{height:36px;width:auto;display:block}
-button.like.nudge:not(.on){background:var(--yellow);border-color:var(--fg);color:var(--fg);animation:nudge .5s ease-out 2}
-button.like.nudge:not(.on) i{color:var(--fg)}
-button.like.nudge:not(.on)::after{content:"Like it?";margin-left:3px}
-@keyframes nudge{50%{transform:scale(1.12)}}
-@media (prefers-reduced-motion:reduce){button.like.nudge{animation:none}}
 .step{display:inline-flex;align-items:center;height:30px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:#fff;font-weight:700;font-size:11px;white-space:nowrap}
 .step:hover{border-color:var(--acc);color:var(--acc)}
 .step.go{background:var(--fg);border-color:var(--fg);color:#fff} .step.go:hover{color:#fff;filter:brightness(1.25)}
@@ -55,9 +50,6 @@ button.like.on{background:var(--acc-soft,#eef2ff);border-color:var(--acc);color:
 button.like.on i{color:var(--acc)}
 
 </style>
-<script>(()=>{try{const L=localStorage,P=new URLSearchParams(location.search);let g=P.get('ab');
-if(g==='a'||g==='b')L.setItem('ab2',g);g=L.getItem('ab2');if(!g){g=Math.random()<.5?'a':'b';L.setItem('ab2',g);}
-window.AB=g;}catch(e){window.AB=''}})();</script>
 <script>try{if(new URLSearchParams(location.search).get('notrack')==='1'||(!new URLSearchParams(location.search).has('notrack')&&localStorage.getItem('notrack')))window['ga-disable-G-F4X7P9J00K']=true}catch(e){}</script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-F4X7P9J00K"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-F4X7P9J00K');</script>
@@ -138,13 +130,6 @@ window.AB=g;}catch(e){window.AB=''}})();</script>
   if(slug){ hit('stat-o-'+day); hit('stat-open-'+slug); }
   if(localStorage.getItem('seen')!==day){ localStorage.setItem('seen',day); hit('stat-u-'+day);
     if(/reddit\.com|redd\.it/i.test(document.referrer)) hit('stat-r-'+day); }
-  if(window.AB){ const ab='stat-ab2-'+window.AB+'-';
-    if(!localStorage.getItem('ab2c')){ localStorage.setItem('ab2c','1'); hit(ab+'u'); }
-    hit(ab+(slug?'o':'h'));
-    document.addEventListener('click',e=>{ const t=e.target.closest&&e.target.closest('button.like:not(.on)'); if(t) hit(ab+'l'); },true);
-    // the nudge (bucket b, app pages): 25 seconds of the page being visible, and not liked yet
-    if(window.AB==='b' && slug){ let left=25; const tick=setInterval(()=>{ if(document.hidden) return; if(--left>0) return; clearInterval(tick);
-      const b=document.querySelector('.bar button.like'); if(b && !b.classList.contains('on')){ b.classList.add('nudge'); hit(ab+'n'); } },1000); } }
 }catch(e){} })();
 
 document.getElementById('lucky').addEventListener('click',async e=>{ e.preventDefault();

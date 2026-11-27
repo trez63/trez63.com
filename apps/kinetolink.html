@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KinetoLink — Planar Linkage Kinematics & Coupler Locus Studio</title>
+    <style>
+        :root {
+            --bg: #07090f; --panel: #101420; --card: #182034; --border: #2c3856;
+            --text: #f8fafc; --sub: #94a3b8; --accent: #f59e0b; --accent-hover: #d97706;
+            --vel: #38bdf8; --locus: #ec4899; --emerald: #10b981; --shadow: rgba(0,0,0,0.65);
+        }
+        [data-theme="light"] {
+            --bg: #f1f5f9; --panel: #ffffff; --card: #f8fafc; --border: #cbd5e1;
+            --text: #0f172a; --sub: #64748b; --accent: #d97706; --accent-hover: #b45309;
+            --vel: #0284c7; --locus: #db2777; --emerald: #059669; --shadow: rgba(0,0,0,0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+
+        header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; z-index: 10; }
+        .brand { font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em; }
+        .gear-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+        .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        button, label.btn-label, select { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; user-select: none; transition: 0.15s; outline: none; }
+        button:hover, label.btn-label:hover { border-color: var(--accent); color: var(--accent); }
+        button.primary { background: var(--accent); color: #090d16; font-weight: 600; border-color: var(--accent); }
+        button.primary:hover { background: var(--accent-hover); color: #fff; }
+        input[type="file"] { display: none; }
+
+        .metrics-bar { background: var(--panel); border-bottom: 1px solid var(--border); padding: 10px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: 12px; font-size: 0.8rem; z-index: 10; }
+        .metric-card { background: var(--bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); }
+        .metric-title { color: var(--sub); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+        .metric-val { font-size: 1rem; font-weight: 700; color: var(--text); }
+
+        main { flex: 1; padding: 16px; max-width: 1360px; width: 100%; margin: 0 auto; display: grid; grid-template-columns: 315px 1fr; gap: 16px; }
+        .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; box-shadow: 0 4px 6px var(--shadow); display: flex; flex-direction: column; gap: 11px; }
+        .section-title { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sub); display: flex; justify-content: space-between; align-items: center; }
+
+        .form-group { margin-bottom: 2px; }
+        .form-group label { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--sub); margin-bottom: 3px; font-weight: 500; }
+        .form-group select, .form-group input[type="range"] { width: 100%; accent-color: var(--accent); }
+
+        .mech-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; height: 470px; position: relative; overflow: hidden; }
+        canvas { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
+        canvas:active { cursor: grabbing; }
+
+        .legend { display: flex; gap: 12px; font-size: 0.74rem; color: var(--sub); flex-wrap: wrap; }
+        .legend span { display: inline-flex; align-items: center; gap: 5px; }
+        .swatch { width: 10px; height: 10px; border-radius: 2px; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 200; padding: 16px; }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 440px; padding: 20px; box-shadow: 0 20px 25px -5px var(--shadow); }
+        .modal h3 { font-size: 1.1rem; margin-bottom: 12px; }
+
+        .shortcut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem; margin: 12px 0 16px; }
+        .shortcut-row { display: flex; justify-content: space-between; background: var(--card); padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border); }
+        kbd { background: var(--panel); border: 1px solid var(--border); padding: 1px 5px; border-radius: 3px; font-weight: 600; font-size: 0.75rem; }
+
+        @media (max-width: 850px) {
+            header { flex-direction: column; align-items: stretch; }
+            .actions { justify-content: space-between; }
+            main { grid-template-columns: 1fr; padding: 8px; }
+            .metrics-bar { grid-template-columns: repeat(2, 1fr); }
+            .mech-box { height: 370px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand"><div class="gear-dot"></div> KinetoLink Planar Kinematics Lab</div>
+        <div class="actions">
+            <button id="playBtn" class="primary">⏸ Pause Crank</button>
+            <button id="flipBtn">🔄 Flip Assembly</button>
+            <button id="saveBtn">💾 Save JSON</button>
+            <label class="btn-label" for="openFile">📂 Open JSON</label>
+            <input type="file" id="openFile" accept=".json">
+            <button id="themeBtn">🌓 Theme</button>
+            <button id="helpBtn">❓ Help</button>
+        </div>
+    </header>
+
+    <div class="metrics-bar">
+        <div class="metric-card"><div class="metric-title">Grashof Classification</div><div class="metric-val" id="mClass" style="color:var(--emerald);">Crank-Rocker</div></div>
+        <div class="metric-card"><div class="metric-title">Transmission Angle (μ)</div><div class="metric-val" id="mTrans" style="color:var(--accent);">68.4°</div></div>
+        <div class="metric-card"><div class="metric-title">Coupler Tip Speed</div><div class="metric-val" id="mVel" style="color:var(--vel);">2.45 m/s</div></div>
+        <div class="metric-card"><div class="metric-title">Crank Angle (θ₂)</div><div class="metric-val" id="mTheta">42°</div></div>
+    </div>
+
+    <main>
+        <!-- Linkage Synthesis Controls -->
+        <div class="panel">
+            <div class="section-title"><span>Four-Bar Link Dimensions (mm)</span></div>
+
+            <div class="form-group">
+                <label>Classic Mechanism Preset</label>
+                <select id="cfgPreset">
+                    <option value="crankRocker">Grashof Crank-Rocker Tracer</option>
+                    <option value="chebyshev">Chebyshev Straight-Line Lambda</option>
+                    <option value="dragLink">Double-Crank Drag-Link (Quick Return)</option>
+                    <option value="roberts">Roberts Straight-Line Triangle</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Ground Frame (L₁): <span id="valL1">180</span> mm</label>
+                <input type="range" id="cfgL1" min="80" max="280" step="5" value="180">
+            </div>
+
+            <div class="form-group">
+                <label>Input Crank (L₂): <span id="valL2">75</span> mm</label>
+                <input type="range" id="cfgL2" min="30" max="180" step="5" value="75">
+            </div>
+
+            <div class="form-group">
+                <label>Coupler Link (L₃): <span id="valL3">175</span> mm</label>
+                <input type="range" id="cfgL3" min="80" max="280" step="5" value="175">
+            </div>
+
+            <div class="form-group">
+                <label>Output Rocker (L₄): <span id="valL4">145</span> mm</label>
+                <input type="range" id="cfgL4" min="60" max="260" step="5" value="145">
+            </div>
+
+            <div class="form-group">
+                <label>Motor Speed (ω₂): <span id="valOmega">1.8</span> rad/s</label>
+                <input type="range" id="cfgOmega" min="-4.0" max="4.0" step="0.2" value="1.8">
+            </div>
+
+            <div class="legend">
+                <span><i class="swatch" style="background:var(--locus)"></i> Coupler Locus</span>
+                <span><i class="swatch" style="background:var(--vel)"></i> Velocity Vector</span>
+                <span><i class="swatch" style="background:var(--emerald)"></i> Instant Center I₁₃</span>
+            </div>
+
+            <p style="font-size:0.75rem; color:var(--sub); line-height:1.4; margin-top:2px;">
+                <strong>Drag the pink coupler tracer pin</strong> directly on the canvas to sculpt any coupler curve, or drag the ground pivot to reposition the mechanism.
+            </p>
+        </div>
+
+        <!-- Kinematic Linkage Viewport -->
+        <div class="panel">
+            <div class="section-title"><span>Live Closed-Loop Vector Kinematics, Coupler Curve &amp; Kennedy Instant Centers</span></div>
+            <div class="mech-box">
+                <canvas id="kinCanvas"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal">
+            <h3>KinetoLink Guide &amp; Shortcuts</h3>
+            <p style="font-size:0.85rem; color:var(--sub); line-height:1.4; margin-bottom:10px;">Real-time planar four-bar linkage kinematic solver with Grashof classification, coupler locus tracing, and instantaneous velocity centers.</p>
+            <div class="shortcut-grid">
+                <div class="shortcut-row"><span>Play / Pause</span> <kbd>Space</kbd></div>
+                <div class="shortcut-row"><span>Flip Branch</span> <kbd>F</kbd></div>
+                <div class="shortcut-row"><span>Reset Linkage</span> <kbd>R</kbd></div>
+                <div class="shortcut-row"><span>Save Linkage</span> <kbd>S</kbd></div>
+                <div class="shortcut-row"><span>Open Linkage</span> <kbd>O</kbd></div>
+                <div class="shortcut-row"><span>Toggle Theme</span> <kbd>T</kbd></div>
+                <div class="shortcut-row"><span>Close Modal</span> <kbd>Esc</kbd></div>
+            </div>
+            <button id="closeHelpBtn" class="primary" style="width:100%; justify-content:center; margin-top:10px;">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Planar Four-Bar Linkage State (Lengths in mm) ---
+        let mech = {
+            L1: 180, // Ground O2 -> O4
+            L2: 75,  // Input Crank O2 -> A
+            L3: 175, // Coupler A -> B
+            L4: 145, // Output Rocker O4 -> B
+            cpDist: 125,    // Coupler point P distance from A
+            cpAngle: 0.55,  // Coupler point P angle relative to AB (radians)
+            theta2: 0.72,   // Current crank angle (radians)
+            omega2: 1.8,    // Angular velocity (rad/s)
+            branch: 1,      // +1 or -1 assembly configuration
+            playing: true,
+            dir: 1          // Oscillation direction for non-Grashof rockers
+        };
+
+        const PRESETS = {
+            crankRocker: { L1: 180, L2: 75,  L3: 175, L4: 145, cpDist: 125, cpAngle: 0.55, omega2: 1.8, branch: 1 },
+            chebyshev:   { L1: 120, L2: 150, L3: 60,  L4: 150, cpDist: 75,  cpAngle: 0.0,  omega2: 1.6, branch: -1 },
+            dragLink:    { L1: 95,  L2: 155, L3: 175, L4: 165, cpDist: 110, cpAngle: -0.45,omega2: 1.5, branch: 1 },
+            roberts:     { L1: 190, L2: 120, L3: 95,  L4: 120, cpDist: 120, cpAngle: -0.92,omega2: 1.5, branch: 1 }
+        };
+
+        const canvas = document.getElementById('kinCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // --- Grashof Condition Classifier ---
+        function classifyGrashof() {
+            const links = [mech.L1, mech.L2, mech.L3, mech.L4].slice().sort((a, b) => a - b);
+            const s = links[0], p = links[1], q = links[2], l = links[3];
+            if (s + l > p + q) return 'Non-Grashof Rocker';
+            if (Math.abs((s + l) - (p + q)) < 1e-3) return 'Change-Point Grashof';
+            if (s === mech.L1) return 'Double-Crank (Drag-Link)';
+            if (s === mech.L2) return 'Grashof Crank-Rocker';
+            return 'Grashof Double-Rocker';
+        }
+
+        // --- Closed-Loop Circle-Circle Intersection Kinematics ---
+        function solvePose(theta2) {
+            const O2 = { x: 0, y: 0 };
+            const O4 = { x: mech.L1, y: 0 };
+            const A = {
+                x: mech.L2 * Math.cos(theta2),
+                y: mech.L2 * Math.sin(theta2)
+            };
+
+            const dx = O4.x - A.x;
+            const dy = O4.y - A.y;
+            const d = Math.hypot(dx, dy);
+
+            // Check geometric reachability (triangle inequality)
+            if (d > mech.L3 + mech.L4 || d < Math.abs(mech.L3 - mech.L4) || d < 1e-4) {
+                return null;
+            }
+
+            const a = (mech.L3 * mech.L3 - mech.L4 * mech.L4 + d * d) / (2 * d);
+            const h = Math.sqrt(Math.max(0, mech.L3 * mech.L3 - a * a));
+            const xm = A.x + (a * dx) / d;
+            const ym = A.y + (a * dy) / d;
+
+            const B = {
+                x: xm + mech.branch * (h * dy) / d,
+                y: ym - mech.branch * (h * dx) / d
+            };
+
+            const theta3 = Math.atan2(B.y - A.y, B.x - A.x);
+            const theta4 = Math.atan2(B.y - O4.y, B.x - O4.x);
+
+            // Coupler tracer point P rigidly attached to link AB
+            const P = {
+                x: A.x + mech.cpDist * Math.cos(theta3 + mech.cpAngle),
+                y: A.y + mech.cpDist * Math.sin(theta3 + mech.cpAngle)
+            };
+
+            // Transmission angle mu between coupler (AB) and rocker (O4B)
+            const cosMu = ((B.x - A.x) * (B.x - O4.x) + (B.y - A.y) * (B.y - O4.y)) / (mech.L3 * mech.L4);
+            const muDeg = (Math.acos(Math.max(-1, Math.min(1, cosMu))) * 180) / Math.PI;
+
+            // Analytical Angular Velocities omega3 & omega4
+            const sin34 = Math.sin(theta4 - theta3);
+            let omega3 = 0, omega4 = 0;
+            if (Math.abs(sin34) > 1e-3) {
+                omega3 = (mech.L2 * mech.omega2 * Math.sin(theta4 - theta2)) / (mech.L3 * sin34);
+                omega4 = (mech.L2 * mech.omega2 * Math.sin(theta3 - theta2)) / (mech.L4 * sin34);
+            }
+
+            // Linear Velocity of Coupler Point P (in mm/s -> m/s)
+            const vAx = -mech.L2 * mech.omega2 * Math.sin(theta2);
+            const vAy =  mech.L2 * mech.omega2 * Math.cos(theta2);
+            const vPx = vAx - mech.cpDist * omega3 * Math.sin(theta3 + mech.cpAngle);
+            const vPy = vAy + mech.cpDist * omega3 * Math.cos(theta3 + mech.cpAngle);
+
+            // Kennedy's Instant Center I13 (Intersection of crank line O2-A and rocker line O4-B)
+            const I13 = lineIntersection(O2, A, O4, B);
+
+            return { O2, O4, A, B, P, muDeg, vPx, vPy, I13 };
+        }
+
+        function lineIntersection(p1, p2, p3, p4) {
+            const denom = (p1.x - p2.x) * (p3.y - p4.y) - (p1.y - p2.y) * (p3.x - p4.x);
+            if (Math.abs(denom) < 1e-3) return null;
+            const t = ((p1.x - p3.x) * (p3.y - p4.y) - (p1.y - p3.y) * (p3.x - p4.x)) / denom;
+            return { x: p1.x + t * (p2.x - p1.x), y: p1.y + t * (p2.y - p1.y) };
+        }
+
+        // --- Precompute Full 360° Coupler Curve Locus ---
+        function computeCouplerLocus() {
+            const pts = [];
+            const steps = 180;
+            for (let i = 0; i <= steps; i++) {
+                const th = (i / steps) * Math.PI * 2;
+                const pose = solvePose(th);
+                pts.push(pose ? pose.P : null);
+            }
+            return pts;
+        }
+
+        // --- Render Kinematic Linkage, Locus & Vectors ---
+        let screenTransform = { ox: 0, oy: 0, scale: 1 };
+        let lastCouplerScreen = { x: 0, y: 0 };
+
+        function renderMechanism() {
+            const w = canvas.parentElement.clientWidth;
+            const h = canvas.parentElement.clientHeight;
+            if (canvas.width !== w || canvas.height !== h) {
+                canvas.width = w;
+                canvas.height = h;
+            }
+
+            const styles = getComputedStyle(document.documentElement);
+            const accent = styles.getPropertyValue('--accent').trim();
+            const velCol = styles.getPropertyValue('--vel').trim();
+            const locusCol = styles.getPropertyValue('--locus').trim();
+            const emerald = styles.getPropertyValue('--emerald').trim();
+            const borderCol = styles.getPropertyValue('--border').trim();
+            const textCol = styles.getPropertyValue('--text').trim();
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Auto-fit scale & origin centered on ground link O2-O4
+            const scale = Math.min(w / 460, h / 340);
+            const ox = w * 0.5 - (mech.L1 * 0.5) * scale;
+            const oy = h * 0.56;
+            screenTransform = { ox, oy, scale };
+
+            const toScreen = pt => ({ x: ox + pt.x * scale, y: oy - pt.y * scale });
+
+            // 1. Engineering Grid
+            ctx.strokeStyle = borderCol;
+            ctx.globalAlpha = 0.22;
+            ctx.lineWidth = 1;
+            for (let gx = 32; gx < w; gx += 32) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, h); ctx.stroke(); }
+            for (let gy = 32; gy < h; gy += 32) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(w, gy); ctx.stroke(); }
+            ctx.globalAlpha = 1.0;
+
+            // 2. Full 360° Coupler Curve Locus
+            const locus = computeCouplerLocus();
+            ctx.strokeStyle = locusCol;
+            ctx.lineWidth = 2.2;
+            ctx.beginPath();
+            let penDown = false;
+            for (const pt of locus) {
+                if (!pt) { penDown = false; continue; }
+                const s = toScreen(pt);
+                if (!penDown) { ctx.moveTo(s.x, s.y); penDown = true; }
+                else ctx.lineTo(s.x, s.y);
+            }
+            ctx.stroke();
+
+            // Solve current pose (if non-Grashof hits toggle limit, reverse oscillation)
+            let pose = solvePose(mech.theta2);
+            if (!pose) {
+                mech.dir *= -1;
+                mech.theta2 += mech.dir * 0.06;
+                pose = solvePose(mech.theta2);
+            }
+            if (!pose) return;
+
+            const sO2 = toScreen(pose.O2);
+            const sO4 = toScreen(pose.O4);
+            const sA  = toScreen(pose.A);
+            const sB  = toScreen(pose.B);
+            const sP  = toScreen(pose.P);
+            lastCouplerScreen = sP;
+
+            // 3. Kennedy Instant Center I13 Construction Lines
+            if (pose.I13 && Math.hypot(pose.I13.x, pose.I13.y) < 420) {
+                const sI = toScreen(pose.I13);
+                ctx.setLineDash([4, 4]);
+                ctx.strokeStyle = emerald;
+                ctx.globalAlpha = 0.55;
+                ctx.lineWidth = 1.2;
+                ctx.beginPath();
+                ctx.moveTo(sO2.x, sO2.y); ctx.lineTo(sI.x, sI.y);
+                ctx.moveTo(sO4.x, sO4.y); ctx.lineTo(sI.x, sI.y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.globalAlpha = 1.0;
+
+                ctx.fillStyle = emerald;
+                ctx.beginPath();
+                ctx.arc(sI.x, sI.y, 4.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // 4. Rigid Coupler Triangle Fill (A - B - P)
+            ctx.fillStyle = 'rgba(245, 158, 11, 0.14)';
+            ctx.beginPath();
+            ctx.moveTo(sA.x, sA.y);
+            ctx.lineTo(sB.x, sB.y);
+            ctx.lineTo(sP.x, sP.y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = accent;
+            ctx.lineWidth = 1.8;
+            ctx.stroke();
+
+            // 5. Ground Frame Link (O2 - O4)
+            ctx.setLineDash([5, 4]);
+            ctx.strokeStyle = borderCol;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(sO2.x, sO2.y);
+            ctx.lineTo(sO4.x, sO4.y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // 6. Crank (O2-A), Coupler (A-B) & Rocker (O4-B) Links
+            const drawBar = (p1, p2, col, width) => {
+                ctx.strokeStyle = col;
+                ctx.lineWidth = width;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.stroke();
+            };
+            drawBar(sO2, sA, accent, 5.5);
+            drawBar(sA, sB, textCol, 5.0);
+            drawBar(sO4, sB, velCol, 5.5);
+
+            // 7. Tangential Velocity Vector at Coupler Point P
+            const vScale = 0.24 * scale;
+            const vxEnd = sP.x + pose.vPx * vScale;
+            const vyEnd = sP.y - pose.vPy * vScale;
+            ctx.strokeStyle = velCol;
+            ctx.fillStyle = velCol;
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(sP.x, sP.y);
+            ctx.lineTo(vxEnd, vyEnd);
+            ctx.stroke();
+
+            const vAng = Math.atan2(vyEnd - sP.y, vxEnd - sP.x);
+            ctx.beginPath();
+            ctx.moveTo(vxEnd, vyEnd);
+            ctx.lineTo(vxEnd - 8 * Math.cos(vAng - 0.4), vyEnd - 8 * Math.sin(vAng - 0.4));
+            ctx.lineTo(vxEnd - 8 * Math.cos(vAng + 0.4), vyEnd - 8 * Math.sin(vAng + 0.4));
+            ctx.closePath();
+            ctx.fill();
+
+            // 8. Revolute Joint Pins & Coupler Tracer Handle
+            [sO2, sO4].forEach(p => {
+                ctx.fillStyle = emerald;
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(p.x - 10, p.y + 16);
+                ctx.lineTo(p.x + 10, p.y + 16);
+                ctx.closePath();
+                ctx.fill();
+            });
+
+            [sA, sB].forEach(p => {
+                ctx.fillStyle = textCol;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Draggable Coupler Tracer Point P
+            ctx.fillStyle = locusCol;
+            ctx.beginPath();
+            ctx.arc(sP.x, sP.y, 7.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Telemetry Update
+            const speedMs = (Math.hypot(pose.vPx, pose.vPy) / 1000).toFixed(2);
+            const deg = Math.round(((mech.theta2 % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2) * 180 / Math.PI);
+            document.getElementById('mClass').innerText = classifyGrashof();
+            document.getElementById('mTrans').innerText = `${pose.muDeg.toFixed(1)}°`;
+            document.getElementById('mVel').innerText = `${speedMs} m/s`;
+            document.getElementById('mTheta').innerText = `${deg}°`;
+        }
+
+        let lastTime = performance.now();
+        function animate(now) {
+            const dt = Math.min(0.05, (now - lastTime) / 1000);
+            lastTime = now;
+
+            if (mech.playing) {
+                mech.theta2 += mech.omega2 * mech.dir * dt;
+            }
+            renderMechanism();
+            requestAnimationFrame(animate);
+        }
+
+        // --- Touch / Pointer Coupler Tracer Sculpting ---
+        let draggingTracer = false;
+
+        canvas.addEventListener('pointerdown', e => {
+            const rect = canvas.getBoundingClientRect();
+            const px = e.clientX - rect.left;
+            const py = e.clientY - rect.top;
+            if (Math.hypot(px - lastCouplerScreen.x, py - lastCouplerScreen.y) < 36) {
+                draggingTracer = true;
+            }
+        });
+
+        window.addEventListener('pointermove', e => {
+            if (!draggingTracer) return;
+            const pose = solvePose(mech.theta2);
+            if (!pose) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const px = e.clientX - rect.left;
+            const py = e.clientY - rect.top;
+            const { ox, oy, scale } = screenTransform;
+
+            // Convert screen touch back to mechanism mm coordinates
+            const mx = (px - ox) / scale;
+            const my = (oy - py) / scale;
+
+            const theta3 = Math.atan2(pose.B.y - pose.A.y, pose.B.x - pose.A.x);
+            const dx = mx - pose.A.x;
+            const dy = my - pose.A.y;
+
+            mech.cpDist = Math.min(220, Math.max(15, Math.hypot(dx, dy)));
+            mech.cpAngle = Math.atan2(dy, dx) - theta3;
+            renderMechanism();
+        });
+
+        window.addEventListener('pointerup', () => draggingTracer = false);
+
+        // --- Controls & Persistence ---
+        function syncUI() {
+            document.getElementById('cfgL1').value = mech.L1;
+            document.getElementById('valL1').innerText = mech.L1;
+            document.getElementById('cfgL2').value = mech.L2;
+            document.getElementById('valL2').innerText = mech.L2;
+            document.getElementById('cfgL3').value = mech.L3;
+            document.getElementById('valL3').innerText = mech.L3;
+            document.getElementById('cfgL4').value = mech.L4;
+            document.getElementById('valL4').innerText = mech.L4;
+            document.getElementById('cfgOmega').value = mech.omega2;
+            document.getElementById('valOmega').innerText = mech.omega2.toFixed(1);
+        }
+
+        document.getElementById('cfgPreset').addEventListener('change', e => {
+            const p = PRESETS[e.target.value];
+            mech = { ...mech, ...p, theta2: 0.65, dir: 1 };
+            syncUI();
+            renderMechanism();
+        });
+
+        document.getElementById('cfgL1').addEventListener('input', e => { mech.L1 = parseInt(e.target.value); syncUI(); });
+        document.getElementById('cfgL2').addEventListener('input', e => { mech.L2 = parseInt(e.target.value); syncUI(); });
+        document.getElementById('cfgL3').addEventListener('input', e => { mech.L3 = parseInt(e.target.value); syncUI(); });
+        document.getElementById('cfgL4').addEventListener('input', e => { mech.L4 = parseInt(e.target.value); syncUI(); });
+        document.getElementById('cfgOmega').addEventListener('input', e => { mech.omega2 = parseFloat(e.target.value); syncUI(); });
+
+        document.getElementById('playBtn').addEventListener('click', () => {
+            mech.playing = !mech.playing;
+            document.getElementById('playBtn').innerText = mech.playing ? '⏸ Pause Crank' : '▶ Spin Crank';
+        });
+
+        document.getElementById('flipBtn').addEventListener('click', () => {
+            mech.branch *= -1;
+            renderMechanism();
+        });
+
+        document.getElementById('saveBtn').addEventListener('click', exportJSON);
+        document.getElementById('openFile').addEventListener('change', importJSON);
+
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(mech, null, 2));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            a.setAttribute("download", `kinetolink_linkage_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        function importJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = evt => {
+                try {
+                    const data = JSON.parse(evt.target.result);
+                    if (typeof data.L1 === 'number' && typeof data.L2 === 'number') {
+                        mech = { ...mech, ...data };
+                        syncUI();
+                        renderMechanism();
+                    } else alert('Invalid KinetoLink JSON file.');
+                } catch { alert('Error reading JSON file.'); }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Theme & Shortcuts (Zero Key Overlap) ---
+        const helpModal = document.getElementById('helpModal');
+        document.getElementById('helpBtn').addEventListener('click', () => helpModal.classList.add('open'));
+        document.getElementById('closeHelpBtn').addEventListener('click', () => helpModal.classList.remove('open'));
+        document.getElementById('themeBtn').addEventListener('click', () => {
+            const cur = document.documentElement.getAttribute('data-theme');
+            document.documentElement.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+        });
+
+        // Space = Play/Pause, F = Flip Assembly Branch, R = Reset Linkage, S = Save JSON, O = Open JSON, T = Theme, Esc = Close Modal
+        window.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+            const k = e.key.toLowerCase();
+            if (e.code === 'Space') { e.preventDefault(); document.getElementById('playBtn').click(); }
+            if (k === 'f') { e.preventDefault(); document.getElementById('flipBtn').click(); }
+            if (k === 'r') {
+                e.preventDefault();
+                document.getElementById('cfgPreset').value = 'crankRocker';
+                mech = { ...PRESETS.crankRocker, theta2: 0.72, playing: true, dir: 1 };
+                document.getElementById('playBtn').innerText = '⏸ Pause Crank';
+                syncUI();
+            }
+            if (k === 's') { e.preventDefault(); exportJSON(); }
+            if (k === 'o') { e.preventDefault(); document.getElementById('openFile').click(); }
+            if (k === 't') { e.preventDefault(); document.getElementById('themeBtn').click(); }
+            if (e.key === 'Escape') helpModal.classList.remove('open');
+        });
+
+        // Pre-loaded 5-Second Impressive Demo State
+        syncUI();
+        requestAnimationFrame(animate);
+    </script>
+</body>
+</html>

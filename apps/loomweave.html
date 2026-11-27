@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LoomWeave — Dobby & Jacquard Textile Loom CAD Studio</title>
+    <style>
+        :root {
+            --bg: #08090e; --panel: #111420; --card: #1a1f32; --border: #2e3754;
+            --text: #f8fafc; --sub: #94a3b8; --accent: #ec4899; --accent-hover: #db2777;
+            --gold: #f59e0b; --emerald: #10b981; --shadow: rgba(0,0,0,0.65);
+        }
+        [data-theme="light"] {
+            --bg: #f1f5f9; --panel: #ffffff; --card: #f8fafc; --border: #cbd5e1;
+            --text: #0f172a; --sub: #64748b; --accent: #db2777; --accent-hover: #be185d;
+            --gold: #d97706; --emerald: #059669; --shadow: rgba(0,0,0,0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+
+        header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; z-index: 10; }
+        .brand { font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em; }
+        .loom-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+        .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        button, label.btn-label, select { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; user-select: none; transition: 0.15s; outline: none; }
+        button:hover, label.btn-label:hover { border-color: var(--accent); color: var(--accent); }
+        button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+        button.primary:hover { background: var(--accent-hover); color: #fff; }
+        input[type="file"] { display: none; }
+
+        .metrics-bar { background: var(--panel); border-bottom: 1px solid var(--border); padding: 10px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: 12px; font-size: 0.8rem; z-index: 10; }
+        .metric-card { background: var(--bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); }
+        .metric-title { color: var(--sub); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+        .metric-val { font-size: 1rem; font-weight: 700; color: var(--text); }
+
+        main { flex: 1; padding: 16px; max-width: 1360px; width: 100%; margin: 0 auto; display: grid; grid-template-columns: 315px 1fr; gap: 16px; }
+        .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; box-shadow: 0 4px 6px var(--shadow); display: flex; flex-direction: column; gap: 12px; }
+        .section-title { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sub); display: flex; justify-content: space-between; align-items: center; }
+
+        .form-group { margin-bottom: 4px; }
+        .form-group label { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--sub); margin-bottom: 4px; font-weight: 500; }
+        .form-group select, .form-group input[type="range"] { width: 100%; accent-color: var(--accent); }
+        .color-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .color-chip { display: flex; align-items: center; justify-content: space-between; background: var(--card); border: 1px solid var(--border); padding: 5px 8px; border-radius: 6px; font-size: 0.76rem; }
+        input[type="color"] { border: none; background: none; width: 24px; height: 22px; cursor: pointer; }
+
+        .loom-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; height: 470px; position: relative; overflow: hidden; }
+        canvas { width: 100%; height: 100%; display: block; cursor: pointer; touch-action: none; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 200; padding: 16px; }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 440px; padding: 20px; box-shadow: 0 20px 25px -5px var(--shadow); }
+        .modal h3 { font-size: 1.1rem; margin-bottom: 12px; }
+
+        .shortcut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem; margin: 12px 0 16px; }
+        .shortcut-row { display: flex; justify-content: space-between; background: var(--card); padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border); }
+        kbd { background: var(--panel); border: 1px solid var(--border); padding: 1px 5px; border-radius: 3px; font-weight: 600; font-size: 0.75rem; }
+
+        @media (max-width: 850px) {
+            header { flex-direction: column; align-items: stretch; }
+            .actions { justify-content: space-between; }
+            main { grid-template-columns: 1fr; padding: 8px; }
+            .metrics-bar { grid-template-columns: repeat(2, 1fr); }
+            .loom-box { height: 390px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand"><div class="loom-dot"></div> LoomWeave Textile CAD Studio</div>
+        <div class="actions">
+            <button id="stepBtn" class="primary">🧵 Weave Shuttle</button>
+            <button id="invertBtn">⇄ Invert Tie-Up</button>
+            <button id="saveBtn">💾 Save JSON</button>
+            <label class="btn-label" for="openFile">📂 Open JSON</label>
+            <input type="file" id="openFile" accept=".json">
+            <button id="themeBtn">🌓 Theme</button>
+            <button id="helpBtn">❓ Help</button>
+        </div>
+    </header>
+
+    <div class="metrics-bar">
+        <div class="metric-card"><div class="metric-title">Weave Structure</div><div class="metric-val" id="mStruct" style="color:var(--accent);">Houndstooth 2/2</div></div>
+        <div class="metric-card"><div class="metric-title">Warp Face Ratio</div><div class="metric-val" id="mWarp">50.0%</div></div>
+        <div class="metric-card"><div class="metric-title">Max Yarn Float</div><div class="metric-val" id="mFloat" style="color:var(--gold);">2 Threads</div></div>
+        <div class="metric-card"><div class="metric-title">Interlacement Index</div><div class="metric-val" id="mFirm" style="color:var(--emerald);">High Stability</div></div>
+    </div>
+
+    <main>
+        <!-- Loom Draft & Yarn Controls -->
+        <div class="panel">
+            <div class="section-title"><span>8-Shaft Dobby Loom Controls</span></div>
+
+            <div class="form-group">
+                <label>Woven Architecture Preset</label>
+                <select id="cfgPreset">
+                    <option value="houndstooth">Houndstooth Check (2/2 Twill)</option>
+                    <option value="herringbone">Herringbone Point Chevron</option>
+                    <option value="satin">8-Harness Lustrous Satin</option>
+                    <option value="waffle">Honeycomb Waffle Relief</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Thread Density (EPI/PPI): <span id="valZoom">16</span></label>
+                <input type="range" id="cfgZoom" min="12" max="24" step="2" value="16">
+            </div>
+
+            <div class="form-group">
+                <label>Yarn Twist &amp; Shading Relief: <span id="valRelief">85</span>%</label>
+                <input type="range" id="cfgRelief" min="20" max="100" step="5" value="85">
+            </div>
+
+            <div class="form-group">
+                <label>Warp &amp; Weft Color Palette</label>
+                <div class="color-row">
+                    <div class="color-chip"><span>Warp A</span><input type="color" id="colWarpA" value="#f8fafc"></div>
+                    <div class="color-chip"><span>Warp B</span><input type="color" id="colWarpB" value="#0f172a"></div>
+                    <div class="color-chip"><span>Weft A</span><input type="color" id="colWeftA" value="#f8fafc"></div>
+                    <div class="color-chip"><span>Weft B</span><input type="color" id="colWeftB" value="#ec4899"></div>
+                </div>
+            </div>
+
+            <p style="font-size:0.76rem; color:var(--sub); line-height:1.45; margin-top:4px;">
+                <strong>Tap any cell</strong> in the <strong>Threading</strong> (top), <strong>Tie-Up</strong> (top-right), or <strong>Treadling</strong> (right) matrices to toggle shaft lifts and watch the 3D shaded fabric drawdown update live.
+            </p>
+        </div>
+
+        <!-- Interactive Loom Draft & Shaded Drawdown -->
+        <div class="panel">
+            <div class="section-title"><span>Live Loom Draft Matrix (Threading × Tie-Up × Treadling → Shaded Drawdown)</span></div>
+            <div class="loom-box">
+                <canvas id="loomCanvas"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal">
+            <h3>LoomWeave Guide &amp; Shortcuts</h3>
+            <p style="font-size:0.85rem; color:var(--sub); line-height:1.4; margin-bottom:10px;">Interactive 8-shaft dobby textile loom CAD engine computing real-time warp/weft interlacement matrices and yarn float metrics.</p>
+            <div class="shortcut-grid">
+                <div class="shortcut-row"><span>Advance Shuttle</span> <kbd>Space</kbd></div>
+                <div class="shortcut-row"><span>Invert Tie-Up</span> <kbd>I</kbd></div>
+                <div class="shortcut-row"><span>Reset Draft</span> <kbd>R</kbd></div>
+                <div class="shortcut-row"><span>Save Draft</span> <kbd>S</kbd></div>
+                <div class="shortcut-row"><span>Open Draft</span> <kbd>O</kbd></div>
+                <div class="shortcut-row"><span>Toggle Theme</span> <kbd>T</kbd></div>
+                <div class="shortcut-row"><span>Close Modal</span> <kbd>Esc</kbd></div>
+            </div>
+            <button id="closeHelpBtn" class="primary" style="width:100%; justify-content:center; margin-top:10px;">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 8-Shaft x 8-Treadle Dobby Loom State ---
+        const SHAFTS = 8;
+        const TREADLES = 8;
+        const REPEAT_N = 16;
+
+        let loom = {
+            name: 'Houndstooth 2/2',
+            zoom: 16,
+            relief: 85,
+            warpA: '#f8fafc',
+            warpB: '#0f172a',
+            weftA: '#f8fafc',
+            weftB: '#ec4899',
+            threading: new Array(REPEAT_N).fill(0),   // 0..7 shaft index per warp end
+            warpColorBand: new Array(REPEAT_N).fill(0), // 0 = A, 1 = B
+            treadling: new Array(REPEAT_N).fill(0),   // 0..7 treadle index per weft pick
+            weftColorBand: new Array(REPEAT_N).fill(0), // 0 = A, 1 = B
+            tieUp: Array.from({ length: SHAFTS }, () => new Uint8Array(TREADLES)) // [shaft][treadle]
+        };
+
+        let shuttlePhase = 0;
+
+        function buildPreset(type) {
+            const tie = Array.from({ length: SHAFTS }, () => new Uint8Array(TREADLES));
+            const thr = new Array(REPEAT_N).fill(0);
+            const trd = new Array(REPEAT_N).fill(0);
+            const wCol = new Array(REPEAT_N).fill(0);
+            const fCol = new Array(REPEAT_N).fill(0);
+
+            if (type === 'houndstooth') {
+                loom.name = 'Houndstooth 2/2';
+                loom.warpA = '#f8fafc'; loom.warpB = '#0f172a';
+                loom.weftA = '#f8fafc'; loom.weftB = '#ec4899';
+                for (let i = 0; i < REPEAT_N; i++) {
+                    thr[i] = i % 4;
+                    trd[i] = i % 4;
+                    wCol[i] = Math.floor(i / 4) % 2;
+                    fCol[i] = Math.floor(i / 4) % 2;
+                }
+                for (let s = 0; s < SHAFTS; s++) {
+                    tie[s][s % 4] = 1;
+                    tie[s][(s + 1) % 4] = 1;
+                    tie[s][4 + (s % 4)] = 1;
+                    tie[s][4 + ((s + 1) % 4)] = 1;
+                }
+            } else if (type === 'herringbone') {
+                loom.name = 'Herringbone Point';
+                loom.warpA = '#38bdf8'; loom.warpB = '#1e293b';
+                loom.weftA = '#f8fafc'; loom.weftB = '#0284c7';
+                const pointSeq = [0,1,2,3,4,5,6,7,6,5,4,3,2,1,0,1];
+                for (let i = 0; i < REPEAT_N; i++) {
+                    thr[i] = pointSeq[i];
+                    trd[i] = i % 8;
+                    wCol[i] = i < 8 ? 0 : 1;
+                    fCol[i] = i % 2;
+                }
+                for (let s = 0; s < SHAFTS; s++) {
+                    for (let k = 0; k < 4; k++) tie[s][(s + k) % 8] = 1;
+                }
+            } else if (type === 'satin') {
+                loom.name = '8-Harness Satin';
+                loom.warpA = '#fbbf24'; loom.warpB = '#f59e0b';
+                loom.weftA = '#312e81'; loom.weftB = '#4338ca';
+                for (let i = 0; i < REPEAT_N; i++) {
+                    thr[i] = i % 8;
+                    trd[i] = (i * 3) % 8;
+                    wCol[i] = 0;
+                    fCol[i] = 0;
+                }
+                for (let s = 0; s < SHAFTS; s++) {
+                    tie[s][s] = 1;
+                }
+            } else {
+                loom.name = 'Honeycomb Waffle';
+                loom.warpA = '#10b981'; loom.warpB = '#ecfdf5';
+                loom.weftA = '#064e3b'; loom.weftB = '#34d399';
+                const diamond = [0,1,2,3,4,5,6,7,7,6,5,4,3,2,1,0];
+                for (let i = 0; i < REPEAT_N; i++) {
+                    thr[i] = diamond[i];
+                    trd[i] = diamond[i];
+                    wCol[i] = (i >= 4 && i <= 11) ? 1 : 0;
+                    fCol[i] = (i >= 4 && i <= 11) ? 1 : 0;
+                }
+                for (let s = 0; s < SHAFTS; s++) {
+                    for (let t = 0; t < TREADLES; t++) {
+                        if (Math.abs(s - t) <= 1 || (s + t === 7)) tie[s][t] = 1;
+                    }
+                }
+            }
+
+            loom.threading = thr;
+            loom.treadling = trd;
+            loom.tieUp = tie;
+            loom.warpColorBand = wCol;
+            loom.weftColorBand = fCol;
+        }
+
+        // --- Matrix Multiplication: Warp Up(col, row) = TieUp[Threading[col]][Treadling[row]] ---
+        function isWarpUp(col, row) {
+            const c = ((col % REPEAT_N) + REPEAT_N) % REPEAT_N;
+            const r = ((row % REPEAT_N) + REPEAT_N) % REPEAT_N;
+            const shaft = loom.threading[c];
+            const treadle = loom.treadling[r];
+            return loom.tieUp[shaft][treadle] === 1;
+        }
+
+        // --- Compute Textile Structural Diagnostics ---
+        function analyzeStructure() {
+            let warpUpCount = 0;
+            let maxFloat = 1;
+
+            // Check horizontal weft floats & vertical warp floats
+            for (let r = 0; r < REPEAT_N; r++) {
+                let run = 1;
+                for (let c = 0; c < REPEAT_N * 2; c++) {
+                    const cur = isWarpUp(c, r);
+                    if (cur && c < REPEAT_N) warpUpCount++;
+                    if (c > 0 && cur === isWarpUp(c - 1, r)) {
+                        run++;
+                        if (run > maxFloat) maxFloat = run;
+                    } else run = 1;
+                }
+            }
+            for (let c = 0; c < REPEAT_N; c++) {
+                let run = 1;
+                for (let r = 1; r < REPEAT_N * 2; r++) {
+                    if (isWarpUp(c, r) === isWarpUp(c, r - 1)) {
+                        run++;
+                        if (run > maxFloat) maxFloat = run;
+                    } else run = 1;
+                }
+            }
+
+            const warpPct = ((warpUpCount / (REPEAT_N * REPEAT_N)) * 100).toFixed(1);
+            document.getElementById('mStruct').innerText = loom.name;
+            document.getElementById('mWarp').innerText = `${warpPct}%`;
+            document.getElementById('mFloat').innerText = `${Math.min(16, maxFloat)} Threads`;
+
+            const firmEl = document.getElementById('mFirm');
+            if (maxFloat <= 2) {
+                firmEl.innerText = 'High Stability';
+                firmEl.style.color = 'var(--emerald)';
+            } else if (maxFloat <= 4) {
+                firmEl.innerText = 'Balanced Drape';
+                firmEl.style.color = 'var(--gold)';
+            } else {
+                firmEl.innerText = 'Long Float / Satin';
+                firmEl.style.color = 'var(--accent)';
+            }
+        }
+
+        // --- Interactive Canvas Layout & Renderer ---
+        const canvas = document.getElementById('loomCanvas');
+        const ctx = canvas.getContext('2d');
+        let layout = null; // Stores hitboxes for interactive draft cells
+
+        function renderLoom() {
+            const w = canvas.parentElement.clientWidth;
+            const h = canvas.parentElement.clientHeight;
+            if (canvas.width !== w || canvas.height !== h) {
+                canvas.width = w;
+                canvas.height = h;
+            }
+
+            const styles = getComputedStyle(document.documentElement);
+            const borderCol = styles.getPropertyValue('--border').trim();
+            const accent = styles.getPropertyValue('--accent').trim();
+            const cardCol = styles.getPropertyValue('--card').trim();
+
+            ctx.clearRect(0, 0, w, h);
+
+            const cols = loom.zoom;
+            const rows = loom.zoom;
+            const pad = 14;
+            const gap = 8;
+
+            // Compute proportional cell size so Drawdown + Threading + TieUp + Treadling fit cleanly
+            const totalUnitsX = cols + TREADLES;
+            const totalUnitsY = rows + SHAFTS;
+            const cell = Math.max(10, Math.floor(Math.min((w - pad * 2 - gap) / totalUnitsX, (h - pad * 2 - gap) / totalUnitsY)));
+
+            const drawW = cols * cell;
+            const drawH = rows * cell;
+            const tieW = TREADLES * cell;
+            const thrH = SHAFTS * cell;
+
+            const startX = Math.floor((w - (drawW + gap + tieW)) / 2);
+            const startY = Math.floor((h - (thrH + gap + drawH)) / 2);
+
+            const thrY = startY;
+            const drawY = startY + thrH + gap;
+            const tieX = startX + drawW + gap;
+
+            layout = { startX, thrY, drawY, tieX, cell, cols, rows };
+
+            // 1. Draw Threading Matrix (Top-Left: cols x SHAFTS)
+            for (let c = 0; c < cols; c++) {
+                const cMod = c % REPEAT_N;
+                const activeShaft = loom.threading[cMod];
+                for (let s = 0; s < SHAFTS; s++) {
+                    const x = startX + c * cell;
+                    const y = thrY + (SHAFTS - 1 - s) * cell;
+                    ctx.fillStyle = (s === activeShaft) ? accent : cardCol;
+                    ctx.fillRect(x + 1, y + 1, cell - 2, cell - 2);
+                }
+            }
+
+            // 2. Draw Tie-Up Matrix (Top-Right: TREADLES x SHAFTS)
+            for (let t = 0; t < TREADLES; t++) {
+                for (let s = 0; s < SHAFTS; s++) {
+                    const x = tieX + t * cell;
+                    const y = thrY + (SHAFTS - 1 - s) * cell;
+                    ctx.fillStyle = loom.tieUp[s][t] ? '#f59e0b' : cardCol;
+                    ctx.fillRect(x + 1, y + 1, cell - 2, cell - 2);
+                }
+            }
+
+            // 3. Draw Treadling Matrix (Bottom-Right: TREADLES x rows)
+            for (let r = 0; r < rows; r++) {
+                const rMod = (r + shuttlePhase) % REPEAT_N;
+                const activeTreadle = loom.treadling[rMod];
+                for (let t = 0; t < TREADLES; t++) {
+                    const x = tieX + t * cell;
+                    const y = drawY + r * cell;
+                    ctx.fillStyle = (t === activeTreadle) ? '#10b981' : cardCol;
+                    ctx.fillRect(x + 1, y + 1, cell - 2, cell - 2);
+                }
+            }
+
+            // 4. Draw 3D Shaded Woven Fabric Drawdown (Bottom-Left: cols x rows)
+            const shadeStrength = (loom.relief / 100) * 0.42;
+            for (let r = 0; r < rows; r++) {
+                const rMod = (r + shuttlePhase) % REPEAT_N;
+                const weftCol = loom.weftColorBand[rMod] === 0 ? loom.weftA : loom.weftB;
+
+                for (let c = 0; c < cols; c++) {
+                    const cMod = c % REPEAT_N;
+                    const warpCol = loom.warpColorBand[cMod] === 0 ? loom.warpA : loom.warpB;
+                    const warpUp = isWarpUp(cMod, rMod);
+
+                    const x = startX + c * cell;
+                    const y = drawY + r * cell;
+
+                    if (warpUp) {
+                        // Vertical Warp Thread over Weft
+                        ctx.fillStyle = warpCol;
+                        ctx.fillRect(x + 0.5, y, cell - 1, cell);
+
+                        // Cylindrical yarn highlight & edge crease
+                        const grad = ctx.createLinearGradient(x, y, x + cell, y);
+                        grad.addColorStop(0, `rgba(0,0,0,${shadeStrength})`);
+                        grad.addColorStop(0.5, `rgba(255,255,255,${shadeStrength * 0.65})`);
+                        grad.addColorStop(1, `rgba(0,0,0,${shadeStrength})`);
+                        ctx.fillStyle = grad;
+                        ctx.fillRect(x + 0.5, y, cell - 1, cell);
+                    } else {
+                        // Horizontal Weft Thread over Warp
+                        ctx.fillStyle = weftCol;
+                        ctx.fillRect(x, y + 0.5, cell, cell - 1);
+
+                        const grad = ctx.createLinearGradient(x, y, x, y + cell);
+                        grad.addColorStop(0, `rgba(0,0,0,${shadeStrength})`);
+                        grad.addColorStop(0.5, `rgba(255,255,255,${shadeStrength * 0.65})`);
+                        grad.addColorStop(1, `rgba(0,0,0,${shadeStrength})`);
+                        ctx.fillStyle = grad;
+                        ctx.fillRect(x, y + 0.5, cell, cell - 1);
+                    }
+                }
+            }
+
+            // Subtle section borders
+            ctx.strokeStyle = borderCol;
+            ctx.lineWidth = 1;
+            ctx.strokeRect(startX, thrY, drawW, thrH);
+            ctx.strokeRect(tieX, thrY, tieW, thrH);
+            ctx.strokeRect(tieX, drawY, tieW, drawH);
+            ctx.strokeRect(startX, drawY, drawW, drawH);
+
+            analyzeStructure();
+        }
+
+        // --- Touch / Pointer Draft Matrix Editor ---
+        canvas.addEventListener('pointerdown', e => {
+            if (!layout) return;
+            const rect = canvas.getBoundingClientRect();
+            const px = e.clientX - rect.left;
+            const py = e.clientY - rect.top;
+            const { startX, thrY, drawY, tieX, cell, cols, rows } = layout;
+
+            // 1. Hit-test Threading Grid (Top-Left)
+            if (px >= startX && px < startX + cols * cell && py >= thrY && py < thrY + SHAFTS * cell) {
+                const c = Math.floor((px - startX) / cell) % REPEAT_N;
+                const s = SHAFTS - 1 - Math.floor((py - thrY) / cell);
+                loom.threading[c] = s;
+                loom.name = 'Custom Dobby Draft';
+                renderLoom();
+                return;
+            }
+
+            // 2. Hit-test Tie-Up Matrix (Top-Right)
+            if (px >= tieX && px < tieX + TREADLES * cell && py >= thrY && py < thrY + SHAFTS * cell) {
+                const t = Math.floor((px - tieX) / cell);
+                const s = SHAFTS - 1 - Math.floor((py - thrY) / cell);
+                loom.tieUp[s][t] = loom.tieUp[s][t] ? 0 : 1;
+                loom.name = 'Custom Dobby Draft';
+                renderLoom();
+                return;
+            }
+
+            // 3. Hit-test Treadling Matrix (Bottom-Right)
+            if (px >= tieX && px < tieX + TREADLES * cell && py >= drawY && py < drawY + rows * cell) {
+                const t = Math.floor((px - tieX) / cell);
+                const r = (Math.floor((py - drawY) / cell) + shuttlePhase) % REPEAT_N;
+                loom.treadling[r] = t;
+                loom.name = 'Custom Dobby Draft';
+                renderLoom();
+                return;
+            }
+
+            // 4. Tap Drawdown to toggle Warp/Weft color band
+            if (px >= startX && px < startX + cols * cell && py >= drawY && py < drawY + rows * cell) {
+                const c = Math.floor((px - startX) / cell) % REPEAT_N;
+                loom.warpColorBand[c] = loom.warpColorBand[c] ? 0 : 1;
+                renderLoom();
+            }
+        });
+
+        window.addEventListener('resize', renderLoom);
+
+        // --- Controls & Persistence ---
+        function syncUI() {
+            document.getElementById('cfgZoom').value = loom.zoom;
+            document.getElementById('valZoom').innerText = loom.zoom;
+            document.getElementById('cfgRelief').value = loom.relief;
+            document.getElementById('valRelief').innerText = loom.relief;
+            document.getElementById('colWarpA').value = loom.warpA;
+            document.getElementById('colWarpB').value = loom.warpB;
+            document.getElementById('colWeftA').value = loom.weftA;
+            document.getElementById('colWeftB').value = loom.weftB;
+        }
+
+        document.getElementById('cfgPreset').addEventListener('change', e => {
+            shuttlePhase = 0;
+            buildPreset(e.target.value);
+            syncUI();
+            renderLoom();
+        });
+
+        document.getElementById('cfgZoom').addEventListener('input', e => { loom.zoom = parseInt(e.target.value); syncUI(); renderLoom(); });
+        document.getElementById('cfgRelief').addEventListener('input', e => { loom.relief = parseInt(e.target.value); syncUI(); renderLoom(); });
+        document.getElementById('colWarpA').addEventListener('input', e => { loom.warpA = e.target.value; renderLoom(); });
+        document.getElementById('colWarpB').addEventListener('input', e => { loom.warpB = e.target.value; renderLoom(); });
+        document.getElementById('colWeftA').addEventListener('input', e => { loom.weftA = e.target.value; renderLoom(); });
+        document.getElementById('colWeftB').addEventListener('input', e => { loom.weftB = e.target.value; renderLoom(); });
+
+        document.getElementById('stepBtn').addEventListener('click', () => {
+            shuttlePhase = (shuttlePhase + 1) % REPEAT_N;
+            renderLoom();
+        });
+
+        document.getElementById('invertBtn').addEventListener('click', () => {
+            for (let s = 0; s < SHAFTS; s++) {
+                for (let t = 0; t < TREADLES; t++) {
+                    loom.tieUp[s][t] = loom.tieUp[s][t] ? 0 : 1;
+                }
+            }
+            renderLoom();
+        });
+
+        document.getElementById('saveBtn').addEventListener('click', exportJSON);
+        document.getElementById('openFile').addEventListener('change', importJSON);
+
+        function exportJSON() {
+            const payload = {
+                ...loom,
+                tieUp: loom.tieUp.map(row => Array.from(row))
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload, null, 2));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            a.setAttribute("download", `loomweave_draft_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        function importJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = evt => {
+                try {
+                    const data = JSON.parse(evt.target.result);
+                    if (Array.isArray(data.threading) && Array.isArray(data.tieUp)) {
+                        loom.name = data.name || 'Imported Draft';
+                        loom.zoom = data.zoom || 16;
+                        loom.relief = data.relief || 85;
+                        loom.warpA = data.warpA || '#f8fafc';
+                        loom.warpB = data.warpB || '#0f172a';
+                        loom.weftA = data.weftA || '#f8fafc';
+                        loom.weftB = data.weftB || '#ec4899';
+                        loom.threading = data.threading.slice(0, REPEAT_N);
+                        loom.treadling = data.treadling.slice(0, REPEAT_N);
+                        loom.warpColorBand = data.warpColorBand || new Array(REPEAT_N).fill(0);
+                        loom.weftColorBand = data.weftColorBand || new Array(REPEAT_N).fill(0);
+                        loom.tieUp = data.tieUp.slice(0, SHAFTS).map(r => Uint8Array.from(r.slice(0, TREADLES)));
+                        syncUI();
+                        renderLoom();
+                    } else alert('Invalid LoomWeave JSON file.');
+                } catch { alert('Error reading JSON file.'); }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Theme & Shortcuts (Zero Key Overlap) ---
+        const helpModal = document.getElementById('helpModal');
+        document.getElementById('helpBtn').addEventListener('click', () => helpModal.classList.add('open'));
+        document.getElementById('closeHelpBtn').addEventListener('click', () => helpModal.classList.remove('open'));
+        document.getElementById('themeBtn').addEventListener('click', () => {
+            const cur = document.documentElement.getAttribute('data-theme');
+            document.documentElement.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+            renderLoom();
+        });
+
+        // Space = Advance Shuttle, I = Invert Tie-Up, R = Reset Draft, S = Save JSON, O = Open JSON, T = Theme, Esc = Close Modal
+        window.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+            const k = e.key.toLowerCase();
+            if (e.code === 'Space') { e.preventDefault(); document.getElementById('stepBtn').click(); }
+            if (k === 'i') { e.preventDefault(); document.getElementById('invertBtn').click(); }
+            if (k === 'r') {
+                e.preventDefault();
+                shuttlePhase = 0;
+                document.getElementById('cfgPreset').value = 'houndstooth';
+                buildPreset('houndstooth');
+                syncUI();
+                renderLoom();
+            }
+            if (k === 's') { e.preventDefault(); exportJSON(); }
+            if (k === 'o') { e.preventDefault(); document.getElementById('openFile').click(); }
+            if (k === 't') { e.preventDefault(); document.getElementById('themeBtn').click(); }
+            if (e.key === 'Escape') helpModal.classList.remove('open');
+        });
+
+        // Pre-loaded 5-Second Impressive Demo State
+        buildPreset('houndstooth');
+        syncUI();
+        renderLoom();
+    </script>
+</body>
+</html>

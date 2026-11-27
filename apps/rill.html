@@ -1,0 +1,330 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<title>Daily Build 2026-11-26 — Rill</title>
+<style>
+  :root{
+    --bg:#f3f1ea; --panel:#ffffff; --ink:#1d2230; --muted:#6b7280; --line:#d9d6cc;
+    --accent:#1f6fd1; --accent-ink:#fff; --chip:#eceae2; --chip-on:#1f6fd1; --chip-on-ink:#fff;
+    --sea-deep:#2c5d99; --sea-shallow:#86bde0; --lake:#6fb3e3; --river:#1b64c7;
+    --land:#6ea86a,#b8c478,#c9a66b,#9d8a78,#f6f6f6;
+  }
+  :root[data-theme="dark"]{
+    --bg:#0f1217; --panel:#171b22; --ink:#e7e9ee; --muted:#9aa3b2; --line:#2a303b;
+    --accent:#5aa7ff; --accent-ink:#0b1220; --chip:#232934; --chip-on:#5aa7ff; --chip-on-ink:#0b1220;
+    --sea-deep:#10294a; --sea-shallow:#2f6a95; --lake:#3f8cc4; --river:#7cc4ff;
+    --land:#3b6a45,#6c7a3c,#7d6540,#5f5553,#d4d8dd;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    -webkit-text-size-adjust:100%;overscroll-behavior:none}
+  body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+  .app{max-width:1180px;margin:0 auto;padding:10px 12px 24px;display:grid;gap:10px;grid-template-columns:minmax(0,1fr) 300px;grid-template-areas:"head head" "map side"}
+  header{grid-area:head;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  h1{font-size:22px;margin:0;letter-spacing:.5px;font-weight:700}
+  h1 small{font-weight:400;color:var(--muted);font-size:13px;margin-left:8px}
+  .spacer{flex:1}
+  button{min-height:44px;min-width:44px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel);
+    color:var(--ink);font:inherit;font-weight:600;cursor:pointer;touch-action:manipulation}
+  button.on{background:var(--chip-on);color:var(--chip-on-ink);border-color:var(--chip-on)}
+  button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+  .map{grid-area:map;position:relative;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  canvas#view{display:block;width:100%;height:auto;touch-action:none;cursor:crosshair}
+  .stats{position:absolute;left:10px;bottom:10px;display:flex;gap:6px;flex-wrap:wrap;pointer-events:none}
+  .stats span{background:color-mix(in srgb,var(--panel) 82%,transparent);backdrop-filter:blur(4px);border:1px solid var(--line);
+    border-radius:8px;padding:4px 8px;font-size:12px;font-variant-numeric:tabular-nums}
+  aside{grid-area:side;display:grid;gap:12px;align-content:start}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:10px}
+  .card h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0}
+  .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(60px,1fr));gap:6px}
+  .row button{padding:0 6px;font-size:14px}
+  #layers{grid-template-columns:repeat(2,1fr)}
+  label.sl{display:grid;grid-template-columns:1fr auto;gap:4px 8px;font-size:13px;color:var(--muted)}
+  label.sl output{font-variant-numeric:tabular-nums;color:var(--ink)}
+  input[type=range]{grid-column:1/-1;width:100%;height:44px;margin:0;accent-color:var(--accent);font-size:16px}
+  .hint{font-size:13px;color:var(--muted);margin:0}
+  kbd{font:12px ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--chip);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+  #help{position:fixed;inset:0;background:color-mix(in srgb,var(--bg) 70%,transparent);backdrop-filter:blur(6px);display:none;
+    place-items:center;padding:16px;z-index:10}
+  #help.open{display:grid}
+  #help .box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;max-width:560px;width:100%;max-height:90vh;overflow:auto}
+  #help h2{margin:0 0 8px}
+  #help table{width:100%;border-collapse:collapse;font-size:14px}
+  #help td{padding:5px 4px;border-top:1px solid var(--line);vertical-align:top}
+  #help td:first-child{white-space:nowrap;width:40%}
+  .toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);
+    padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:20;max-width:92vw}
+  .toast.show{opacity:1}
+  @media (max-width:760px){.app{grid-template-columns:1fr;grid-template-areas:"head" "map" "side"} h1 small{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Rill<small>paint a landscape, watch the rivers find their way</small></h1>
+    <div class="spacer"></div>
+    <button id="newBtn" title="New terrain (N)">New</button>
+    <button id="saveBtn" title="Save (S)">Save</button>
+    <button id="openBtn" title="Open (O)">Open</button>
+    <button id="themeBtn" title="Theme (T)">Theme</button>
+    <button id="helpBtn" title="Help (Ctrl+/)">?</button>
+    <input id="file" type="file" accept=".json,application/json" hidden>
+  </header>
+
+  <div class="map">
+    <canvas id="view"></canvas>
+    <div class="stats"><span id="stLand"></span><span id="stPeak"></span><span id="stRiver"></span><span id="stBasin"></span></div>
+  </div>
+
+  <aside>
+    <div class="card">
+      <h2>Tool</h2>
+      <div class="row" id="tools">
+        <button data-tool="raise">▲ Raise</button><button data-tool="lower">▼ Lower</button>
+        <button data-tool="smooth">≈ Smooth</button><button data-tool="trace">● Trace</button>
+      </div>
+      <label class="sl">Brush <output id="brushOut"></output><input id="brush" type="range" min="2" max="30" step="1"></label>
+      <p class="hint" id="toolHint"></p>
+    </div>
+    <div class="card">
+      <h2>World</h2>
+      <label class="sl">Sea level <output id="seaOut"></output><input id="sea" type="range" min="0" max="0.8" step="0.005"></label>
+      <label class="sl">Sun azimuth <output id="sunOut"></output><input id="sun" type="range" min="0" max="359" step="1"></label>
+    </div>
+    <div class="card">
+      <h2>Layers</h2>
+      <div class="row" id="layers">
+        <button data-layer="contour">Contours</button><button data-layer="river">Rivers</button>
+        <button data-layer="lake">Lakes</button><button data-layer="basin">Basins</button>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div id="help" role="dialog" aria-modal="true"><div class="box">
+  <h2>Rill</h2>
+  <p>A hydrology sandbox. Every brush stroke re-runs a watershed model: depressions are flood-filled, water flows downhill
+  (D8), accumulation becomes rivers, and the basins that feed each river mouth are mapped. Use <b>Trace</b> and tap anywhere to
+  see where a raindrop goes and everything that drains to that spot.</p>
+  <table>
+    <tr><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></td><td>Raise · Lower · Smooth · Trace</td></tr>
+    <tr><td><kbd>[</kbd> / <kbd>]</kbd></td><td>Smaller / larger brush</td></tr>
+    <tr><td><kbd>←</kbd> / <kbd>→</kbd></td><td>Rotate the sun</td></tr>
+    <tr><td><kbd>C</kbd> <kbd>R</kbd> <kbd>L</kbd> <kbd>B</kbd></td><td>Toggle contours · rivers · lakes · basins</td></tr>
+    <tr><td><kbd>N</kbd></td><td>New random terrain</td></tr>
+    <tr><td><kbd>S</kbd> / <kbd>O</kbd></td><td>Save / Open a .json world (Save downloads when the file is opened directly)</td></tr>
+    <tr><td><kbd>T</kbd></td><td>Toggle dark / light theme</td></tr>
+    <tr><td><kbd>Ctrl</kbd>+<kbd>/</kbd></td><td>This help · <kbd>Esc</kbd> closes it and clears a trace</td></tr>
+  </table>
+  <p class="hint">Scale: one cell is 100 m; the map is 16 km across; full height is 2,500 m.</p>
+  <button class="primary" id="helpClose">Close</button>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+const N = 160, CELLS = N * N, DIRS = [[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1],[0,-1],[1,-1]];
+const $ = id => document.getElementById(id);
+const S = { tool:'raise', brush:10, sea:0.32, sun:315, layers:{contour:true, river:true, lake:true, basin:false}, trace:-1 };
+let h = new Float64Array(CELLS);          // elevation, 0..1
+let H = null;                              // hydrology result, rebuilt whenever h or sea changes
+
+/* ---------- terrain ---------- */
+function rng(seed){ return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function generate(seed){
+  const r = rng(seed), oct = [];
+  for (let o = 0; o < 6; o++){ const size = 4 << o, g = new Float32Array((size+1)*(size+1)); for (let i=0;i<g.length;i++) g[i]=r(); oct.push({size,g}); }
+  const smooth = t => t*t*(3-2*t);
+  let lo = 1, hi = 0;
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++){
+    let v = 0, amp = 1;
+    for (const {size, g} of oct){
+      const fx = x/N*size, fy = y/N*size, ix = fx|0, iy = fy|0, tx = smooth(fx-ix), ty = smooth(fy-iy), w = size+1;
+      const a = g[iy*w+ix], b = g[iy*w+ix+1], c = g[(iy+1)*w+ix], d = g[(iy+1)*w+ix+1];
+      v += amp * ((a + (b-a)*tx) * (1-ty) + (c + (d-c)*tx) * ty); amp *= 0.5;
+    }
+    const dx = x/N - 0.5, dy = y/N - 0.5, falloff = 1.08 - 1.5*(dx*dx + dy*dy);   // gentle island shape
+    v = Math.max(0, v * falloff); h[y*N+x] = v; lo = Math.min(lo, v); hi = Math.max(hi, v);
+  }
+  for (let i = 0; i < CELLS; i++) h[i] = Math.pow((h[i]-lo)/(hi-lo), 1.6);
+}
+
+/* ---------- hydrology: priority-flood fill, D8 flow, accumulation, basins ---------- */
+function hydrology(){
+  const filled = new Float64Array(h), seen = new Uint8Array(CELLS), order = new Int32Array(CELLS);
+  const hk = new Float64Array(CELLS), hi = new Int32Array(CELLS); let hn = 0;   // binary min-heap
+  const push = (k, i) => { let p = hn++; while (p > 0){ const q = (p-1) >> 1; if (hk[q] <= k) break; hk[p]=hk[q]; hi[p]=hi[q]; p=q; } hk[p]=k; hi[p]=i; };
+  const pop = () => { const i = hi[0], k = hk[--hn], v = hi[hn]; let p = 0; for(;;){ let c = 2*p+1; if (c >= hn) break;
+    if (c+1 < hn && hk[c+1] < hk[c]) c++; if (hk[c] >= k) break; hk[p]=hk[c]; hi[p]=hi[c]; p=c; } hk[p]=k; hi[p]=v; return i; };
+  for (let i = 0; i < N; i++) for (const j of [i, i+N*(N-1), i*N, i*N+N-1]) if (!seen[j]){ seen[j]=1; push(filled[j], j); }
+  let k = 0;
+  while (hn){ const i = pop(); order[k++] = i; const x = i % N, y = (i-x)/N;
+    for (const [dx,dy] of DIRS){ const nx = x+dx, ny = y+dy; if (nx<0||ny<0||nx>=N||ny>=N) continue; const j = ny*N+nx;
+      if (seen[j]) continue; seen[j] = 1; filled[j] = Math.max(h[j], filled[i] + 1e-7); push(filled[j], j); } }
+  const sea = S.sea, ocean = new Uint8Array(CELLS), down = new Int32Array(CELLS).fill(-1), acc = new Float32Array(CELLS).fill(1);
+  for (let i = 0; i < CELLS; i++){ if (filled[i] <= sea){ ocean[i] = 1; continue; } const x = i % N, y = (i-x)/N; let best = 0;
+    for (let d = 0; d < 8; d++){ const nx = x+DIRS[d][0], ny = y+DIRS[d][1]; if (nx<0||ny<0||nx>=N||ny>=N) continue; const j = ny*N+nx;
+      const s = (filled[j]-filled[i]) / (d & 1 ? 1.4142 : 1); if (s < best){ best = s; down[i] = j; } } }
+  for (let k = CELLS-1; k >= 0; k--){ const i = order[k]; if (down[i] >= 0) acc[down[i]] += acc[i]; }
+  const label = new Int32Array(CELLS), area = new Map();
+  for (let k = 0; k < CELLS; k++){ const i = order[k]; if (ocean[i]){ label[i] = -1; continue; }
+    const d = down[i]; label[i] = (d < 0 || ocean[d]) ? i : label[d]; area.set(label[i], (area.get(label[i])||0)+1); }
+  const basins = [...area.entries()].filter(([,a]) => a >= CELLS*0.02).sort((a,b) => b[1]-a[1]).map(([id]) => id);
+  const rank = new Map(basins.map((id, i) => [id, i]));
+  let land = 0, peak = 0, riverCells = 0;
+  for (let i = 0; i < CELLS; i++){ if (!ocean[i]){ land++; if (acc[i] >= 40) riverCells++; } peak = Math.max(peak, h[i]); }
+  H = { filled, ocean, down, acc, order, label, rank, land, peak, riverCells };
+}
+
+/* ---------- rendering ---------- */
+const view = $('view'), ctx = view.getContext('2d'), off = document.createElement('canvas'); off.width = off.height = N;
+const octx = off.getContext('2d'), img = octx.createImageData(N, N);
+const hex = c => [parseInt(c.slice(1,3),16), parseInt(c.slice(3,5),16), parseInt(c.slice(5,7),16)];
+const mix = (a, b, t) => [a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t, a[2]+(b[2]-a[2])*t];
+const BASIN = [[230,90,90],[240,160,60],[150,200,80],[80,190,200],[150,120,230],[230,120,190],[200,180,90],[90,150,230]];
+let pal;
+function readPalette(){ const cs = getComputedStyle(document.documentElement), v = n => cs.getPropertyValue(n).trim();
+  pal = { land: v('--land').split(',').map(hex), deep: hex(v('--sea-deep')), shallow: hex(v('--sea-shallow')), lake: hex(v('--lake')), river: v('--river'), ink: v('--ink') }; }
+function landColor(t){ const s = t * (pal.land.length-1), i = Math.min(pal.land.length-2, s|0); return mix(pal.land[i], pal.land[i+1], s-i); }
+
+function render(){
+  if (!H) hydrology();
+  const { filled, ocean, acc, label, rank, down } = H, sea = S.sea, az = S.sun * Math.PI/180, alt = Math.PI/4;
+  const L = [Math.sin(az)*Math.cos(alt), -Math.cos(az)*Math.cos(alt), Math.sin(alt)], d = img.data;
+  let up = null;
+  if (S.trace >= 0){ up = new Uint8Array(CELLS); up[S.trace] = 1;
+    for (let k = 0; k < CELLS; k++){ const i = H.order[k], j = down[i]; if (j >= 0 && up[j]) up[i] = 1; } }
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++){
+    const i = y*N+x, x0 = i - (x > 0), x1 = i + (x < N-1), y0 = i - (y > 0)*N, y1 = i + (y < N-1)*N;
+    const nx = -(h[x1]-h[x0]) * 28, ny = -(h[y1]-h[y0]) * 28, inv = 1/Math.sqrt(nx*nx+ny*ny+1);
+    const shade = Math.max(0, (nx*L[0] + ny*L[1] + L[2]) * inv);
+    let c;
+    if (ocean[i]) c = mix(pal.shallow, pal.deep, Math.min(1, (sea - h[i]) / Math.max(sea, 0.05) * 1.6));
+    else if (S.layers.lake && filled[i] - h[i] > 0.004) c = pal.lake;
+    else { c = landColor((h[i]-sea)/(1-sea)); const r = rank.get(label[i]);
+      if (S.layers.basin && r !== undefined) c = mix(c, BASIN[r % BASIN.length], 0.45); }
+    const k = ocean[i] ? 0.75 + 0.25*shade : 0.45 + 0.65*shade;
+    if (up && up[i]) c = mix(c, [255, 225, 40], 0.65);
+    d[i*4] = c[0]*k; d[i*4+1] = c[1]*k; d[i*4+2] = c[2]*k; d[i*4+3] = 255;
+  }
+  octx.putImageData(img, 0, 0);
+  const W = view.width; ctx.clearRect(0, 0, W, W); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(off, 0, 0, W, W);
+  const cs = W / N, cx = i => ((i % N) + 0.5) * cs, cy = i => (((i / N) | 0) + 0.5) * cs;
+  if (S.layers.contour) drawContours(cs);
+  if (S.layers.river){ ctx.strokeStyle = pal.river; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    // each river cell draws the smooth curve from the midpoint above it, through itself, to the midpoint below it
+    for (let i = 0; i < CELLS; i++){ if (ocean[i] || acc[i] < 40 || down[i] < 0) continue; const j = down[i], k = down[j];
+      ctx.lineWidth = Math.min(cs*2.2, cs * (0.25 + Math.log2(acc[i]/40) * 0.3)); ctx.beginPath(); ctx.moveTo((cx(i)+cx(j))/2, (cy(i)+cy(j))/2);
+      if (k >= 0 && !ocean[j]) ctx.quadraticCurveTo(cx(j), cy(j), (cx(j)+cx(k))/2, (cy(j)+cy(k))/2); else ctx.lineTo(cx(j), cy(j)); ctx.stroke(); } }
+  if (S.trace >= 0){ ctx.strokeStyle = '#ffd400'; ctx.lineWidth = Math.max(2, cs*0.6); ctx.beginPath(); let i = S.trace; ctx.moveTo(cx(i), cy(i));
+    for (let n = 0; n < CELLS && down[i] >= 0 && !ocean[i]; n++){ const j = down[i]; ctx.quadraticCurveTo(cx(i), cy(i), (cx(i)+cx(j))/2, (cy(i)+cy(j))/2); i = j; } ctx.stroke();
+    ctx.fillStyle = '#ffd400'; ctx.beginPath(); ctx.arc(cx(S.trace), cy(S.trace), Math.max(4, cs*1.2), 0, 7); ctx.fill(); }
+  $('stLand').textContent = `Land ${Math.round(H.land/CELLS*100)}%`; $('stPeak').textContent = `Peak ${Math.round(H.peak*2500)} m`;
+  $('stRiver').textContent = `Rivers ${(H.riverCells/10).toFixed(1)} km`; $('stBasin').textContent = `Basins ${H.rank.size}`;
+}
+function drawContours(cs){      // marching squares on h, levels above sea
+  ctx.strokeStyle = pal.ink; ctx.globalAlpha = 0.28; ctx.lineWidth = 1; ctx.beginPath();
+  const lerp = (a, b, v) => (v - a) / (b - a);
+  for (let lv = S.sea + 0.06; lv < 1; lv += 0.06) for (let y = 0; y < N-1; y++) for (let x = 0; x < N-1; x++){
+    const a = h[y*N+x], b = h[y*N+x+1], c = h[(y+1)*N+x+1], dd = h[(y+1)*N+x];
+    const code = (a >= lv) | (b >= lv) << 1 | (c >= lv) << 2 | (dd >= lv) << 3; if (code === 0 || code === 15) continue;
+    const pts = []; if ((a>=lv) !== (b>=lv)) pts.push([x+lerp(a,b,lv), y]); if ((b>=lv) !== (c>=lv)) pts.push([x+1, y+lerp(b,c,lv)]);
+    if ((c>=lv) !== (dd>=lv)) pts.push([x+lerp(dd,c,lv), y+1]); if ((dd>=lv) !== (a>=lv)) pts.push([x, y+lerp(a,dd,lv)]);
+    for (let p = 0; p+1 < pts.length; p += 2){ ctx.moveTo((pts[p][0]+0.5)*cs, (pts[p][1]+0.5)*cs); ctx.lineTo((pts[p+1][0]+0.5)*cs, (pts[p+1][1]+0.5)*cs); }
+  }
+  ctx.stroke(); ctx.globalAlpha = 1;
+}
+
+/* ---------- painting ---------- */
+function paint(cxl, cyl){
+  const r = S.brush, r2 = r*r;
+  for (let y = Math.max(0, cyl-r); y <= Math.min(N-1, cyl+r); y++) for (let x = Math.max(0, cxl-r); x <= Math.min(N-1, cxl+r); x++){
+    const d2 = (x-cxl)**2 + (y-cyl)**2; if (d2 > r2) continue; const w = Math.exp(-d2 / (r2*0.35)), i = y*N+x;
+    if (S.tool === 'raise') h[i] = Math.min(1, h[i] + 0.012*w);
+    else if (S.tool === 'lower') h[i] = Math.max(0, h[i] - 0.012*w);
+    else { let s = 0, n = 0; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++){ const nx = x+dx, ny = y+dy;
+      if (nx>=0&&ny>=0&&nx<N&&ny<N){ s += h[ny*N+nx]; n++; } } h[i] += (s/n - h[i]) * 0.5 * w; }
+  }
+}
+let dirty = false, painting = false;
+const cellAt = e => { const b = view.getBoundingClientRect(); return [Math.floor((e.clientX-b.left)/b.width*N), Math.floor((e.clientY-b.top)/b.height*N)]; };
+function apply(e){ const [x, y] = cellAt(e); if (x<0||y<0||x>=N||y>=N) return;
+  if (S.tool === 'trace'){ S.trace = y*N+x; } else { paint(x, y); H = null; } dirty = true; }
+view.addEventListener('pointerdown', e => { painting = true; view.setPointerCapture(e.pointerId); apply(e); e.preventDefault(); });
+view.addEventListener('pointermove', e => { if (painting) apply(e); });
+const stop = () => painting = false; view.addEventListener('pointerup', stop); view.addEventListener('pointercancel', stop);
+(function loop(){ if (dirty){ dirty = false; render(); } requestAnimationFrame(loop); })();
+const invalidate = () => { H = null; dirty = true; };
+
+/* ---------- UI wiring ---------- */
+const HINTS = { raise:'Drag to push the land up.', lower:'Drag to carve valleys and dig lakes.', smooth:'Drag to soften slopes.', trace:'Tap or drag: see where rain falling there goes, and everything that drains to it.' };
+function setTool(t){ S.tool = t; for (const b of $('tools').children) b.classList.toggle('on', b.dataset.tool === t); $('toolHint').textContent = HINTS[t]; if (t !== 'trace' && S.trace >= 0){ S.trace = -1; dirty = true; } }
+function setLayer(l, v = !S.layers[l]){ S.layers[l] = v; for (const b of $('layers').children) b.classList.toggle('on', S.layers[b.dataset.layer]); dirty = true; }
+function syncSliders(){ $('brush').value = S.brush; $('brushOut').textContent = `${S.brush*100} m`; $('sea').value = S.sea; $('seaOut').textContent = `${Math.round(S.sea*2500)} m`;
+  $('sun').value = S.sun; $('sunOut').textContent = `${S.sun}°`; }
+$('tools').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setTool(b.dataset.tool); });
+$('layers').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setLayer(b.dataset.layer); });
+$('brush').addEventListener('input', e => { S.brush = +e.target.value; syncSliders(); });
+$('sea').addEventListener('input', e => { S.sea = +e.target.value; syncSliders(); invalidate(); });
+$('sun').addEventListener('input', e => { S.sun = +e.target.value; syncSliders(); dirty = true; });
+$('newBtn').addEventListener('click', () => { generate(Math.random()*2**31|0); S.trace = -1; invalidate(); });
+$('helpBtn').addEventListener('click', () => $('help').classList.toggle('open'));
+$('helpClose').addEventListener('click', () => $('help').classList.remove('open'));
+$('help').addEventListener('click', e => { if (e.target === $('help')) $('help').classList.remove('open'); });
+function setTheme(t){ document.documentElement.dataset.theme = t; readPalette(); dirty = true; }
+$('themeBtn').addEventListener('click', () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
+function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2600); }
+
+/* ---------- save / open ---------- */
+const b64 = u8 => { let s = ''; for (let i = 0; i < u8.length; i += 8192) s += String.fromCharCode.apply(null, u8.subarray(i, i+8192)); return btoa(s); };
+const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+function serialize(){ const q = new Uint16Array(CELLS); for (let i = 0; i < CELLS; i++) q[i] = Math.round(h[i]*65535);
+  return { app:'Rill', version:1, n:N, height:b64(new Uint8Array(q.buffer)), sea:S.sea, sun:S.sun, brush:S.brush, tool:S.tool, layers:S.layers, theme:document.documentElement.dataset.theme }; }
+function restore(o){
+  if (!o || o.app !== 'Rill' || o.version !== 1 || o.n !== N || typeof o.height !== 'string') throw new Error('Not a Rill world file (expected app "Rill", version 1).');
+  const bytes = unb64(o.height); if (bytes.length !== CELLS*2) throw new Error('Height data is the wrong size.');
+  const q = new Uint16Array(bytes.buffer); for (let i = 0; i < CELLS; i++) h[i] = q[i]/65535;
+  S.sea = +o.sea || 0; S.sun = +o.sun || 0; S.brush = +o.brush || 10; Object.assign(S.layers, o.layers || {}); S.trace = -1;
+  setTool(['raise','lower','smooth','trace'].includes(o.tool) ? o.tool : 'raise'); setLayer('contour', S.layers.contour); syncSliders();
+  if (o.theme) setTheme(o.theme); invalidate();
+}
+function save(){ const blob = new Blob([JSON.stringify(serialize())], { type:'application/json' }), a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = `rill-${new Date().toISOString().slice(0,10)}.json`; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000); toast('Saved world as ' + a.download); }
+$('saveBtn').addEventListener('click', save);
+$('openBtn').addEventListener('click', () => $('file').click());
+$('file').addEventListener('change', async e => { const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try { restore(JSON.parse(await f.text())); toast('Opened ' + f.name); } catch (err){ toast('Could not open: ' + err.message); } });
+
+/* ---------- keyboard ---------- */
+document.addEventListener('keydown', e => {
+  const tag = (e.target.tagName || '').toLowerCase();
+  if (e.target.isContentEditable || tag === 'input' || tag === 'textarea' || tag === 'select') return;
+  if ((e.ctrlKey || e.metaKey) && e.key === '/'){ e.preventDefault(); $('help').classList.toggle('open'); return; }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key.toLowerCase(); const tools = { '1':'raise', '2':'lower', '3':'smooth', '4':'trace' }, layers = { c:'contour', r:'river', l:'lake', b:'basin' };
+  if (tools[k]) setTool(tools[k]); else if (layers[k]) setLayer(layers[k]);
+  else if (k === '[' || k === ']'){ S.brush = Math.max(2, Math.min(30, S.brush + (k === ']' ? 2 : -2))); syncSliders(); }
+  else if (k === 'arrowleft' || k === 'arrowright'){ S.sun = (S.sun + (k === 'arrowright' ? 15 : -15) + 360) % 360; syncSliders(); dirty = true; }
+  else if (k === 'n') $('newBtn').click(); else if (k === 's') save(); else if (k === 'o') $('file').click(); else if (k === 't') $('themeBtn').click();
+  else if (k === 'escape'){ if ($('help').classList.contains('open')) $('help').classList.remove('open'); else { S.trace = -1; dirty = true; } }
+  else return;
+  e.preventDefault();
+});
+
+/* ---------- boot ---------- */
+function resize(){ const w = Math.round(view.clientWidth * devicePixelRatio) || N; if (view.width !== w){ view.width = view.height = w; view.style.height = view.clientWidth + 'px'; } dirty = true; }
+new ResizeObserver(resize).observe(view.parentElement);
+setTheme(matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+generate(20261126); setTool('raise'); setLayer('contour', true); syncSliders(); resize(); render();
+</script>
+</body>
+</html>
+
+</body></html>

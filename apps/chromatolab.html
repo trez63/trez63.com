@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ChromatoLab — HPLC Gradient Elution & Van Deemter Studio</title>
+    <style>
+        :root {
+            --bg: #07090f; --panel: #101521; --card: #182032; --border: #2c3854;
+            --text: #f8fafc; --sub: #94a3b8; --accent: #06b6d4; --accent-hover: #0891b2;
+            --grad: #f59e0b; --emerald: #10b981; --shadow: rgba(0,0,0,0.65);
+        }
+        [data-theme="light"] {
+            --bg: #f1f5f9; --panel: #ffffff; --card: #f8fafc; --border: #cbd5e1;
+            --text: #0f172a; --sub: #64748b; --accent: #0891b2; --accent-hover: #0e7490;
+            --grad: #d97706; --emerald: #059669; --shadow: rgba(0,0,0,0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+
+        header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; z-index: 10; }
+        .brand { font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em; }
+        .peak-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+        .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        button, label.btn-label, select { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; user-select: none; transition: 0.15s; outline: none; }
+        button:hover, label.btn-label:hover { border-color: var(--accent); color: var(--accent); }
+        button.primary { background: var(--accent); color: #051116; font-weight: 600; border-color: var(--accent); }
+        button.primary:hover { background: var(--accent-hover); color: #fff; }
+        input[type="file"] { display: none; }
+
+        .metrics-bar { background: var(--panel); border-bottom: 1px solid var(--border); padding: 10px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: 12px; font-size: 0.8rem; z-index: 10; }
+        .metric-card { background: var(--bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); }
+        .metric-title { color: var(--sub); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+        .metric-val { font-size: 1rem; font-weight: 700; color: var(--text); }
+
+        main { flex: 1; padding: 16px; max-width: 1360px; width: 100%; margin: 0 auto; display: grid; grid-template-columns: 315px 1fr; gap: 16px; }
+        .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; box-shadow: 0 4px 6px var(--shadow); display: flex; flex-direction: column; gap: 11px; }
+        .section-title { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sub); display: flex; justify-content: space-between; align-items: center; }
+
+        .form-group { margin-bottom: 2px; }
+        .form-group label { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--sub); margin-bottom: 3px; font-weight: 500; }
+        .form-group select, .form-group input[type="range"] { width: 100%; accent-color: var(--accent); }
+
+        .chroma-stack { display: flex; flex-direction: column; gap: 12px; }
+        .col-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; height: 95px; position: relative; overflow: hidden; }
+        .uv-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; height: 350px; position: relative; overflow: hidden; }
+        canvas { width: 100%; height: 100%; display: block; cursor: pointer; touch-action: none; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 200; padding: 16px; }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 440px; padding: 20px; box-shadow: 0 20px 25px -5px var(--shadow); }
+        .modal h3 { font-size: 1.1rem; margin-bottom: 12px; }
+
+        .shortcut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem; margin: 12px 0 16px; }
+        .shortcut-row { display: flex; justify-content: space-between; background: var(--card); padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border); }
+        kbd { background: var(--panel); border: 1px solid var(--border); padding: 1px 5px; border-radius: 3px; font-weight: 600; font-size: 0.75rem; }
+
+        @media (max-width: 850px) {
+            header { flex-direction: column; align-items: stretch; }
+            .actions { justify-content: space-between; }
+            main { grid-template-columns: 1fr; padding: 8px; }
+            .metrics-bar { grid-template-columns: repeat(2, 1fr); }
+            .uv-box { height: 290px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand"><div class="peak-dot"></div> ChromatoLab RP-HPLC Studio</div>
+        <div class="actions">
+            <button id="injectBtn" class="primary">💉 Inject Sample</button>
+            <button id="spikeBtn">🧪 + Impurity Peak</button>
+            <button id="saveBtn">💾 Save JSON</button>
+            <label class="btn-label" for="openFile">📂 Open JSON</label>
+            <input type="file" id="openFile" accept=".json">
+            <button id="themeBtn">🌓 Theme</button>
+            <button id="helpBtn">❓ Help</button>
+        </div>
+    </header>
+
+    <div class="metrics-bar">
+        <div class="metric-card"><div class="metric-title">Min Peak Resolution (Rs)</div><div class="metric-val" id="mRs" style="color:var(--emerald);">2.14 (Baseline)</div></div>
+        <div class="metric-card"><div class="metric-title">Theoretical Plates (N)</div><div class="metric-val" id="mPlates" style="color:var(--accent);">18,450</div></div>
+        <div class="metric-card"><div class="metric-title">Backpressure (ΔP)</div><div class="metric-val" id="mPress" style="color:var(--grad);">245 bar</div></div>
+        <div class="metric-card"><div class="metric-title">Selected Analyte</div><div class="metric-val" id="mSel">Caffeine (2.8m)</div></div>
+    </div>
+
+    <main>
+        <!-- HPLC Method Controls -->
+        <div class="panel">
+            <div class="section-title"><span>C18 Column &amp; Gradient Method</span></div>
+
+            <div class="form-group">
+                <label>Analytical Separation Assay</label>
+                <select id="cfgAssay">
+                    <option value="xanthines">Xanthine &amp; Polyphenol Assay</option>
+                    <option value="pharma">API &amp; Critical Pair Impurities</option>
+                    <option value="terpenes">Botanical Terpene Isomers</option>
+                    <option value="uhplc">Sub-2μm Fast UHPLC Screen</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Flow Rate (F): <span id="valFlow">1.20</span> mL/min</label>
+                <input type="range" id="cfgFlow" min="0.3" max="2.5" step="0.1" value="1.2">
+            </div>
+
+            <div class="form-group">
+                <label>Initial %B (Acetonitrile): <span id="valPhi0">15</span>%</label>
+                <input type="range" id="cfgPhi0" min="5" max="55" step="5" value="15">
+            </div>
+
+            <div class="form-group">
+                <label>Final %B (Gradient End): <span id="valPhi1">85</span>%</label>
+                <input type="range" id="cfgPhi1" min="40" max="100" step="5" value="85">
+            </div>
+
+            <div class="form-group">
+                <label>Stationary Particle Size (dp): <span id="valDp">3.0</span> μm</label>
+                <input type="range" id="cfgDp" min="1.7" max="5.0" step="0.1" value="3.0">
+            </div>
+
+            <div class="form-group">
+                <label>Column Temp (T): <span id="valTemp">35</span> °C</label>
+                <input type="range" id="cfgTemp" min="20" max="65" step="5" value="35">
+            </div>
+
+            <p style="font-size:0.75rem; color:var(--sub); line-height:1.4; margin-top:2px;">
+                <strong>Tap any peak</strong> on the UV chromatogram to inspect retention time ($t_R$), capacity factor ($k'$), and peak purity, or watch analyte bands migrate down the C18 column above.
+            </p>
+        </div>
+
+        <!-- C18 Column Band Migration + UV-Vis Chromatogram -->
+        <div class="panel">
+            <div class="chroma-stack">
+                <div>
+                    <div class="section-title" style="margin-bottom:5px;"><span>C18 Reversed-Phase Column Band Separation (150 × 4.6 mm)</span></div>
+                    <div class="col-box"><canvas id="colCanvas"></canvas></div>
+                </div>
+                <div>
+                    <div class="section-title" style="margin-bottom:5px;"><span>UV-Vis 254 nm Detector Chromatogram &amp; %B Mobile-Phase Gradient</span></div>
+                    <div class="uv-box"><canvas id="uvCanvas"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal">
+            <h3>ChromatoLab Guide &amp; Shortcuts</h3>
+            <p style="font-size:0.85rem; color:var(--sub); line-height:1.4; margin-bottom:10px;">Reversed-phase HPLC simulator coupling Linear Solvent Strength gradient retention with Van Deemter band-broadening plate physics.</p>
+            <div class="shortcut-grid">
+                <div class="shortcut-row"><span>Re-Inject Sample</span> <kbd>Space</kbd></div>
+                <div class="shortcut-row"><span>Add Impurity</span> <kbd>A</kbd></div>
+                <div class="shortcut-row"><span>Reset Method</span> <kbd>R</kbd></div>
+                <div class="shortcut-row"><span>Save Method</span> <kbd>S</kbd></div>
+                <div class="shortcut-row"><span>Open Method</span> <kbd>O</kbd></div>
+                <div class="shortcut-row"><span>Toggle Theme</span> <kbd>T</kbd></div>
+                <div class="shortcut-row"><span>Close Modal</span> <kbd>Esc</kbd></div>
+            </div>
+            <button id="closeHelpBtn" class="primary" style="width:100%; justify-content:center; margin-top:10px;">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        // --- RP-HPLC Analytical State ---
+        let method = {
+            assay: 'xanthines',
+            flow: 1.2,      // mL/min
+            phi0: 0.15,     // initial organic fraction
+            phi1: 0.85,     // final organic fraction
+            dp: 3.0,        // particle size in um
+            temp: 35,       // Celsius
+            selectedIdx: 2,
+            analytes: []    // { name, logKw, S, conc, color }
+        };
+
+        const ASSAYS = {
+            xanthines: {
+                flow: 1.2, phi0: 0.15, phi1: 0.85, dp: 3.0, temp: 35, selectedIdx: 2,
+                analytes: [
+                    { name: 'Theobromine',   logKw: 1.45, S: 4.1, conc: 58, color: '#38bdf8' },
+                    { name: 'Theophylline',  logKw: 1.92, S: 4.4, conc: 74, color: '#a855f7' },
+                    { name: 'Caffeine',      logKw: 2.48, S: 4.8, conc: 98, color: '#06b6d4' },
+                    { name: 'Epicatechin',   logKw: 3.15, S: 5.5, conc: 66, color: '#10b981' },
+                    { name: 'Quercetin',     logKw: 4.10, S: 6.3, conc: 82, color: '#f59e0b' }
+                ]
+            },
+            pharma: {
+                flow: 1.0, phi0: 0.25, phi1: 0.90, dp: 2.7, temp: 40, selectedIdx: 1,
+                analytes: [
+                    { name: 'Acetaminophen', logKw: 1.35, S: 3.9, conc: 88, color: '#38bdf8' },
+                    { name: 'Impurity-A',    logKw: 2.65, S: 5.1, conc: 44, color: '#f43f5e' },
+                    { name: 'API-Parent',    logKw: 2.86, S: 5.2, conc: 100,color: '#06b6d4' },
+                    { name: 'Ester-Degrad',  logKw: 3.85, S: 6.0, conc: 52, color: '#f59e0b' }
+                ]
+            },
+            terpenes: {
+                flow: 1.4, phi0: 0.45, phi1: 0.95, dp: 3.5, temp: 30, selectedIdx: 2,
+                analytes: [
+                    { name: 'Linalool',      logKw: 3.30, S: 5.2, conc: 64, color: '#38bdf8' },
+                    { name: 'α-Pinene',      logKw: 4.05, S: 5.8, conc: 85, color: '#10b981' },
+                    { name: 'β-Pinene',      logKw: 4.24, S: 5.9, conc: 79, color: '#a855f7' },
+                    { name: 'Limonene',      logKw: 4.85, S: 6.4, conc: 94, color: '#f59e0b' }
+                ]
+            },
+            uhplc: {
+                flow: 1.8, phi0: 0.20, phi1: 0.95, dp: 1.7, temp: 50, selectedIdx: 2,
+                analytes: [
+                    { name: 'Uracil (t0)',   logKw: 0.10, S: 1.0, conc: 42, color: '#94a3b8' },
+                    { name: 'Salicylate',    logKw: 2.10, S: 4.6, conc: 76, color: '#38bdf8' },
+                    { name: 'Naproxen',      logKw: 3.25, S: 5.6, conc: 95, color: '#06b6d4' },
+                    { name: 'Diclofenac',    logKw: 4.15, S: 6.2, conc: 84, color: '#10b981' },
+                    { name: 'Indomethacin',  logKw: 4.75, S: 6.7, conc: 70, color: '#f59e0b' }
+                ]
+            }
+        };
+
+        const RUN_TIME = 10.0; // minutes
+        let runClock = RUN_TIME; // Starts pre-injected & eluted for immediate 5s impact
+        let peakHitboxes = [];
+
+        const colCanvas = document.getElementById('colCanvas');
+        const colCtx = colCanvas.getContext('2d');
+        const uvCanvas = document.getElementById('uvCanvas');
+        const uvCtx = uvCanvas.getContext('2d');
+
+        // --- Van Deemter Plate Height & Linear Solvent Strength (LSS) Physics ---
+        function computeSeparation() {
+            const L_mm = 150;
+            const V0_mL = 1.48; // Void volume for 150 x 4.6 mm C18
+            const t0 = V0_mL / method.flow;
+
+            // Van Deemter Equation: H = A + B/u + C*u (in um)
+            const u = method.flow * 2.2; // linear velocity mm/s
+            const tempFactor = 1 + (method.temp - 35) * 0.012;
+            const A = 1.4 * method.dp;
+            const B = (2.8 * tempFactor) / u;
+            const C = (0.045 * method.dp * method.dp) / tempFactor * u;
+            const H_um = A + B + C;
+            const platesN = Math.round((L_mm * 1000) / H_um);
+
+            // Darcy Backpressure (bar) scales with F / dp^2 and inversely with Temp
+            const pressureBar = Math.round((185 * method.flow * Math.pow(3.0 / method.dp, 2)) / (0.65 + method.temp * 0.01));
+
+            // Gradient slope b = (phi1 - phi0) / RUN_TIME
+            const slope = Math.max(0.001, (method.phi1 - method.phi0) / RUN_TIME);
+
+            const peaks = method.analytes.map((a, idx) => {
+                // Local retention at initial %B
+                const kw = Math.pow(10, a.logKw);
+                const k0 = kw * Math.exp(-a.S * method.phi0);
+                const bGrad = a.S * slope * t0;
+
+                // Analytical LSS gradient retention time tR
+                const tR = t0 + (t0 / bGrad) * Math.log(1 + bGrad * k0);
+                const sigmaT = (tR / Math.sqrt(platesN)) * (1 + 0.15 * bGrad);
+
+                // Fractional column progress z in [0..1] at current runClock
+                const zPos = Math.min(1.15, runClock / Math.max(0.1, tR));
+
+                return { ...a, idx, t0, tR, sigmaT, zPos, kPrime: (tR - t0) / t0 };
+            }).sort((a, b) => a.tR - b.tR);
+
+            // Minimum adjacent USP Resolution Rs = 1.18 * (tR2 - tR1) / (W0.5_1 + W0.5_2)
+            let minRs = 9.9;
+            for (let i = 1; i < peaks.length; i++) {
+                const p1 = peaks[i - 1], p2 = peaks[i];
+                const fwhm1 = 2.355 * p1.sigmaT;
+                const fwhm2 = 2.355 * p2.sigmaT;
+                const rs = (2 * (p2.tR - p1.tR)) / (fwhm1 + fwhm2);
+                if (rs < minRs) minRs = rs;
+            }
+
+            return { t0, platesN, pressureBar, peaks, minRs };
+        }
+
+        // --- Render C18 Column Packed Bed & Migrating Analyte Bands ---
+        function renderColumn(sep) {
+            const w = colCanvas.parentElement.clientWidth;
+            const h = colCanvas.parentElement.clientHeight;
+            if (colCanvas.width !== w || colCanvas.height !== h) {
+                colCanvas.width = w;
+                colCanvas.height = h;
+            }
+
+            const styles = getComputedStyle(document.documentElement);
+            const borderCol = styles.getPropertyValue('--border').trim();
+            const subCol = styles.getPropertyValue('--sub').trim();
+            const cardCol = styles.getPropertyValue('--card').trim();
+
+            colCtx.clearRect(0, 0, w, h);
+
+            const padX = 28;
+            const colX = padX;
+            const colW = w - padX * 2;
+            const colY = 24;
+            const colH = h - 42;
+
+            // Column silica bed background
+            colCtx.fillStyle = cardCol;
+            colCtx.fillRect(colX, colY, colW, colH);
+            colCtx.strokeStyle = borderCol;
+            colCtx.lineWidth = 1.5;
+            colCtx.strokeRect(colX, colY, colW, colH);
+
+            // Injector & UV Flow-Cell ports
+            colCtx.fillStyle = subCol;
+            colCtx.font = '10px monospace';
+            colCtx.fillText('INJ (0.0m)', colX, 15);
+            colCtx.fillText(`UV CELL (${runClock.toFixed(1)}m)`, colX + colW - 86, 15);
+
+            // Render Gaussian Analyte Bands migrating across column
+            sep.peaks.forEach(p => {
+                if (p.zPos > 1.04) return; // Already eluted into detector
+                const bx = colX + p.zPos * colW;
+                const bandW = Math.max(6, (p.sigmaT / RUN_TIME) * colW * 4.5);
+
+                const grad = colCtx.createLinearGradient(bx - bandW, 0, bx + bandW, 0);
+                grad.addColorStop(0, 'rgba(0,0,0,0)');
+                grad.addColorStop(0.5, p.color);
+                grad.addColorStop(1, 'rgba(0,0,0,0)');
+
+                colCtx.fillStyle = grad;
+                colCtx.globalAlpha = 0.85;
+                colCtx.fillRect(Math.max(colX, bx - bandW), colY + 2, Math.min(colW, bandW * 2), colH - 4);
+                colCtx.globalAlpha = 1.0;
+            });
+        }
+
+        // --- Render UV-Vis Chromatogram & Mobile-Phase %B Gradient ---
+        function renderChromatogram(sep) {
+            const w = uvCanvas.parentElement.clientWidth;
+            const h = uvCanvas.parentElement.clientHeight;
+            if (uvCanvas.width !== w || uvCanvas.height !== h) {
+                uvCanvas.width = w;
+                uvCanvas.height = h;
+            }
+
+            const styles = getComputedStyle(document.documentElement);
+            const accent = styles.getPropertyValue('--accent').trim();
+            const gradCol = styles.getPropertyValue('--grad').trim();
+            const borderCol = styles.getPropertyValue('--border').trim();
+            const subCol = styles.getPropertyValue('--sub').trim();
+            const textCol = styles.getPropertyValue('--text').trim();
+
+            uvCtx.clearRect(0, 0, w, h);
+
+            const padL = 42, padR = 24, padT = 24, padB = 30;
+            const plotW = w - padL - padR;
+            const plotH = h - padT - padB;
+
+            const toX = t => padL + (t / RUN_TIME) * plotW;
+            const toY = mAU => padT + plotH - (mAU / 120) * plotH;
+
+            // 1. Time Grid & Axes
+            uvCtx.strokeStyle = borderCol;
+            uvCtx.fillStyle = subCol;
+            uvCtx.font = '10px monospace';
+            uvCtx.lineWidth = 1;
+
+            for (let t = 0; t <= RUN_TIME; t += 2) {
+                const x = toX(t);
+                uvCtx.globalAlpha = 0.22;
+                uvCtx.beginPath(); uvCtx.moveTo(x, padT); uvCtx.lineTo(x, padT + plotH); uvCtx.stroke();
+                uvCtx.globalAlpha = 0.85;
+                uvCtx.fillText(`${t}m`, x - 8, h - 10);
+            }
+            [0, 50, 100].forEach(val => {
+                const y = toY(val);
+                uvCtx.globalAlpha = 0.22;
+                uvCtx.beginPath(); uvCtx.moveTo(padL, y); uvCtx.lineTo(w - padR, y); uvCtx.stroke();
+                uvCtx.globalAlpha = 0.85;
+                uvCtx.fillText(`${val}`, 8, y + 3);
+            });
+            uvCtx.globalAlpha = 1.0;
+
+            // 2. Organic Modifier %B Gradient Ramp Overlay
+            uvCtx.setLineDash([5, 4]);
+            uvCtx.strokeStyle = gradCol;
+            uvCtx.lineWidth = 1.6;
+            uvCtx.beginPath();
+            uvCtx.moveTo(toX(0), padT + plotH * (1 - method.phi0));
+            uvCtx.lineTo(toX(RUN_TIME), padT + plotH * (1 - method.phi1));
+            uvCtx.stroke();
+            uvCtx.setLineDash([]);
+
+            // 3. Individual Gaussian Peak Envelopes & Summed UV Signal
+            const samples = 360;
+            const maxT = Math.min(RUN_TIME, runClock);
+            peakHitboxes = [];
+
+            // Individual shaded peak fills
+            sep.peaks.forEach(p => {
+                if (p.tR - 3 * p.sigmaT > maxT) return;
+                uvCtx.fillStyle = p.color;
+                uvCtx.globalAlpha = p.idx === method.selectedIdx ? 0.34 : 0.16;
+                uvCtx.beginPath();
+                uvCtx.moveTo(toX(Math.max(0, p.tR - 4 * p.sigmaT)), toY(0));
+                for (let s = 0; s <= samples; s++) {
+                    const t = (s / samples) * maxT;
+                    const g = p.conc * Math.exp(-0.5 * Math.pow((t - p.tR) / p.sigmaT, 2));
+                    uvCtx.lineTo(toX(t), toY(g));
+                }
+                uvCtx.lineTo(toX(maxT), toY(0));
+                uvCtx.closePath();
+                uvCtx.fill();
+                uvCtx.globalAlpha = 1.0;
+
+                // Peak apex marker & hitbox
+                if (p.tR <= maxT) {
+                    const px = toX(p.tR);
+                    const py = toY(p.conc);
+                    peakHitboxes.push({ idx: p.idx, x: px, y: py, peak: p });
+
+                    uvCtx.fillStyle = p.idx === method.selectedIdx ? textCol : p.color;
+                    uvCtx.font = p.idx === method.selectedIdx ? 'bold 11px monospace' : '10px monospace';
+                    uvCtx.fillText(p.name, px - 22, Math.max(14, py - 8));
+                }
+            });
+
+            // Summed Detector Trace
+            uvCtx.strokeStyle = accent;
+            uvCtx.lineWidth = 2.4;
+            uvCtx.beginPath();
+            for (let s = 0; s <= samples; s++) {
+                const t = (s / samples) * maxT;
+                let sig = 1.2 * Math.sin(t * 9) * 0.15; // subtle baseline ripple
+                for (const p of sep.peaks) {
+                    sig += p.conc * Math.exp(-0.5 * Math.pow((t - p.tR) / p.sigmaT, 2));
+                }
+                const x = toX(t), y = toY(sig);
+                if (s === 0) uvCtx.moveTo(x, y);
+                else uvCtx.lineTo(x, y);
+            }
+            uvCtx.stroke();
+        }
+
+        // --- Animation Loop & Telemetry ---
+        function updateTelemetry(sep) {
+            const rsEl = document.getElementById('mRs');
+            if (sep.peaks.length < 2) {
+                rsEl.innerText = 'Single Peak';
+            } else {
+                const status = sep.minRs >= 1.5 ? 'Baseline' : 'Co-eluting!';
+                rsEl.innerText = `${sep.minRs.toFixed(2)} (${status})`;
+                rsEl.style.color = sep.minRs >= 1.5 ? 'var(--emerald)' : 'var(--grad)';
+            }
+            document.getElementById('mPlates').innerText = sep.platesN.toLocaleString();
+            document.getElementById('mPress').innerText = `${sep.pressureBar} bar`;
+
+            const selPeak = sep.peaks.find(p => p.idx === method.selectedIdx) || sep.peaks[0];
+            if (selPeak) {
+                document.getElementById('mSel').innerText = `${selPeak.name} (${selPeak.tR.toFixed(2)}m)`;
+            }
+        }
+
+        function animate() {
+            if (runClock < RUN_TIME) {
+                runClock = Math.min(RUN_TIME, runClock + 0.055);
+            }
+            const sep = computeSeparation();
+            updateTelemetry(sep);
+            renderColumn(sep);
+            renderChromatogram(sep);
+            requestAnimationFrame(animate);
+        }
+
+        // --- Touch / Pointer Peak Selection ---
+        uvCanvas.addEventListener('pointerdown', e => {
+            const rect = uvCanvas.getBoundingClientRect();
+            const px = e.clientX - rect.left;
+            const py = e.clientY - rect.top;
+            let best = null, bestDist = 42;
+
+            for (const hb of peakHitboxes) {
+                const d = Math.hypot(px - hb.x, py - hb.y);
+                if (d < bestDist) {
+                    bestDist = d;
+                    best = hb;
+                }
+            }
+            if (best) {
+                method.selectedIdx = best.idx;
+            }
+        });
+
+        // --- Controls & Persistence ---
+        function syncUI() {
+            document.getElementById('cfgFlow').value = method.flow;
+            document.getElementById('valFlow').innerText = method.flow.toFixed(2);
+            document.getElementById('cfgPhi0').value = Math.round(method.phi0 * 100);
+            document.getElementById('valPhi0').innerText = Math.round(method.phi0 * 100);
+            document.getElementById('cfgPhi1').value = Math.round(method.phi1 * 100);
+            document.getElementById('valPhi1').innerText = Math.round(method.phi1 * 100);
+            document.getElementById('cfgDp').value = method.dp;
+            document.getElementById('valDp').innerText = method.dp.toFixed(1);
+            document.getElementById('cfgTemp').value = method.temp;
+            document.getElementById('valTemp').innerText = method.temp;
+        }
+
+        document.getElementById('cfgAssay').addEventListener('change', e => {
+            const a = ASSAYS[e.target.value];
+            method = {
+                assay: e.target.value,
+                flow: a.flow,
+                phi0: a.phi0,
+                phi1: a.phi1,
+                dp: a.dp,
+                temp: a.temp,
+                selectedIdx: a.selectedIdx,
+                analytes: JSON.parse(JSON.stringify(a.analytes))
+            };
+            runClock = 0.0;
+            syncUI();
+        });
+
+        document.getElementById('cfgFlow').addEventListener('input', e => { method.flow = parseFloat(e.target.value); syncUI(); });
+        document.getElementById('cfgPhi0').addEventListener('input', e => { method.phi0 = parseInt(e.target.value) / 100; syncUI(); });
+        document.getElementById('cfgPhi1').addEventListener('input', e => { method.phi1 = parseInt(e.target.value) / 100; syncUI(); });
+        document.getElementById('cfgDp').addEventListener('input', e => { method.dp = parseFloat(e.target.value); syncUI(); });
+        document.getElementById('cfgTemp').addEventListener('input', e => { method.temp = parseInt(e.target.value); syncUI(); });
+
+        document.getElementById('injectBtn').addEventListener('click', () => {
+            runClock = 0.0;
+        });
+
+        document.getElementById('spikeBtn').addEventListener('click', () => {
+            if (method.analytes.length >= 8) return;
+            const palette = ['#f43f5e', '#ec4899', '#8b5cf6', '#14b8a6'];
+            const idx = method.analytes.length + 1;
+            method.analytes.push({
+                name: `Impurity-${idx}`,
+                logKw: Number((1.6 + Math.random() * 2.8).toFixed(2)),
+                S: Number((4.2 + Math.random() * 2.0).toFixed(1)),
+                conc: Math.round(35 + Math.random() * 45),
+                color: palette[idx % palette.length]
+            });
+            method.selectedIdx = method.analytes.length - 1;
+        });
+
+        document.getElementById('saveBtn').addEventListener('click', exportJSON);
+        document.getElementById('openFile').addEventListener('change', importJSON);
+
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(method, null, 2));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            a.setAttribute("download", `chromatolab_method_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        function importJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = evt => {
+                try {
+                    const data = JSON.parse(evt.target.result);
+                    if (Array.isArray(data.analytes) && typeof data.flow === 'number') {
+                        method = { ...method, ...data };
+                        runClock = RUN_TIME;
+                        syncUI();
+                    } else alert('Invalid ChromatoLab JSON file.');
+                } catch { alert('Error reading JSON file.'); }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Theme & Shortcuts (Zero Key Overlap) ---
+        const helpModal = document.getElementById('helpModal');
+        document.getElementById('helpBtn').addEventListener('click', () => helpModal.classList.add('open'));
+        document.getElementById('closeHelpBtn').addEventListener('click', () => helpModal.classList.remove('open'));
+        document.getElementById('themeBtn').addEventListener('click', () => {
+            const cur = document.documentElement.getAttribute('data-theme');
+            document.documentElement.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+        });
+
+        // Space = Re-Inject Sample, A = Add Impurity Peak, R = Reset Method, S = Save JSON, O = Open JSON, T = Theme, Esc = Close Modal
+        window.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+            const k = e.key.toLowerCase();
+            if (e.code === 'Space') { e.preventDefault(); runClock = 0.0; }
+            if (k === 'a') { e.preventDefault(); document.getElementById('spikeBtn').click(); }
+            if (k === 'r') {
+                e.preventDefault();
+                document.getElementById('cfgAssay').value = 'xanthines';
+                const a = ASSAYS.xanthines;
+                method = { assay: 'xanthines', flow: a.flow, phi0: a.phi0, phi1: a.phi1, dp: a.dp, temp: a.temp, selectedIdx: a.selectedIdx, analytes: JSON.parse(JSON.stringify(a.analytes)) };
+                runClock = RUN_TIME;
+                syncUI();
+            }
+            if (k === 's') { e.preventDefault(); exportJSON(); }
+            if (k === 'o') { e.preventDefault(); document.getElementById('openFile').click(); }
+            if (k === 't') { e.preventDefault(); document.getElementById('themeBtn').click(); }
+            if (e.key === 'Escape') helpModal.classList.remove('open');
+        });
+
+        // Pre-loaded 5-Second Impressive Demo State
+        const initA = ASSAYS.xanthines;
+        method = { assay: 'xanthines', flow: initA.flow, phi0: initA.phi0, phi1: initA.phi1, dp: initA.dp, temp: initA.temp, selectedIdx: initA.selectedIdx, analytes: JSON.parse(JSON.stringify(initA.analytes)) };
+        syncUI();
+        requestAnimationFrame(animate);
+    </script>
+</body>
+</html>

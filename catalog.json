@@ -2833,18 +2833,419 @@
       "description": "A decision wheel: add your options or pick a preset, weight them, then flick the wheel, tap the hub or press Space to spin it, with a raffle mode that removes each winner, ticking sound, a winner history and your own presets saved to a file.",
       "source_file": "spin-decide-muse.html",
       "first_published": "2026-11-21",
-      "last_updated": "2026-11-21",
-      "version": 1,
-      "sha": "68286c868ebd",
+      "last_updated": "2026-11-27",
+      "version": 2,
+      "sha": "49a5e1585d8c",
       "versions": [
         {
           "v": 1,
           "date": "2026-11-21",
           "sha": "68286c868ebd"
+        },
+        {
+          "v": 2,
+          "date": "2026-11-27",
+          "sha": "49a5e1585d8c"
         }
       ],
       "category": "tool"
+    },
+    "automatasonata": {
+      "title": "Automata Sonata",
+      "engine": "Grok",
+      "description": "Paint cells on a Life-like grid, edit the birth and survive rules, and hear it evolve: each column drives an oscillator in a pentatonic, major, minor or whole-tone scale whose volume follows how crowded that column is.",
+      "source_file": "AutomataSonata-Grok.html",
+      "first_published": "2026-11-27",
+      "last_updated": "2026-11-27",
+      "version": 1,
+      "sha": "fd352e48b79a",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-27",
+          "sha": "fd352e48b79a"
+        }
+      ],
+      "category": "audio"
+    },
+    "platen": {
+      "title": "Platen",
+      "engine": "Claude",
+      "description": "Turn a photo of a page into a flat scan: drag four handles onto its corners (or auto-detect them), and it straightens the page with a perspective warp and cleans it as colour, grayscale or black-and-white ink, ready to rotate, export as PNG or print.",
+      "source_file": "Platen-Claude.html",
+      "first_published": "2026-11-24",
+      "last_updated": "2026-11-24",
+      "version": 1,
+      "sha": "312255177f45",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-24",
+          "sha": "312255177f45"
+        }
+      ],
+      "category": "image"
+    },
+    "reel": {
+      "title": "Reel",
+      "engine": "Claude",
+      "description": "A flipbook: draw a frame, add the next with the previous one ghosted underneath as onion skin, play it back at the frame rate you set, and export a real animated GIF encoded entirely in the page.",
+      "source_file": "Reel-Claude.html",
+      "first_published": "2026-11-27",
+      "last_updated": "2026-11-27",
+      "version": 1,
+      "sha": "0ab1dbb02784",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-27",
+          "sha": "0ab1dbb02784"
+        }
+      ],
+      "category": "art"
+    },
+    "rill": {
+      "title": "Rill",
+      "engine": "Claude",
+      "description": "A hydrology sandbox: raise, lower and smooth terrain with a brush and watch depressions fill into lakes, runoff gather into rivers and drainage basins get mapped, then trace where a raindrop goes from any spot.",
+      "source_file": "Rill-Claude.html",
+      "first_published": "2026-11-26",
+      "last_updated": "2026-11-26",
+      "version": 1,
+      "sha": "bba824bfc465",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-26",
+          "sha": "bba824bfc465"
+        }
+      ],
+      "category": "sim"
+    },
+    "starlightscore": {
+      "title": "Starlight Score",
+      "engine": "Grok",
+      "description": "Place stars on a sky where height is pitch, connect them into paths, and press play to send light along the lines and hear the melody they make.",
+      "source_file": "StarlightScore-Grok.html",
+      "first_published": "2026-11-27",
+      "last_updated": "2026-11-27",
+      "version": 1,
+      "sha": "1131fa00caa6",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-27",
+          "sha": "1131fa00caa6"
+        }
+      ],
+      "category": "audio"
+    },
+    "batchnote": {
+      "title": "Batchnote",
+      "engine": "ChatGPT",
+      "description": "Scale a flour-based recipe by baker's percentages: set the total batch weight and portions, adjust each ingredient's ratio to flour, and weigh your way down a whole-gram checklist that still adds up exactly.",
+      "source_file": "batchnote-codex.html",
+      "first_published": "2026-11-24",
+      "last_updated": "2026-11-24",
+      "version": 1,
+      "sha": "6135a382790d",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-24",
+          "sha": "6135a382790d"
+        }
+      ],
+      "category": "tool"
+    },
+    "chladnilab": {
+      "title": "ChladniLab",
+      "engine": "Gemini",
+      "description": "Scatter sand on a vibrating square plate and watch the grains migrate to the nodal lines: pick a mode pair or preset, mix the two harmonics, set the amplitude, and bow or brush the plate to form Chladni figures.",
+      "source_file": "chladnilab-gemini.html",
+      "first_published": "2026-11-27",
+      "last_updated": "2026-11-27",
+      "version": 1,
+      "sha": "db4d6a9041d2",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-27",
+          "sha": "db4d6a9041d2"
+        }
+      ],
+      "category": "sim"
+    },
+    "chromatolab": {
+      "title": "ChromatoLab",
+      "engine": "Gemini",
+      "description": "A reversed-phase HPLC simulator: set flow rate, gradient, particle size and column temperature, inject a sample and watch the bands separate down a C18 column while the UV chromatogram draws, with resolution, plate count and backpressure readouts.",
+      "source_file": "chromatolab-gemini.html",
+      "first_published": "2026-11-27",
+      "last_updated": "2026-11-27",
+      "version": 1,
+      "sha": "2f6e3e92c227",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-27",
+          "sha": "2f6e3e92c227"
+        }
+      ],
+      "category": "sim"
+    },
+    "forklight": {
+      "title": "Forklight",
+      "engine": "ChatGPT",
+      "description": "Write a branching story of up to twelve scenes: give each scene up to three choices and where they lead, switch to Read & play to try the routes, and let the scene check point out dead links and scenes nobody can reach.",
+      "source_file": "forklight-codex.html",
+      "first_published": "2026-11-27",
+      "last_updated": "2026-11-27",
+      "version": 1,
+      "sha": "f615aca6dfa9",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-27",
+          "sha": "f615aca6dfa9"
+        }
+      ],
+      "category": "text"
+    },
+    "golden-hour": {
+      "title": "Golden Hour",
+      "engine": "Muse",
+      "description": "A sun-path planner for photographers: pick a date and a place or type coordinates to get sunrise, sunset, solar noon and the golden and blue hours on a sun-path chart, computed on your device, with saved places.",
+      "source_file": "golden-hour-muse.html",
+      "first_published": "2026-11-27",
+      "last_updated": "2026-11-27",
+      "version": 1,
+      "sha": "b692c44e1dd5",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-27",
+          "sha": "b692c44e1dd5"
+        }
+      ],
+      "category": "tool"
+    },
+    "kinetolink": {
+      "title": "KinetoLink",
+      "engine": "Gemini",
+      "description": "A four-bar linkage lab: set the four link lengths or pick a classic mechanism, run the crank and watch the coupler curve trace out with velocity vectors, instant centers, transmission angle and Grashof classification, or drag the tracer pin to reshape the curve.",
+      "source_file": "kinetolink-gemini.html",
+      "first_published": "2026-11-27",
+      "last_updated": "2026-11-27",
+      "version": 1,
+      "sha": "c1e704484083",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-27",
+          "sha": "c1e704484083"
+        }
+      ],
+      "category": "sim"
+    },
+    "loomweave": {
+      "title": "LoomWeave",
+      "engine": "Gemini",
+      "description": "An 8-shaft loom draft editor: tap cells in the threading, tie-up and treadling grids or start from houndstooth, herringbone, satin or honeycomb, choose warp and weft colours, and watch the shaded fabric drawdown and float lengths update.",
+      "source_file": "loomweave-gemini.html",
+      "first_published": "2026-11-27",
+      "last_updated": "2026-11-27",
+      "version": 1,
+      "sha": "645f98c4b089",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-27",
+          "sha": "645f98c4b089"
+        }
+      ],
+      "category": "art"
+    },
+    "orbitone": {
+      "title": "Orbitone",
+      "engine": "Grok",
+      "description": "Add circling orbits whose angular speeds become musical frequencies: the trails draw the geometry of the chord you hear, and you can push an orbit's phase, shift the base frequency or randomize the set.",
+      "source_file": "orbitone-grok.html",
+      "first_published": "2026-11-27",
+      "last_updated": "2026-11-27",
+      "version": 1,
+      "sha": "fd2e36f5eee5",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-27",
+          "sha": "fd2e36f5eee5"
+        }
+      ],
+      "category": "audio"
+    },
+    "packlight": {
+      "title": "Packlight",
+      "engine": "Muse",
+      "description": "A trip packing planner: set destination, length, trip type and weather to get a suggested list, send items to a carry-on, checked bag or personal item, and watch each bag's weight against its limit as you tick things off.",
+      "source_file": "packlight-muse.html",
+      "first_published": "2026-11-27",
+      "last_updated": "2026-11-27",
+      "version": 1,
+      "sha": "cf08b4329bfe",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-27",
+          "sha": "cf08b4329bfe"
+        }
+      ],
+      "category": "tool"
+    },
+    "pitch-perfect": {
+      "title": "Pitch Perfect",
+      "engine": "Muse",
+      "description": "An ear-training quiz: hear a note, interval or chord and name it on a piano keyboard in rounds of ten, with streaks, accuracy and a history of recent rounds.",
+      "source_file": "pitch-perfect-Muse.html",
+      "first_published": "2026-11-27",
+      "last_updated": "2026-11-27",
+      "version": 1,
+      "sha": "2d1bd145cf8d",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-27",
+          "sha": "2d1bd145cf8d"
+        }
+      ],
+      "category": "audio"
+    },
+    "quarterturn": {
+      "title": "Quarterturn",
+      "engine": "ChatGPT",
+      "description": "A mental-rotation puzzle: study a shape on a 3×3, 4×4 or 5×5 board, pick which of four tiles shows it after the given clockwise turn, then step through the rotation a quarter turn at a time.",
+      "source_file": "quarterturn-codex.html",
+      "first_published": "2026-11-26",
+      "last_updated": "2026-11-26",
+      "version": 1,
+      "sha": "7f26a5b5d753",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-26",
+          "sha": "7f26a5b5d753"
+        }
+      ],
+      "category": "game"
+    },
+    "sightline": {
+      "title": "Sightline",
+      "engine": "ChatGPT",
+      "description": "A two-point perspective sketch studio: place box forms on a plate, slide their position, height and depths, move the horizon and vanishing points and watch every edge converge, then export the drawing as SVG with or without guides.",
+      "source_file": "sightline-codex.html",
+      "first_published": "2026-11-24",
+      "last_updated": "2026-11-24",
+      "version": 1,
+      "sha": "9a3f9ef74da7",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-24",
+          "sha": "9a3f9ef74da7"
+        }
+      ],
+      "category": "art"
+    },
+    "stellarhertz": {
+      "title": "StellarHertz",
+      "engine": "Gemini",
+      "description": "A Hertzsprung-Russell diagram you can play with: choose a star's mass and metallicity or a cluster preset, run time forward and watch each star move along its evolutionary track while a cutaway shows its fusion shells.",
+      "source_file": "stellarhertz-gemini.html",
+      "first_published": "2026-11-27",
+      "last_updated": "2026-11-27",
+      "version": 1,
+      "sha": "b8ddc3bb7a74",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-27",
+          "sha": "b8ddc3bb7a74"
+        }
+      ],
+      "category": "sim"
+    },
+    "stringmark": {
+      "title": "Stringmark",
+      "engine": "ChatGPT",
+      "description": "A guitar chord notebook: mark each of the six strings as muted, open or fretted to draw a chord diagram, name it and add a note, mirror the page for left hand, and export the collection as a printable SVG sheet.",
+      "source_file": "stringmark-codex.html",
+      "first_published": "2026-11-27",
+      "last_updated": "2026-11-27",
+      "version": 1,
+      "sha": "97d4864c8422",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-27",
+          "sha": "97d4864c8422"
+        }
+      ],
+      "category": "tool"
+    },
+    "subscription-sleuth": {
+      "title": "Subscription Sleuth",
+      "engine": "Muse",
+      "description": "List your recurring charges with how often you use each one to see the monthly total, the cost per use, what renews soon, and how much a year you would save by cancelling the ones you mark.",
+      "source_file": "subscription-sleuth-muse.html",
+      "first_published": "2026-11-27",
+      "last_updated": "2026-11-27",
+      "version": 1,
+      "sha": "eba2ded12294",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-27",
+          "sha": "eba2ded12294"
+        }
+      ],
+      "category": "finance"
+    },
+    "tablecheck": {
+      "title": "Tablecheck",
+      "engine": "ChatGPT",
+      "description": "Split a restaurant bill by who had what: enter each receipt line, tap the diners who shared it, add tax and a tip percentage, and get a personal check for everyone that adds up to the cent.",
+      "source_file": "tablecheck-codex.html",
+      "first_published": "2026-11-22",
+      "last_updated": "2026-11-22",
+      "version": 1,
+      "sha": "03df169260d8",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-22",
+          "sha": "03df169260d8"
+        }
+      ],
+      "category": "finance"
+    },
+    "topoopt": {
+      "title": "TopoOpt",
+      "engine": "Gemini",
+      "description": "A live topology optimizer: pick a load case such as a cantilever bracket or bridge deck, set the material budget, and watch the solver carve an efficient structure while you paint keep-out voids or solid ribs it has to route around.",
+      "source_file": "topoopt-gemini.html",
+      "first_published": "2026-11-27",
+      "last_updated": "2026-11-27",
+      "version": 1,
+      "sha": "5571ed86f834",
+      "versions": [
+        {
+          "v": 1,
+          "date": "2026-11-27",
+          "sha": "5571ed86f834"
+        }
+      ],
+      "category": "sim"
     }
   },
-  "generated": "2026-11-22"
+  "generated": "2026-11-27"
 }

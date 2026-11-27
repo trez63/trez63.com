@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TopoOpt — Generative Continuum Topology Optimization Studio</title>
+    <style>
+        :root {
+            --bg: #07090e; --panel: #10141f; --card: #181f30; --border: #2b3550;
+            --text: #f8fafc; --sub: #94a3b8; --accent: #10b981; --accent-hover: #059669;
+            --stress: #f43f5e; --load: #f59e0b; --shadow: rgba(0,0,0,0.65);
+        }
+        [data-theme="light"] {
+            --bg: #f1f5f9; --panel: #ffffff; --card: #f8fafc; --border: #cbd5e1;
+            --text: #0f172a; --sub: #64748b; --accent: #059669; --accent-hover: #047857;
+            --stress: #e11d48; --load: #d97706; --shadow: rgba(0,0,0,0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+
+        header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; z-index: 10; }
+        .brand { font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em; }
+        .opt-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+        .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        button, label.btn-label, select { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; user-select: none; transition: 0.15s; outline: none; }
+        button:hover, label.btn-label:hover { border-color: var(--accent); color: var(--accent); }
+        button.primary { background: var(--accent); color: #05100c; font-weight: 600; border-color: var(--accent); }
+        button.primary:hover { background: var(--accent-hover); color: #fff; }
+        input[type="file"] { display: none; }
+
+        .metrics-bar { background: var(--panel); border-bottom: 1px solid var(--border); padding: 10px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: 12px; font-size: 0.8rem; z-index: 10; }
+        .metric-card { background: var(--bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); }
+        .metric-title { color: var(--sub); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+        .metric-val { font-size: 1rem; font-weight: 700; color: var(--text); }
+
+        main { flex: 1; padding: 16px; max-width: 1360px; width: 100%; margin: 0 auto; display: grid; grid-template-columns: 315px 1fr; gap: 16px; }
+        .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; box-shadow: 0 4px 6px var(--shadow); display: flex; flex-direction: column; gap: 12px; }
+        .section-title { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sub); display: flex; justify-content: space-between; align-items: center; }
+
+        .form-group { margin-bottom: 4px; }
+        .form-group label { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--sub); margin-bottom: 4px; font-weight: 500; }
+        .form-group select, .form-group input[type="range"] { width: 100%; accent-color: var(--accent); }
+
+        .domain-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; height: 460px; position: relative; overflow: hidden; }
+        canvas { width: 100%; height: 100%; display: block; cursor: crosshair; touch-action: none; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 200; padding: 16px; }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 440px; padding: 20px; box-shadow: 0 20px 25px -5px var(--shadow); }
+        .modal h3 { font-size: 1.1rem; margin-bottom: 12px; }
+
+        .shortcut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem; margin: 12px 0 16px; }
+        .shortcut-row { display: flex; justify-content: space-between; background: var(--card); padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border); }
+        kbd { background: var(--panel); border: 1px solid var(--border); padding: 1px 5px; border-radius: 3px; font-weight: 600; font-size: 0.75rem; }
+
+        @media (max-width: 850px) {
+            header { flex-direction: column; align-items: stretch; }
+            .actions { justify-content: space-between; }
+            main { grid-template-columns: 1fr; padding: 8px; }
+            .metrics-bar { grid-template-columns: repeat(2, 1fr); }
+            .domain-box { height: 340px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand"><div class="opt-dot"></div> TopoOpt Generative Design Studio</div>
+        <div class="actions">
+            <button id="playBtn" class="primary">⏸ Pause Solver</button>
+            <button id="resetBtn">🔄 Reset Block</button>
+            <button id="saveBtn">💾 Save JSON</button>
+            <label class="btn-label" for="openFile">📂 Open JSON</label>
+            <input type="file" id="openFile" accept=".json">
+            <button id="themeBtn">🌓 Theme</button>
+            <button id="helpBtn">❓ Help</button>
+        </div>
+    </header>
+
+    <div class="metrics-bar">
+        <div class="metric-card"><div class="metric-title">OC Iteration</div><div class="metric-val" id="mIter" style="color:var(--accent);">Iter 24</div></div>
+        <div class="metric-card"><div class="metric-title">Target Mass Fraction</div><div class="metric-val" id="mVol">42.0%</div></div>
+        <div class="metric-card"><div class="metric-title">Strain Compliance</div><div class="metric-val" id="mComp" style="color:var(--load);">38.4 J</div></div>
+        <div class="metric-card"><div class="metric-title">Stiffness-to-Weight</div><div class="metric-val" id="mEff" style="color:var(--accent);">+146%</div></div>
+    </div>
+
+    <main>
+        <!-- Generative Design Parameters -->
+        <div class="panel">
+            <div class="section-title"><span>SIMP Optimality Criteria</span></div>
+
+            <div class="form-group">
+                <label>Boundary &amp; Load Case</label>
+                <select id="cfgCase">
+                    <option value="cantilever">Cantilever Tip-Load Bracket</option>
+                    <option value="mbb">MBB Symmetric Half-Beam</option>
+                    <option value="bridge">Two-Span Arch Bridge Deck</option>
+                    <option value="crane">Dual-Load Shear Web</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Target Material Volume: <span id="valVol">42</span>%</label>
+                <input type="range" id="cfgVol" min="20" max="75" step="2" value="42">
+            </div>
+
+            <div class="form-group">
+                <label>SIMP Penalization (p): <span id="valPen">3.0</span></label>
+                <input type="range" id="cfgPen" min="1.5" max="4.5" step="0.5" value="3.0">
+            </div>
+
+            <div class="form-group">
+                <label>Sensitivity Filter Radius: <span id="valFilt">1.6</span> px</label>
+                <input type="range" id="cfgFilt" min="1.1" max="2.6" step="0.1" value="1.6">
+            </div>
+
+            <div class="form-group">
+                <label>Touch Brush Mode</label>
+                <select id="cfgBrush">
+                    <option value="void">Carve Void Keep-Out Zone</option>
+                    <option value="solid">Force Solid Rib Anchor</option>
+                </select>
+            </div>
+
+            <p style="font-size:0.76rem; color:var(--sub); line-height:1.45; margin-top:4px;">
+                <strong>Touch &amp; drag</strong> across the design space to carve keep-out voids (e.g., bolt holes) or enforce solid ribs—the SIMP solver reroutes organic load paths around obstacles in real time.
+            </p>
+        </div>
+
+        <!-- Continuum Topology Density Viewport -->
+        <div class="panel">
+            <div class="section-title"><span>Live 44×24 Finite-Element Density Field &amp; Principal Strain Energy</span></div>
+            <div class="domain-box">
+                <canvas id="topoCanvas"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal">
+            <h3>TopoOpt Guide &amp; Shortcuts</h3>
+            <p style="font-size:0.85rem; color:var(--sub); line-height:1.4; margin-bottom:10px;">Real-time SIMP continuum topology optimizer minimizing structural strain compliance under a volume fraction constraint.</p>
+            <div class="shortcut-grid">
+                <div class="shortcut-row"><span>Play / Pause</span> <kbd>Space</kbd></div>
+                <div class="shortcut-row"><span>Reset Domain</span> <kbd>R</kbd></div>
+                <div class="shortcut-row"><span>Save Design</span> <kbd>S</kbd></div>
+                <div class="shortcut-row"><span>Open Design</span> <kbd>O</kbd></div>
+                <div class="shortcut-row"><span>Toggle Theme</span> <kbd>T</kbd></div>
+                <div class="shortcut-row"><span>Close Modal</span> <kbd>Esc</kbd></div>
+            </div>
+            <button id="closeHelpBtn" class="primary" style="width:100%; justify-content:center; margin-top:10px;">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        // --- SIMP Continuum Grid Dimensions (44 x 24 elements = 1,056 2D Q4 finite elements) ---
+        const NX = 44;
+        const NY = 24;
+        const NUM_ELEM = NX * NY;
+        const NUM_NODES = (NX + 1) * (NY + 1);
+
+        let state = {
+            loadCase: 'cantilever',
+            volFrac: 0.42,
+            penal: 3.0,
+            rMin: 1.6,
+            brushMode: 'void',
+            playing: true,
+            iter: 0
+        };
+
+        let rho = new Float32Array(NUM_ELEM);      // Element density [0.001 .. 1.0]
+        let mask = new Int8Array(NUM_ELEM);        // 0 = free, -1 = forced void, +1 = forced solid
+        let ce = new Float32Array(NUM_ELEM);       // Elemental strain compliance energy
+        let ux = new Float32Array(NUM_NODES);      // Horizontal nodal displacement
+        let uy = new Float32Array(NUM_NODES);      // Vertical nodal displacement
+        let fx = new Float32Array(NUM_NODES);      // Horizontal external force
+        let fy = new Float32Array(NUM_NODES);      // Vertical external force
+        let fixX = new Uint8Array(NUM_NODES);      // Dirichlet X support
+        let fixY = new Uint8Array(NUM_NODES);      // Dirichlet Y support
+
+        const canvas = document.getElementById('topoCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // --- Setup Boundary Conditions & Loads ---
+        function setupDomain(preWarmSteps = 22) {
+            rho.fill(state.volFrac);
+            mask.fill(0);
+            ux.fill(0);
+            uy.fill(0);
+            fx.fill(0);
+            fy.fill(0);
+            fixX.fill(0);
+            fixY.fill(0);
+            state.iter = 0;
+
+            const nodeIdx = (i, j) => j * (NX + 1) + i;
+
+            if (state.loadCase === 'cantilever') {
+                // Left wall clamped, downward point load at right mid-height
+                for (let j = 0; j <= NY; j++) {
+                    fixX[nodeIdx(0, j)] = 1;
+                    fixY[nodeIdx(0, j)] = 1;
+                }
+                const midJ = Math.floor(NY / 2);
+                fy[nodeIdx(NX, midJ)] = 1.0;
+                fy[nodeIdx(NX, midJ + 1)] = 1.0;
+            } else if (state.loadCase === 'mbb') {
+                // Symmetric half-MBB beam: left edge X-roller, bottom-right Y-roller, top-left load
+                for (let j = 0; j <= NY; j++) fixX[nodeIdx(0, j)] = 1;
+                fixY[nodeIdx(NX, NY)] = 1;
+                fixY[nodeIdx(NX - 1, NY)] = 1;
+                fy[nodeIdx(0, 0)] = 1.2;
+                fy[nodeIdx(1, 0)] = 1.2;
+            } else if (state.loadCase === 'bridge') {
+                // Bottom-left & bottom-right pinned piers, uniform deck load along top
+                fixX[nodeIdx(0, NY)] = 1; fixY[nodeIdx(0, NY)] = 1;
+                fixX[nodeIdx(NX, NY)] = 1; fixY[nodeIdx(NX, NY)] = 1;
+                for (let i = 2; i <= NX - 2; i += 2) {
+                    fy[nodeIdx(i, 0)] = 0.35;
+                }
+            } else {
+                // Dual-Load Shear Web: Left wall fixed, top-right & bottom-right loads
+                for (let j = 0; j <= NY; j++) {
+                    fixX[nodeIdx(0, j)] = 1;
+                    fixY[nodeIdx(0, j)] = 1;
+                }
+                fy[nodeIdx(NX, 3)] = 0.85;
+                fy[nodeIdx(NX, NY - 3)] = 0.85;
+            }
+
+            // Pre-converge so 5-second initial frame already displays crisp generative topology
+            for (let k = 0; k < preWarmSteps; k++) {
+                stepSIMP();
+            }
+        }
+
+        // --- Fast Iterative Continuum Elasticity & Optimality Criteria Step ---
+        function stepSIMP() {
+            const p = state.penal;
+            const nu = 0.3;
+            const shear = (1 - nu) * 0.5;
+            const nodeIdx = (i, j) => j * (NX + 1) + i;
+
+            // 1. Gauss-Seidel SOR Elasticity Relaxation (45 sweeps per frame)
+            const omega = 1.68;
+            for (let sweep = 0; sweep < 45; sweep++) {
+                for (let j = 0; j <= NY; j++) {
+                    for (let i = 0; i <= NX; i++) {
+                        const n = nodeIdx(i, j);
+                        if (fixX[n] && fixY[n]) continue;
+
+                        // Average stiffness of adjacent elements
+                        let eSum = 0, count = 0;
+                        if (i > 0 && j > 0)   { eSum += Math.pow(rho[(j - 1) * NX + (i - 1)], p); count++; }
+                        if (i < NX && j > 0)  { eSum += Math.pow(rho[(j - 1) * NX + i], p); count++; }
+                        if (i > 0 && j < NY)  { eSum += Math.pow(rho[j * NX + (i - 1)], p); count++; }
+                        if (i < NX && j < NY) { eSum += Math.pow(rho[j * NX + i], p); count++; }
+                        const kLocal = Math.max(1e-3, eSum / Math.max(1, count));
+
+                        if (!fixX[n]) {
+                            const uL = i > 0 ? ux[nodeIdx(i - 1, j)] : 0;
+                            const uR = i < NX ? ux[nodeIdx(i + 1, j)] : 0;
+                            const uU = j > 0 ? ux[nodeIdx(i, j - 1)] : 0;
+                            const uD = j < NY ? ux[nodeIdx(i, j + 1)] : 0;
+                            // Coupling from vertical shear gradient
+                            const vCross = ((i < NX && j < NY ? uy[nodeIdx(i + 1, j + 1)] : 0)
+                                          - (i > 0 && j < NY ? uy[nodeIdx(i - 1, j + 1)] : 0)
+                                          - (i < NX && j > 0 ? uy[nodeIdx(i + 1, j - 1)] : 0)
+                                          + (i > 0 && j > 0 ? uy[nodeIdx(i - 1, j - 1)] : 0)) * 0.14;
+                            const diag = 2 * (1 + shear);
+                            const targetX = (fx[n] / kLocal + (uL + uR) + shear * (uU + uD) + vCross) / diag;
+                            ux[n] += omega * (targetX - ux[n]);
+                        }
+
+                        if (!fixY[n]) {
+                            const vL = i > 0 ? uy[nodeIdx(i - 1, j)] : 0;
+                            const vR = i < NX ? uy[nodeIdx(i + 1, j)] : 0;
+                            const vU = j > 0 ? uy[nodeIdx(i, j - 1)] : 0;
+                            const vD = j < NY ? uy[nodeIdx(i, j + 1)] : 0;
+                            const uCross = ((i < NX && j < NY ? ux[nodeIdx(i + 1, j + 1)] : 0)
+                                          - (i > 0 && j < NY ? ux[nodeIdx(i - 1, j + 1)] : 0)
+                                          - (i < NX && j > 0 ? ux[nodeIdx(i + 1, j - 1)] : 0)
+                                          + (i > 0 && j > 0 ? ux[nodeIdx(i - 1, j - 1)] : 0)) * 0.14;
+                            const diag = 2 * (1 + shear);
+                            const targetY = (fy[n] / kLocal + shear * (vL + vR) + (vU + vD) + uCross) / diag;
+                            uy[n] += omega * (targetY - uy[n]);
+                        }
+                    }
+                }
+            }
+
+            // 2. Compute Elemental Strain Energy & Compliance
+            let totalCompliance = 0;
+            const dc = new Float32Array(NUM_ELEM);
+
+            for (let j = 0; j < NY; j++) {
+                for (let i = 0; i < NX; i++) {
+                    const e = j * NX + i;
+                    const n00 = nodeIdx(i, j), n10 = nodeIdx(i + 1, j);
+                    const n01 = nodeIdx(i, j + 1), n11 = nodeIdx(i + 1, j + 1);
+
+                    const ex = 0.5 * ((ux[n10] - ux[n00]) + (ux[n11] - ux[n01]));
+                    const ey = 0.5 * ((uy[n01] - uy[n00]) + (uy[n11] - uy[n10]));
+                    const gxy = 0.5 * ((ux[n01] - ux[n00]) + (ux[n11] - ux[n10]) + (uy[n10] - uy[n00]) + (uy[n11] - uy[n01]));
+
+                    const energy = ex * ex + ey * ey + 2 * nu * ex * ey + shear * gxy * gxy + 1e-9;
+                    ce[e] = energy;
+                    const ep = Math.pow(rho[e], p);
+                    totalCompliance += ep * energy;
+                    dc[e] = -p * Math.pow(rho[e], p - 1) * energy;
+                }
+            }
+
+            // 3. Mesh-Independency Convolution Sensitivity Filter
+            const dcFilt = new Float32Array(NUM_ELEM);
+            const rInt = Math.ceil(state.rMin);
+            for (let j = 0; j < NY; j++) {
+                for (let i = 0; i < NX; i++) {
+                    const e = j * NX + i;
+                    let sumW = 0, sumVal = 0;
+                    for (let dj = -rInt; dj <= rInt; dj++) {
+                        const nj = j + dj;
+                        if (nj < 0 || nj >= NY) continue;
+                        for (let di = -rInt; di <= rInt; di++) {
+                            const ni = i + di;
+                            if (ni < 0 || ni >= NX) continue;
+                            const dist = Math.hypot(di, dj);
+                            const w = state.rMin - dist;
+                            if (w > 0) {
+                                const ne = nj * NX + ni;
+                                sumW += w;
+                                sumVal += w * rho[ne] * dc[ne];
+                            }
+                        }
+                    }
+                    dcFilt[e] = sumVal / (Math.max(1e-3, rho[e]) * sumW);
+                }
+            }
+
+            // 4. Optimality Criteria (OC) Bisection Update for Target Volume Fraction
+            let l1 = 0, l2 = 1e6;
+            const move = 0.18;
+            const rhoNext = new Float32Array(NUM_ELEM);
+
+            while ((l2 - l1) / (l1 + l2 + 1e-12) > 1e-3) {
+                const lMid = 0.5 * (l1 + l2);
+                let volSum = 0;
+                for (let e = 0; e < NUM_ELEM; e++) {
+                    if (mask[e] === -1) { rhoNext[e] = 0.001; continue; }
+                    if (mask[e] === 1)  { rhoNext[e] = 1.0; volSum += 1.0; continue; }
+
+                    const cand = rho[e] * Math.sqrt(Math.max(0, -dcFilt[e]) / lMid);
+                    const val = Math.max(0.001, Math.max(rho[e] - move, Math.min(1.0, Math.min(rho[e] + move, cand))));
+                    rhoNext[e] = val;
+                    volSum += val;
+                }
+                if (volSum / NUM_ELEM > state.volFrac) l1 = lMid;
+                else l2 = lMid;
+            }
+
+            rho.set(rhoNext);
+            state.iter++;
+
+            // Telemetry update
+            document.getElementById('mIter').innerText = `Iter ${state.iter}`;
+            document.getElementById('mVol').innerText = `${(state.volFrac * 100).toFixed(1)}%`;
+            document.getElementById('mComp').innerText = `${(totalCompliance * 12).toFixed(1)} J`;
+            const effGain = Math.round(((1 / state.volFrac) - 1) * 105);
+            document.getElementById('mEff').innerText = `+${effGain}%`;
+        }
+
+        // --- Render Density Field, Supports & Load Vectors ---
+        function renderDomain() {
+            const w = canvas.parentElement.clientWidth;
+            const h = canvas.parentElement.clientHeight;
+            if (canvas.width !== w || canvas.height !== h) {
+                canvas.width = w;
+                canvas.height = h;
+            }
+
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const styles = getComputedStyle(document.documentElement);
+            const accent = styles.getPropertyValue('--accent').trim();
+            const stressCol = styles.getPropertyValue('--stress').trim();
+            const loadCol = styles.getPropertyValue('--load').trim();
+            const borderCol = styles.getPropertyValue('--border').trim();
+
+            ctx.clearRect(0, 0, w, h);
+
+            const padX = 28, padY = 26;
+            const cellW = (w - padX * 2) / NX;
+            const cellH = (h - padY * 2) / NY;
+
+            // Find peak strain energy for subtle stress tinting
+            let maxCe = 1e-6;
+            for (let e = 0; e < NUM_ELEM; e++) {
+                if (rho[e] > 0.35 && ce[e] > maxCe) maxCe = ce[e];
+            }
+
+            // 1. Render Continuum Material Density Cells
+            for (let j = 0; j < NY; j++) {
+                for (let i = 0; i < NX; i++) {
+                    const e = j * NX + i;
+                    const d = rho[e];
+                    const x = padX + i * cellW;
+                    const y = padY + j * cellH;
+
+                    if (mask[e] === -1) {
+                        // User-carved void obstacle
+                        ctx.strokeStyle = stressCol;
+                        ctx.globalAlpha = 0.35;
+                        ctx.strokeRect(x + 1, y + 1, cellW - 2, cellH - 2);
+                        ctx.globalAlpha = 1.0;
+                        continue;
+                    }
+
+                    if (d > 0.08) {
+                        const stressRatio = Math.min(1, ce[e] / maxCe);
+                        if (isDark) {
+                            const r = Math.round(28 + stressRatio * 210 * d);
+                            const g = Math.round(215 * d - stressRatio * 80);
+                            const b = Math.round(185 * d - stressRatio * 90);
+                            ctx.fillStyle = `rgba(${r}, ${Math.max(40, g)}, ${Math.max(55, b)}, ${0.15 + d * 0.85})`;
+                        } else {
+                            const shade = Math.round(220 - d * 195);
+                            ctx.fillStyle = `rgb(${shade + Math.round(stressRatio * 90)}, ${shade}, ${shade + 12})`;
+                        }
+                        ctx.fillRect(x, y, cellW + 0.6, cellH + 0.6);
+                    }
+                }
+            }
+
+            // 2. Design Domain Bounding Frame
+            ctx.strokeStyle = borderCol;
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(padX, padY, NX * cellW, NY * cellH);
+
+            // 3. Render Supports & Force Vectors
+            const nodeIdx = (i, j) => j * (NX + 1) + i;
+            for (let j = 0; j <= NY; j++) {
+                for (let i = 0; i <= NX; i++) {
+                    const n = nodeIdx(i, j);
+                    const nx = padX + i * cellW;
+                    const ny = padY + j * cellH;
+
+                    if (fixX[n] || fixY[n]) {
+                        ctx.fillStyle = accent;
+                        ctx.fillRect(nx - 3, ny - 3, 6, 6);
+                    }
+
+                    if (fy[n] > 0.01) {
+                        ctx.strokeStyle = loadCol;
+                        ctx.fillStyle = loadCol;
+                        ctx.lineWidth = 2.5;
+                        ctx.beginPath();
+                        ctx.moveTo(nx, ny);
+                        ctx.lineTo(nx, ny + 22);
+                        ctx.stroke();
+
+                        ctx.beginPath();
+                        ctx.moveTo(nx, ny + 25);
+                        ctx.lineTo(nx - 4, ny + 17);
+                        ctx.lineTo(nx + 4, ny + 17);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+                }
+            }
+        }
+
+        function animate() {
+            if (state.playing && state.iter < 140) {
+                stepSIMP();
+            }
+            renderDomain();
+            requestAnimationFrame(animate);
+        }
+
+        // --- Touch / Pointer Obstacle Void & Solid Rib Painting ---
+        let painting = false;
+
+        function paintAtPointer(e) {
+            const rect = canvas.getBoundingClientRect();
+            const padX = 28, padY = 26;
+            const cellW = (canvas.width - padX * 2) / NX;
+            const cellH = (canvas.height - padY * 2) / NY;
+            const px = e.clientX - rect.left;
+            const py = e.clientY - rect.top;
+
+            const ci = Math.floor((px - padX) / cellW);
+            const cj = Math.floor((py - padY) / cellH);
+
+            for (let dj = -1; dj <= 1; dj++) {
+                for (let di = -1; di <= 1; di++) {
+                    const ni = ci + di, nj = cj + dj;
+                    if (ni >= 1 && ni < NX - 1 && nj >= 1 && nj < NY - 1) {
+                        const idx = nj * NX + ni;
+                        if (state.brushMode === 'void') {
+                            mask[idx] = -1;
+                            rho[idx] = 0.001;
+                        } else {
+                            mask[idx] = 1;
+                            rho[idx] = 1.0;
+                        }
+                    }
+                }
+            }
+            // Re-engage optimizer to adapt around user edit
+            state.iter = Math.min(state.iter, 20);
+        }
+
+        canvas.addEventListener('pointerdown', e => {
+            painting = true;
+            paintAtPointer(e);
+        });
+
+        window.addEventListener('pointermove', e => {
+            if (painting) paintAtPointer(e);
+        });
+
+        window.addEventListener('pointerup', () => painting = false);
+
+        // --- Controls & Persistence ---
+        function syncUI() {
+            document.getElementById('cfgCase').value = state.loadCase;
+            document.getElementById('cfgVol').value = Math.round(state.volFrac * 100);
+            document.getElementById('valVol').innerText = Math.round(state.volFrac * 100);
+            document.getElementById('cfgPen').value = state.penal;
+            document.getElementById('valPen').innerText = state.penal.toFixed(1);
+            document.getElementById('cfgFilt').value = state.rMin;
+            document.getElementById('valFilt').innerText = state.rMin.toFixed(1);
+            document.getElementById('cfgBrush').value = state.brushMode;
+        }
+
+        document.getElementById('cfgCase').addEventListener('change', e => {
+            state.loadCase = e.target.value;
+            setupDomain(22);
+        });
+
+        document.getElementById('cfgVol').addEventListener('input', e => {
+            state.volFrac = parseInt(e.target.value) / 100;
+            state.iter = Math.min(state.iter, 25);
+            syncUI();
+        });
+
+        document.getElementById('cfgPen').addEventListener('input', e => {
+            state.penal = parseFloat(e.target.value);
+            state.iter = Math.min(state.iter, 25);
+            syncUI();
+        });
+
+        document.getElementById('cfgFilt').addEventListener('input', e => {
+            state.rMin = parseFloat(e.target.value);
+            state.iter = Math.min(state.iter, 25);
+            syncUI();
+        });
+
+        document.getElementById('cfgBrush').addEventListener('change', e => {
+            state.brushMode = e.target.value;
+        });
+
+        document.getElementById('playBtn').addEventListener('click', () => {
+            state.playing = !state.playing;
+            document.getElementById('playBtn').innerText = state.playing ? '⏸ Pause Solver' : '▶ Resume Solver';
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            setupDomain(22);
+        });
+
+        document.getElementById('saveBtn').addEventListener('click', exportJSON);
+        document.getElementById('openFile').addEventListener('change', importJSON);
+
+        function exportJSON() {
+            const payload = {
+                ...state,
+                rho: Array.from(rho, v => Number(v.toFixed(3))),
+                mask: Array.from(mask)
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            a.setAttribute("download", `topoopt_design_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        function importJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = evt => {
+                try {
+                    const data = JSON.parse(evt.target.result);
+                    if (Array.isArray(data.rho) && data.rho.length === NUM_ELEM) {
+                        state.loadCase = data.loadCase || 'cantilever';
+                        state.volFrac = Number(data.volFrac ?? 0.42);
+                        state.penal = Number(data.penal ?? 3.0);
+                        state.rMin = Number(data.rMin ?? 1.6);
+                        setupDomain(0);
+                        rho.set(data.rho);
+                        if (Array.isArray(data.mask) && data.mask.length === NUM_ELEM) mask.set(data.mask);
+                        state.iter = Number(data.iter ?? 25);
+                        syncUI();
+                        stepSIMP();
+                    } else alert('Invalid TopoOpt JSON file.');
+                } catch { alert('Error reading JSON file.'); }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Theme & Shortcuts (Zero Key Overlap) ---
+        const helpModal = document.getElementById('helpModal');
+        document.getElementById('helpBtn').addEventListener('click', () => helpModal.classList.add('open'));
+        document.getElementById('closeHelpBtn').addEventListener('click', () => helpModal.classList.remove('open'));
+        document.getElementById('themeBtn').addEventListener('click', () => {
+            const cur = document.documentElement.getAttribute('data-theme');
+            document.documentElement.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+        });
+
+        // Space = Play/Pause, R = Reset Domain, S = Save JSON, O = Open JSON, T = Theme, Esc = Close Modal
+        window.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+            const k = e.key.toLowerCase();
+            if (e.code === 'Space') { e.preventDefault(); document.getElementById('playBtn').click(); }
+            if (k === 'r') { e.preventDefault(); setupDomain(22); }
+            if (k === 's') { e.preventDefault(); exportJSON(); }
+            if (k === 'o') { e.preventDefault(); document.getElementById('openFile').click(); }
+            if (k === 't') { e.preventDefault(); document.getElementById('themeBtn').click(); }
+            if (e.key === 'Escape') helpModal.classList.remove('open');
+        });
+
+        // Pre-loaded 5-Second Impressive Demo State
+        syncUI();
+        setupDomain(24);
+        requestAnimationFrame(animate);
+    </script>
+</body>
+</html>

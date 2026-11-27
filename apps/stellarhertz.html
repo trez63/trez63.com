@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>StellarHertz — HR Diagram & Stellar Nucleosynthesis Lab</title>
+    <style>
+        :root {
+            --bg: #05070e; --panel: #0c101d; --card: #151b2e; --border: #27314f;
+            --text: #f8fafc; --sub: #94a3b8; --accent: #38bdf8; --accent-hover: #0284c7;
+            --gold: #fbbf24; --emerald: #10b981; --shadow: rgba(0,0,0,0.65);
+        }
+        [data-theme="light"] {
+            --bg: #f1f5f9; --panel: #ffffff; --card: #f8fafc; --border: #cbd5e1;
+            --text: #0f172a; --sub: #64748b; --accent: #0284c7; --accent-hover: #0369a1;
+            --gold: #d97706; --emerald: #059669; --shadow: rgba(0,0,0,0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+
+        header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; z-index: 10; }
+        .brand { font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em; }
+        .star-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+
+        .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        button, label.btn-label, select { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; user-select: none; transition: 0.15s; outline: none; }
+        button:hover, label.btn-label:hover { border-color: var(--accent); color: var(--accent); }
+        button.primary { background: var(--accent); color: #060a14; font-weight: 600; border-color: var(--accent); }
+        button.primary:hover { background: var(--accent-hover); color: #fff; }
+        input[type="file"] { display: none; }
+
+        .metrics-bar { background: var(--panel); border-bottom: 1px solid var(--border); padding: 10px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: 12px; font-size: 0.8rem; z-index: 10; }
+        .metric-card { background: var(--bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); }
+        .metric-title { color: var(--sub); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+        .metric-val { font-size: 1rem; font-weight: 700; color: var(--text); }
+
+        main { flex: 1; padding: 16px; max-width: 1360px; width: 100%; margin: 0 auto; display: grid; grid-template-columns: 315px 1fr; gap: 16px; }
+        .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; box-shadow: 0 4px 6px var(--shadow); display: flex; flex-direction: column; gap: 12px; }
+        .section-title { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sub); display: flex; justify-content: space-between; align-items: center; }
+
+        .form-group { margin-bottom: 4px; }
+        .form-group label { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--sub); margin-bottom: 4px; font-weight: 500; }
+        .form-group select, .form-group input[type="range"] { width: 100%; accent-color: var(--accent); }
+
+        .astro-grid { display: grid; grid-template-columns: 1.45fr 1fr; gap: 12px; height: 460px; }
+        .canvas-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; position: relative; overflow: hidden; height: 100%; }
+        canvas { width: 100%; height: 100%; display: block; touch-action: none; }
+        #hrCanvas { cursor: pointer; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 200; padding: 16px; }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 440px; padding: 20px; box-shadow: 0 20px 25px -5px var(--shadow); }
+        .modal h3 { font-size: 1.1rem; margin-bottom: 12px; }
+
+        .shortcut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem; margin: 12px 0 16px; }
+        .shortcut-row { display: flex; justify-content: space-between; background: var(--card); padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border); }
+        kbd { background: var(--panel); border: 1px solid var(--border); padding: 1px 5px; border-radius: 3px; font-weight: 600; font-size: 0.75rem; }
+
+        @media (max-width: 850px) {
+            header { flex-direction: column; align-items: stretch; }
+            .actions { justify-content: space-between; }
+            main { grid-template-columns: 1fr; padding: 8px; }
+            .metrics-bar { grid-template-columns: repeat(2, 1fr); }
+            .astro-grid { grid-template-columns: 1fr; height: auto; }
+            .canvas-box { height: 290px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand"><div class="star-dot"></div> StellarHertz Astrophysics Lab</div>
+        <div class="actions">
+            <button id="playBtn" class="primary">⏸ Pause Epoch</button>
+            <button id="birthBtn">✨ + Cluster Star</button>
+            <button id="saveBtn">💾 Save JSON</button>
+            <label class="btn-label" for="openFile">📂 Open JSON</label>
+            <input type="file" id="openFile" accept=".json">
+            <button id="themeBtn">🌓 Theme</button>
+            <button id="helpBtn">❓ Help</button>
+        </div>
+    </header>
+
+    <div class="metrics-bar">
+        <div class="metric-card"><div class="metric-title">Selected Mass &amp; Class</div><div class="metric-val" id="mClass" style="color:var(--gold);">1.0 M☉ (G2V)</div></div>
+        <div class="metric-card"><div class="metric-title">Effective Temp (Teff)</div><div class="metric-val" id="mTemp" style="color:var(--accent);">5,778 K</div></div>
+        <div class="metric-card"><div class="metric-title">Luminosity &amp; Radius</div><div class="metric-val" id="mLum">1.00 L☉ | 1.0 R☉</div></div>
+        <div class="metric-card"><div class="metric-title">Evolutionary Phase</div><div class="metric-val" id="mPhase" style="color:var(--emerald);">Main Sequence</div></div>
+    </div>
+
+    <main>
+        <!-- Stellar Controls -->
+        <div class="panel">
+            <div class="section-title"><span>Stellar Structure &amp; Isochrone</span></div>
+
+            <div class="form-group">
+                <label>Astrophysical Benchmark Preset</label>
+                <select id="cfgPreset">
+                    <option value="cluster">Open Star Cluster Isochrone</option>
+                    <option value="solar">Solar-Type G2V Star (1.0 M☉)</option>
+                    <option value="massive">Blue Supergiant Progenitor (16 M☉)</option>
+                    <option value="dwarf">Red Dwarf M-Class (0.35 M☉)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Selected Zero-Age Mass: <span id="valMass">1.00</span> M☉</label>
+                <input type="range" id="cfgMass" min="0.25" max="24.0" step="0.25" value="1.0">
+            </div>
+
+            <div class="form-group">
+                <label>Evolutionary Progress: <span id="valAge">42</span>%</label>
+                <input type="range" id="cfgAge" min="0" max="100" step="1" value="42">
+            </div>
+
+            <div class="form-group">
+                <label>Metallicity ([Fe/H]): <span id="valMetal">0.00</span> dex</label>
+                <input type="range" id="cfgMetal" min="-1.5" max="0.5" step="0.1" value="0.0">
+            </div>
+
+            <p style="font-size:0.76rem; color:var(--sub); line-height:1.45; margin-top:4px;">
+                <strong>Tap any star</strong> on the Hertzsprung-Russell diagram to inspect its nuclear fusion shells (H → He → C/O → Fe) and trace its full evolutionary trajectory from ZAMS to stellar remnant.
+            </p>
+        </div>
+
+        <!-- HR Diagram + Radial Core Cutaway -->
+        <div class="panel">
+            <div class="section-title"><span>Hertzsprung-Russell Diagram (Teff vs. L/L☉) &amp; Internal Fusion Shells</span></div>
+            <div class="astro-grid">
+                <div class="canvas-box"><canvas id="hrCanvas"></canvas></div>
+                <div class="canvas-box"><canvas id="coreCanvas"></canvas></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal">
+            <h3>StellarHertz Guide &amp; Shortcuts</h3>
+            <p style="font-size:0.85rem; color:var(--sub); line-height:1.4; margin-bottom:10px;">Interactive Hertzsprung-Russell diagram, evolutionary track integrator, and radial stellar nucleosynthesis cutaway.</p>
+            <div class="shortcut-grid">
+                <div class="shortcut-row"><span>Play / Pause</span> <kbd>Space</kbd></div>
+                <div class="shortcut-row"><span>Add Star</span> <kbd>A</kbd></div>
+                <div class="shortcut-row"><span>Reset Cluster</span> <kbd>R</kbd></div>
+                <div class="shortcut-row"><span>Save Model</span> <kbd>S</kbd></div>
+                <div class="shortcut-row"><span>Open Model</span> <kbd>O</kbd></div>
+                <div class="shortcut-row"><span>Toggle Theme</span> <kbd>T</kbd></div>
+                <div class="shortcut-row"><span>Close Modal</span> <kbd>Esc</kbd></div>
+            </div>
+            <button id="closeHelpBtn" class="primary" style="width:100%; justify-content:center; margin-top:10px;">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Stellar Evolution State ---
+        let state = {
+            playing: true,
+            metallicity: 0.0,
+            selectedIdx: 0,
+            stars: [] // { mass, progress (0..100), speed }
+        };
+
+        const PRESETS = {
+            cluster: {
+                metallicity: 0.0, selectedIdx: 2,
+                stars: [
+                    { mass: 0.45, progress: 12 },
+                    { mass: 0.80, progress: 26 },
+                    { mass: 1.00, progress: 44 },
+                    { mass: 1.45, progress: 68 },
+                    { mass: 2.10, progress: 82 },
+                    { mass: 3.40, progress: 91 },
+                    { mass: 6.50, progress: 95 },
+                    { mass: 14.0, progress: 98 }
+                ]
+            },
+            solar: {
+                metallicity: 0.0, selectedIdx: 0,
+                stars: [{ mass: 1.0, progress: 45 }]
+            },
+            massive: {
+                metallicity: 0.1, selectedIdx: 0,
+                stars: [{ mass: 16.0, progress: 78 }]
+            },
+            dwarf: {
+                metallicity: -0.3, selectedIdx: 0,
+                stars: [{ mass: 0.35, progress: 18 }]
+            }
+        };
+
+        const hrCanvas = document.getElementById('hrCanvas');
+        const hrCtx = hrCanvas.getContext('2d');
+        const coreCanvas = document.getElementById('coreCanvas');
+        const coreCtx = coreCanvas.getContext('2d');
+
+        // --- Blackbody Spectral Color from Effective Temperature (K) ---
+        function tempToColor(tempK) {
+            if (tempK >= 25000) return '#93c5fd'; // O-type blue
+            if (tempK >= 10000) return '#bae6fd'; // B-type blue-white
+            if (tempK >= 7500)  return '#f8fafc'; // A-type white
+            if (tempK >= 6000)  return '#fef08a'; // F-type yellow-white
+            if (tempK >= 5000)  return '#facc15'; // G-type solar yellow
+            if (tempK >= 3800)  return '#fb923c'; // K-type orange
+            return '#f87171';                     // M-type crimson
+        }
+
+        function spectralType(tempK, phase) {
+            if (phase === 'White Dwarf') return 'DA';
+            if (phase === 'Neutron Star') return 'PSR';
+            if (phase === 'Black Hole') return 'BH';
+            const prefix = tempK >= 28000 ? 'O' : tempK >= 10000 ? 'B' : tempK >= 7500 ? 'A' : tempK >= 6000 ? 'F' : tempK >= 5200 ? 'G' : tempK >= 3700 ? 'K' : 'M';
+            const lumClass = (phase.includes('Giant') || phase.includes('Supergiant')) ? 'III' : 'V';
+            return `${prefix}${lumClass}`;
+        }
+
+        // --- Compute Stellar Photosphere & Evolutionary Track Point ---
+        function evaluateStar(mass, progress, metal = 0) {
+            const p = Math.max(0, Math.min(100, progress));
+            const metalShift = 1 - metal * 0.04;
+
+            // ZAMS baseline scaling
+            const zamsLum = Math.pow(mass, 3.5);
+            const zamsTemp = 5778 * Math.pow(mass, 0.54) * metalShift;
+
+            let logL = Math.log10(zamsLum);
+            let temp = zamsTemp;
+            let phase = 'Main Sequence';
+            let shells = []; // From outer to inner: { label, color, rFrac }
+
+            if (mass < 0.5) {
+                // Fully convective Red Dwarf
+                const t = p / 100;
+                logL += t * 0.25;
+                temp *= (1 + t * 0.06);
+                phase = p > 96 ? 'Helium White Dwarf' : 'Convective Main Seq';
+                shells = [
+                    { label: 'Convective H Envelope', color: '#ef4444', r: 1.0 },
+                    { label: 'p-p Chain H Core', color: '#f97316', r: 0.42 }
+                ];
+            } else if (mass <= 8.0) {
+                // Low/Intermediate Mass Track: MS -> Subgiant -> RGB -> Horizontal Branch -> AGB -> White Dwarf
+                if (p < 70) {
+                    const t = p / 70;
+                    logL += t * 0.35;
+                    temp *= (1 - t * 0.07);
+                    phase = 'Main Sequence';
+                    shells = [
+                        { label: 'Radiative / Convective H', color: '#facc15', r: 1.0 },
+                        { label: 'H → He Fusion Core', color: '#38bdf8', r: 0.28 + t * 0.08 }
+                    ];
+                } else if (p < 84) {
+                    const t = (p - 70) / 14;
+                    logL += 0.35 + t * 2.15;
+                    temp = zamsTemp * 0.93 * (1 - t) + 3750 * t;
+                    phase = 'Red Giant Branch';
+                    shells = [
+                        { label: 'Expanded Convective H', color: '#ea580c', r: 1.0 },
+                        { label: 'H-Burning Shell', color: '#facc15', r: 0.34 },
+                        { label: 'Degenerate He Core', color: '#a855f7', r: 0.20 }
+                    ];
+                } else if (p < 93) {
+                    const t = (p - 84) / 9;
+                    logL += 2.50 - 0.55 * Math.sin(t * Math.PI) + t * 0.65;
+                    temp = 4850 - t * 1150;
+                    phase = t < 0.5 ? 'Horizontal Branch' : 'Asymptotic Giant';
+                    shells = [
+                        { label: 'Pulsating H Envelope', color: '#dc2626', r: 1.0 },
+                        { label: 'He-Burning Shell', color: '#38bdf8', r: 0.32 },
+                        { label: 'C / O Ash Core', color: '#e2e8f0', r: 0.18 }
+                    ];
+                } else {
+                    const t = (p - 93) / 7;
+                    logL = -1.6 - t * 1.9;
+                    temp = 38000 - t * 24000;
+                    phase = 'White Dwarf';
+                    shells = [
+                        { label: 'Thin H/He Atmosphere', color: '#bae6fd', r: 1.0 },
+                        { label: 'Electron-Degenerate C/O', color: '#f8fafc', r: 0.82 }
+                    ];
+                }
+            } else {
+                // Massive Star Track: Blue Supergiant -> Red Supergiant -> Core-Collapse Remnant
+                if (p < 72) {
+                    const t = p / 72;
+                    logL += t * 0.32;
+                    temp *= (1 - t * 0.14);
+                    phase = 'Blue Main Sequence';
+                    shells = [
+                        { label: 'Radiative H Envelope', color: '#60a5fa', r: 1.0 },
+                        { label: 'CNO-Cycle Convective Core', color: '#fef08a', r: 0.38 }
+                    ];
+                } else if (p < 95) {
+                    const t = (p - 72) / 23;
+                    logL += 0.32 + t * 0.45;
+                    temp = zamsTemp * 0.86 * (1 - t) + 3900 * t;
+                    phase = 'Red Supergiant';
+                    shells = [
+                        { label: 'Supergiant H Envelope', color: '#ef4444', r: 1.0 },
+                        { label: 'He / C / Ne Shells', color: '#f59e0b', r: 0.46 },
+                        { label: 'Si → Fe Core', color: '#94a3b8', r: 0.22 }
+                    ];
+                } else {
+                    logL = -3.8;
+                    temp = 45000;
+                    phase = mass >= 20 ? 'Black Hole' : 'Neutron Star';
+                    shells = mass >= 20
+                        ? [{ label: 'Event Horizon (Schwarzschild)', color: '#090d16', r: 0.65 }]
+                        : [{ label: 'Neutron-Degenerate Crust', color: '#38bdf8', r: 0.72 }];
+                }
+            }
+
+            const lum = Math.pow(10, logL);
+            const radius = Math.sqrt(lum) * Math.pow(5778 / temp, 2);
+            const lifetimeMyr = 10000 * Math.pow(mass, -2.5);
+            const ageMyr = lifetimeMyr * (p / 100);
+
+            return { logL, lum, temp, radius, phase, shells, ageMyr, lifetimeMyr };
+        }
+
+        // --- Coordinate Mapping on HR Diagram ---
+        // X: log10(Teff) reversed [4.6 (40,000K) -> 3.45 (2,800K)]
+        // Y: log10(L/Lsun) [-4.5 -> +6.2]
+        function hrToScreen(temp, logL, w, h) {
+            const padL = 44, padR = 18, padT = 22, padB = 34;
+            const logT = Math.log10(Math.max(2800, Math.min(45000, temp)));
+            const nx = (4.62 - logT) / (4.62 - 3.45);
+            const ny = (6.2 - logL) / (6.2 - (-4.5));
+            return {
+                x: padL + nx * (w - padL - padR),
+                y: padT + ny * (h - padT - padB)
+            };
+        }
+
+        // --- Render Hertzsprung-Russell Diagram ---
+        function renderHR() {
+            const w = hrCanvas.parentElement.clientWidth;
+            const h = hrCanvas.parentElement.clientHeight;
+            if (hrCanvas.width !== w || hrCanvas.height !== h) {
+                hrCanvas.width = w;
+                hrCanvas.height = h;
+            }
+
+            const styles = getComputedStyle(document.documentElement);
+            const borderCol = styles.getPropertyValue('--border').trim();
+            const subCol = styles.getPropertyValue('--sub').trim();
+            const accent = styles.getPropertyValue('--accent').trim();
+
+            hrCtx.clearRect(0, 0, w, h);
+
+            // 1. Axes & Spectral Grid
+            hrCtx.strokeStyle = borderCol;
+            hrCtx.fillStyle = subCol;
+            hrCtx.font = '10px monospace';
+            hrCtx.lineWidth = 1;
+
+            [30000, 10000, 6000, 3500].forEach(t => {
+                const pt = hrToScreen(t, 0, w, h);
+                hrCtx.globalAlpha = 0.22;
+                hrCtx.beginPath(); hrCtx.moveTo(pt.x, 16); hrCtx.lineTo(pt.x, h - 26); hrCtx.stroke();
+                hrCtx.globalAlpha = 0.85;
+                hrCtx.fillText(`${t >= 10000 ? (t / 1000) + 'k' : t}K`, pt.x - 14, h - 10);
+            });
+
+            [4, 2, 0, -2, -4].forEach(l => {
+                const pt = hrToScreen(6000, l, w, h);
+                hrCtx.globalAlpha = 0.22;
+                hrCtx.beginPath(); hrCtx.moveTo(38, pt.y); hrCtx.lineTo(w - 14, pt.y); hrCtx.stroke();
+                hrCtx.globalAlpha = 0.85;
+                hrCtx.fillText(`10^${l}`, 6, pt.y + 3);
+            });
+            hrCtx.globalAlpha = 1.0;
+
+            // 2. Zero-Age Main Sequence (ZAMS) Reference Curve
+            hrCtx.strokeStyle = borderCol;
+            hrCtx.setLineDash([4, 4]);
+            hrCtx.lineWidth = 1.5;
+            hrCtx.beginPath();
+            for (let m = 0.25; m <= 24; m += 0.35) {
+                const z = evaluateStar(m, 0, state.metallicity);
+                const pt = hrToScreen(z.temp, z.logL, w, h);
+                if (m === 0.25) hrCtx.moveTo(pt.x, pt.y);
+                else hrCtx.lineTo(pt.x, pt.y);
+            }
+            hrCtx.stroke();
+            hrCtx.setLineDash([]);
+
+            // 3. Full Evolutionary Track for Selected Star
+            const selStar = state.stars[state.selectedIdx] || state.stars[0];
+            if (selStar) {
+                hrCtx.strokeStyle = accent;
+                hrCtx.lineWidth = 1.8;
+                hrCtx.beginPath();
+                for (let prog = 0; prog <= 100; prog += 1.5) {
+                    const ev = evaluateStar(selStar.mass, prog, state.metallicity);
+                    const pt = hrToScreen(ev.temp, ev.logL, w, h);
+                    if (prog === 0) hrCtx.moveTo(pt.x, pt.y);
+                    else hrCtx.lineTo(pt.x, pt.y);
+                }
+                hrCtx.stroke();
+            }
+
+            // 4. Plot All Stars in Population
+            state.stars.forEach((st, idx) => {
+                const ev = evaluateStar(st.mass, st.progress, state.metallicity);
+                const pt = hrToScreen(ev.temp, ev.logL, w, h);
+                const col = tempToColor(ev.temp);
+                const r = Math.min(11, Math.max(4.5, 4.5 + Math.log10(ev.radius + 1) * 3.5));
+
+                // Glow halo
+                hrCtx.fillStyle = col;
+                hrCtx.globalAlpha = 0.25;
+                hrCtx.beginPath();
+                hrCtx.arc(pt.x, pt.y, r * 1.9, 0, Math.PI * 2);
+                hrCtx.fill();
+                hrCtx.globalAlpha = 1.0;
+
+                // Core disc
+                hrCtx.beginPath();
+                hrCtx.arc(pt.x, pt.y, r, 0, Math.PI * 2);
+                hrCtx.fill();
+
+                if (idx === state.selectedIdx) {
+                    hrCtx.strokeStyle = accent;
+                    hrCtx.lineWidth = 2;
+                    hrCtx.beginPath();
+                    hrCtx.arc(pt.x, pt.y, r + 5, 0, Math.PI * 2);
+                    hrCtx.stroke();
+                }
+            });
+        }
+
+        // --- Render Radial Stellar Core & Fusion Shells Cutaway ---
+        function renderCoreCutaway() {
+            const w = coreCanvas.parentElement.clientWidth;
+            const h = coreCanvas.parentElement.clientHeight;
+            if (coreCanvas.width !== w || coreCanvas.height !== h) {
+                coreCanvas.width = w;
+                coreCanvas.height = h;
+            }
+
+            const styles = getComputedStyle(document.documentElement);
+            const textCol = styles.getPropertyValue('--text').trim();
+            const subCol = styles.getPropertyValue('--sub').trim();
+            const borderCol = styles.getPropertyValue('--border').trim();
+
+            coreCtx.clearRect(0, 0, w, h);
+
+            const st = state.stars[state.selectedIdx] || state.stars[0];
+            if (!st) return;
+            const ev = evaluateStar(st.mass, st.progress, state.metallicity);
+
+            const cx = w * 0.5;
+            const cy = h * 0.44;
+            const maxR = Math.min(w, h) * 0.34;
+            const visualR = ev.phase === 'White Dwarf' || ev.phase === 'Neutron Star' || ev.phase === 'Black Hole'
+                ? maxR * 0.36
+                : Math.min(maxR, maxR * (0.48 + Math.log10(ev.radius + 1) * 0.24));
+
+            // Photosphere corona glow
+            const glow = coreCtx.createRadialGradient(cx, cy, visualR * 0.4, cx, cy, visualR * 1.45);
+            const starCol = tempToColor(ev.temp);
+            glow.addColorStop(0, starCol);
+            glow.addColorStop(1, 'rgba(0,0,0,0)');
+            coreCtx.fillStyle = glow;
+            coreCtx.globalAlpha = 0.35;
+            coreCtx.beginPath();
+            coreCtx.arc(cx, cy, visualR * 1.45, 0, Math.PI * 2);
+            coreCtx.fill();
+            coreCtx.globalAlpha = 1.0;
+
+            // Concentric Nuclear Fusion Shells
+            ev.shells.forEach(sh => {
+                coreCtx.fillStyle = sh.color;
+                coreCtx.beginPath();
+                coreCtx.arc(cx, cy, visualR * sh.r, 0, Math.PI * 2);
+                coreCtx.fill();
+                coreCtx.strokeStyle = borderCol;
+                coreCtx.lineWidth = 1;
+                coreCtx.stroke();
+            });
+
+            // Shell Legend Readout at Bottom
+            coreCtx.font = '11px monospace';
+            ev.shells.forEach((sh, i) => {
+                const ly = h - 14 - (ev.shells.length - 1 - i) * 16;
+                coreCtx.fillStyle = sh.color;
+                coreCtx.fillRect(14, ly - 8, 9, 9);
+                coreCtx.fillStyle = textCol;
+                coreCtx.fillText(sh.label, 28, ly);
+            });
+
+            // Age Readout Top-Left
+            coreCtx.fillStyle = subCol;
+            const ageStr = ev.ageMyr >= 1000 ? `${(ev.ageMyr / 1000).toFixed(2)} Gyr` : `${ev.ageMyr.toFixed(1)} Myr`;
+            coreCtx.fillText(`Age: ${ageStr}`, 12, 18);
+        }
+
+        // --- Animation Loop & Telemetry Update ---
+        function updateTelemetry() {
+            const st = state.stars[state.selectedIdx] || state.stars[0];
+            if (!st) return;
+            const ev = evaluateStar(st.mass, st.progress, state.metallicity);
+
+            document.getElementById('mClass').innerText = `${st.mass.toFixed(2)} M☉ (${spectralType(ev.temp, ev.phase)})`;
+            document.getElementById('mTemp').innerText = `${Math.round(ev.temp).toLocaleString()} K`;
+            const lumStr = ev.lum >= 100 ? `${ev.lum.toExponential(1)} L☉` : `${ev.lum.toFixed(2)} L☉`;
+            const radStr = ev.radius >= 100 ? `${Math.round(ev.radius)} R☉` : `${ev.radius.toFixed(2)} R☉`;
+            document.getElementById('mLum').innerText = `${lumStr} | ${radStr}`;
+            document.getElementById('mPhase').innerText = ev.phase;
+        }
+
+        function animate() {
+            if (state.playing) {
+                state.stars.forEach(st => {
+                    // Massive stars burn fuel exponentially faster
+                    const rate = 0.035 * Math.pow(st.mass, 0.85);
+                    st.progress += rate;
+                    if (st.progress > 100) st.progress = 0;
+                });
+                const sel = state.stars[state.selectedIdx];
+                if (sel) {
+                    document.getElementById('cfgAge').value = Math.round(sel.progress);
+                    document.getElementById('valAge').innerText = Math.round(sel.progress);
+                }
+            }
+            updateTelemetry();
+            renderHR();
+            renderCoreCutaway();
+            requestAnimationFrame(animate);
+        }
+
+        // --- Touch / Pointer Star Selection on HR Diagram ---
+        hrCanvas.addEventListener('pointerdown', e => {
+            const rect = hrCanvas.getBoundingClientRect();
+            const px = e.clientX - rect.left, py = e.clientY - rect.top;
+            let bestIdx = -1, bestDist = 34;
+
+            state.stars.forEach((st, idx) => {
+                const ev = evaluateStar(st.mass, st.progress, state.metallicity);
+                const pt = hrToScreen(ev.temp, ev.logL, hrCanvas.width, hrCanvas.height);
+                const d = Math.hypot(px - pt.x, py - pt.y);
+                if (d < bestDist) {
+                    bestDist = d;
+                    bestIdx = idx;
+                }
+            });
+
+            if (bestIdx !== -1) {
+                state.selectedIdx = bestIdx;
+                syncUI();
+            }
+        });
+
+        // --- Controls & Persistence ---
+        function syncUI() {
+            const sel = state.stars[state.selectedIdx] || state.stars[0];
+            if (sel) {
+                document.getElementById('cfgMass').value = sel.mass;
+                document.getElementById('valMass').innerText = sel.mass.toFixed(2);
+                document.getElementById('cfgAge').value = Math.round(sel.progress);
+                document.getElementById('valAge').innerText = Math.round(sel.progress);
+            }
+            document.getElementById('cfgMetal').value = state.metallicity;
+            document.getElementById('valMetal').innerText = state.metallicity.toFixed(2);
+            updateTelemetry();
+        }
+
+        document.getElementById('cfgPreset').addEventListener('change', e => {
+            const p = PRESETS[e.target.value];
+            state = {
+                playing: true,
+                metallicity: p.metallicity,
+                selectedIdx: p.selectedIdx,
+                stars: JSON.parse(JSON.stringify(p.stars))
+            };
+            document.getElementById('playBtn').innerText = '⏸ Pause Epoch';
+            syncUI();
+        });
+
+        document.getElementById('cfgMass').addEventListener('input', e => {
+            const sel = state.stars[state.selectedIdx];
+            if (sel) { sel.mass = parseFloat(e.target.value); syncUI(); }
+        });
+
+        document.getElementById('cfgAge').addEventListener('input', e => {
+            const sel = state.stars[state.selectedIdx];
+            if (sel) { sel.progress = parseFloat(e.target.value); syncUI(); }
+        });
+
+        document.getElementById('cfgMetal').addEventListener('input', e => {
+            state.metallicity = parseFloat(e.target.value);
+            syncUI();
+        });
+
+        document.getElementById('playBtn').addEventListener('click', () => {
+            state.playing = !state.playing;
+            document.getElementById('playBtn').innerText = state.playing ? '⏸ Pause Epoch' : '▶ Evolve Epoch';
+        });
+
+        document.getElementById('birthBtn').addEventListener('click', () => {
+            const m = Number((0.4 + Math.random() * 14.0).toFixed(2));
+            state.stars.push({ mass: m, progress: Math.round(Math.random() * 40) });
+            state.selectedIdx = state.stars.length - 1;
+            syncUI();
+        });
+
+        document.getElementById('saveBtn').addEventListener('click', exportJSON);
+        document.getElementById('openFile').addEventListener('change', importJSON);
+
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            a.setAttribute("download", `stellarhertz_cluster_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        function importJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = evt => {
+                try {
+                    const data = JSON.parse(evt.target.result);
+                    if (Array.isArray(data.stars) && data.stars.length > 0) {
+                        state = {
+                            playing: Boolean(data.playing ?? true),
+                            metallicity: Number(data.metallicity ?? 0),
+                            selectedIdx: Math.min(data.stars.length - 1, Math.max(0, data.selectedIdx || 0)),
+                            stars: data.stars
+                        };
+                        syncUI();
+                    } else alert('Invalid StellarHertz JSON file.');
+                } catch { alert('Error reading JSON file.'); }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Theme & Shortcuts (Zero Key Overlap) ---
+        const helpModal = document.getElementById('helpModal');
+        document.getElementById('helpBtn').addEventListener('click', () => helpModal.classList.add('open'));
+        document.getElementById('closeHelpBtn').addEventListener('click', () => helpModal.classList.remove('open'));
+        document.getElementById('themeBtn').addEventListener('click', () => {
+            const cur = document.documentElement.getAttribute('data-theme');
+            document.documentElement.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+        });
+
+        // Space = Play/Pause, A = Add Star, R = Reset Cluster, S = Save JSON, O = Open JSON, T = Theme, Esc = Close Modal
+        window.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+            const k = e.key.toLowerCase();
+            if (e.code === 'Space') { e.preventDefault(); document.getElementById('playBtn').click(); }
+            if (k === 'a') { e.preventDefault(); document.getElementById('birthBtn').click(); }
+            if (k === 'r') {
+                e.preventDefault();
+                document.getElementById('cfgPreset').value = 'cluster';
+                state = { playing: true, metallicity: 0.0, selectedIdx: 2, stars: JSON.parse(JSON.stringify(PRESETS.cluster.stars)) };
+                document.getElementById('playBtn').innerText = '⏸ Pause Epoch';
+                syncUI();
+            }
+            if (k === 's') { e.preventDefault(); exportJSON(); }
+            if (k === 'o') { e.preventDefault(); document.getElementById('openFile').click(); }
+            if (k === 't') { e.preventDefault(); document.getElementById('themeBtn').click(); }
+            if (e.key === 'Escape') helpModal.classList.remove('open');
+        });
+
+        // Pre-loaded 5-Second Impressive Demo State
+        state = { playing: true, metallicity: 0.0, selectedIdx: 2, stars: JSON.parse(JSON.stringify(PRESETS.cluster.stars)) };
+        syncUI();
+        requestAnimationFrame(animate);
+    </script>
+</body>
+</html>

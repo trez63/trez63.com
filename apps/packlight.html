@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light" />
+    <link rel="icon" href="data:," />
+    <title>PACKLIGHT</title>
+    <style>
+      /* ---------- Palette & base ---------- */
+      :root{
+        --ink:#16323a; --paper:#f6efe0; --card:#fffdf6; --accent:#d64533;
+        --ochre:#dfa04a; --sea:#1d5c63; --line:#e3d7bd; --muted:#6b6250;
+        --over:#b3271a;
+      }
+      *{ box-sizing:border-box; }
+      html{ -webkit-text-size-adjust:100%; }
+      body{
+        margin:0; background:var(--paper); color:var(--ink);
+        font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+        font-size:16px; line-height:1.45;
+      }
+      h1,h2{ font-family:Georgia,"Times New Roman",serif; margin:0; }
+      button{ font:inherit; cursor:pointer; }
+      :focus-visible{ outline:3px solid var(--ochre); outline-offset:2px; }
+
+      /* ---------- Header / stats ---------- */
+      header{ background:var(--ink); color:#f6efe0; padding:18px 16px 16px; }
+      .top-in{ max-width:1060px; margin:0 auto; }
+      .brand{ font-family:Georgia,"Times New Roman",serif; font-size:28px; letter-spacing:3px; font-weight:700; }
+      .brand span{ display:block; font-family:inherit; letter-spacing:0; font-size:13px; font-weight:400; color:var(--ochre); margin-top:2px; }
+      .stats{ display:flex; flex-wrap:wrap; gap:8px 22px; margin-top:14px; font-size:15px; }
+      .stats b{ color:#fff; font-size:18px; }
+      .progress{ height:12px; background:rgba(246,239,224,.22); border-radius:6px; margin-top:14px; overflow:hidden; }
+      .progress > div{ height:100%; width:0%; background:var(--ochre); border-radius:6px; transition:width .25s ease; }
+      .plabel{ font-size:13px; color:#d9cfb4; margin-top:6px; }
+
+      /* ---------- Layout & cards ---------- */
+      main{ max-width:1060px; margin:0 auto; padding:16px 16px 40px; display:flex; flex-direction:column; gap:16px; }
+      .card{ background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; }
+      .card h2{ font-size:20px; margin-bottom:12px; }
+      .card h2 .hint{ font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif; font-size:13px; font-weight:400; color:var(--muted); }
+
+      /* ---------- Trip setup ---------- */
+      .field{ margin-bottom:14px; }
+      .field:last-child{ margin-bottom:0; }
+      label.flabel{ display:block; font-size:13px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; color:var(--sea); margin-bottom:6px; }
+      input[type="text"], input[type="number"], select{
+        font:inherit; color:var(--ink); background:#fff; border:1.5px solid var(--line);
+        border-radius:8px; padding:10px 12px; min-height:44px; width:100%;
+      }
+      input[type="range"]{ width:100%; min-height:44px; accent-color:var(--accent); }
+      .daysrow{ display:flex; align-items:center; gap:14px; }
+      .daysrow output{ font-weight:700; font-size:18px; white-space:nowrap; min-width:74px; text-align:right; }
+      .chips{ display:flex; flex-wrap:wrap; gap:8px; }
+      .chip{
+        min-height:44px; padding:10px 16px; border-radius:999px; border:1.5px solid var(--sea);
+        background:transparent; color:var(--sea); font-weight:600;
+      }
+      .chip[aria-pressed="true"]{ background:var(--sea); color:#fff; }
+      .chip.target[aria-pressed="true"]{ background:var(--accent); border-color:var(--accent); }
+
+      /* ---------- Bags ---------- */
+      .bags{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+      .bag{ background:var(--card); border:2px solid var(--line); border-radius:10px; padding:14px; display:flex; flex-direction:column; }
+      .bag.drop{ border-color:var(--accent); background:#fdf3e3; }
+      .bag h3{ margin:0; font-family:Georgia,"Times New Roman",serif; font-size:18px; }
+      .meter{ height:10px; background:#eee3cb; border-radius:5px; overflow:hidden; margin:10px 0 4px; }
+      .meter > div{ height:100%; width:0%; background:var(--sea); transition:width .25s ease; }
+      .meter > div.over{ background:var(--over); }
+      .bagwt{ font-size:13px; color:var(--muted); margin-bottom:10px; }
+      .bagwt.over{ color:var(--over); font-weight:700; }
+      .bag .items{ display:flex; flex-direction:column; gap:8px; }
+      .bag .empty{ color:var(--muted); font-size:14px; font-style:italic; padding:6px 2px; }
+
+      /* ---------- Items ---------- */
+      .item{
+        display:flex; align-items:center; gap:8px; min-height:44px; padding:8px 10px;
+        background:#fff; border:1.5px solid var(--line); border-radius:8px;
+        touch-action:none; user-select:none; -webkit-user-select:none; cursor:grab;
+      }
+      .item .check{
+        flex:0 0 auto; width:22px; height:22px; border-radius:50%; border:2px solid var(--line);
+        color:#fff; font-size:14px; line-height:19px; text-align:center; visibility:hidden;
+      }
+      .item.packed .check{ background:var(--sea); border-color:var(--sea); visibility:visible; }
+      .item .iname{ flex:1 1 auto; font-weight:600; overflow-wrap:break-word; min-width:0; }
+      .item.packed .iname{ text-decoration:line-through; color:var(--muted); }
+      .qty{ color:var(--accent); font-weight:700; }
+      .tag{ flex:0 0 auto; font-size:11px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; background:#f3e8cf; color:var(--sea); border-radius:4px; padding:2px 6px; }
+      .tag.custom{ background:var(--ochre); color:var(--ink); }
+      .wt{ flex:0 0 auto; font-size:13px; color:var(--muted); white-space:nowrap; }
+      .rm{
+        flex:0 0 auto; min-width:44px; min-height:44px; margin:-8px -6px -8px 0; border:none; background:transparent;
+        color:var(--muted); font-size:20px; border-radius:8px; line-height:1;
+      }
+      .rm.armed{ background:var(--accent); color:#fff; font-size:13px; font-weight:700; }
+      .item.dragging{ opacity:.35; }
+
+      /* ---------- Suggestion pool ---------- */
+      .pool{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-top:12px; }
+      .pool .item{ background:#fffdf6; }
+      .pool .empty{ color:var(--muted); font-style:italic; grid-column:1/-1; padding:8px 2px; }
+
+      /* ---------- Add form & actions ---------- */
+      .addgrid{ display:grid; grid-template-columns:2fr 1fr 1fr auto; gap:10px; align-items:end; }
+      .addgrid .field{ margin-bottom:0; }
+      .btn{
+        min-height:44px; padding:10px 18px; border-radius:8px; border:1.5px solid var(--sea);
+        background:var(--sea); color:#fff; font-weight:700;
+      }
+      .btn.accent{ background:var(--accent); border-color:var(--accent); }
+      .btn.ghost{ background:transparent; color:var(--sea); }
+      .btn.danger{ background:transparent; border-color:var(--accent); color:var(--accent); }
+      .actions{ display:flex; flex-wrap:wrap; gap:10px; }
+      .actions .btn{ flex:1 1 auto; }
+      .keys{ font-size:13px; color:var(--muted); margin:0; }
+
+      /* ---------- Drag ghost & toast ---------- */
+      #ghost{
+        position:fixed; z-index:60; pointer-events:none; max-width:240px;
+        background:var(--ink); color:#f6efe0; border-radius:8px; padding:8px 12px;
+        font-weight:600; font-size:14px; box-shadow:0 6px 18px rgba(22,50,58,.35);
+      }
+      #toast{
+        position:fixed; left:50%; bottom:22px; transform:translateX(-50%); z-index:70;
+        background:var(--ink); color:#f6efe0; padding:12px 20px; border-radius:999px;
+        font-size:15px; font-weight:600; max-width:calc(100vw - 32px); text-align:center;
+        opacity:0; pointer-events:none; transition:opacity .2s ease;
+      }
+      #toast.show{ opacity:1; }
+
+      /* ---------- Mobile ---------- */
+      @media (max-width:820px){ .bags{ grid-template-columns:1fr; } }
+      @media (max-width:640px){
+        .pool{ grid-template-columns:1fr; }
+        .addgrid{ grid-template-columns:1fr 1fr; }
+        .addgrid .wide{ grid-column:1/-1; }
+        .brand{ font-size:24px; }
+        main{ padding:12px 12px 36px; }
+      }
+      @media (prefers-reduced-motion: reduce){
+        *, *::before, *::after{ transition:none !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ===== Header: live trip stats ===== -->
+    <header>
+      <div class="top-in">
+        <div class="brand">PACKLIGHT<span>Trip packing planner</span></div>
+        <div class="stats" id="stats"></div>
+        <div class="progress"><div id="pfill"></div></div>
+        <div class="plabel" id="plabel"></div>
+      </div>
+    </header>
+
+    <main id="main">
+      <!-- ===== Trip setup ===== -->
+      <section class="card" aria-label="Trip setup">
+        <h2>Your trip</h2>
+        <div class="field">
+          <label class="flabel" for="dest">Destination</label>
+          <input type="text" id="dest" maxlength="60" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label class="flabel" for="days">Trip length</label>
+          <div class="daysrow">
+            <input type="range" id="days" min="1" max="21" step="1" />
+            <output id="daysout" for="days"></output>
+          </div>
+        </div>
+        <div class="field">
+          <label class="flabel" id="typelabel">Trip type</label>
+          <div class="chips" id="typechips" role="group" aria-labelledby="typelabel"></div>
+        </div>
+        <div class="field">
+          <label class="flabel" id="wxlabel">Weather</label>
+          <div class="chips" id="wxchips" role="group" aria-labelledby="wxlabel"></div>
+        </div>
+      </section>
+
+      <!-- ===== The three bags (rendered by JS) ===== -->
+      <div class="bags" id="bags"></div>
+
+      <!-- ===== Suggestions pool ===== -->
+      <section class="card" aria-label="Suggestions">
+        <h2>Suggestions <span class="hint">— tap to send to the target bag, or drag onto any bag</span></h2>
+        <label class="flabel" id="targetlabel">Target bag for taps</label>
+        <div class="chips" id="targetchips" role="group" aria-labelledby="targetlabel"></div>
+        <div class="pool" id="pool"></div>
+      </section>
+
+      <!-- ===== Add your own item ===== -->
+      <section class="card" aria-label="Add your own item">
+        <h2>Add your own</h2>
+        <div class="addgrid">
+          <div class="field wide">
+            <label class="flabel" for="addname">Item name</label>
+            <input type="text" id="addname" maxlength="60" placeholder="e.g. Travel pillow" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label class="flabel" for="addweight">Weight (kg)</label>
+            <input type="number" id="addweight" min="0.1" max="20" step="0.1" inputmode="decimal" placeholder="0.5" />
+          </div>
+          <div class="field">
+            <label class="flabel" for="addbag">Bag</label>
+            <select id="addbag"></select>
+          </div>
+          <button class="btn accent" id="addbtn" type="button">Add item</button>
+        </div>
+      </section>
+
+      <!-- ===== File & list actions ===== -->
+      <section class="card" aria-label="Save, open and share">
+        <div class="actions">
+          <button class="btn" id="savebtn" type="button">Save JSON</button>
+          <button class="btn ghost" id="openbtn" type="button">Open JSON</button>
+          <button class="btn ghost" id="copybtn" type="button">Copy summary</button>
+          <button class="btn danger" id="resetbtn" type="button">Reset</button>
+        </div>
+        <p class="keys" style="margin-top:12px;">Keys: 1 / 2 / 3 pick the target bag · S save · O open · R reset</p>
+      </section>
+    </main>
+
+    <div id="ghost" hidden></div>
+    <div id="toast" role="status" aria-live="polite"></div>
+    <input type="file" id="fileinput" accept=".json,application/json" hidden />
+
+    <script>
+    'use strict';
+    /* ================= Catalog ================= */
+    var TYPES = ['Beach','City break','Mountains','Business','Family visit'];
+    var WEATHERS = ['Warm','Mixed','Cold'];
+    var BAGS = [
+      { key:'carryon',  name:'Carry-on',     limit:7  },
+      { key:'checked',  name:'Checked bag',  limit:23 },
+      { key:'personal', name:'Personal item', limit:3 }
+    ];
+    function bagByKey(k){ for (var i=0;i<BAGS.length;i++) if (BAGS[i].key===k) return BAGS[i]; return BAGS[1]; }
+    function slug(s){ return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''); }
+    function r1(n){ return Math.round(n*10)/10; }
+    function scaleQty(days){ return Math.min(days,7); }
+
+    // def: [name, unit weight kg, qty (number or 'days'), category]
+    var COMMON = [
+      ['Passport/ID',0.1,1,'Essentials'], ['Phone charger',0.2,1,'Essentials'],
+      ['Toothbrush & paste',0.1,1,'Essentials'], ['Medications',0.2,1,'Essentials'],
+      ['Underwear',0.05,'days','Clothing'], ['Socks',0.03,'days','Clothing'],
+      ['T-shirts',0.15,'days','Clothing'], ['Sleepwear',0.3,1,'Clothing'],
+      ['Water bottle',0.4,1,'Essentials'], ['Sunglasses',0.1,1,'Essentials']
+    ];
+    var BY_TYPE = {
+      'Beach': [
+        ['Swimsuit',0.15,2,'Beach'], ['Sunscreen',0.2,1,'Beach'], ['Beach towel',0.5,1,'Beach'],
+        ['Sandals',0.4,1,'Beach'], ['Sun hat',0.1,1,'Beach'], ['Snorkel mask',0.3,1,'Beach']
+      ],
+      'City break': [
+        ['Walking shoes',0.7,1,'City'], ['Day bag',0.3,1,'City'], ['Guidebook/map',0.3,1,'City'],
+        ['Camera',0.5,1,'City'], ['Light jacket',0.5,1,'City'], ['Umbrella',0.3,1,'City']
+      ],
+      'Mountains': [
+        ['Hiking boots',0.9,1,'Mountains'], ['Fleece',0.4,1,'Mountains'], ['Rain jacket',0.4,1,'Mountains'],
+        ['Trail snacks',0.3,1,'Mountains'], ['Trekking poles',0.5,1,'Mountains'], ['Warm hat & gloves',0.2,1,'Mountains']
+      ],
+      'Business': [
+        ['Laptop',1.4,1,'Business'], ['Laptop charger',0.3,1,'Business'], ['Blazer',0.6,1,'Business'],
+        ['Dress shoes',0.8,1,'Business'], ['Notebook & pen',0.2,1,'Business'], ['Dress shirts',0.2,'days','Business']
+      ],
+      'Family visit': [
+        ['Gifts for hosts',0.8,1,'Family'], ['Card games',0.2,1,'Family'], ['Road snacks',0.4,1,'Family'],
+        ['Comfy clothes',0.4,2,'Family'], ["Kids' entertainment",0.3,1,'Family'], ['First-aid kit',0.3,1,'Family']
+      ]
+    };
+    var BY_WEATHER = {
+      'Warm': [['Shorts',0.25,2,'Weather']],
+      'Mixed': [['Light rain jacket',0.4,1,'Weather']],
+      'Cold': [['Warm coat',1.2,1,'Weather'], ['Scarf',0.15,1,'Weather'], ['Thermal layers',0.4,1,'Weather']]
+    };
+    function buildCatalog(trip){
+      var defs = COMMON.concat(BY_TYPE[trip.type] || [], BY_WEATHER[trip.weather] || []);
+      return defs.map(function(d){
+        var qty = d[2] === 'days' ? scaleQty(trip.days) : d[2];
+        return { id:'c-'+slug(d[0]), name:d[0], qty:qty, weight:r1(d[1]*qty), cat:d[3], custom:false };
+      });
+    }
+
+    /* ================= State ================= */
+    var LS_KEY = 'packlight-v1';
+    var uidCounter = 0;
+    var state = null;
+
+    function sampleState(){
+      var trip = { dest:'Lisbon', days:5, type:'City break', weather:'Warm' };
+      var all = buildCatalog(trip);
+      var byName = {}; all.forEach(function(it){ byName[it.name] = it; });
+      var inBag = {};
+      ['Passport/ID','Phone charger','Toothbrush & paste','T-shirts','Walking shoes'].forEach(function(n){ inBag[n]=true; });
+      var s = {
+        trip: trip,
+        pool: all.filter(function(it){ return !inBag[it.name]; }),
+        bags: {
+          carryon: [],
+          checked: [byName['Toothbrush & paste'], byName['T-shirts'], byName['Walking shoes']],
+          personal: [byName['Passport/ID'], byName['Phone charger']]
+        },
+        packed: {},
+        target: 'checked'
+      };
+      s.packed[byName['Passport/ID'].id] = true;
+      s.packed[byName['Phone charger'].id] = true;
+      return s;
+    }
+
+    // Rebuild the pool from the catalog; bag items and custom pool items survive.
+    function regenerate(){
+      var inBags = {};
+      BAGS.forEach(function(b){ state.bags[b.key].forEach(function(it){ inBags[it.name]=true; }); });
+      var customPool = state.pool.filter(function(it){ return it.custom; });
+      state.pool = buildCatalog(state.trip).filter(function(it){ return !inBags[it.name]; }).concat(customPool);
+    }
+
+    function locate(id){
+      var i, list;
+      for (i=0;i<state.pool.length;i++) if (state.pool[i].id===id) return { where:'pool', list:state.pool, index:i, item:state.pool[i] };
+      for (var b=0;b<BAGS.length;b++){
+        list = state.bags[BAGS[b].key];
+        for (i=0;i<list.length;i++) if (list[i].id===id) return { where:BAGS[b].key, list:list, index:i, item:list[i] };
+      }
+      return null;
+    }
+    function bagWeight(key){ return r1(state.bags[key].reduce(function(s,it){ return s+it.weight; },0)); }
+
+    /* ================= Persistence ================= */
+    function serialize(){
+      return { app:'packlight', version:1, trip:state.trip, pool:state.pool, bags:state.bags, packed:state.packed };
+    }
+    function autosave(){ try { localStorage.setItem(LS_KEY, JSON.stringify(serialize())); } catch(e){} }
+    function loadStored(){
+      try {
+        var raw = localStorage.getItem(LS_KEY);
+        if (!raw) return null;
+        return validateSave(JSON.parse(raw));
+      } catch(e){ return null; }
+    }
+
+    // Full validation; returns a clean state or null. Never mutates current state.
+    function validateSave(d){
+      if (!d || typeof d !== 'object' || Array.isArray(d)) return null;
+      if (d.app !== 'packlight' || d.version !== 1) return null;
+      var t = d.trip;
+      if (!t || typeof t !== 'object') return null;
+      if (typeof t.dest !== 'string' || t.dest.length > 120) return null;
+      if (!Number.isInteger(t.days) || t.days < 1 || t.days > 21) return null;
+      if (TYPES.indexOf(t.type) === -1 || WEATHERS.indexOf(t.weather) === -1) return null;
+      if (!Array.isArray(d.pool) || !d.bags || typeof d.bags !== 'object' || Array.isArray(d.bags)) return null;
+      if (!d.packed || typeof d.packed !== 'object' || Array.isArray(d.packed)) return null;
+      var pk, packed = {};
+      for (pk in d.packed){ if (typeof d.packed[pk] !== 'boolean') return null; packed[pk] = d.packed[pk]; }
+      var ids = {}, total = 0;
+      function cleanItem(it){
+        if (!it || typeof it !== 'object') return null;
+        if (typeof it.id !== 'string' || !it.id || ids[it.id]) return null;
+        if (typeof it.name !== 'string' || it.name.length < 1 || it.name.length > 60) return null;
+        if (!Number.isInteger(it.qty) || it.qty < 1 || it.qty > 99) return null;
+        if (typeof it.weight !== 'number' || !isFinite(it.weight) || it.weight <= 0 || it.weight > 50) return null;
+        if (typeof it.custom !== 'boolean') return null;
+        ids[it.id] = true; total++;
+        return { id:it.id, name:it.name, qty:it.qty, weight:r1(it.weight),
+                 cat:(typeof it.cat === 'string' && it.cat) ? it.cat : (it.custom ? 'Custom' : 'Essentials'),
+                 custom:it.custom };
+      }
+      function cleanList(arr){
+        if (!Array.isArray(arr)) return null;
+        var out = [];
+        for (var i=0;i<arr.length;i++){ var c = cleanItem(arr[i]); if (!c) return null; out.push(c); }
+        return out;
+      }
+      var pool = cleanList(d.pool); if (!pool) return null;
+      var bags = {}, b;
+      for (b=0;b<BAGS.length;b++){
+        var cl = cleanList(d.bags[BAGS[b].key]); if (!cl) return null;
+        bags[BAGS[b].key] = cl;
+      }
+      if (total > 200) return null;
+      return { trip:{ dest:t.dest, days:t.days, type:t.type, weather:t.weather },
+               pool:pool, bags:bags, packed:packed, target:'checked' };
+    }
+
+    /* ================= Rendering ================= */
+    var $ = function(id){ return document.getElementById(id); };
+    var destEl=$('dest'), daysEl=$('days'), daysOut=$('daysout');
+
+    function itemEl(it, inBag){
+      var el = document.createElement('div');
+      el.className = 'item' + (inBag && state.packed[it.id] ? ' packed' : '');
+      el.dataset.id = it.id;
+      var html = '<span class="check" aria-hidden="true">✓</span>' +
+        '<span class="iname">' + esc(it.name) +
+        (it.qty > 1 ? ' <span class="qty">×' + it.qty + '</span>' : '') + '</span>' +
+        '<span class="tag' + (it.custom ? ' custom' : '') + '">' + esc(it.custom ? 'Custom' : it.cat) + '</span>' +
+        '<span class="wt">' + fmtKg(it.weight) + '</span>';
+      if (inBag) html += '<button class="rm" type="button" data-rm="' + it.id + '" aria-label="Remove ' + esc(it.name) + '">×</button>';
+      el.innerHTML = html;
+      return el;
+    }
+    function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+    function fmtKg(n){ return (Math.round(n*10)/10).toString().replace(/\.0$/,'') + ' kg'; }
+
+    function render(){
+      // Trip controls
+      if (document.activeElement !== destEl) destEl.value = state.trip.dest;
+      daysEl.value = state.trip.days;
+      daysOut.textContent = state.trip.days + (state.trip.days === 1 ? ' day' : ' days');
+      markChips($('typechips'), state.trip.type);
+      markChips($('wxchips'), state.trip.weather);
+      markChips($('targetchips'), state.target);
+
+      // Bags
+      var bagsEl = $('bags'); bagsEl.innerHTML = '';
+      BAGS.forEach(function(b){
+        var w = bagWeight(b.key), over = w > b.limit;
+        var sec = document.createElement('section');
+        sec.className = 'bag'; sec.dataset.bag = b.key;
+        sec.setAttribute('aria-label', b.name);
+        var pct = Math.min(100, Math.round(w / b.limit * 100));
+        var head = '<h3>' + b.name + '</h3>' +
+          '<div class="meter"><div class="' + (over ? 'over' : '') + '" style="width:' + pct + '%"></div></div>' +
+          '<div class="bagwt' + (over ? ' over' : '') + '">' + fmtKg(w) + ' of ' + b.limit + ' kg' + (over ? ' — over the limit!' : '') + '</div>';
+        sec.innerHTML = head;
+        var list = document.createElement('div'); list.className = 'items';
+        if (!state.bags[b.key].length) list.innerHTML = '<div class="empty">Nothing here yet — tap or drag a suggestion in.</div>';
+        state.bags[b.key].forEach(function(it){ list.appendChild(itemEl(it, true)); });
+        sec.appendChild(list);
+        bagsEl.appendChild(sec);
+      });
+
+      // Pool
+      var pool = $('pool'); pool.innerHTML = '';
+      if (!state.pool.length) pool.innerHTML = '<div class="empty">Everything is in a bag. Nice packing.</div>';
+      state.pool.forEach(function(it){ pool.appendChild(itemEl(it, false)); });
+
+      // Stats + progress
+      var inBags = 0, packedCount = 0, totalW = 0;
+      BAGS.forEach(function(b){
+        totalW += bagWeight(b.key);
+        state.bags[b.key].forEach(function(it){ inBags++; if (state.packed[it.id]) packedCount++; });
+      });
+      $('stats').innerHTML =
+        '<span><b>' + packedCount + '</b> packed</span>' +
+        '<span><b>' + inBags + '</b> in bags</span>' +
+        '<span><b>' + state.pool.length + '</b> still to pack</span>' +
+        '<span><b>' + fmtKg(r1(totalW)) + '</b> total weight</span>';
+      $('pfill').style.width = (inBags ? Math.round(packedCount / inBags * 100) : 0) + '%';
+      $('plabel').textContent = inBags
+        ? packedCount + ' of ' + inBags + ' bag items packed for ' + (state.trip.dest || 'your trip')
+        : 'Nothing in your bags yet — tap a suggestion below to start.';
+    }
+    function markChips(container, value){
+      Array.prototype.forEach.call(container.children, function(ch){
+        ch.setAttribute('aria-pressed', ch.dataset.value === value ? 'true' : 'false');
+      });
+    }
+    function buildChips(container, values, isTarget){
+      container.innerHTML = '';
+      values.forEach(function(v){
+        var btn = document.createElement('button');
+        btn.type = 'button'; btn.className = 'chip' + (isTarget ? ' target' : '');
+        btn.dataset.value = v.key || v; btn.textContent = v.name || v;
+        btn.setAttribute('aria-pressed','false');
+        container.appendChild(btn);
+      });
+    }
+
+    /* ================= Toast ================= */
+    var toastTimer = null;
+    function toast(msg){
+      var t = $('toast'); t.textContent = msg; t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2400);
+    }
+
+    /* ================= Moves & packed toggles ================= */
+    function moveToBag(id, bagKey){
+      var loc = locate(id); if (!loc) return;
+      if (loc.where === bagKey) return;
+      loc.list.splice(loc.index, 1);
+      state.bags[bagKey].push(loc.item);
+      if (loc.where === 'pool') delete state.packed[id];
+      render(); autosave();
+      toast(loc.item.name + ' → ' + bagByKey(bagKey).name + '.');
+    }
+    function togglePacked(id){
+      state.packed[id] = !state.packed[id];
+      if (!state.packed[id]) delete state.packed[id];
+      render(); autosave();
+    }
+    function removeFromBag(id){
+      var loc = locate(id); if (!loc || loc.where === 'pool') return;
+      loc.list.splice(loc.index, 1);
+      delete state.packed[id];
+      if (loc.item.custom){
+        render(); autosave();
+        toast(loc.item.name + ' deleted.');
+      } else {
+        state.pool.push(loc.item);
+        render(); autosave();
+        toast(loc.item.name + ' back to suggestions.');
+      }
+    }
+
+    /* ================= Drag & drop (pointer events) ================= */
+    var drag = null;
+    function onPointerDown(e){
+      if (e.target.closest('[data-rm]')) return;
+      var el = e.target.closest('.item'); if (!el) return;
+      drag = { id: el.dataset.id, el: el, x0: e.clientX, y0: e.clientY, active: false };
+      window.addEventListener('pointermove', onPointerMove);
+      window.addEventListener('pointerup', onPointerUp, { once:true });
+      window.addEventListener('pointercancel', cancelDrag, { once:true });
+    }
+    function onPointerMove(e){
+      if (!drag) return;
+      if (!drag.active){
+        if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 9) return;
+        drag.active = true;
+        drag.el.classList.add('dragging');
+        var loc = locate(drag.id);
+        var g = $('ghost'); g.textContent = loc ? loc.item.name : '';
+        g.hidden = false;
+      }
+      var g2 = $('ghost');
+      g2.style.left = (e.clientX + 12) + 'px';
+      g2.style.top = (e.clientY + 14) + 'px';
+      highlightBag(e.clientX, e.clientY);
+    }
+    function bagAt(x, y){
+      var el = document.elementFromPoint(x, y);
+      var bag = el && el.closest ? el.closest('.bag') : null;
+      return bag ? bag.dataset.bag : null;
+    }
+    function highlightBag(x, y){
+      var key = bagAt(x, y);
+      Array.prototype.forEach.call(document.querySelectorAll('.bag'), function(b){
+        b.classList.toggle('drop', b.dataset.bag === key);
+      });
+    }
+    function clearDragUI(){
+      $('ghost').hidden = true;
+      Array.prototype.forEach.call(document.querySelectorAll('.bag.drop'), function(b){ b.classList.remove('drop'); });
+      if (drag && drag.el) drag.el.classList.remove('dragging');
+    }
+    function onPointerUp(e){
+      window.removeEventListener('pointermove', onPointerMove);
+      if (!drag) return;
+      var d = drag; drag = null;
+      if (d.active){
+        var key = bagAt(e.clientX, e.clientY);
+        clearDragUI();
+        if (key) moveToBag(d.id, key);
+      } else {
+        // Plain tap: pool item -> target bag; bag item -> toggle packed.
+        var loc = locate(d.id);
+        if (!loc) return;
+        if (loc.where === 'pool') moveToBag(d.id, state.target);
+        else togglePacked(d.id);
+      }
+    }
+    function cancelDrag(){
+      window.removeEventListener('pointermove', onPointerMove);
+      clearDragUI(); drag = null;
+    }
+
+    /* ================= Two-tap remove ================= */
+    var armTimer = null;
+    document.addEventListener('click', function(e){
+      var rm = e.target.closest('[data-rm]');
+      if (rm){
+        var id = rm.getAttribute('data-rm');
+        if (rm.classList.contains('armed')){
+          clearTimeout(armTimer);
+          removeFromBag(id);
+        } else {
+          Array.prototype.forEach.call(document.querySelectorAll('.rm.armed'), function(b){
+            b.classList.remove('armed'); b.textContent = '×';
+          });
+          rm.classList.add('armed'); rm.textContent = 'Sure?';
+          clearTimeout(armTimer);
+          armTimer = setTimeout(function(){ rm.classList.remove('armed'); rm.textContent = '×'; }, 2600);
+        }
+        return;
+      }
+      // Chip groups
+      var chip = e.target.closest('.chip'); if (!chip) return;
+      var group = chip.parentElement.id, val = chip.dataset.value;
+      if (group === 'typechips'){ state.trip.type = val; regenerate(); }
+      else if (group === 'wxchips'){ state.trip.weather = val; regenerate(); }
+      else if (group === 'targetchips'){ state.target = val; }
+      else return;
+      render(); autosave();
+    });
+
+    /* ================= Trip inputs ================= */
+    destEl.addEventListener('input', function(){ state.trip.dest = destEl.value; render(); autosave(); });
+    daysEl.addEventListener('input', function(){
+      state.trip.days = parseInt(daysEl.value, 10) || 1;
+      regenerate(); render(); autosave();
+    });
+
+    /* ================= Add your own ================= */
+    $('addbtn').addEventListener('click', function(){
+      var name = $('addname').value.trim();
+      var w = parseFloat($('addweight').value);
+      if (!name){ toast('Give your item a name first.'); return; }
+      if (name.length > 60){ toast('That name is too long (60 characters max).'); return; }
+      if (!isFinite(w) || w < 0.1 || w > 20){ toast('Weight must be between 0.1 and 20 kg.'); return; }
+      var bagKey = $('addbag').value;
+      var it = { id:'u-' + Date.now().toString(36) + (++uidCounter), name:name, qty:1, weight:r1(w), cat:'Custom', custom:true };
+      state.bags[bagKey].push(it);
+      $('addname').value = ''; $('addweight').value = '';
+      render(); autosave();
+      toast(name + ' → ' + bagByKey(bagKey).name + '.');
+    });
+
+    /* ================= Save / Open / Copy / Reset ================= */
+    function doSave(){
+      var blob = new Blob([JSON.stringify(serialize(), null, 2)], { type:'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'packlight-' + slug(state.trip.dest || 'trip') + '.json';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+      toast('Packing list saved as JSON.');
+    }
+    function doOpen(){ $('fileinput').click(); }
+    $('fileinput').addEventListener('change', function(){
+      var f = this.files && this.files[0];
+      this.value = '';
+      if (!f) return;
+      var reader = new FileReader();
+      reader.onload = function(){
+        var parsed;
+        try { parsed = JSON.parse(reader.result); } catch(e){ toast('That file is not a valid PACKLIGHT save.'); return; }
+        var clean = validateSave(parsed);
+        if (!clean){ toast('That file is not a valid PACKLIGHT save.'); return; }
+        state = clean;
+        render(); autosave();
+        toast('Trip loaded: ' + (state.trip.dest || 'your trip') + '.');
+      };
+      reader.onerror = function(){ toast('Could not read that file.'); };
+      reader.readAsText(f);
+    });
+    function summaryText(){
+      var lines = ['PACKLIGHT — ' + (state.trip.dest || 'Trip') + ' · ' + state.trip.days +
+        (state.trip.days === 1 ? ' day' : ' days') + ' · ' + state.trip.type + ' · ' + state.trip.weather, ''];
+      BAGS.forEach(function(b){
+        lines.push(b.name.toUpperCase() + ' (' + fmtKg(bagWeight(b.key)) + ' / ' + b.limit + ' kg)');
+        if (!state.bags[b.key].length) lines.push('  (empty)');
+        state.bags[b.key].forEach(function(it){
+          lines.push('  [' + (state.packed[it.id] ? 'x' : ' ') + '] ' + it.name +
+            (it.qty > 1 ? ' ×' + it.qty : '') + ' — ' + fmtKg(it.weight));
+        });
+        lines.push('');
+      });
+      if (state.pool.length){
+        lines.push('STILL TO PACK');
+        state.pool.forEach(function(it){
+          lines.push('  [ ] ' + it.name + (it.qty > 1 ? ' ×' + it.qty : '') + ' — ' + fmtKg(it.weight));
+        });
+      }
+      return lines.join('\n');
+    }
+    function doCopy(){
+      var text = summaryText();
+      function done(){ toast('Packing list copied.'); }
+      if (navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(done, function(){ fallbackCopy(text, done); });
+      } else fallbackCopy(text, done);
+    }
+    function fallbackCopy(text, done){
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } catch(e){ toast('Copy failed on this browser.'); }
+      ta.remove();
+    }
+    function doReset(){
+      state = sampleState();
+      render(); autosave();
+      toast('Sample trip restored — Lisbon, 5 days.');
+    }
+    $('savebtn').addEventListener('click', doSave);
+    $('openbtn').addEventListener('click', doOpen);
+    $('copybtn').addEventListener('click', doCopy);
+    $('resetbtn').addEventListener('click', doReset);
+
+    /* ================= Keyboard (one function per key) ================= */
+    document.addEventListener('keydown', function(e){
+      var tag = (e.target.tagName || '').toLowerCase();
+      if (tag === 'input' || tag === 'select' || tag === 'textarea' || e.target.isContentEditable) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      var k = e.key;
+      if (k === '1' || k === '2' || k === '3'){
+        state.target = BAGS[Number(k) - 1].key;
+        render(); autosave();
+        toast('Target bag: ' + bagByKey(state.target).name + '.');
+      }
+      else if (k === 's' || k === 'S') doSave();
+      else if (k === 'o' || k === 'O') doOpen();
+      else if (k === 'r' || k === 'R') doReset();
+    });
+
+    /* ================= Init ================= */
+    buildChips($('typechips'), TYPES, false);
+    buildChips($('wxchips'), WEATHERS, false);
+    buildChips($('targetchips'), BAGS, true);
+    var addBag = $('addbag');
+    BAGS.forEach(function(b){
+      var o = document.createElement('option'); o.value = b.key; o.textContent = b.name; addBag.appendChild(o);
+    });
+    addBag.value = 'checked';
+    $('main').addEventListener('pointerdown', onPointerDown);
+    state = loadStored() || sampleState();
+    render();
+    </script>
+  </body>
+</html>

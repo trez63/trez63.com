@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Pitch Perfect</title>
+    <style>
+      /* ---------- Palette & base ---------- */
+      :root{
+        --paper:#faf5ec; --card:#ffffff; --ink:#23272f; --ink-soft:#5b6068;
+        --coral:#e4572e; --coral-dark:#c7431f; --teal:#177e70; --gold:#d9a441;
+        --green:#2e8b47; --green-bg:#e3f4e7; --red:#c0392b; --red-bg:#fbe7e3;
+        --line:#e7ddc9; --key-black:#23272f; --chip:#f3ecdc;
+      }
+      @media (prefers-color-scheme: dark){
+        :root{
+          --paper:#211b14; --card:#2d261d; --ink:#f2ead9; --ink-soft:#c9bda6;
+          --line:#4a4033; --chip:#3a3226; --green-bg:#1e3a28; --red-bg:#452420;
+          --key-black:#14100c;
+        }
+      }
+      *{ box-sizing:border-box; }
+      body{
+        margin:0; background:var(--paper); color:var(--ink);
+        font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+        -webkit-font-smoothing:antialiased;
+      }
+      .wrap{ max-width:640px; margin:0 auto; padding:16px 14px 40px; }
+      .card{
+        background:var(--card); border:1px solid var(--line); border-radius:14px;
+        padding:16px; margin-bottom:14px;
+      }
+      button{ font:inherit; cursor:pointer; color:inherit; }
+      :focus-visible{ outline:3px solid var(--gold); outline-offset:2px; }
+
+      /* ---------- Stats strip ---------- */
+      .stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; padding:12px; }
+      .stat{ text-align:center; }
+      .stat b{ display:block; font-size:1.35rem; line-height:1.15; }
+      .stat span{ font-size:.72rem; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-soft); }
+
+      /* ---------- Mode tabs ---------- */
+      .tabs{ display:flex; gap:8px; margin-bottom:14px; }
+      .tab{
+        flex:1; min-height:48px; border-radius:12px; border:2px solid var(--line);
+        background:var(--card); font-weight:700; font-size:1rem;
+      }
+      .tab[aria-selected="true"]{ background:var(--teal); border-color:var(--teal); color:#fff; }
+
+      /* ---------- Question area ---------- */
+      .qmeta{
+        display:flex; justify-content:space-between; align-items:baseline;
+        color:var(--ink-soft); font-size:.9rem; margin-bottom:12px;
+      }
+      .qmeta b{ color:var(--ink); }
+      #hearBtn{
+        display:flex; align-items:center; justify-content:center; gap:10px;
+        width:100%; min-height:64px; border:none; border-radius:14px;
+        background:var(--coral); color:#fff; font-size:1.3rem; font-weight:800;
+        box-shadow:0 4px 0 var(--coral-dark);
+        animation:pulse 1.8s ease-in-out infinite;
+      }
+      #hearBtn:active{ transform:translateY(2px); box-shadow:0 2px 0 var(--coral-dark); }
+      @keyframes pulse{
+        0%,100%{ box-shadow:0 4px 0 var(--coral-dark), 0 0 0 0 rgba(228,87,46,.45); }
+        50%{ box-shadow:0 4px 0 var(--coral-dark), 0 0 0 12px rgba(228,87,46,0); }
+      }
+      .hint{ text-align:center; color:var(--ink-soft); font-size:.85rem; margin:10px 0 0; }
+      kbd{
+        background:var(--chip); border:1px solid var(--line); border-bottom-width:2px;
+        border-radius:5px; padding:0 5px; font-family:inherit; font-size:.8em;
+      }
+
+      /* ---------- Feedback banner ---------- */
+      .feedback{
+        border-radius:12px; padding:12px 14px; font-weight:700; font-size:1.05rem;
+        margin:14px 0 0; text-align:center;
+      }
+      .feedback.good{ background:var(--green-bg); color:var(--green); }
+      .feedback.bad{ background:var(--red-bg); color:var(--red); }
+      .feedback.neutral{ background:var(--chip); color:var(--ink); }
+      [hidden]{ display:none !important; }
+
+      /* ---------- Piano answer strip ---------- */
+      .piano{ position:relative; height:168px; margin-top:16px; user-select:none; }
+      .whites{ display:flex; height:100%; }
+      .wkey{
+        flex:1; background:#fff; border:1px solid #c9c2b2; border-radius:0 0 8px 8px;
+        display:flex; flex-direction:column; justify-content:flex-end; align-items:center;
+        padding-bottom:8px; color:#23272f; min-height:48px;
+      }
+      .wkey .nm{ font-weight:800; font-size:1rem; }
+      .wkey .kb, .bkey .kb{ font-size:.62rem; color:#9a917c; font-weight:600; }
+      .bkey{
+        position:absolute; top:0; height:58%; width:9.5%; transform:translateX(-50%);
+        background:var(--key-black); color:#fff; border:none; border-radius:0 0 6px 6px;
+        display:flex; flex-direction:column; justify-content:flex-end; align-items:center;
+        padding-bottom:6px; z-index:2; min-height:48px;
+      }
+      .bkey .nm{ font-weight:700; font-size:.72rem; }
+      .bkey .kb{ color:#bdb29a; }
+      .wkey.right, .bkey.right{ background:var(--green); color:#fff; }
+      .wkey.right .kb, .bkey.right .kb{ color:#dff2e4; }
+      .wkey.wrong, .bkey.wrong{ background:var(--red); color:#fff; }
+      button:disabled{ cursor:default; opacity:.92; }
+
+      /* ---------- Button answer grids ---------- */
+      .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(100px,1fr)); gap:10px; margin-top:16px; }
+      .grid.chords{ grid-template-columns:repeat(3,1fr); }
+      @media (max-width:430px){ .grid.chords{ grid-template-columns:1fr; } }
+      .ans{
+        min-height:56px; border-radius:12px; border:2px solid var(--line);
+        background:var(--card); padding:8px 6px; text-align:center;
+      }
+      .ans .big{ display:block; font-weight:800; font-size:1.02rem; }
+      .ans .sub{ display:block; font-size:.78rem; color:var(--ink-soft); margin-top:2px; }
+      .ans.right{ background:var(--green); border-color:var(--green); color:#fff; }
+      .ans.right .sub{ color:#dff2e4; }
+      .ans.wrong{ background:var(--red); border-color:var(--red); color:#fff; }
+      .ans.wrong .sub{ color:#fbdcd6; }
+
+      /* ---------- Settings row ---------- */
+      .settings{ margin-top:16px; border-top:1px solid var(--line); padding-top:14px; }
+      .chips{ display:flex; gap:8px; flex-wrap:wrap; }
+      .chip{
+        min-height:48px; padding:8px 14px; border-radius:999px; border:2px solid var(--line);
+        background:var(--chip); font-weight:600;
+      }
+      .chip[aria-pressed="true"]{ background:var(--gold); border-color:var(--gold); color:#23272f; }
+      .check{
+        display:flex; align-items:center; gap:10px; min-height:48px;
+        font-weight:600; cursor:pointer;
+      }
+      .check input{ width:22px; height:22px; accent-color:var(--teal); }
+
+      /* ---------- Next / summary / rounds ---------- */
+      #nextBtn, .primary{
+        width:100%; min-height:56px; margin-top:14px; border:none; border-radius:12px;
+        background:var(--teal); color:#fff; font-size:1.1rem; font-weight:800;
+      }
+      .summary{ text-align:center; }
+      .summary .score{ font-size:2.6rem; font-weight:800; margin:4px 0; }
+      .summary .best{ color:var(--gold); font-weight:800; font-size:1.1rem; }
+      h2{ font-size:1.05rem; margin:0 0 10px; }
+      .rounds{ list-style:none; margin:0; padding:0; }
+      .rounds li{
+        display:flex; justify-content:space-between; gap:10px;
+        padding:10px 2px; border-bottom:1px solid var(--line);
+      }
+      .rounds li:last-child{ border-bottom:none; }
+      .rounds .when{ color:var(--ink-soft); font-size:.88rem; }
+      .rounds .sc{ font-weight:800; }
+      .empty{ color:var(--ink-soft); margin:0; }
+
+      /* ---------- Save / Open / toast ---------- */
+      .filebar{ display:flex; gap:10px; }
+      .filebar button{
+        flex:1; min-height:52px; border-radius:12px; font-weight:700; font-size:1rem;
+        border:2px solid var(--teal); background:var(--card); color:var(--teal);
+      }
+      #toast{
+        position:fixed; left:50%; bottom:22px; transform:translateX(-50%);
+        background:var(--ink); color:var(--paper); padding:12px 18px; border-radius:10px;
+        font-weight:600; max-width:88vw; text-align:center; z-index:10;
+        box-shadow:0 6px 20px rgba(0,0,0,.25);
+      }
+
+      /* ---------- Reduced motion ---------- */
+      @media (prefers-reduced-motion: reduce){
+        #hearBtn{ animation:none; }
+        *{ transition:none !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+
+      <!-- Stats strip -->
+      <section class="card stats" aria-label="Your stats">
+        <div class="stat"><b id="stRound">0/10</b><span>This round</span></div>
+        <div class="stat"><b id="stStreak">0</b><span>Streak</span></div>
+        <div class="stat"><b id="stBest">0</b><span>Best streak</span></div>
+        <div class="stat"><b id="stAcc">—</b><span>Accuracy</span></div>
+      </section>
+
+      <!-- Mode tabs -->
+      <div class="tabs" role="tablist" aria-label="Training mode">
+        <button class="tab" role="tab" data-mode="notes" aria-selected="true">Notes</button>
+        <button class="tab" role="tab" data-mode="intervals" aria-selected="false">Intervals</button>
+        <button class="tab" role="tab" data-mode="chords" aria-selected="false">Chords</button>
+      </div>
+
+      <!-- Play card -->
+      <section class="card" id="playCard">
+        <div class="qmeta">
+          <span>Question <b id="qNum">1</b> of 10</span>
+          <span id="qKind">Name the note</span>
+        </div>
+        <button id="hearBtn" type="button">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 9v6h4l5 4V5L8 9H4z" fill="#fff"/>
+            <path d="M16 9c1.2 1.6 1.2 4.4 0 6M18.5 6.5c2.4 3.2 2.4 7.8 0 11" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Hear it
+        </button>
+        <p class="hint">Tap to play the sound · <kbd>P</kbd> replays · <kbd>N</kbd> next</p>
+
+        <div class="feedback" id="feedback" hidden></div>
+        <div id="answerArea"></div>
+
+        <div class="settings" id="settingsRow">
+          <div class="chips" id="rangeRow">
+            <button class="chip" data-range="mid" aria-pressed="true">Middle · C4–B4</button>
+            <button class="chip" data-range="wide" aria-pressed="false">Wide · C3–B5</button>
+          </div>
+          <label class="check" id="challengeRow" hidden>
+            <input type="checkbox" id="challengeBox" />
+            Include all 12 intervals
+          </label>
+        </div>
+
+        <button id="nextBtn" type="button" hidden>Next question</button>
+      </section>
+
+      <!-- Round summary -->
+      <section class="card summary" id="summaryCard" hidden>
+        <h2>Round complete</h2>
+        <div class="score" id="sumScore">0 / 10</div>
+        <p id="sumPct">0% correct</p>
+        <p class="best" id="sumBest" hidden>★ New best round!</p>
+        <button class="primary" id="againBtn" type="button">Play another round</button>
+      </section>
+
+      <!-- Recent rounds -->
+      <section class="card">
+        <h2>Recent rounds</h2>
+        <ul class="rounds" id="roundsList"></ul>
+        <p class="empty" id="roundsEmpty">No rounds finished yet — play one above.</p>
+      </section>
+
+      <!-- Save / Open -->
+      <div class="filebar">
+        <button id="saveBtn" type="button">Save</button>
+        <button id="openBtn" type="button">Open</button>
+        <input type="file" id="fileInput" accept=".json,application/json" hidden />
+      </div>
+
+      <div id="toast" role="status" hidden></div>
+    </main>
+
+    <script>
+      "use strict";
+      /* ================= Data tables ================= */
+      var NAMES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+      var MODE_LABEL = { notes:"Notes", intervals:"Intervals", chords:"Chords" };
+      var INTERVALS = [
+        {code:"m2", name:"Minor 2nd", semis:1},  {code:"M2", name:"Major 2nd", semis:2},
+        {code:"m3", name:"Minor 3rd", semis:3},  {code:"M3", name:"Major 3rd", semis:4},
+        {code:"P4", name:"Perfect 4th", semis:5},{code:"TT", name:"Tritone", semis:6},
+        {code:"P5", name:"Perfect 5th", semis:7},{code:"m6", name:"Minor 6th", semis:8},
+        {code:"M6", name:"Major 6th", semis:9},  {code:"m7", name:"Minor 7th", semis:10},
+        {code:"M7", name:"Major 7th", semis:11}, {code:"P8", name:"Octave", semis:12}
+      ];
+      var EASY_CODES = ["m3","M3","P4","P5","P8"];
+      var CHORDS = [
+        {name:"Major", sub:"bright", steps:[0,4,7]},
+        {name:"Minor", sub:"sadder", steps:[0,3,7]},
+        {name:"Diminished", sub:"tense", steps:[0,3,6]}
+      ];
+      var RANGES = { mid:[60,71], wide:[48,83] };
+      var LS_KEY = "pitchperfect-v1";
+
+      /* ================= State ================= */
+      function freshStats(){
+        return { total:0, correct:0, streak:0, bestStreak:0, bestRound:0,
+          perMode:{ notes:{total:0,correct:0}, intervals:{total:0,correct:0}, chords:{total:0,correct:0} } };
+      }
+      var S = {
+        mode:"notes", range:"mid", challenge:false,
+        stats:freshStats(), round:{ q:1, correct:0 },
+        rounds:[], current:null, answered:false, roundOver:false
+      };
+
+      /* ================= Helpers ================= */
+      function $(id){ return document.getElementById(id); }
+      function randInt(lo, hi){ return lo + Math.floor(Math.random() * (hi - lo + 1)); }
+      function pick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+      function freq(midi){ return 440 * Math.pow(2, (midi - 69) / 12); }
+      function noteName(midi){ return NAMES[midi % 12] + (Math.floor(midi / 12) - 1); }
+      function activeIntervals(){
+        return S.challenge ? INTERVALS : INTERVALS.filter(function(iv){ return EASY_CODES.indexOf(iv.code) >= 0; });
+      }
+      function questionLabel(q){
+        if (!q) return "";
+        if (q.mode === "notes") return noteName(q.notes[0]);
+        if (q.mode === "intervals"){
+          for (var i = 0; i < INTERVALS.length; i++)
+            if (INTERVALS[i].code === q.answer) return INTERVALS[i].name + " (" + q.answer + ")";
+          return q.answer;
+        }
+        return q.answer + " chord";
+      }
+
+      /* ================= Audio (Web Audio API, all synthesised) ================= */
+      var actx = null;
+      function audio(){
+        if (!actx){
+          var AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) actx = new AC();
+        }
+        if (actx && actx.state === "suspended") actx.resume();
+        return actx;
+      }
+      function tone(midi, delay, dur){
+        var ctx = audio(); if (!ctx) return;
+        var t = ctx.currentTime + delay;
+        var g = ctx.createGain();
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(0.32, t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+        var o1 = ctx.createOscillator(); o1.type = "sine"; o1.frequency.value = freq(midi);
+        var o2 = ctx.createOscillator(); o2.type = "triangle"; o2.frequency.value = freq(midi);
+        var g2 = ctx.createGain(); g2.gain.value = 0.45;
+        o1.connect(g); o2.connect(g2); g2.connect(g); g.connect(ctx.destination);
+        o1.start(t); o2.start(t); o1.stop(t + dur + 0.05); o2.stop(t + dur + 0.05);
+      }
+      function toneFreq(f, delay, dur, type, vol){
+        var ctx = audio(); if (!ctx) return;
+        var t = ctx.currentTime + delay;
+        var g = ctx.createGain();
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(vol || 0.25, t + 0.015);
+        g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+        var o = ctx.createOscillator(); o.type = type || "sine"; o.frequency.value = f;
+        o.connect(g); g.connect(ctx.destination);
+        o.start(t); o.stop(t + dur + 0.05);
+      }
+      function playQuestion(){
+        var q = S.current; if (!q) return;
+        if (q.mode === "intervals"){ tone(q.notes[0], 0, 0.95); tone(q.notes[1], 0.55, 1.15); }
+        else if (q.mode === "chords"){ for (var i = 0; i < q.notes.length; i++) tone(q.notes[i], 0, 1.25); }
+        else tone(q.notes[0], 0, 1.15);
+      }
+      function chime(ok){
+        if (ok){ toneFreq(1046.5, 0, 0.16); toneFreq(1568, 0.1, 0.3); }
+        else toneFreq(147, 0, 0.4, "triangle", 0.3);
+      }
+
+      /* ================= Question generation ================= */
+      function newQuestion(){
+        var q;
+        if (S.mode === "notes"){
+          var r = RANGES[S.range], m = randInt(r[0], r[1]);
+          q = { mode:"notes", notes:[m], answer:NAMES[m % 12] };
+        } else if (S.mode === "intervals"){
+          var iv = pick(activeIntervals()), root = randInt(55, 72);
+          q = { mode:"intervals", notes:[root, root + iv.semis], answer:iv.code };
+        } else {
+          var ch = pick(CHORDS), base = randInt(55, 67);
+          q = { mode:"chords", notes:ch.steps.map(function(s){ return base + s; }), answer:ch.name };
+        }
+        S.current = q; S.answered = false;
+      }
+
+      /* ================= Rendering ================= */
+      function renderStats(){
+        $("stRound").textContent = S.round.correct + "/10";
+        $("stStreak").textContent = S.stats.streak;
+        $("stBest").textContent = S.stats.bestStreak;
+        $("stAcc").textContent = S.stats.total ? Math.round(S.stats.correct / S.stats.total * 100) + "%" : "—";
+      }
+      function renderTabs(){
+        var tabs = document.querySelectorAll(".tab");
+        for (var i = 0; i < tabs.length; i++)
+          tabs[i].setAttribute("aria-selected", tabs[i].getAttribute("data-mode") === S.mode ? "true" : "false");
+        $("rangeRow").hidden = S.mode !== "notes";
+        $("challengeRow").hidden = S.mode !== "intervals";
+        $("qKind").textContent =
+          S.mode === "notes" ? "Name the note" :
+          S.mode === "intervals" ? "Name the interval" : "Name the chord";
+        var chips = document.querySelectorAll(".chip");
+        for (var j = 0; j < chips.length; j++)
+          chips[j].setAttribute("aria-pressed", chips[j].getAttribute("data-range") === S.range ? "true" : "false");
+        $("challengeBox").checked = S.challenge;
+      }
+      function markAnswers(pickedValue){
+        var btns = $("answerArea").querySelectorAll("button[data-answer]");
+        for (var i = 0; i < btns.length; i++){
+          var v = btns[i].getAttribute("data-answer");
+          btns[i].disabled = true;
+          if (v === S.current.answer) btns[i].classList.add("right");
+          else if (pickedValue !== null && v === pickedValue) btns[i].classList.add("wrong");
+        }
+      }
+      function buildAnswers(){
+        var area = $("answerArea"); area.innerHTML = "";
+        var i, b;
+        if (S.mode === "notes"){
+          /* Piano strip: 8 white keys C–C, 5 black keys overlaid */
+          var piano = document.createElement("div"); piano.className = "piano";
+          var whites = document.createElement("div"); whites.className = "whites";
+          var whitePC = [0, 2, 4, 5, 7, 9, 11, 0], whiteKeys = "asdfghjk";
+          for (i = 0; i < 8; i++){
+            b = document.createElement("button"); b.type = "button"; b.className = "wkey";
+            b.setAttribute("data-answer", NAMES[whitePC[i]]);
+            b.innerHTML = '<span class="nm">' + NAMES[whitePC[i]] + '</span><span class="kb">' + whiteKeys[i].toUpperCase() + "</span>";
+            whites.appendChild(b);
+          }
+          piano.appendChild(whites);
+          var blackAfter = [0, 1, 3, 4, 5], blackKeys = ["w","e","t","y","u"];
+          for (i = 0; i < 5; i++){
+            var pc = [1, 3, 6, 8, 10][i];
+            b = document.createElement("button"); b.type = "button"; b.className = "bkey";
+            b.setAttribute("data-answer", NAMES[pc]);
+            b.style.left = ((blackAfter[i] + 1) * 12.5) + "%";
+            b.innerHTML = '<span class="nm">' + NAMES[pc] + '</span><span class="kb">' + blackKeys[i].toUpperCase() + "</span>";
+            piano.appendChild(b);
+          }
+          area.appendChild(piano);
+        } else if (S.mode === "intervals"){
+          var grid = document.createElement("div"); grid.className = "grid";
+          var list = activeIntervals();
+          for (i = 0; i < list.length; i++){
+            b = document.createElement("button"); b.type = "button"; b.className = "ans";
+            b.setAttribute("data-answer", list[i].code);
+            b.innerHTML = '<span class="big">' + list[i].name + '</span><span class="sub">' +
+              list[i].code + " · key " + "1234567890-=".charAt(i) + "</span>";
+            grid.appendChild(b);
+          }
+          area.appendChild(grid);
+        } else {
+          var cg = document.createElement("div"); cg.className = "grid chords";
+          for (i = 0; i < CHORDS.length; i++){
+            b = document.createElement("button"); b.type = "button"; b.className = "ans";
+            b.setAttribute("data-answer", CHORDS[i].name);
+            b.innerHTML = '<span class="big">' + CHORDS[i].name + '</span><span class="sub">' +
+              CHORDS[i].sub + " · key " + (i + 1) + "</span>";
+            cg.appendChild(b);
+          }
+          area.appendChild(cg);
+        }
+        var all = area.querySelectorAll("button[data-answer]");
+        for (i = 0; i < all.length; i++)
+          all[i].addEventListener("click", function(){ answer(this.getAttribute("data-answer")); });
+      }
+      function renderFeedback(kind, text){
+        var fb = $("feedback");
+        if (!text){ fb.hidden = true; fb.textContent = ""; return; }
+        fb.hidden = false; fb.className = "feedback " + kind; fb.textContent = text;
+      }
+      function renderPlay(){
+        $("playCard").hidden = S.roundOver;
+        $("summaryCard").hidden = !S.roundOver;
+        $("qNum").textContent = S.round.q;
+        $("nextBtn").hidden = !S.answered || S.roundOver;
+        $("nextBtn").textContent = S.round.q >= 10 ? "See your round" : "Next question";
+      }
+      function renderRounds(){
+        var ul = $("roundsList"); ul.innerHTML = "";
+        $("roundsEmpty").hidden = S.rounds.length > 0;
+        for (var i = 0; i < S.rounds.length; i++){
+          var r = S.rounds[i], li = document.createElement("li");
+          var d = new Date(r.date);
+          var when = isNaN(d.getTime()) ? "" : d.toLocaleDateString(undefined, { month:"short", day:"numeric" }) +
+            " · " + d.toLocaleTimeString(undefined, { hour:"numeric", minute:"2-digit" });
+          li.innerHTML = "<span>" + MODE_LABEL[r.mode] + ' <span class="when">' + when + '</span></span>' +
+            '<span class="sc">' + r.score + "/10</span>";
+          ul.appendChild(li);
+        }
+      }
+      function renderAll(){
+        renderStats(); renderTabs(); buildAnswers(); renderPlay(); renderRounds();
+        if (S.answered && S.current){
+          markAnswers(null);
+          renderFeedback("neutral", "That was " + questionLabel(S.current));
+        } else renderFeedback(null, "");
+      }
+
+      /* ================= Gameplay ================= */
+      function answer(value){
+        if (S.answered || S.roundOver || !S.current) return;
+        S.answered = true;
+        var ok = value === S.current.answer;
+        var st = S.stats, pm = st.perMode[S.mode];
+        st.total++; pm.total++;
+        if (ok){
+          st.correct++; pm.correct++; S.round.correct++;
+          st.streak++; if (st.streak > st.bestStreak) st.bestStreak = st.streak;
+        } else st.streak = 0;
+        markAnswers(value);
+        renderFeedback(ok ? "good" : "bad",
+          (ok ? "Correct — that was " : "Not quite — that was ") + questionLabel(S.current));
+        chime(ok);
+        renderStats(); renderPlay(); persist();
+      }
+      function next(){
+        if (!S.answered || S.roundOver) return;
+        if (S.round.q >= 10){ finishRound(); return; }
+        S.round.q++;
+        newQuestion(); buildAnswers(); renderFeedback(null, "");
+        renderPlay(); renderStats(); persist();
+      }
+      function finishRound(){
+        var score = S.round.correct;
+        var isBest = score > S.stats.bestRound;
+        if (isBest) S.stats.bestRound = score;
+        S.rounds.unshift({ mode:S.mode, date:new Date().toISOString(), score:score });
+        S.rounds = S.rounds.slice(0, 5);
+        S.roundOver = true;
+        $("sumScore").textContent = score + " / 10";
+        $("sumPct").textContent = (score * 10) + "% correct in " + MODE_LABEL[S.mode];
+        $("sumBest").hidden = !isBest;
+        renderPlay(); renderRounds(); renderStats(); persist();
+      }
+      function startRound(){
+        S.round = { q:1, correct:0 }; S.roundOver = false;
+        newQuestion(); buildAnswers(); renderFeedback(null, "");
+        renderPlay(); renderStats(); persist();
+      }
+      function setMode(mode){
+        if (S.mode === mode && !S.roundOver) return;
+        S.mode = mode; renderTabs(); startRound();
+      }
+
+      /* ================= Persistence (localStorage) ================= */
+      function snapshot(){
+        return { app:"pitchperfect", version:1, mode:S.mode, range:S.range, challenge:S.challenge,
+          stats:S.stats, round:S.round, rounds:S.rounds, current:S.current, answered:S.answered };
+      }
+      function persist(){
+        try { localStorage.setItem(LS_KEY, JSON.stringify(snapshot())); } catch (e) { /* storage unavailable */ }
+      }
+
+      /* ================= Validation for Open / restore ================= */
+      function isNum(v){ return typeof v === "number" && Number.isFinite(v); }
+      function isNonNegInt(v){ return isNum(v) && Number.isInteger(v) && v >= 0; }
+      function isIntIn(v, lo, hi){ return isNum(v) && Number.isInteger(v) && v >= lo && v <= hi; }
+      function validMode(m){ return m === "notes" || m === "intervals" || m === "chords"; }
+      function validStats(st){
+        if (!st || typeof st !== "object" || Array.isArray(st)) return false;
+        if (!isNonNegInt(st.total) || !isNonNegInt(st.correct) ||
+            !isNonNegInt(st.streak) || !isNonNegInt(st.bestStreak)) return false;
+        if (st.correct > st.total) return false;
+        if (!isIntIn(st.bestRound, 0, 10)) return false;
+        if (!st.perMode || typeof st.perMode !== "object") return false;
+        var modes = ["notes", "intervals", "chords"];
+        for (var i = 0; i < modes.length; i++){
+          var pm = st.perMode[modes[i]];
+          if (!pm || typeof pm !== "object") return false;
+          if (!isNonNegInt(pm.total) || !isNonNegInt(pm.correct) || pm.correct > pm.total) return false;
+        }
+        return true;
+      }
+      function validData(d){
+        if (!d || typeof d !== "object" || Array.isArray(d)) return false;
+        if (d.app !== "pitchperfect") return false;
+        if (!isNum(d.version) || d.version !== 1) return false;
+        if (!validMode(d.mode)) return false;
+        if (d.range !== "mid" && d.range !== "wide") return false;
+        if (typeof d.challenge !== "boolean") return false;
+        if (!validStats(d.stats)) return false;
+        if (!d.round || typeof d.round !== "object") return false;
+        if (!isIntIn(d.round.q, 1, 10) || !isIntIn(d.round.correct, 0, 10)) return false;
+        if (!Array.isArray(d.rounds) || d.rounds.length > 5) return false;
+        for (var i = 0; i < d.rounds.length; i++){
+          var r = d.rounds[i];
+          if (!r || typeof r !== "object" || !validMode(r.mode)) return false;
+          if (!isIntIn(r.score, 0, 10)) return false;
+          if (typeof r.date !== "string" || r.date.length === 0) return false;
+        }
+        if (d.current !== null){
+          var c = d.current;
+          if (!c || typeof c !== "object" || Array.isArray(c)) return false;
+          if (!validMode(c.mode)) return false;
+          if (!Array.isArray(c.notes) || c.notes.length < 1 || c.notes.length > 3) return false;
+          for (var j = 0; j < c.notes.length; j++) if (!isIntIn(c.notes[j], 0, 127)) return false;
+          if (typeof c.answer !== "string" || c.answer.length === 0) return false;
+        }
+        if (typeof d.answered !== "boolean") return false;
+        return true;
+      }
+      function applyData(d){
+        S.mode = d.mode; S.range = d.range; S.challenge = d.challenge;
+        S.stats = d.stats; S.round = { q:d.round.q, correct:d.round.correct };
+        S.rounds = d.rounds.slice(); S.answered = d.answered; S.roundOver = false;
+        S.current = d.current;
+        /* A restored question must belong to the restored mode & settings */
+        if (!S.current || S.current.mode !== S.mode) { newQuestion(); S.answered = false; }
+        if (S.mode === "intervals" && S.current){
+          var codes = activeIntervals().map(function(iv){ return iv.code; });
+          if (codes.indexOf(S.current.answer) < 0){ newQuestion(); S.answered = false; }
+        }
+        /* A round that was already finished when saved must not resume:
+           pressing Next would log it a second time. Start a fresh round
+           instead — stats and bestRound stay as restored. */
+        if (S.round.q >= 10 && S.answered){
+          S.round = { q:1, correct:0 }; S.answered = false; S.roundOver = false;
+          newQuestion();
+        }
+        renderAll(); persist();
+      }
+
+      /* ================= Save / Open ================= */
+      function toast(msg){
+        var t = $("toast"); t.textContent = msg; t.hidden = false;
+        clearTimeout(t._timer);
+        t._timer = setTimeout(function(){ t.hidden = true; }, 3200);
+      }
+      $("saveBtn").addEventListener("click", function(){
+        var blob = new Blob([JSON.stringify(snapshot(), null, 2)], { type:"application/json" });
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(blob); a.download = "pitch-perfect.json";
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+        toast("Saved pitch-perfect.json");
+      });
+      $("openBtn").addEventListener("click", function(){ $("fileInput").click(); });
+      $("fileInput").addEventListener("change", function(){
+        var f = this.files && this.files[0]; this.value = "";
+        if (!f) return;
+        var reader = new FileReader();
+        reader.onload = function(){
+          var data;
+          try { data = JSON.parse(String(reader.result)); }
+          catch (e){ toast("That file isn't valid Pitch Perfect data — nothing changed."); return; }
+          if (!validData(data)){ toast("That file isn't valid Pitch Perfect data — nothing changed."); return; }
+          applyData(data);
+          toast("Loaded your saved session.");
+        };
+        reader.onerror = function(){ toast("Couldn't read that file — nothing changed."); };
+        reader.readAsText(f);
+      });
+
+      /* ================= Controls & keyboard ================= */
+      $("hearBtn").addEventListener("click", playQuestion);
+      $("nextBtn").addEventListener("click", next);
+      $("againBtn").addEventListener("click", startRound);
+      var tabs = document.querySelectorAll(".tab");
+      for (var i = 0; i < tabs.length; i++)
+        tabs[i].addEventListener("click", function(){ setMode(this.getAttribute("data-mode")); });
+      var chips = document.querySelectorAll(".chip");
+      for (var j = 0; j < chips.length; j++)
+        chips[j].addEventListener("click", function(){
+          S.range = this.getAttribute("data-range"); renderTabs();
+          if (!S.answered && !S.roundOver){ newQuestion(); buildAnswers(); }
+          persist();
+        });
+      $("challengeBox").addEventListener("change", function(){
+        S.challenge = this.checked;
+        if (!S.answered && !S.roundOver){ newQuestion(); }
+        buildAnswers(); persist();
+      });
+      $("answerArea").addEventListener("click", function(){ /* handled per-button */ });
+
+      document.addEventListener("keydown", function(e){
+        var t = e.target;
+        if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable)) return;
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
+        var k = e.key;
+        if (k === "p" || k === "P"){ if (!S.roundOver) playQuestion(); return; }
+        if (k === "n" || k === "N"){ next(); return; }
+        if (S.answered || S.roundOver || !S.current) return;
+        if (S.mode === "notes"){
+          var map = { a:0, w:1, s:2, e:3, d:4, f:5, t:6, g:7, y:8, h:9, u:10, j:11, k:0 };
+          var pc = map[k.toLowerCase()];
+          if (pc !== undefined) answer(NAMES[pc]);
+        } else if (S.mode === "intervals"){
+          var idx = "1234567890-=".indexOf(k);
+          var list = activeIntervals();
+          if (idx >= 0 && idx < list.length) answer(list[idx].code);
+        } else if (S.mode === "chords"){
+          var ci = "123".indexOf(k);
+          if (ci >= 0) answer(CHORDS[ci].name);
+        }
+      });
+
+      /* ================= Boot: restore or start fresh ================= */
+      (function boot(){
+        var restored = false;
+        try {
+          var raw = localStorage.getItem(LS_KEY);
+          if (raw){
+            var data = JSON.parse(raw);
+            if (validData(data)){ applyData(data); restored = true; }
+          }
+        } catch (e) { /* corrupt storage → fresh defaults below */ }
+        if (!restored){
+          newQuestion();
+          renderAll();
+        }
+      })();
+    </script>
+  </body>
+</html>

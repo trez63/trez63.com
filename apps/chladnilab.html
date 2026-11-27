@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ChladniLab — Acoustic Plate Eigenmode & Cymatics Studio</title>
+    <style>
+        :root {
+            --bg: #07080d; --panel: #10131f; --card: #191e30; --border: #2c3552;
+            --text: #f8fafc; --sub: #94a3b8; --accent: #eab308; --accent-hover: #ca8a04;
+            --node: #38bdf8; --emerald: #10b981; --shadow: rgba(0,0,0,0.65);
+        }
+        [data-theme="light"] {
+            --bg: #f1f5f9; --panel: #ffffff; --card: #f8fafc; --border: #cbd5e1;
+            --text: #0f172a; --sub: #64748b; --accent: #b45309; --accent-hover: #92400e;
+            --node: #0284c7; --emerald: #059669; --shadow: rgba(0,0,0,0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+
+        header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; z-index: 10; }
+        .brand { font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em; }
+        .sand-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+        .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        button, label.btn-label, select { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; user-select: none; transition: 0.15s; outline: none; }
+        button:hover, label.btn-label:hover { border-color: var(--accent); color: var(--accent); }
+        button.primary { background: var(--accent); color: #090d16; font-weight: 600; border-color: var(--accent); }
+        button.primary:hover { background: var(--accent-hover); color: #fff; }
+        input[type="file"] { display: none; }
+
+        .metrics-bar { background: var(--panel); border-bottom: 1px solid var(--border); padding: 10px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: 12px; font-size: 0.8rem; z-index: 10; }
+        .metric-card { background: var(--bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); }
+        .metric-title { color: var(--sub); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+        .metric-val { font-size: 1rem; font-weight: 700; color: var(--text); }
+
+        main { flex: 1; padding: 16px; max-width: 1360px; width: 100%; margin: 0 auto; display: grid; grid-template-columns: 315px 1fr; gap: 16px; }
+        .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; box-shadow: 0 4px 6px var(--shadow); display: flex; flex-direction: column; gap: 12px; }
+        .section-title { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sub); display: flex; justify-content: space-between; align-items: center; }
+
+        .form-group { margin-bottom: 4px; }
+        .form-group label { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--sub); margin-bottom: 4px; font-weight: 500; }
+        .form-group select, .form-group input[type="range"] { width: 100%; accent-color: var(--accent); }
+
+        .plate-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; height: 460px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; padding: 12px; }
+        canvas { max-width: 100%; max-height: 100%; border-radius: 6px; border: 1px solid var(--border); cursor: crosshair; touch-action: none; display: block; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 200; padding: 16px; }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 440px; padding: 20px; box-shadow: 0 20px 25px -5px var(--shadow); }
+        .modal h3 { font-size: 1.1rem; margin-bottom: 12px; }
+
+        .shortcut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem; margin: 12px 0 16px; }
+        .shortcut-row { display: flex; justify-content: space-between; background: var(--card); padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border); }
+        kbd { background: var(--panel); border: 1px solid var(--border); padding: 1px 5px; border-radius: 3px; font-weight: 600; font-size: 0.75rem; }
+
+        @media (max-width: 850px) {
+            header { flex-direction: column; align-items: stretch; }
+            .actions { justify-content: space-between; }
+            main { grid-template-columns: 1fr; padding: 8px; }
+            .metrics-bar { grid-template-columns: repeat(2, 1fr); }
+            .plate-box { height: 360px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand"><div class="sand-dot"></div> ChladniLab Cymatic Eigenmode Studio</div>
+        <div class="actions">
+            <button id="scatterBtn" class="primary">✨ Scatter Sand</button>
+            <button id="bowBtn">🎻 Bow Impulse</button>
+            <button id="saveBtn">💾 Save JSON</button>
+            <label class="btn-label" for="openFile">📂 Open JSON</label>
+            <input type="file" id="openFile" accept=".json">
+            <button id="themeBtn">🌓 Theme</button>
+            <button id="helpBtn">❓ Help</button>
+        </div>
+    </header>
+
+    <div class="metrics-bar">
+        <div class="metric-card"><div class="metric-title">Eigenmode Pair</div><div class="metric-val" id="mMode" style="color:var(--accent);">(3, 5) + (5, 3)</div></div>
+        <div class="metric-card"><div class="metric-title">Resonant Frequency</div><div class="metric-val" id="mFreq" style="color:var(--node);">1,428 Hz</div></div>
+        <div class="metric-card"><div class="metric-title">Nodal Convergence</div><div class="metric-val" id="mSettle" style="color:var(--emerald);">91.4%</div></div>
+        <div class="metric-card"><div class="metric-title">Active Sand Grains</div><div class="metric-val" id="mGrains">3,200</div></div>
+    </div>
+
+    <main>
+        <!-- Plate Eigenmode Controls -->
+        <div class="panel">
+            <div class="section-title"><span>Kirchhoff Plate Harmonics</span></div>
+
+            <div class="form-group">
+                <label>Symmetric Eigenmode Preset</label>
+                <select id="cfgPreset">
+                    <option value="star">Maltese Starburst (3, 5)</option>
+                    <option value="lattice">Crystalline Lattice (4, 6)</option>
+                    <option value="rosette">Harmonic Rosette (2, 7)</option>
+                    <option value="mandala">High-Order Mandala (5, 8)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Primary Harmonic Index (m): <span id="valM">3</span></label>
+                <input type="range" id="cfgM" min="1" max="9" step="1" value="3">
+            </div>
+
+            <div class="form-group">
+                <label>Secondary Harmonic Index (n): <span id="valN">5</span></label>
+                <input type="range" id="cfgN" min="1" max="9" step="1" value="5">
+            </div>
+
+            <div class="form-group">
+                <label>Mode Superposition Mix (α): <span id="valMix">1.00</span></label>
+                <input type="range" id="cfgMix" min="-1.0" max="1.0" step="0.05" value="1.0">
+            </div>
+
+            <div class="form-group">
+                <label>Excitation Amplitude: <span id="valAmp">75</span>%</label>
+                <input type="range" id="cfgAmp" min="15" max="100" step="5" value="75">
+            </div>
+
+            <div class="form-group">
+                <label style="align-items:center; cursor:pointer; gap:8px; justify-content:flex-start;">
+                    <input type="checkbox" id="cfgHeatmap" checked style="width:auto;">
+                    Show Antinode Amplitude Field
+                </label>
+            </div>
+
+            <p style="font-size:0.76rem; color:var(--sub); line-height:1.45; margin-top:4px;">
+                <strong>Touch &amp; drag</strong> anywhere across the resonant plate to brush sand grains or excite local acoustic vibrations. Grains migrate out of high-amplitude antinodes and settle cleanly along zero-displacement Chladni nodal lines.
+            </p>
+        </div>
+
+        <!-- Resonant Plate Viewport -->
+        <div class="panel">
+            <div class="section-title"><span>Live 3,200-Grain Vibrational Nodal Topology (Free-Edge Square Plate)</span></div>
+            <div class="plate-box">
+                <canvas id="plateCanvas"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal">
+            <h3>ChladniLab Guide &amp; Shortcuts</h3>
+            <p style="font-size:0.85rem; color:var(--sub); line-height:1.4; margin-bottom:10px;">Real-time 2D standing-wave eigenmode solver and stochastic sand-particle cymatics simulation.</p>
+            <div class="shortcut-grid">
+                <div class="shortcut-row"><span>Scatter Sand</span> <kbd>Space</kbd></div>
+                <div class="shortcut-row"><span>Bow Impulse</span> <kbd>B</kbd></div>
+                <div class="shortcut-row"><span>Reset Plate</span> <kbd>R</kbd></div>
+                <div class="shortcut-row"><span>Save Pattern</span> <kbd>S</kbd></div>
+                <div class="shortcut-row"><span>Open Pattern</span> <kbd>O</kbd></div>
+                <div class="shortcut-row"><span>Toggle Theme</span> <kbd>T</kbd></div>
+                <div class="shortcut-row"><span>Close Modal</span> <kbd>Esc</kbd></div>
+            </div>
+            <button id="closeHelpBtn" class="primary" style="width:100%; justify-content:center; margin-top:10px;">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Acoustic Eigenmode State ---
+        let state = {
+            m: 3,
+            n: 5,
+            mix: 1.0,
+            amp: 75,
+            showHeatmap: true
+        };
+
+        const PRESETS = {
+            star:    { m: 3, n: 5, mix: 1.0,  amp: 75 },
+            lattice: { m: 4, n: 6, mix: -1.0, amp: 80 },
+            rosette: { m: 2, n: 7, mix: 0.85, amp: 75 },
+            mandala: { m: 5, n: 8, mix: -0.9, amp: 85 }
+        };
+
+        const NUM_GRAINS = 3200;
+        const px = new Float32Array(NUM_GRAINS);
+        const py = new Float32Array(NUM_GRAINS);
+
+        const canvas = document.getElementById('plateCanvas');
+        const ctx = canvas.getContext('2d');
+        const heatCanvas = document.createElement('canvas');
+        const heatCtx = heatCanvas.getContext('2d');
+
+        // Pointer interaction state
+        let pointer = { active: false, x: 0.5, y: 0.5 };
+        let phaseTime = 0;
+
+        // --- Scatter Sand Grains Uniformly Across Plate [0..1] ---
+        function scatterSand(preSettleSteps = 35) {
+            for (let i = 0; i < NUM_GRAINS; i++) {
+                px[i] = 0.02 + Math.random() * 0.96;
+                py[i] = 0.02 + Math.random() * 0.96;
+            }
+            // Pre-advect slightly so 5-second initial frame already reveals crisp cymatic geometry
+            for (let s = 0; s < preSettleSteps; s++) {
+                stepSandDynamics();
+            }
+        }
+
+        function bowImpulse() {
+            for (let i = 0; i < NUM_GRAINS; i++) {
+                px[i] = Math.min(0.99, Math.max(0.01, px[i] + (Math.random() - 0.5) * 0.14));
+                py[i] = Math.min(0.99, Math.max(0.01, py[i] + (Math.random() - 0.5) * 0.14));
+            }
+        }
+
+        // --- Standing-Wave Eigenmode Displacement W(x, y) ---
+        function waveHeight(x, y) {
+            const mPi = state.m * Math.PI;
+            const nPi = state.n * Math.PI;
+            const w1 = Math.cos(mPi * x) * Math.cos(nPi * y);
+            const w2 = Math.cos(nPi * x) * Math.cos(mPi * y);
+            return w1 + state.mix * w2;
+        }
+
+        // --- Precompute Antinode Amplitude Heatmap ---
+        function rebuildHeatmap() {
+            const size = 140;
+            heatCanvas.width = size;
+            heatCanvas.height = size;
+            const img = heatCtx.createImageData(size, size);
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+            for (let j = 0; j < size; j++) {
+                const y = j / (size - 1);
+                for (let i = 0; i < size; i++) {
+                    const x = i / (size - 1);
+                    const val = Math.min(1, Math.abs(waveHeight(x, y)) / (1 + Math.abs(state.mix)));
+                    const idx = (j * size + i) * 4;
+
+                    if (isDark) {
+                        img.data[idx]     = Math.round(14 + val * 30);
+                        img.data[idx + 1] = Math.round(22 + val * 115);
+                        img.data[idx + 2] = Math.round(42 + val * 195);
+                        img.data[idx + 3] = Math.round(val * 110);
+                    } else {
+                        img.data[idx]     = Math.round(2 + val * 14);
+                        img.data[idx + 1] = Math.round(132 + val * 40);
+                        img.data[idx + 2] = Math.round(199 + val * 45);
+                        img.data[idx + 3] = Math.round(val * 65);
+                    }
+                }
+            }
+            heatCtx.putImageData(img, 0, 0);
+        }
+
+        // --- Vibrational Gradient & Stochastic Sand Advection ---
+        function stepSandDynamics() {
+            phaseTime += 0.18;
+            const eps = 0.004;
+            const drive = (state.amp / 100) * 0.0085;
+            const normFactor = 1 + Math.abs(state.mix);
+            let settledCount = 0;
+
+            for (let i = 0; i < NUM_GRAINS; i++) {
+                let x = px[i], y = py[i];
+                const w = waveHeight(x, y);
+                const absW = Math.abs(w) / normFactor;
+
+                if (absW < 0.09) settledCount++;
+
+                // Gradient of W^2 pushes grains downhill into W = 0 nodal lines
+                const wx = (waveHeight(x + eps, y) - waveHeight(x - eps, y)) / (2 * eps);
+                const wy = (waveHeight(x, y + eps) - waveHeight(x, y - eps)) / (2 * eps);
+
+                const gradX = 2 * w * wx;
+                const gradY = 2 * w * wy;
+                const gMag = Math.hypot(gradX, gradY) + 1e-4;
+
+                // Vibrational drift + acoustic bounce proportional to local plate amplitude
+                const bounce = absW * drive * 1.45;
+                x -= (gradX / gMag) * absW * drive + (Math.random() - 0.5) * bounce;
+                y -= (gradY / gMag) * absW * drive + (Math.random() - 0.5) * bounce;
+
+                // Local touch/pointer acoustic brush repulsion
+                if (pointer.active) {
+                    const dx = x - pointer.x, dy = y - pointer.y;
+                    const dist = Math.hypot(dx, dy);
+                    if (dist < 0.11 && dist > 1e-4) {
+                        const push = (0.11 - dist) * 0.22;
+                        x += (dx / dist) * push + (Math.random() - 0.5) * 0.015;
+                        y += (dy / dist) * push + (Math.random() - 0.5) * 0.015;
+                    }
+                }
+
+                // Keep sand grains inside plate boundary
+                if (x < 0.008) x = 0.008 + Math.random() * 0.01;
+                if (x > 0.992) x = 0.992 - Math.random() * 0.01;
+                if (y < 0.008) y = 0.008 + Math.random() * 0.01;
+                if (y > 0.992) y = 0.992 - Math.random() * 0.01;
+
+                px[i] = x;
+                py[i] = y;
+            }
+
+            const settlePct = ((settledCount / NUM_GRAINS) * 100).toFixed(1);
+            document.getElementById('mSettle').innerText = `${settlePct}%`;
+        }
+
+        // --- Render Square Resonant Plate & Sand Particles ---
+        function renderPlate() {
+            const box = canvas.parentElement;
+            const side = Math.max(240, Math.min(box.clientWidth - 24, box.clientHeight - 24));
+            if (canvas.width !== side || canvas.height !== side) {
+                canvas.width = side;
+                canvas.height = side;
+            }
+
+            const styles = getComputedStyle(document.documentElement);
+            const sandCol = styles.getPropertyValue('--accent').trim();
+            const borderCol = styles.getPropertyValue('--border').trim();
+
+            ctx.clearRect(0, 0, side, side);
+
+            // 1. Optional Antinode Amplitude Heatmap
+            if (state.showHeatmap) {
+                ctx.drawImage(heatCanvas, 0, 0, side, side);
+            }
+
+            // 2. Subtle Plate Mounting Crosshair & Center Driver Post
+            ctx.strokeStyle = borderCol;
+            ctx.globalAlpha = 0.25;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(side * 0.5, 0); ctx.lineTo(side * 0.5, side);
+            ctx.moveTo(0, side * 0.5); ctx.lineTo(side, side * 0.5);
+            ctx.stroke();
+            ctx.globalAlpha = 1.0;
+
+            // 3. Render 3,200 Silica Sand Grains
+            ctx.fillStyle = sandCol;
+            const grainSize = side < 340 ? 1.8 : 2.1;
+            for (let i = 0; i < NUM_GRAINS; i++) {
+                ctx.fillRect(px[i] * side, py[i] * side, grainSize, grainSize);
+            }
+
+            // 4. Center Acoustic Transducer Bolt
+            ctx.fillStyle = borderCol;
+            ctx.beginPath();
+            ctx.arc(side * 0.5, side * 0.5, 4.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            stepSandDynamics();
+            requestAnimationFrame(renderPlate);
+        }
+
+        // --- Touch / Pointer Plate Interaction ---
+        function updatePointer(e) {
+            const rect = canvas.getBoundingClientRect();
+            pointer.x = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+            pointer.y = Math.min(1, Math.max(0, (e.clientY - rect.top) / rect.height));
+        }
+
+        canvas.addEventListener('pointerdown', e => {
+            pointer.active = true;
+            updatePointer(e);
+        });
+
+        window.addEventListener('pointermove', e => {
+            if (pointer.active) updatePointer(e);
+        });
+
+        window.addEventListener('pointerup', () => pointer.active = false);
+
+        // --- Controls & Persistence ---
+        function syncUI() {
+            document.getElementById('cfgM').value = state.m;
+            document.getElementById('valM').innerText = state.m;
+            document.getElementById('cfgN').value = state.n;
+            document.getElementById('valN').innerText = state.n;
+            document.getElementById('cfgMix').value = state.mix;
+            document.getElementById('valMix').innerText = state.mix.toFixed(2);
+            document.getElementById('cfgAmp').value = state.amp;
+            document.getElementById('valAmp').innerText = state.amp;
+            document.getElementById('cfgHeatmap').checked = state.showHeatmap;
+
+            document.getElementById('mMode').innerText = `(${state.m}, ${state.n}) + (${state.n}, ${state.m})`;
+            // Kirchhoff plate eigenfrequency f_mn ~ C * (m^2 + n^2)
+            const freqHz = Math.round(42 * (state.m * state.m + state.n * state.n));
+            document.getElementById('mFreq').innerText = `${freqHz.toLocaleString()} Hz`;
+            rebuildHeatmap();
+        }
+
+        document.getElementById('cfgPreset').addEventListener('change', e => {
+            const p = PRESETS[e.target.value];
+            state = { ...state, ...p };
+            syncUI();
+            scatterSand(25);
+        });
+
+        document.getElementById('cfgM').addEventListener('input', e => { state.m = parseInt(e.target.value); syncUI(); });
+        document.getElementById('cfgN').addEventListener('input', e => { state.n = parseInt(e.target.value); syncUI(); });
+        document.getElementById('cfgMix').addEventListener('input', e => { state.mix = parseFloat(e.target.value); syncUI(); });
+        document.getElementById('cfgAmp').addEventListener('input', e => { state.amp = parseInt(e.target.value); syncUI(); });
+        document.getElementById('cfgHeatmap').addEventListener('change', e => { state.showHeatmap = e.target.checked; });
+
+        document.getElementById('scatterBtn').addEventListener('click', () => scatterSand(0));
+        document.getElementById('bowBtn').addEventListener('click', bowImpulse);
+        document.getElementById('saveBtn').addEventListener('click', exportJSON);
+        document.getElementById('openFile').addEventListener('change', importJSON);
+
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            a.setAttribute("download", `chladnilab_pattern_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        function importJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = evt => {
+                try {
+                    const data = JSON.parse(evt.target.result);
+                    if (typeof data.m === 'number' && typeof data.n === 'number') {
+                        state = {
+                            m: Math.min(9, Math.max(1, Math.round(data.m))),
+                            n: Math.min(9, Math.max(1, Math.round(data.n))),
+                            mix: Math.min(1, Math.max(-1, Number(data.mix ?? 1))),
+                            amp: Math.min(100, Math.max(15, Number(data.amp ?? 75))),
+                            showHeatmap: Boolean(data.showHeatmap ?? true)
+                        };
+                        syncUI();
+                        scatterSand(25);
+                    } else alert('Invalid ChladniLab JSON file.');
+                } catch { alert('Error reading JSON file.'); }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Theme & Shortcuts (Zero Key Overlap) ---
+        const helpModal = document.getElementById('helpModal');
+        document.getElementById('helpBtn').addEventListener('click', () => helpModal.classList.add('open'));
+        document.getElementById('closeHelpBtn').addEventListener('click', () => helpModal.classList.remove('open'));
+        document.getElementById('themeBtn').addEventListener('click', () => {
+            const cur = document.documentElement.getAttribute('data-theme');
+            document.documentElement.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+            rebuildHeatmap();
+        });
+
+        // Space = Scatter Sand, B = Bow Impulse, R = Reset Plate, S = Save JSON, O = Open JSON, T = Theme, Esc = Close Modal
+        window.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+            const k = e.key.toLowerCase();
+            if (e.code === 'Space') { e.preventDefault(); scatterSand(0); }
+            if (k === 'b') { e.preventDefault(); bowImpulse(); }
+            if (k === 'r') {
+                e.preventDefault();
+                document.getElementById('cfgPreset').value = 'star';
+                state = { ...PRESETS.star, showHeatmap: true };
+                syncUI();
+                scatterSand(35);
+            }
+            if (k === 's') { e.preventDefault(); exportJSON(); }
+            if (k === 'o') { e.preventDefault(); document.getElementById('openFile').click(); }
+            if (k === 't') { e.preventDefault(); document.getElementById('themeBtn').click(); }
+            if (e.key === 'Escape') helpModal.classList.remove('open');
+        });
+
+        // Pre-loaded 5-Second Impressive Demo State
+        syncUI();
+        scatterSand(45);
+        requestAnimationFrame(renderPlate);
+    </script>
+</body>
+</html>

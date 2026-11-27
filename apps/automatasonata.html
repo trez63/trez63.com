@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Automata Sonata</title>
+<style>
+:root { --bg:#0d1117; --fg:#e6edf3; --muted:#8b949e; --accent:#58a6ff; --panel:#161b22; --cell-dead:#0d1117; --cell-live:#58a6ff; --cell-age:#7ee787; }
+body.light { --bg:#f6f8fa; --fg:#24292f; --muted:#57606a; --accent:#0969da; --panel:#ffffff; --cell-dead:#f6f8fa; --cell-live:#0969da; --cell-age:#1a7f37; }
+* { box-sizing:border-box; }
+html,body { margin:0; height:100%; background:var(--bg); color:var(--fg); font:15px/1.4 system-ui,sans-serif; overflow:hidden; }
+header { display:flex; align-items:center; gap:8px; padding:8px 12px; background:var(--panel); border-bottom:1px solid var(--muted); flex-wrap:wrap; }
+header h1 { margin:0; font-size:1.1rem; flex:1; min-width:140px; }
+button, input[type=range], select, label { background:var(--panel); color:var(--fg); border:1px solid var(--muted); border-radius:6px; padding:6px 10px; font-size:0.9rem; }
+button { cursor:pointer; min-height:36px; }
+button:hover { border-color:var(--accent); }
+#canvas-wrap { position:relative; flex:1; display:flex; }
+canvas { width:100%; height:100%; display:block; touch-action:none; background:var(--cell-dead); }
+#controls { display:flex; flex-wrap:wrap; gap:8px; padding:8px 12px; background:var(--panel); border-top:1px solid var(--muted); align-items:center; }
+#controls label { display:flex; align-items:center; gap:4px; }
+#help { position:fixed; inset:0; background:rgba(0,0,0,.7); display:none; align-items:center; justify-content:center; z-index:10; padding:20px; }
+#help.open { display:flex; }
+#help-inner { background:var(--panel); color:var(--fg); max-width:520px; padding:24px; border-radius:12px; max-height:80vh; overflow:auto; }
+#help h2 { margin-top:0; }
+#status { font-size:0.85rem; color:var(--muted); margin-left:auto; }
+@media (max-width:600px) { header h1 { font-size:1rem; } #controls { font-size:0.85rem; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Automata Sonata</h1>
+  <button id="themeBtn">Light</button>
+  <button id="helpBtn">Help (?)</button>
+  <span id="status">Ready</span>
+</header>
+<div id="canvas-wrap"><canvas id="c"></canvas></div>
+<div id="controls">
+  <button id="playBtn">Pause</button>
+  <button id="stepBtn">Step</button>
+  <button id="clearBtn">Clear</button>
+  <button id="randBtn">Random</button>
+  <label>Speed <input type="range" id="speed" min="1" max="20" value="6"></label>
+  <label>Birth <input id="birth" value="3" size="4" title="e.g. 3 or 3,6"></label>
+  <label>Survive <input id="survive" value="2,3" size="6"></label>
+  <label>Scale
+    <select id="scale">
+      <option value="pent">Pentatonic</option>
+      <option value="maj">Major</option>
+      <option value="min">Minor</option>
+      <option value="whole">Whole tone</option>
+    </select>
+  </label>
+  <button id="saveBtn">Save</button>
+  <button id="openBtn">Open</button>
+  <input type="file" id="file" accept=".json" hidden>
+</div>
+<div id="help">
+  <div id="help-inner">
+    <h2>Automata Sonata</h2>
+    <p>Paint cells, watch them evolve, and hear the grid play. Each column drives an oscillator whose volume follows local density.</p>
+    <ul>
+      <li><b>Click / tap / drag</b> – toggle or paint cells</li>
+      <li><b>Space</b> – play / pause</li>
+      <li><b>S</b> – single step</li>
+      <li><b>C</b> – clear</li>
+      <li><b>R</b> – randomize</li>
+      <li><b>H</b> or <b>?</b> – this help</li>
+      <li><b>T</b> – theme</li>
+    </ul>
+    <p>Edit Birth/Survive rules (comma-separated numbers). Save/Open stores the entire state as JSON. Audio unlocks on first interaction.</p>
+    <button id="closeHelp">Close</button>
+  </div>
+</div>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const COLS = 48, ROWS = 28;
+let grid = [], age = [];
+let running = true, timer = null, cellW, cellH;
+let audioCtx = null, oscillators = [], gains = [];
+const scales = {
+  pent: [0,2,4,7,9],
+  maj: [0,2,4,5,7,9,11],
+  min: [0,2,3,5,7,8,10],
+  whole: [0,2,4,6,8,10]
+};
+let birthSet = new Set([3]), surviveSet = new Set([2,3]);
+const status = document.getElementById('status');
+
+function parseRules() {
+  birthSet = new Set(document.getElementById('birth').value.split(',').map(n=>parseInt(n.trim())).filter(n=>!isNaN(n)));
+  surviveSet = new Set(document.getElementById('survive').value.split(',').map(n=>parseInt(n.trim())).filter(n=>!isNaN(n)));
+}
+
+function resize() {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * devicePixelRatio;
+  canvas.height = rect.height * devicePixelRatio;
+  cellW = canvas.width / COLS;
+  cellH = canvas.height / ROWS;
+  draw();
+}
+window.addEventListener('resize', resize);
+
+function initGrid(demo=true) {
+  grid = Array.from({length:ROWS}, ()=>Array(COLS).fill(0));
+  age = Array.from({length:ROWS}, ()=>Array(COLS).fill(0));
+  if (demo) {
+    // interesting starter: several oscillators + gliders
+    const patterns = [
+      [[10,10],[10,11],[10,12],[11,12],[12,11]], // glider
+      [[5,20],[5,21],[5,22],[6,20],[7,21]],
+      [[18,30],[18,31],[18,32],[19,32],[20,31]],
+      [[12,5],[13,5],[14,5],[14,6],[13,7]],
+      [[22,15],[22,16],[22,17],[23,15],[24,16]]
+    ];
+    patterns.forEach(p => p.forEach(([r,c]) => { if(r<ROWS&&c<COLS) grid[r][c]=1; }));
+    // a couple of blocks
+    for(let i=0;i<4;i++) for(let j=0;j<4;j++) grid[2+i][40+j]=1;
+  }
+  draw();
+  updateStatus();
+}
+
+function neighbors(r,c) {
+  let n=0;
+  for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++) {
+    if(!dr&&!dc) continue;
+    const nr=(r+dr+ROWS)%ROWS, nc=(c+dc+COLS)%COLS;
+    n += grid[nr][nc];
+  }
+  return n;
+}
+
+function step() {
+  const next = grid.map(row=>row.slice());
+  const nextAge = age.map(row=>row.slice());
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) {
+    const n = neighbors(r,c);
+    const live = grid[r][c];
+    if(live) {
+      next[r][c] = surviveSet.has(n) ? 1 : 0;
+      nextAge[r][c] = next[r][c] ? age[r][c]+1 : 0;
+    } else {
+      next[r][c] = birthSet.has(n) ? 1 : 0;
+      nextAge[r][c] = next[r][c] ? 1 : 0;
+    }
+  }
+  grid = next; age = nextAge;
+  draw();
+  updateAudio();
+}
+
+function draw() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) {
+    if(grid[r][c]) {
+      const a = Math.min(age[r][c], 20);
+      const hue = 200 + a*4;
+      ctx.fillStyle = `hsl(${hue},70%,${50+a}%)`;
+      ctx.fillRect(c*cellW+1, r*cellH+1, cellW-2, cellH-2);
+    }
+  }
+}
+
+function updateStatus() {
+  const live = grid.flat().reduce((a,b)=>a+b,0);
+  status.textContent = `${running?'Playing':'Paused'} · ${live} cells`;
+}
+
+function ensureAudio() {
+  if(audioCtx) return;
+  audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  const scale = scales[document.getElementById('scale').value];
+  for(let i=0;i<COLS;i+=4) { // 12 oscillators
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    const note = 48 + scale[i%scale.length] + Math.floor(i/scale.length)*12;
+    osc.frequency.value = 440 * Math.pow(2,(note-69)/12);
+    gain.gain.value = 0;
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start();
+    oscillators.push(osc); gains.push(gain);
+  }
+}
+
+function updateAudio() {
+  if(!audioCtx || audioCtx.state!=='running') return;
+  const scaleIdx = document.getElementById('scale').value;
+  // already set freqs at creation; just modulate gain + tiny detune by density
+  for(let i=0;i<gains.length;i++) {
+    const col = i*4;
+    let dens=0;
+    for(let r=0;r<ROWS;r++) dens += grid[r][col]||0;
+    const vol = Math.min(0.12, dens / ROWS * 0.4);
+    gains[i].gain.setTargetAtTime(running ? vol : 0, audioCtx.currentTime, 0.05);
+    oscillators[i].detune.setTargetAtTime(dens*8, audioCtx.currentTime, 0.1);
+  }
+}
+
+function startLoop() {
+  clearInterval(timer);
+  const spd = 21 - +document.getElementById('speed').value;
+  timer = setInterval(()=>{ if(running) step(); updateStatus(); }, spd*40);
+}
+
+function paint(x,y,val) {
+  const rect = canvas.getBoundingClientRect();
+  const c = Math.floor((x-rect.left)/rect.width * COLS);
+  const r = Math.floor((y-rect.top)/rect.height * ROWS);
+  if(r>=0&&r<ROWS&&c>=0&&c<COLS) {
+    grid[r][c] = val;
+    age[r][c] = val?1:0;
+    draw();
+    updateAudio();
+  }
+}
+
+let painting = false, paintVal = 1;
+canvas.addEventListener('pointerdown', e=>{
+  ensureAudio(); if(audioCtx.state==='suspended') audioCtx.resume();
+  painting=true;
+  const rect=canvas.getBoundingClientRect();
+  const c=Math.floor((e.clientX-rect.left)/rect.width*COLS);
+  const r=Math.floor((e.clientY-rect.top)/rect.height*ROWS);
+  paintVal = grid[r]?.[c] ? 0 : 1;
+  paint(e.clientX,e.clientY,paintVal);
+});
+canvas.addEventListener('pointermove', e=>{ if(painting) paint(e.clientX,e.clientY,paintVal); });
+window.addEventListener('pointerup', ()=>painting=false);
+
+document.getElementById('playBtn').onclick = ()=>{ running=!running; document.getElementById('playBtn').textContent=running?'Pause':'Play'; if(running&&audioCtx) updateAudio(); };
+document.getElementById('stepBtn').onclick = ()=>{ running=false; document.getElementById('playBtn').textContent='Play'; step(); };
+document.getElementById('clearBtn').onclick = ()=>{ initGrid(false); };
+document.getElementById('randBtn').onclick = ()=>{
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) grid[r][c] = Math.random()<0.18?1:0;
+  age=grid.map(row=>row.map(v=>v));
+  draw(); updateAudio();
+};
+document.getElementById('speed').oninput = startLoop;
+document.getElementById('birth').onchange = document.getElementById('survive').onchange = parseRules;
+document.getElementById('scale').onchange = ()=>{ if(audioCtx){ audioCtx.close(); audioCtx=null; oscillators=[]; gains=[]; } };
+
+document.getElementById('saveBtn').onclick = ()=>{
+  const data = { grid, age, birth:document.getElementById('birth').value, survive:document.getElementById('survive').value, speed:document.getElementById('speed').value, scale:document.getElementById('scale').value };
+  const blob = new Blob([JSON.stringify(data)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'automata-sonata.json';
+  a.click();
+};
+document.getElementById('openBtn').onclick = ()=>document.getElementById('file').click();
+document.getElementById('file').onchange = e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try {
+      const data=JSON.parse(reader.result);
+      if(data.grid) { grid=data.grid; age=data.age||grid.map(r=>r.map(v=>v)); }
+      if(data.birth) document.getElementById('birth').value=data.birth;
+      if(data.survive) document.getElementById('survive').value=data.survive;
+      if(data.speed) document.getElementById('speed').value=data.speed;
+      if(data.scale) document.getElementById('scale').value=data.scale;
+      parseRules(); startLoop(); draw(); updateAudio();
+    } catch(err){ alert('Invalid file'); }
+  };
+  reader.readAsText(f);
+};
+
+function toggleHelp(){ document.getElementById('help').classList.toggle('open'); }
+document.getElementById('helpBtn').onclick = toggleHelp;
+document.getElementById('closeHelp').onclick = toggleHelp;
+document.getElementById('themeBtn').onclick = ()=>{
+  document.body.classList.toggle('light');
+  document.getElementById('themeBtn').textContent = document.body.classList.contains('light')?'Dark':'Light';
+  try{ localStorage.setItem('theme', document.body.classList.contains('light')?'light':'dark'); }catch(e){}
+  draw();
+};
+
+document.addEventListener('keydown', e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
+  const k=e.key.toLowerCase();
+  if(k===' '){ e.preventDefault(); document.getElementById('playBtn').click(); }
+  else if(k==='s') document.getElementById('stepBtn').click();
+  else if(k==='c') document.getElementById('clearBtn').click();
+  else if(k==='r') document.getElementById('randBtn').click();
+  else if(k==='h'||k==='?') toggleHelp();
+  else if(k==='t') document.getElementById('themeBtn').click();
+});
+
+// init
+try {
+  if(localStorage.getItem('theme')==='light') document.body.classList.add('light');
+  document.getElementById('themeBtn').textContent = document.body.classList.contains('light')?'Dark':'Light';
+} catch(e){}
+parseRules();
+initGrid(true);
+resize();
+startLoop();
+setTimeout(()=>{ ensureAudio(); if(audioCtx) audioCtx.resume().then(updateAudio); }, 300);
+</script>
+</body>
+</html>

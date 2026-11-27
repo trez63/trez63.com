@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Daily Build 2026-11-27 — Orbitone</title>
+<style>
+:root {
+  --bg:#0b0c10; --fg:#e8e8f0; --muted:#8888aa; --accent:#7af; --panel:rgba(20,22,35,.85);
+  --trail:0.08; --safe:env(safe-area-inset-bottom,0px);
+}
+body.light {
+  --bg:#f4f5f8; --fg:#111; --muted:#666; --accent:#36c; --panel:rgba(255,255,255,.9);
+}
+* { box-sizing:border-box; }
+html,body { margin:0; height:100%; background:var(--bg); color:var(--fg); font:15px/1.4 system-ui,sans-serif; overflow:hidden; touch-action:none; }
+canvas { display:block; width:100%; height:100%; }
+#ui { position:fixed; inset:0; pointer-events:none; }
+.panel { pointer-events:auto; background:var(--panel); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:12px; }
+#top { position:absolute; top:12px; left:12px; right:12px; display:flex; gap:8px; flex-wrap:wrap; }
+#bottom { position:absolute; bottom:calc(12px + var(--safe)); left:12px; right:12px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+button, input[type=file] { background:var(--accent); color:#fff; border:none; border-radius:10px; padding:10px 14px; font:inherit; cursor:pointer; min-height:44px; }
+button.secondary { background:transparent; color:var(--fg); border:1px solid var(--muted); }
+#help { position:fixed; inset:0; background:rgba(0,0,0,.7); display:none; align-items:center; justify-content:center; z-index:10; pointer-events:auto; }
+#help .panel { max-width:420px; margin:20px; max-height:80vh; overflow:auto; }
+#help h2 { margin:0 0 8px; }
+#help kbd { background:var(--bg); padding:2px 6px; border-radius:4px; border:1px solid var(--muted); }
+.status { font-size:13px; color:var(--muted); margin-left:auto; }
+@media (max-width:600px) { #top,#bottom { font-size:14px; } button { padding:12px 16px; } }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="ui">
+  <div id="top" class="panel">
+    <button id="audioBtn">Enable Audio</button>
+    <button id="addBtn" class="secondary">+ Orbit</button>
+    <button id="randBtn" class="secondary">Random</button>
+    <button id="themeBtn" class="secondary">Theme</button>
+    <button id="helpBtn" class="secondary">?</button>
+    <span class="status" id="status">3 orbits · paused</span>
+  </div>
+  <div id="bottom" class="panel">
+    <button id="saveBtn" class="secondary">Save JSON</button>
+    <label class="secondary" style="display:inline-flex;align-items:center;padding:10px 14px;border-radius:10px;cursor:pointer;border:1px solid var(--muted);">
+      Open JSON <input type="file" id="openFile" accept=".json" hidden>
+    </label>
+    <button id="playBtn">Play / Pause</button>
+  </div>
+</div>
+<div id="help">
+  <div class="panel">
+    <h2>Orbitone</h2>
+    <p>Each orbit’s angular speed becomes a musical frequency. Trails draw the geometry of the chord.</p>
+    <p><kbd>Space</kbd> play/pause<br>
+       <kbd>H</kbd> or <kbd>?</kbd> this help<br>
+       <kbd>T</kbd> theme<br>
+       <kbd>A</kbd> add orbit<br>
+       <kbd>R</kbd> randomize<br>
+       <kbd>S</kbd> save<br>
+       <kbd>O</kbd> open<br>
+       <kbd>↑</kbd>/<kbd>↓</kbd> base frequency<br>
+       <kbd>←</kbd>/<kbd>→</kbd> trail fade</p>
+    <p>Touch/click canvas to gently push the nearest orbit’s phase.</p>
+    <button id="closeHelp">Close</button>
+  </div>
+</div>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let W, H, CX, CY;
+function resize() {
+  W = canvas.width = innerWidth * devicePixelRatio;
+  H = canvas.height = innerHeight * devicePixelRatio;
+  canvas.style.width = innerWidth + 'px';
+  canvas.style.height = innerHeight + 'px';
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+  CX = innerWidth / 2; CY = innerHeight / 2;
+}
+resize(); addEventListener('resize', resize);
+
+// Safe localStorage wrapper (sandbox-friendly)
+function getStorage() {
+  try { return window.localStorage; } catch (e) { return null; }
+}
+const storage = getStorage();
+
+const orbits = [];
+let playing = false;
+let baseFreq = 110;
+let trailAlpha = 0.08;
+let audioCtx = null;
+const master = { gain: null };
+
+function makeOrbit(radius, speed, phase, hue) {
+  return { radius, speed, phase, hue, osc: null, gain: null };
+}
+
+function initDemo() {
+  orbits.length = 0;
+  const ratios = [1, 1.5, 1.25, 1.333, 2];
+  ratios.slice(0, 3).forEach((r, i) => {
+    orbits.push(makeOrbit(80 + i * 45, r * 0.4, Math.random() * Math.PI * 2, 200 + i * 40));
+  });
+  updateStatus();
+}
+initDemo();
+
+function updateStatus() {
+  document.getElementById('status').textContent =
+    `${orbits.length} orbits · ${playing ? 'playing' : 'paused'} · ${baseFreq} Hz`;
+}
+
+function setupAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  master.gain = audioCtx.createGain();
+  master.gain.gain.value = 0.12;
+  master.gain.connect(audioCtx.destination);
+  orbits.forEach(bindOsc);
+}
+
+function bindOsc(o) {
+  if (!audioCtx) return;
+  if (o.osc) o.osc.stop();
+  o.osc = audioCtx.createOscillator();
+  o.gain = audioCtx.createGain();
+  o.osc.type = 'sine';
+  o.osc.frequency.value = baseFreq * o.speed;
+  o.gain.gain.value = 0.3;
+  o.osc.connect(o.gain);
+  o.gain.connect(master.gain);
+  o.osc.start();
+}
+
+function startAudio() {
+  setupAudio();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  document.getElementById('audioBtn').textContent = 'Audio On';
+  if (playing) orbits.forEach(o => { if (!o.osc) bindOsc(o); });
+}
+
+function draw() {
+  ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--bg').trim();
+  ctx.globalAlpha = trailAlpha;
+  ctx.fillRect(0, 0, innerWidth, innerHeight);
+  ctx.globalAlpha = 1;
+  orbits.forEach(o => {
+    if (playing) o.phase += o.speed * 0.02;
+    const x = CX + Math.cos(o.phase) * o.radius;
+    const y = CY + Math.sin(o.phase) * o.radius;
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = `hsl(${o.hue},80%,60%)`;
+    ctx.fill();
+    // faint ring
+    ctx.beginPath();
+    ctx.arc(CX, CY, o.radius, 0, Math.PI * 2);
+    ctx.strokeStyle = `hsla(${o.hue},70%,50%,0.15)`;
+    ctx.stroke();
+  });
+  requestAnimationFrame(draw);
+}
+draw();
+
+function addOrbit() {
+  const r = 60 + Math.random() * 140;
+  const spd = 0.3 + Math.random() * 1.2;
+  orbits.push(makeOrbit(r, spd, Math.random() * Math.PI * 2, Math.random() * 360));
+  if (audioCtx && playing) bindOsc(orbits.at(-1));
+  updateStatus();
+}
+
+function randomize() {
+  orbits.forEach(o => {
+    o.radius = 50 + Math.random() * 160;
+    o.speed = 0.25 + Math.random() * 1.5;
+    o.phase = Math.random() * Math.PI * 2;
+    o.hue = Math.random() * 360;
+    if (o.osc) o.osc.frequency.value = baseFreq * o.speed;
+  });
+  updateStatus();
+}
+
+function togglePlay() {
+  playing = !playing;
+  if (playing && audioCtx) orbits.forEach(o => { if (!o.osc) bindOsc(o); });
+  updateStatus();
+}
+
+function setTheme(light) {
+  document.body.classList.toggle('light', light);
+  if (storage) {
+    try { storage.setItem('orbitone-theme', light ? 'light' : 'dark'); } catch (e) {}
+  }
+}
+// Restore theme if possible
+if (storage) {
+  try {
+    if (storage.getItem('orbitone-theme') === 'light') setTheme(true);
+  } catch (e) {}
+}
+
+function saveState() {
+  const data = { orbits: orbits.map(({radius,speed,phase,hue}) => ({radius,speed,phase,hue})), baseFreq, trailAlpha, playing };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'orbitone.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function loadState(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      orbits.forEach(o => o.osc && o.osc.stop());
+      orbits.length = 0;
+      data.orbits.forEach(d => orbits.push(makeOrbit(d.radius, d.speed, d.phase, d.hue)));
+      baseFreq = data.baseFreq ?? 110;
+      trailAlpha = data.trailAlpha ?? 0.08;
+      playing = !!data.playing;
+      if (audioCtx) orbits.forEach(bindOsc);
+      updateStatus();
+    } catch (err) { alert('Invalid file'); }
+  };
+  reader.readAsText(file);
+}
+
+// UI
+document.getElementById('audioBtn').onclick = startAudio;
+document.getElementById('addBtn').onclick = addOrbit;
+document.getElementById('randBtn').onclick = randomize;
+document.getElementById('themeBtn').onclick = () => setTheme(!document.body.classList.contains('light'));
+document.getElementById('playBtn').onclick = togglePlay;
+document.getElementById('saveBtn').onclick = saveState;
+document.getElementById('openFile').onchange = e => e.target.files[0] && loadState(e.target.files[0]);
+document.getElementById('helpBtn').onclick = () => document.getElementById('help').style.display = 'flex';
+document.getElementById('closeHelp').onclick = () => document.getElementById('help').style.display = 'none';
+
+// Keyboard — each key exactly one action
+const keyMap = {
+  ' ': togglePlay,
+  'h': () => document.getElementById('help').style.display = 'flex',
+  '?': () => document.getElementById('help').style.display = 'flex',
+  't': () => setTheme(!document.body.classList.contains('light')),
+  'a': addOrbit,
+  'r': randomize,
+  's': saveState,
+  'o': () => document.getElementById('openFile').click(),
+  'ArrowUp': () => { baseFreq = Math.min(440, baseFreq + 5); orbits.forEach(o => o.osc && (o.osc.frequency.value = baseFreq * o.speed)); updateStatus(); },
+  'ArrowDown': () => { baseFreq = Math.max(40, baseFreq - 5); orbits.forEach(o => o.osc && (o.osc.frequency.value = baseFreq * o.speed)); updateStatus(); },
+  'ArrowRight': () => { trailAlpha = Math.min(0.3, trailAlpha + 0.01); },
+  'ArrowLeft': () => { trailAlpha = Math.max(0.01, trailAlpha - 0.01); }
+};
+addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  const fn = keyMap[e.key];
+  if (fn) { e.preventDefault(); fn(); }
+});
+
+// Gentle phase nudge on pointer
+canvas.addEventListener('pointerdown', e => {
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left - CX;
+  const y = e.clientY - rect.top - CY;
+  let best = null, bestD = 1e9;
+  orbits.forEach(o => {
+    const ox = Math.cos(o.phase) * o.radius;
+    const oy = Math.sin(o.phase) * o.radius;
+    const d = Math.hypot(x - ox, y - oy);
+    if (d < bestD) { bestD = d; best = o; }
+  });
+  if (best && bestD < 80) best.phase += 0.4;
+});
+</script>
+</body>
+</html>

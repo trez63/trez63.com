@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="data:,">
+<title>Golden Hour</title>
+<style>
+/* ============ Palette & base ============ */
+:root{
+  --gold:#f5b942; --rose:#e8706a; --blue:#7aa7ff;
+  --cream:#f7ecda; --dim:#b7b0c9; --faint:#8d87a3;
+  --card:rgba(255,255,255,.055); --card2:rgba(255,255,255,.09);
+  --line:rgba(247,236,218,.16); --ink:#17102e;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; color:var(--cream); min-height:100vh;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  background:linear-gradient(180deg,#0a0d24 0%,#161138 52%,#251638 82%,#33203c 100%);
+  background-attachment:fixed;
+}
+.wrap{max-width:940px;margin:0 auto;padding:18px 16px 40px}
+h1{font-size:27px;margin:2px 0 2px;letter-spacing:.4px;font-weight:800}
+h1 .sun{color:var(--gold)}
+.tag{margin:0 0 14px;color:var(--dim);font-size:14px;line-height:1.45}
+h2{font-size:16px;margin:0 0 10px;letter-spacing:.3px}
+button{font:inherit;color:inherit;background:var(--card2);border:1px solid var(--line);
+  border-radius:10px;min-height:44px;padding:8px 14px;cursor:pointer}
+button:active{transform:translateY(1px)}
+input{font:inherit;color:var(--cream)}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+/* ============ Banner ============ */
+.banner{
+  border:1px solid rgba(245,185,66,.45); border-radius:14px;
+  background:linear-gradient(120deg,rgba(245,185,66,.16),rgba(232,112,106,.10) 60%,rgba(122,167,255,.12));
+  padding:13px 16px; font-size:17px; font-weight:650; line-height:1.4; margin-bottom:14px;
+}
+.banner small{display:block;font-weight:400;font-size:13px;color:var(--dim);margin-top:2px}
+
+/* ============ Panels & controls ============ */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:14px}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.row + .row{margin-top:12px}
+label.lab{font-size:13px;color:var(--dim);min-width:74px}
+input[type="date"]{background:rgba(0,0,0,.28);border:1px solid var(--line);border-radius:10px;
+  min-height:44px;padding:6px 10px;color-scheme:dark}
+.navbtn{min-width:44px;padding:8px 10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chip{border-radius:999px;min-height:44px;padding:8px 15px;background:rgba(0,0,0,.22)}
+.chip.on{background:var(--gold);color:var(--ink);border-color:var(--gold);font-weight:700}
+input[type="range"]{flex:1;min-width:180px;min-height:44px;accent-color:var(--gold);cursor:pointer}
+.readout{font-variant-numeric:tabular-nums;font-weight:700;min-width:118px;text-align:right;font-size:15px}
+.placeline{margin-top:12px;font-size:14px;color:var(--dim)}
+.placeline b{color:var(--cream)}
+
+/* ============ Canvas & legend ============ */
+canvas#sunpath{display:block;width:100%;height:248px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:10px;font-size:13px;color:var(--dim)}
+.legend span{display:inline-flex;align-items:center;gap:7px;min-height:24px}
+.sw{width:14px;height:14px;border-radius:4px;display:inline-block}
+.sw.gold{background:rgba(245,185,66,.75)} .sw.blue{background:rgba(122,167,255,.75)}
+.sw.arc{background:#ffe1a1;height:4px;border-radius:2px}
+.sw.rose{background:var(--rose);border-radius:50%}
+.sw.now{background:var(--gold);border-radius:50%;box-shadow:0 0 0 3px rgba(245,185,66,.3)}
+
+/* ============ Times grid ============ */
+.times{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.tcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 13px;min-height:96px}
+.tcard .lab{font-size:11.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--dim);line-height:1.35}
+.tcard .val{font-size:23px;font-weight:800;margin:5px 0 3px;font-variant-numeric:tabular-nums}
+.tcard .sub{font-size:12.5px;color:var(--faint);line-height:1.35}
+.tcard.gold .val{color:var(--gold)} .tcard.blue .val{color:var(--blue)} .tcard.rose .val{color:var(--rose)}
+.tcard.gold{background:rgba(245,185,66,.08)} .tcard.blue{background:rgba(122,167,255,.09)}
+.tcard.rose{background:rgba(232,112,106,.08)}
+
+/* ============ Saved places & actions ============ */
+.savedlist{list-style:none;margin:12px 0 0;padding:0}
+.savedlist li{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.savedlist .nm{font-weight:650}
+.savedlist .co{color:var(--faint);font-size:13px;font-variant-numeric:tabular-nums}
+.savedlist .sp{flex:1}
+.savedlist button{min-height:44px}
+.del.armed{background:var(--rose);color:#fff;border-color:var(--rose);font-weight:700}
+input[type="text"]{background:rgba(0,0,0,.28);border:1px solid var(--line);border-radius:10px;
+  min-height:44px;padding:8px 12px;flex:1;min-width:170px}
+.empty{color:var(--faint);font-size:14px;margin:10px 0 0}
+.hint{color:var(--faint);font-size:13px;line-height:1.55;margin:10px 0 0}
+kbd{background:rgba(255,255,255,.12);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-family:inherit;font-size:12px}
+
+/* ============ Toast ============ */
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);
+  background:#221a45;color:var(--cream);border:1px solid var(--gold);border-radius:12px;
+  padding:12px 18px;font-size:14.5px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  max-width:min(92vw,480px);text-align:center;z-index:9}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ============ Responsive & motion ============ */
+@media (max-width:700px){ .times{grid-template-columns:repeat(2,1fr)} }
+@media (max-width:560px){
+  .wrap{padding:14px 12px 34px}
+  h1{font-size:24px}
+  .readout{min-width:96px;font-size:14px}
+  label.lab{min-width:64px}
+  canvas#sunpath{height:218px}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{transition:none !important;animation:none !important}
+  button:active{transform:none}
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <h1><span class="sun">●</span> Golden Hour</h1>
+    <p class="tag">A sun-path planner for photographers. Pick a date and a place — sunrise, golden hour and blue hour are computed on your device with the NOAA solar algorithm. No network, no location tracking.</p>
+  </header>
+
+  <div class="banner" id="banner" role="status">Working out the light…</div>
+
+  <!-- Controls: date, preset chips, sliders -->
+  <section class="panel" aria-label="Date and place">
+    <div class="row">
+      <label class="lab" for="dateInput">Date</label>
+      <input type="date" id="dateInput">
+      <button class="navbtn" id="prevDay" aria-label="Previous day">‹ Day</button>
+      <button class="navbtn" id="todayBtn">Today</button>
+      <button class="navbtn" id="nextDay" aria-label="Next day">Day ›</button>
+    </div>
+    <div class="chips" id="chips" role="group" aria-label="Preset cities"></div>
+    <div class="row">
+      <label class="lab" for="latRange">Latitude</label>
+      <input type="range" id="latRange" min="-60" max="72" step="0.01">
+      <span class="readout" id="latOut"></span>
+    </div>
+    <div class="row">
+      <label class="lab" for="lonRange">Longitude</label>
+      <input type="range" id="lonRange" min="-180" max="180" step="0.01">
+      <span class="readout" id="lonOut"></span>
+    </div>
+    <p class="placeline">Place: <b id="placeNameOut"></b> · Offset <b id="offsetOut"></b> <span id="offsetNote"></span></p>
+  </section>
+
+  <!-- Sun-path chart -->
+  <section class="panel" aria-label="Sun path chart">
+    <canvas id="sunpath"></canvas>
+    <div class="legend">
+      <span><i class="sw gold"></i>Golden hour</span>
+      <span><i class="sw blue"></i>Blue hour</span>
+      <span><i class="sw arc"></i>Sun path</span>
+      <span><i class="sw rose"></i>Sunrise / sunset</span>
+      <span><i class="sw now"></i>Now</span>
+    </div>
+  </section>
+
+  <!-- Times grid -->
+  <section class="times" id="timesGrid" aria-label="Times of day">
+    <div class="tcard blue"><div class="lab">Blue hour begins</div><div class="val" id="vBlueStart">—</div><div class="sub" id="sBlueStart">Morning</div></div>
+    <div class="tcard rose"><div class="lab">Sunrise</div><div class="val" id="vSunrise">—</div><div class="sub" id="sSunrise">Day begins</div></div>
+    <div class="tcard gold"><div class="lab">Golden hour ends</div><div class="val" id="vGoldenEnd">—</div><div class="sub" id="sGoldenEnd">Morning</div></div>
+    <div class="tcard"><div class="lab">Solar noon</div><div class="val" id="vNoon">—</div><div class="sub" id="sNoon">Sun at its highest</div></div>
+    <div class="tcard gold"><div class="lab">Golden hour begins</div><div class="val" id="vGoldenStart">—</div><div class="sub" id="sGoldenStart">Evening</div></div>
+    <div class="tcard rose"><div class="lab">Sunset</div><div class="val" id="vSunset">—</div><div class="sub" id="sSunset">Day ends</div></div>
+    <div class="tcard blue"><div class="lab">Blue hour ends</div><div class="val" id="vBlueEnd">—</div><div class="sub" id="sBlueEnd">Evening</div></div>
+    <div class="tcard"><div class="lab">Day length</div><div class="val" id="vDayLen">—</div><div class="sub">Sunrise to sunset</div></div>
+  </section>
+
+  <!-- Saved places -->
+  <section class="panel" aria-label="Saved places">
+    <h2>Saved places</h2>
+    <div class="row">
+      <input type="text" id="keepName" maxlength="60" placeholder="Name this place — e.g. Griffith Observatory" aria-label="Name for the current place">
+      <button id="keepBtn">Keep this place</button>
+    </div>
+    <ul class="savedlist" id="savedList"></ul>
+    <p class="empty" id="savedEmpty">Nothing saved yet. Your list is kept in this browser automatically.</p>
+  </section>
+
+  <!-- File actions -->
+  <section class="panel" aria-label="Save, open and copy">
+    <div class="row">
+      <button id="saveBtn">Save JSON</button>
+      <button id="openBtn">Open JSON</button>
+      <button id="copyBtn">Copy summary</button>
+      <input type="file" id="fileInput" accept="application/json,.json" hidden>
+    </div>
+    <p class="hint">Keyboard: <kbd>←</kbd> / <kbd>→</kbd> change day · <kbd>T</kbd> today · <kbd>S</kbd> save · <kbd>O</kbd> open. Shortcuts pause while you are typing.</p>
+  </section>
+</main>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+/* ================= Helpers ================= */
+var $ = function(id){ return document.getElementById(id); };
+var rad = function(d){ return d * Math.PI / 180; };
+var deg = function(r){ return r * 180 / Math.PI; };
+var clamp = function(v,a,b){ return Math.min(b, Math.max(a, v)); };
+var isNum = function(v){ return typeof v === "number" && isFinite(v); };
+function pad2(n){ return (n < 10 ? "0" : "") + n; }
+function todayStr(){ var d = new Date(); return d.getFullYear() + "-" + pad2(d.getMonth()+1) + "-" + pad2(d.getDate()); }
+function fmtTime(min){ /* minutes from midnight -> "6:42 AM"; null -> em dash */
+  if (min === null || !isFinite(min)) return "—";
+  var t = Math.round(((min % 1440) + 1440) % 1440); if (t === 1440) t = 0;
+  var h = Math.floor(t / 60), m = t % 60, ap = h < 12 ? "AM" : "PM", h12 = h % 12; if (h12 === 0) h12 = 12;
+  return h12 + ":" + pad2(m) + " " + ap;
+}
+function fmtDur(min){ /* duration -> "2h 14m" / "47m" */
+  var t = Math.max(0, Math.round(min)), h = Math.floor(t / 60), m = t % 60;
+  return h > 0 ? h + "h " + pad2(m) + "m" : m + "m";
+}
+function fmtOffset(o){ return "UTC" + (o > 0 ? "+" + o : o < 0 ? "−" + Math.abs(o) : "±0"); }
+function prettyDate(ds){
+  var p = ds.split("-"), d = new Date(Date.UTC(+p[0], +p[1]-1, +p[2]));
+  var days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  var mons = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return days[d.getUTCDay()] + ", " + mons[d.getUTCMonth()] + " " + d.getUTCDate() + ", " + d.getUTCFullYear();
+}
+function shiftDate(ds, n){
+  var p = ds.split("-"), d = new Date(Date.UTC(+p[0], +p[1]-1, +p[2]) + n * 86400000);
+  return d.getUTCFullYear() + "-" + pad2(d.getUTCMonth()+1) + "-" + pad2(d.getUTCDate());
+}
+
+/* ================= Presets & state ================= */
+/* Real coordinates; UTC offsets are the current-season (late-November) ones. */
+var CITIES = [
+  { name:"Los Angeles", lat:34.0522,  lon:-118.2437, offset:-8  },
+  { name:"New York",    lat:40.7128,  lon:-74.0060,  offset:-5  },
+  { name:"London",      lat:51.5074,  lon:-0.1278,   offset:0   },
+  { name:"Paris",       lat:48.8566,  lon:2.3522,    offset:1   },
+  { name:"Reykjavik",   lat:64.1466,  lon:-21.9426,  offset:0   },
+  { name:"Cape Town",   lat:-33.9249, lon:18.4241,   offset:2   },
+  { name:"Singapore",   lat:1.3521,   lon:103.8198,  offset:8   },
+  { name:"Tokyo",       lat:35.6762,  lon:139.6503,  offset:9   },
+  { name:"Sydney",      lat:-33.8688, lon:151.2093,  offset:11  },
+  { name:"Auckland",    lat:-36.8485, lon:174.7633,  offset:13  }
+];
+var SAMPLE = { lat:34.0522, lon:-118.2437, offset:-8, placeName:"Los Angeles",
+  savedPlaces:[ { name:"Big Sur, California", lat:36.2704, lon:-121.8081, offset:-8 } ] };
+var state = { date: todayStr(), lat:SAMPLE.lat, lon:SAMPLE.lon, offset:SAMPLE.offset,
+  placeName:SAMPLE.placeName, savedPlaces: SAMPLE.savedPlaces.slice() };
+var STORE_KEY = "goldenHour.v1";
+
+/* ================= NOAA solar math ================= */
+/* Julian day/century, mean longitude & anomaly, equation of center, true and
+   apparent longitude, obliquity, declination, equation of time (NOAA GML). */
+function sunPosition(dateStr){
+  var p = dateStr.split("-");
+  var jd = Date.UTC(+p[0], +p[1]-1, +p[2], 12) / 86400000 + 2440587.5;
+  var T = (jd - 2451545.0) / 36525;
+  var L0 = ((280.46646 + T * (36000.76983 + 0.0003032 * T)) % 360 + 360) % 360;
+  var M = 357.52911 + T * (35999.05029 - 0.0001537 * T);
+  var e = 0.016708634 - T * (0.000042037 + 0.0000001267 * T);
+  var C = Math.sin(rad(M)) * (1.914602 - T * (0.004817 + 0.000014 * T))
+        + Math.sin(rad(2*M)) * (0.019993 - 0.000101 * T) + Math.sin(rad(3*M)) * 0.000289;
+  var trueLong = L0 + C;
+  var omega = 125.04 - 1934.136 * T;
+  var lambda = trueLong - 0.00569 - 0.00478 * Math.sin(rad(omega));
+  var eps0 = 23 + (26 + (21.448 - T * (46.815 + T * (0.00059 - T * 0.001813))) / 60) / 60;
+  var eps = eps0 + 0.00256 * Math.cos(rad(omega));
+  var dec = deg(Math.asin(Math.sin(rad(eps)) * Math.sin(rad(lambda))));
+  var y = Math.pow(Math.tan(rad(eps / 2)), 2);
+  var eqTime = 4 * deg( y * Math.sin(rad(2*L0)) - 2 * e * Math.sin(rad(M))
+        + 4 * e * y * Math.sin(rad(M)) * Math.cos(rad(2*L0))
+        - 0.5 * y * y * Math.sin(rad(4*L0)) - 1.25 * e * e * Math.sin(rad(2*M)) );
+  return { dec: dec, eqTime: eqTime };
+}
+function computeDay(){
+  var s = sunPosition(state.date), lat = state.lat;
+  var noon = 720 - 4 * state.lon - s.eqTime + state.offset * 60; /* solar noon, minutes */
+  function timeAt(h, morning){ /* minutes when the sun crosses elevation h, or null */
+    var cosH = (Math.sin(rad(h)) - Math.sin(rad(lat)) * Math.sin(rad(s.dec)))
+             / (Math.cos(rad(lat)) * Math.cos(rad(s.dec)));
+    if (cosH > 1 || cosH < -1) return null;
+    var H = deg(Math.acos(cosH));
+    return morning ? noon - 4 * H : noon + 4 * H;
+  }
+  var cosRise = (Math.sin(rad(-0.833)) - Math.sin(rad(lat)) * Math.sin(rad(s.dec)))
+              / (Math.cos(rad(lat)) * Math.cos(rad(s.dec)));
+  var day = { dec: s.dec, noon: noon,
+    sunrise: timeAt(-0.833, true),  sunset: timeAt(-0.833, false),
+    gStartAM: timeAt(0, true),      gEndAM: timeAt(6, true),
+    gStartPM: timeAt(6, false),     gEndPM: timeAt(0, false),
+    bStartAM: timeAt(-6, true),     bEndAM: timeAt(-4, true),
+    bStartPM: timeAt(-4, false),    bEndPM: timeAt(-6, false),
+    polarDay: cosRise < -1, polarNight: cosRise > 1 };
+  day.dayLength = (!day.polarDay && !day.polarNight && day.sunrise !== null && day.sunset !== null)
+    ? day.sunset - day.sunrise : (day.polarDay ? 1440 : 0);
+  day.maxAlt = 90 - Math.abs(lat - s.dec);
+  day.altAt = function(min){ /* sun elevation in degrees at a minute of the day */
+    var H = (min - noon) / 4;
+    var v = Math.sin(rad(lat)) * Math.sin(rad(s.dec)) + Math.cos(rad(lat)) * Math.cos(rad(s.dec)) * Math.cos(rad(H));
+    return deg(Math.asin(clamp(v, -1, 1)));
+  };
+  return day;
+}
+
+/* ================= Place-local "now" ================= */
+function placeNow(){
+  var n = new Date(Date.now() + state.offset * 3600000);
+  return { dateStr: n.getUTCFullYear() + "-" + pad2(n.getUTCMonth()+1) + "-" + pad2(n.getUTCDate()),
+           minutes: n.getUTCHours() * 60 + n.getUTCMinutes() + n.getUTCSeconds() / 60 };
+}
+
+/* ================= Banner ================= */
+function renderBanner(day){
+  var el = $("banner"), pn = placeNow(), isToday = state.date === pn.dateStr;
+  var head = "", sub = prettyDate(state.date) + " · " + state.placeName;
+  if (day.polarDay){ el.innerHTML = ""; el.textContent = "Polar day — the sun never sets here on this date."; el.appendChild(document.createElement("small")).textContent = sub + " · Daylight all 24 hours"; return; }
+  if (day.polarNight){ el.textContent = "Polar night — the sun never rises here on this date."; el.appendChild(document.createElement("small")).textContent = sub + " · No sunrise or golden hour today"; return; }
+  if (isToday){
+    var now = pn.minutes;
+    function within(a, b){ return a !== null && b !== null && now >= a && now <= b; }
+    if (within(day.gStartAM, day.gEndAM) || within(day.gStartPM, day.gEndPM))
+      head = "Golden hour is happening now — ends " + fmtTime(now < 720 ? day.gEndAM : day.gEndPM);
+    else if (within(day.bStartAM, day.bEndAM) || within(day.bStartPM, day.bEndPM))
+      head = "Blue hour is happening now — ends " + fmtTime(now < 720 ? day.bEndAM : day.bEndPM);
+    else if (day.sunrise !== null && now > day.sunrise && now < day.sunset)
+      head = "Daylight now — sun at " + Math.round(day.altAt(now)) + "°";
+    var starts = [ [day.bStartAM,"Morning blue hour"], [day.sunrise,"Sunrise"], [day.gStartAM,"Morning golden hour"],
+                   [day.gStartPM,"Evening golden hour"], [day.sunset,"Sunset"], [day.bStartPM,"Evening blue hour"] ];
+    if (!head){
+      for (var i = 0; i < starts.length; i++)
+        if (starts[i][0] !== null && starts[i][0] > now){ head = starts[i][1] + " starts in " + fmtDur(starts[i][0] - now); break; }
+      if (!head) head = "Today's light is done — blue hour has ended";
+    }
+    sub += " · Local time at this place " + fmtTime(now);
+  } else {
+    if (day.gStartPM !== null && day.gEndPM !== null)
+      head = "Evening golden hour: " + fmtTime(day.gStartPM) + " – " + fmtTime(day.gEndPM);
+    else
+      head = "Sunrise " + fmtTime(day.sunrise) + " · Sunset " + fmtTime(day.sunset);
+    sub += " · " + fmtDur(day.dayLength) + " of daylight";
+  }
+  el.textContent = head;
+  var sm = document.createElement("small"); sm.textContent = sub; el.appendChild(sm);
+}
+
+/* ================= Times grid ================= */
+function setCard(id, subId, val, sub){ $(id).textContent = val; if (subId) $(subId).textContent = sub; }
+function renderTimes(day){
+  if (day.polarDay || day.polarNight){
+    ["vBlueStart","vSunrise","vGoldenEnd","vGoldenStart","vSunset","vBlueEnd"].forEach(function(id){ $(id).textContent = "—"; });
+    $("vNoon").textContent = fmtTime(day.noon);
+    $("sNoon").textContent = day.polarDay ? "Sun circles the sky" : "Sun stays below the horizon";
+    $("vDayLen").textContent = day.polarDay ? "24h 00m" : "0h 00m";
+    $("sSunrise").textContent = day.polarDay ? "The sun never sets" : "The sun never rises";
+    return;
+  }
+  setCard("vBlueStart","sBlueStart", fmtTime(day.bStartAM), day.bEndAM ? "Morning · until " + fmtTime(day.bEndAM) : "Morning");
+  setCard("vSunrise","sSunrise", fmtTime(day.sunrise), day.gStartAM ? "Golden hour from " + fmtTime(day.gStartAM) : "Day begins");
+  setCard("vGoldenEnd","sGoldenEnd", fmtTime(day.gEndAM), day.gStartAM ? "Morning · from " + fmtTime(day.gStartAM) : "Morning");
+  setCard("vNoon","sNoon", fmtTime(day.noon), "Sun peaks at " + Math.round(day.maxAlt) + "°");
+  setCard("vGoldenStart","sGoldenStart", fmtTime(day.gStartPM), day.gEndPM ? "Evening · until " + fmtTime(day.gEndPM) : "Evening");
+  setCard("vSunset","sSunset", fmtTime(day.sunset), day.bStartPM ? "Blue hour from " + fmtTime(day.bStartPM) : "Day ends");
+  setCard("vBlueEnd","sBlueEnd", fmtTime(day.bEndPM), day.bStartPM ? "Evening · from " + fmtTime(day.bStartPM) : "Evening");
+  $("vDayLen").textContent = fmtDur(day.dayLength);
+}
+
+/* ================= Canvas sun path ================= */
+function drawChart(day){
+  var cv = $("sunpath"), dpr = Math.min(window.devicePixelRatio || 1, 2);
+  var W = cv.clientWidth, H = cv.clientHeight; if (!W) return;
+  if (cv.width !== W * dpr){ cv.width = W * dpr; cv.height = H * dpr; }
+  var ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  var L = 36, R = 10, T = 12, B = 24, pw = W - L - R, ph = H - T - B;
+  var minA = Infinity, maxA = -Infinity, t, a;
+  for (t = 0; t <= 1440; t += 10){ a = day.altAt(t); if (a < minA) minA = a; if (a > maxA) maxA = a; }
+  var yMin = Math.min(-12, Math.floor(minA / 10) * 10), yMax = Math.max(24, Math.ceil(maxA / 10) * 10);
+  var X = function(min){ return L + (min / 1440) * pw; };
+  var Y = function(alt){ return T + (1 - (alt - yMin) / (yMax - yMin)) * ph; };
+  /* Golden / blue vertical bands, sampled every 5 minutes */
+  for (t = 0; t < 1440; t += 5){
+    a = day.altAt(t + 2.5);
+    if (a >= 0 && a <= 6) ctx.fillStyle = "rgba(245,185,66,0.20)";
+    else if (a >= -6 && a <= -4) ctx.fillStyle = "rgba(122,167,255,0.20)";
+    else continue;
+    ctx.fillRect(X(t), T, X(t + 5) - X(t) + 1, ph);
+  }
+  /* Grid: hour lines + labels, elevation ticks */
+  ctx.font = "11px -apple-system,'Segoe UI',Roboto,sans-serif";
+  ctx.strokeStyle = "rgba(247,236,218,0.10)"; ctx.fillStyle = "#8d87a3"; ctx.lineWidth = 1;
+  for (var h = 0; h <= 24; h += 3){
+    ctx.beginPath(); ctx.moveTo(X(h * 60), T); ctx.lineTo(X(h * 60), T + ph); ctx.stroke();
+    if (h % 6 === 0){ ctx.textAlign = "center"; ctx.fillText(h + "", X(h * 60), H - 8); }
+  }
+  for (var e = Math.ceil(yMin / 15) * 15; e <= yMax; e += 15){
+    if (e === 0) continue;
+    ctx.textAlign = "right"; ctx.fillText(e + "°", L - 6, Y(e) + 4);
+  }
+  /* Horizon */
+  ctx.strokeStyle = "rgba(247,236,218,0.55)"; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(L, Y(0)); ctx.lineTo(L + pw, Y(0)); ctx.stroke();
+  ctx.fillStyle = "#b7b0c9"; ctx.textAlign = "right"; ctx.fillText("0°", L - 6, Y(0) + 4);
+  /* Pale-gold fill under the daylight arc */
+  ctx.beginPath(); var started = false;
+  for (t = 0; t <= 1440; t += 5){ a = day.altAt(t); if (a > 0){ if (!started){ ctx.moveTo(X(t), Y(0)); started = true; } ctx.lineTo(X(t), Y(a)); } }
+  if (started){ ctx.lineTo(X(day.sunset || 1440), Y(0)); ctx.closePath(); ctx.fillStyle = "rgba(245,185,66,0.10)"; ctx.fill(); }
+  /* The arc itself: gold above the horizon, muted below */
+  function strokeArc(above, color, width){
+    ctx.save(); ctx.beginPath();
+    ctx.rect(L, above ? T : Y(0), pw, above ? Y(0) - T : T + ph - Y(0)); ctx.clip();
+    ctx.beginPath();
+    for (t = 0; t <= 1440; t += 5){ a = day.altAt(t); if (t === 0) ctx.moveTo(X(t), Y(a)); else ctx.lineTo(X(t), Y(a)); }
+    ctx.strokeStyle = color; ctx.lineWidth = width; ctx.stroke(); ctx.restore();
+  }
+  strokeArc(false, "rgba(141,135,163,0.8)", 1.5);
+  strokeArc(true, "#ffe1a1", 2.5);
+  /* Sunrise / sunset markers */
+  ctx.fillStyle = "#e8706a"; ctx.font = "bold 11px -apple-system,'Segoe UI',Roboto,sans-serif";
+  [[day.sunrise, "Sunrise"], [day.sunset, "Sunset"]].forEach(function(m){
+    if (m[0] === null) return;
+    ctx.beginPath(); ctx.arc(X(m[0]), Y(day.altAt(m[0])), 4.5, 0, 7); ctx.fill();
+    ctx.textAlign = m[1] === "Sunrise" ? "left" : "right";
+    ctx.fillText(fmtTime(m[0]), X(m[0]) + (m[1] === "Sunrise" ? 8 : -8), Y(0) - 8);
+  });
+  /* Glowing sun dot at the current time, only when the date is today */
+  var pn = placeNow();
+  if (state.date === pn.dateStr){
+    var na = day.altAt(pn.minutes), nx = X(pn.minutes), ny = Y(na);
+    ctx.fillStyle = "rgba(245,185,66,0.22)"; ctx.beginPath(); ctx.arc(nx, ny, 13, 0, 7); ctx.fill();
+    ctx.fillStyle = "rgba(245,185,66,0.45)"; ctx.beginPath(); ctx.arc(nx, ny, 8, 0, 7); ctx.fill();
+    ctx.fillStyle = "#f5b942"; ctx.beginPath(); ctx.arc(nx, ny, 4.5, 0, 7); ctx.fill();
+    ctx.strokeStyle = "#f7ecda"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(nx, ny, 4.5, 0, 7); ctx.stroke();
+  }
+}
+
+/* ================= Saved places UI ================= */
+var armedDelete = null, armedTimer = null;
+function renderSaved(){
+  var ul = $("savedList"); ul.innerHTML = "";
+  $("savedEmpty").style.display = state.savedPlaces.length ? "none" : "block";
+  state.savedPlaces.forEach(function(p, i){
+    var li = document.createElement("li");
+    var nm = document.createElement("span"); nm.className = "nm"; nm.textContent = p.name;
+    var co = document.createElement("span"); co.className = "co";
+    co.textContent = p.lat.toFixed(2) + ", " + p.lon.toFixed(2) + " · " + fmtOffset(p.offset);
+    var sp = document.createElement("span"); sp.className = "sp";
+    var load = document.createElement("button"); load.textContent = "Load";
+    load.addEventListener("click", function(){
+      state.lat = p.lat; state.lon = p.lon; state.offset = p.offset; state.placeName = p.name;
+      syncControls(); autosave(); renderAll(); toast("Loaded " + p.name);
+    });
+    var del = document.createElement("button"); del.className = "del"; del.textContent = "Delete";
+    del.addEventListener("click", function(){
+      if (armedDelete === i){
+        state.savedPlaces.splice(i, 1); armedDelete = null; autosave(); renderSaved(); toast("Deleted " + p.name);
+      } else {
+        armedDelete = i; del.classList.add("armed"); del.textContent = "Sure?";
+        clearTimeout(armedTimer);
+        armedTimer = setTimeout(function(){ armedDelete = null; renderSaved(); }, 3500);
+        renderSavedArmed();
+      }
+    });
+    if (armedDelete === i){ del.classList.add("armed"); del.textContent = "Sure?"; }
+    li.appendChild(nm); li.appendChild(co); li.appendChild(sp); li.appendChild(load); li.appendChild(del);
+    ul.appendChild(li);
+  });
+}
+function renderSavedArmed(){ renderSaved(); }
+
+/* ================= Toast ================= */
+var toastTimer = null;
+function toast(msg){
+  var el = $("toast"); el.textContent = msg; el.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(function(){ el.classList.remove("show"); }, 3200);
+}
+
+/* ================= Storage: autosave ================= */
+function validPlace(p){
+  return p && typeof p.name === "string" && p.name.trim().length > 0 && p.name.length <= 60
+    && isNum(p.lat) && p.lat >= -90 && p.lat <= 90
+    && isNum(p.lon) && p.lon >= -180 && p.lon <= 180
+    && isNum(p.offset) && p.offset >= -12 && p.offset <= 14;
+}
+function autosave(){
+  try { localStorage.setItem(STORE_KEY, JSON.stringify({
+    lat: state.lat, lon: state.lon, offset: state.offset,
+    placeName: state.placeName, savedPlaces: state.savedPlaces })); } catch (err) { /* storage unavailable */ }
+}
+function loadAutosave(){
+  try {
+    var raw = localStorage.getItem(STORE_KEY); if (!raw) return;
+    var o = JSON.parse(raw);
+    if (!isNum(o.lat) || o.lat < -90 || o.lat > 90 || !isNum(o.lon) || o.lon < -180 || o.lon > 180
+        || !isNum(o.offset) || o.offset < -12 || o.offset > 14
+        || typeof o.placeName !== "string" || !o.placeName || o.placeName.length > 60
+        || !Array.isArray(o.savedPlaces) || o.savedPlaces.length > 50 || !o.savedPlaces.every(validPlace))
+      throw new Error("corrupt");
+    state.lat = o.lat; state.lon = o.lon; state.offset = o.offset;
+    state.placeName = o.placeName; state.savedPlaces = o.savedPlaces;
+  } catch (err) { /* corrupt storage: keep the built-in sample */ }
+}
+
+/* ================= Save / Open JSON ================= */
+function saveJSON(){
+  var data = { version: 1, date: state.date, lat: state.lat, lon: state.lon, offset: state.offset,
+               placeName: state.placeName, savedPlaces: state.savedPlaces };
+  var blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "golden-hour-" + state.date + ".json";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+  toast("Saved golden-hour-" + state.date + ".json");
+}
+function validDateStr(ds){
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(ds)) return false;
+  var p = ds.split("-"), d = new Date(Date.UTC(+p[0], +p[1]-1, +p[2]));
+  return d.getUTCFullYear() === +p[0] && d.getUTCMonth() === +p[1]-1 && d.getUTCDate() === +p[2];
+}
+function validateImport(o){ /* full validation; returns a clean state or null */
+  if (!o || typeof o !== "object" || o.version !== 1) return null;
+  if (typeof o.date !== "string" || !validDateStr(o.date)) return null;
+  if (!isNum(o.lat) || o.lat < -90 || o.lat > 90) return null;
+  if (!isNum(o.lon) || o.lon < -180 || o.lon > 180) return null;
+  if (!isNum(o.offset) || o.offset < -12 || o.offset > 14) return null;
+  if (typeof o.placeName !== "string" || !o.placeName.trim() || o.placeName.length > 60) return null;
+  if (!Array.isArray(o.savedPlaces) || o.savedPlaces.length > 50) return null;
+  var seen = {};
+  for (var i = 0; i < o.savedPlaces.length; i++){
+    if (!validPlace(o.savedPlaces[i])) return null;
+    var k = o.savedPlaces[i].name.trim().toLowerCase();
+    if (seen[k]) return null; seen[k] = 1;
+  }
+  return { date: o.date, lat: o.lat, lon: o.lon, offset: o.offset, placeName: o.placeName,
+           savedPlaces: o.savedPlaces.map(function(p){ return { name:p.name, lat:p.lat, lon:p.lon, offset:p.offset }; }) };
+}
+function openJSON(file){
+  var reader = new FileReader();
+  reader.onload = function(){
+    var clean = null;
+    try { clean = validateImport(JSON.parse(reader.result)); } catch (err) { clean = null; }
+    if (!clean){ toast("That file is not a valid Golden Hour save — nothing was changed."); return; }
+    state.date = clean.date; state.lat = clean.lat; state.lon = clean.lon; state.offset = clean.offset;
+    state.placeName = clean.placeName; state.savedPlaces = clean.savedPlaces;
+    autosave(); syncControls(); renderAll(); renderSaved();
+    toast("Opened save from " + prettyDate(clean.date));
+  };
+  reader.onerror = function(){ toast("Could not read that file — nothing was changed."); };
+  reader.readAsText(file);
+}
+
+/* ================= Copy summary ================= */
+function copySummary(day){
+  var lines = [ "Golden Hour — " + state.placeName + " (" + state.lat.toFixed(2) + ", " + state.lon.toFixed(2) + ", " + fmtOffset(state.offset) + ")",
+                prettyDate(state.date) ];
+  if (day.polarDay) lines.push("Polar day: the sun never sets on this date.");
+  else if (day.polarNight) lines.push("Polar night: the sun never rises on this date.");
+  else {
+    lines.push("Blue hour (morning): " + fmtTime(day.bStartAM) + " – " + fmtTime(day.bEndAM));
+    lines.push("Sunrise: " + fmtTime(day.sunrise));
+    lines.push("Golden hour (morning): " + fmtTime(day.gStartAM) + " – " + fmtTime(day.gEndAM));
+    lines.push("Solar noon: " + fmtTime(day.noon));
+    lines.push("Golden hour (evening): " + fmtTime(day.gStartPM) + " – " + fmtTime(day.gEndPM));
+    lines.push("Sunset: " + fmtTime(day.sunset));
+    lines.push("Blue hour (evening): " + fmtTime(day.bStartPM) + " – " + fmtTime(day.bEndPM));
+    lines.push("Day length: " + fmtDur(day.dayLength));
+  }
+  var text = lines.join("\n");
+  function done(){ toast("Summary copied to clipboard"); }
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function(){ fallback(); });
+  else fallback();
+  function fallback(){
+    var ta = document.createElement("textarea"); ta.value = text;
+    ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); done(); } catch (err) { toast("Copy failed on this browser"); }
+    ta.remove();
+  }
+}
+
+/* ================= Render orchestration ================= */
+var lastDay = null;
+function renderAll(){
+  lastDay = computeDay();
+  renderBanner(lastDay); renderTimes(lastDay); drawChart(lastDay);
+  $("latOut").textContent = Math.abs(state.lat).toFixed(2) + "° " + (state.lat >= 0 ? "N" : "S");
+  $("lonOut").textContent = Math.abs(state.lon).toFixed(2) + "° " + (state.lon >= 0 ? "E" : "W");
+  $("placeNameOut").textContent = state.placeName;
+  $("offsetOut").textContent = fmtOffset(state.offset);
+  document.querySelectorAll(".chip").forEach(function(ch){
+    ch.classList.toggle("on", ch.textContent === state.placeName);
+  });
+}
+function syncControls(){
+  $("dateInput").value = state.date;
+  $("latRange").value = state.lat; $("lonRange").value = state.lon;
+}
+
+/* ================= Wiring ================= */
+function buildChips(){
+  var box = $("chips");
+  CITIES.forEach(function(c){
+    var b = document.createElement("button"); b.className = "chip"; b.textContent = c.name;
+    b.addEventListener("click", function(){
+      state.lat = c.lat; state.lon = c.lon; state.offset = c.offset; state.placeName = c.name;
+      $("offsetNote").textContent = "";
+      syncControls(); autosave(); renderAll();
+    });
+    box.appendChild(b);
+  });
+}
+function onSlider(movedLon){
+  state.lat = parseFloat($("latRange").value); state.lon = parseFloat($("lonRange").value);
+  state.placeName = "Custom";
+  if (movedLon){
+    state.offset = clamp(Math.round(state.lon / 15), -12, 14);
+    $("offsetNote").textContent = "(estimated from longitude)";
+  }
+  autosave(); renderAll();
+}
+function init(){
+  loadAutosave();
+  buildChips(); syncControls(); renderAll(); renderSaved();
+  $("dateInput").addEventListener("change", function(){
+    if (validDateStr(this.value)){ state.date = this.value; autosave(); renderAll(); }
+    else { this.value = state.date; toast("Please pick a valid date"); }
+  });
+  $("latRange").addEventListener("input", function(){ onSlider(false); });
+  $("lonRange").addEventListener("input", function(){ onSlider(true); });
+  $("prevDay").addEventListener("click", function(){ state.date = shiftDate(state.date, -1); syncControls(); autosave(); renderAll(); });
+  $("nextDay").addEventListener("click", function(){ state.date = shiftDate(state.date, 1); syncControls(); autosave(); renderAll(); });
+  $("todayBtn").addEventListener("click", function(){ state.date = todayStr(); syncControls(); autosave(); renderAll(); });
+  $("keepBtn").addEventListener("click", function(){
+    var name = $("keepName").value.trim() || (state.placeName !== "Custom" ? state.placeName : "");
+    if (!name){ toast("Give this place a name first"); $("keepName").focus(); return; }
+    if (name.length > 60){ toast("Names are limited to 60 characters"); return; }
+    if (state.savedPlaces.length >= 50){ toast("Saved places is full (50) — delete one first"); return; }
+    var dup = state.savedPlaces.some(function(p){ return p.name.trim().toLowerCase() === name.toLowerCase(); });
+    if (dup){ toast("A place named \"" + name + "\" is already saved"); return; }
+    state.savedPlaces.push({ name: name, lat: state.lat, lon: state.lon, offset: state.offset });
+    $("keepName").value = ""; autosave(); renderSaved(); toast("Saved " + name);
+  });
+  $("saveBtn").addEventListener("click", saveJSON);
+  $("openBtn").addEventListener("click", function(){ $("fileInput").click(); });
+  $("fileInput").addEventListener("change", function(){ if (this.files[0]) openJSON(this.files[0]); this.value = ""; });
+  $("copyBtn").addEventListener("click", function(){ copySummary(lastDay || computeDay()); });
+  /* Keyboard: each key has exactly one job; never fire while typing. */
+  document.addEventListener("keydown", function(ev){
+    var t = ev.target, tag = t && t.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (t && t.isContentEditable)) return;
+    if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
+    if (ev.key === "ArrowLeft"){ state.date = shiftDate(state.date, -1); }
+    else if (ev.key === "ArrowRight"){ state.date = shiftDate(state.date, 1); }
+    else if (ev.key === "t" || ev.key === "T"){ state.date = todayStr(); }
+    else if (ev.key === "s" || ev.key === "S"){ saveJSON(); return; }
+    else if (ev.key === "o" || ev.key === "O"){ $("fileInput").click(); return; }
+    else return;
+    ev.preventDefault(); syncControls(); autosave(); renderAll();
+  });
+  var resizeTimer = null;
+  window.addEventListener("resize", function(){ clearTimeout(resizeTimer); resizeTimer = setTimeout(function(){ if (lastDay) drawChart(lastDay); }, 120); });
+  /* Live countdown + sun dot refresh while looking at today */
+  setInterval(function(){ if (state.date === placeNow().dateStr) renderAll(); }, 30000);
+}
+init();
+</script>
+</body>
+</html>

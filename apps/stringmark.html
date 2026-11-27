@@ -1,0 +1,183 @@
+<!doctype html>
+<!-- Stringmark | Created 2026-11-26 (America/Los_Angeles)
+Purpose: Keep a portable notebook of custom guitar chord shapes and export a clean diagram sheet.
+Main interaction: Mark each of six strings as muted, open or fretted; collect up to eight named shapes, shift their fret window and mirror their diagrams.
+Visual approach: A warm music-copyist's desk, ink-brown typography, vermilion fret markers, ruled string controls and large cream diagram cards.
+Distinct from Belfry's bell permutations, Selvedge's weaving and Sightline's perspective: a notation tool for capturing guitar fingerings, with an editable chord collection and printable SVG sheet. All code and graphics live in this one offline HTML. -->
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#eee8dc"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"><title>Stringmark · Your chord notebook</title>
+<style>
+:root{font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;color:#302c25;background:#eee8dc;--ink:#302c25;--accent:#a94c2c;--line:#ccc3b3;--paper:#fffcf5;--muted:#6d6254}*{box-sizing:border-box}body{margin:0}button,input,select,textarea{font:inherit}button,select{min-height:46px;border:1px solid #b8ad9a;border-radius:5px;padding:10px 15px;background:transparent;color:var(--ink);cursor:pointer;touch-action:manipulation}button:disabled{opacity:.42;cursor:default}button.primary{background:var(--ink);border-color:var(--ink);color:var(--paper)}button.accent{background:var(--accent);border-color:var(--accent);color:white}button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid #a94c2c;outline-offset:3px}input[type=text],textarea{width:100%;min-height:46px;background:#fffdf8;border:1px solid #b8ad9a;border-radius:4px;padding:10px 12px;color:var(--ink);font-size:16px}textarea{resize:vertical;min-height:92px}select{appearance:none;-webkit-appearance:none;background-color:#fffcf5;color:#302c25;padding-right:34px;background-image:linear-gradient(45deg,transparent 50%,#302c25 50%),linear-gradient(135deg,#302c25 50%,transparent 50%);background-position:calc(100% - 17px) 50%,calc(100% - 12px) 50%;background-size:5px 5px;background-repeat:no-repeat}h1,h2,h3,p{margin:0}[hidden]{display:none!important}.app{max-width:1260px;margin:auto;padding:25px max(30px,env(safe-area-inset-right)) max(36px,env(safe-area-inset-bottom)) max(30px,env(safe-area-inset-left));padding-top:max(25px,env(safe-area-inset-top))}.mast{display:flex;align-items:center;justify-content:space-between;gap:15px;border-bottom:1px solid var(--ink);padding-bottom:20px}.brand{display:flex;align-items:center;gap:11px;font-size:1.15rem;font-weight:780;letter-spacing:-.03em}.logo{display:flex;gap:4px;align-items:center;width:31px;height:36px}.logo i{height:30px;width:2px;background:var(--ink);position:relative}.logo i:after{content:"";position:absolute;top:9px;left:-3px;width:8px;height:8px;border-radius:50%;background:var(--accent)}.logo i:nth-child(2):after{top:18px}.logo i:nth-child(3):after{top:2px}.actions{display:flex;flex-wrap:wrap;gap:8px}.hero{display:flex;gap:25px;justify-content:space-between;align-items:end;padding-block:27px}.eyebrow{font:600 .7rem/1.6 ui-monospace,Consolas,monospace;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}h1{font-family:Georgia,"Times New Roman",serif;font-size:clamp(2.3rem,4.4vw,3.7rem);font-weight:400;letter-spacing:-.055em;line-height:1.12;margin-top:7px}.hero>p{max-width:35ch;font-size:.91rem;color:var(--muted)}.folio{display:grid;grid-template-columns:minmax(180px,1fr) auto;gap:20px;align-items:end;padding:19px 0;border-top:1px solid var(--line)}label.field{display:block;font-size:.78rem;font-weight:650;letter-spacing:.02em}label.field input,label.field textarea{display:block;margin-top:6px}.folio .field{max-width:560px}.mirror{display:flex;align-items:center;gap:9px;min-height:46px;cursor:pointer;font-size:.87rem}.mirror input{width:21px;height:21px;accent-color:var(--accent);flex:none}.sheetActions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.status{color:#85401e;font-size:.9rem;overflow-wrap:anywhere;min-height:0}.status:not(:empty){padding:10px 0}.collection{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding-block:15px;display:flex;gap:12px;align-items:center}.cards{display:flex;gap:7px;flex-wrap:wrap;flex:1}.cardTab{max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#f7f2e7;padding-inline:14px}.cardTab[aria-pressed=true]{color:white;background:var(--accent);border-color:var(--accent)}.cardTab small{font:12px ui-monospace,monospace;opacity:.7;margin-right:8px}.counter{font:12px ui-monospace,monospace;color:var(--muted)}.workspace{display:grid;grid-template-columns:minmax(290px,.92fr) minmax(0,1.08fr);gap:38px;align-items:start;padding-top:25px}.plate{border:1px solid #c5bba8;box-shadow:5px 6px 0 #d7cebe;background:var(--paper);border-radius:2px;min-width:0}.diagram svg{display:block;width:100%;height:auto;max-height:520px}.caption{display:flex;gap:14px;justify-content:space-between;align-items:center;border-top:1px solid #ded6c8;padding:16px 22px;font-size:.75rem;color:var(--muted)}.caption strong{font-size:.85rem;color:var(--ink)}.notebox{margin-top:20px}.tools{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:15px}.editor h2{font:400 1.7rem Georgia,serif;letter-spacing:-.03em}.editorIntro{margin-top:4px;color:var(--muted);font-size:.87rem}.nameRow{display:grid;grid-template-columns:minmax(0,1fr) 110px;gap:15px;margin-top:18px}.nameRow select{margin-top:6px;width:100%}.hint{font-size:.76rem;color:var(--muted);margin-top:8px}.strings{margin-top:13px}.stringRow{margin:0;padding:12px 0;border:0;border-top:1px solid var(--line);min-width:0}.stringRow legend{float:left;width:100%;font-size:.79rem;margin-bottom:7px;font-weight:650}.stringRow legend span{font-weight:400;color:var(--muted);margin-left:6px}.positions{display:grid;grid-template-columns:repeat(7,minmax(44px,1fr));gap:5px;clear:both}.position{position:relative;display:block;cursor:pointer;min-width:0}.position input{position:absolute;width:1px;height:1px;opacity:0;margin:0}.position span{display:flex;align-items:center;justify-content:center;min-height:46px;border:1px solid #bfb4a0;border-radius:4px;font-size:1rem;background:#f8f3e9}.position input:checked+span{background:var(--ink);color:white;border-color:var(--ink);box-shadow:inset 0 -3px 0 var(--accent)}.position input:focus-visible+span{outline:3px solid var(--accent);outline-offset:2px}.legend{display:flex;flex-wrap:wrap;gap:17px;margin-top:8px;font-size:.78rem;color:var(--muted)}.legend b{font-size:1.05rem;color:var(--ink);margin-right:4px}.footer{margin-top:29px;padding-top:17px;border-top:1px solid var(--ink);display:flex;justify-content:space-between;gap:20px;font-size:.77rem;color:var(--muted)}dialog{width:min(490px,calc(100% - 28px));max-height:calc(100vh - 28px);max-height:calc(100dvh - 28px);overflow:auto;padding:26px;border:1px solid #a79a84;border-radius:7px;background:var(--paper);color:var(--ink);box-shadow:0 14px 70px #302c2544}dialog::backdrop{background:#302c2566}dialog h2{font:400 1.8rem Georgia,serif;letter-spacing:-.03em;margin-bottom:15px}dialog p,dialog li{font-size:.94rem;line-height:1.6;overflow-wrap:anywhere}dialog p+p,dialog li+li{margin-top:10px}dialog .actions{margin-top:18px}details{margin-top:14px}summary{min-height:44px;padding-block:11px;cursor:pointer;font-size:.87rem}#fileText{font-size:16px;min-height:125px}#selectText{margin-top:8px}@media(hover:hover){button:enabled:hover{filter:brightness(.94)}.position:hover span{border-color:var(--ink)}}@media(max-width:900px){.workspace{gap:22px;grid-template-columns:minmax(240px,.8fr) minmax(0,1.2fr)}.app{padding-inline:22px}.hero{display:block}.hero>p{margin-top:13px;max-width:none}.positions{gap:4px;grid-template-columns:repeat(7,minmax(44px,1fr))}}@media(max-width:720px){.app{padding-inline:max(16px,env(safe-area-inset-left)) max(16px,env(safe-area-inset-right))}.workspace{grid-template-columns:1fr;gap:28px}.diagram svg{max-height:360px}.folio{grid-template-columns:1fr;gap:12px}.sheetActions{justify-content:space-between}.collection{align-items:flex-start;flex-wrap:wrap}.collection>.actions{width:100%}.counter{margin-left:auto;align-self:center}.positions{grid-template-columns:repeat(7,minmax(44px,1fr))}.plate{max-width:490px;margin-inline:auto}.notebox{margin-top:15px}.footer{display:block}.footer p+p{margin-top:6px}}@media(max-width:460px){.mast{align-items:flex-start;flex-wrap:wrap;padding-bottom:16px}.mast>.actions{width:100%}.mast #help{margin-left:auto}.hero{padding-block:23px}h1{font-size:2.8rem}.nameRow{gap:10px}.caption{padding:13px 16px}.positions{gap:4px}.tools{gap:6px}.tools button{padding-inline:12px}dialog{padding:22px}}@media(max-width:370px){.positions{grid-template-columns:repeat(4,minmax(44px,1fr))}.sheetActions{display:block}.sheetActions>button{width:100%;margin-top:8px}.diagram svg{max-height:320px}}@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style></head><body><main class="app"><header class="mast"><div class="brand"><span class="logo" aria-hidden="true"><i></i><i></i><i></i><i></i></span>STRINGMARK</div><nav class="actions" aria-label="Notebook files"><button type="button" id="open">Open</button><button type="button" id="save" class="primary">Save</button><button type="button" id="help">Guide</button></nav><input id="file" type="file" accept=".json,application/json" hidden></header>
+<section class="hero"><div><p class="eyebrow">A little book of chord shapes</p><h1>Remember the shape.</h1></div><p>Your fingerings, in your own words. Mark six strings, name the shape, and make a sheet worth keeping.</p></section><noscript>Enable JavaScript to edit your notebook.</noscript>
+<section class="folio" aria-label="Notebook settings"><label class="field" for="title">Notebook title<input type="text" id="title" maxlength="100" autocomplete="off"></label><div class="sheetActions"><label class="mirror"><input id="leftHanded" type="checkbox">Mirror for left hand</label><button type="button" id="export" class="accent">Export sheet</button></div></section><p id="status" class="status" role="status" aria-live="polite"></p>
+<section class="collection" aria-label="Your chord cards"><div class="cards" id="cards"></div><div class="actions"><button type="button" id="add">+ New shape</button><span id="count" class="counter"></span></div></section>
+<div class="workspace"><section aria-label="Diagram preview"><div class="plate"><div id="diagram" class="diagram"></div><div class="caption"><strong id="fretCaption"></strong><span>6 strings / 5 frets</span></div></div><label class="field notebox" for="note">A note to your future self<textarea id="note" rows="3" maxlength="240" placeholder="A transition, a song, a reminder…"></textarea></label><div class="tools"><button type="button" id="duplicate">Duplicate</button><button type="button" id="remove">Remove</button><button type="button" id="undo" disabled>Undo edit</button></div></section>
+<section class="editor" aria-labelledby="editHeading"><p class="eyebrow" id="cardNumber"></p><h2 id="editHeading">Put each string in place.</h2><p class="editorIntro">Choose a mark on every row. The diagram updates as you go.</p><div class="nameRow"><label class="field" for="name">Shape name<input type="text" id="name" maxlength="50" autocomplete="off"></label><label class="field" for="base">First fret<select id="base"></select></label></div><p class="hint">Changing the first fret shifts fretted marks. Open strings stay open.</p><div class="strings" id="strings"></div><div class="legend"><span><b>×</b> Don’t play</span><span><b>○</b> Open string</span><span><b>1–22</b> Fret number</span></div></section></div>
+<footer class="footer"><p>Standard tuning labels: E A D G B E. Names and notes are yours to choose.</p><p>Works offline · Your notebook stays with you</p></footer></main>
+<dialog id="guideDialog" aria-labelledby="guideHeading"><h2 id="guideHeading">A shape to come back to.</h2><ol><li>Select a card, or add a new shape. Give it a name you’ll recognize.</li><li>Each row is a guitar string, from thick low E (6) to thin high E (1). Choose × to mute, ○ to leave open, or a numbered fret.</li><li>The diagram shows a five-fret window. Change First fret to move that window and its fretted marks together. The thick top line is the nut, visible at fret 1.</li><li>Mirror reverses the drawing for a left-handed view. It keeps the same string assignments.</li></ol><p>Use notes to record finger numbers or a barre. This notebook records your shapes; it does not identify chords or play audio.</p><p><strong>Save</strong> keeps every card, note and setting in one JSON file. <strong>Open</strong> restores it. <strong>Export sheet</strong> creates a printable SVG image of the collection. On iPhone, Share can offer Save to Files when supported.</p><p>Use Tab to move between controls, arrow keys within a string’s choices, and Space to select. There are no custom keyboard shortcuts. Undo edit returns through your last 30 edits; this temporary history is not saved.</p><div class="actions"><button type="button" class="primary" data-close>Back to the notebook</button></div></dialog>
+<dialog id="fileDialog" aria-labelledby="fileHeading"><h2 id="fileHeading">Save your notebook</h2><p id="fileInfo"></p><div class="actions"><button type="button" id="share">Share or save to Files</button><button type="button" id="again">Download again</button></div><details><summary>Complete file text</summary><label class="field" for="fileText">Copy all text to save manually<textarea id="fileText" rows="6" readonly spellcheck="false"></textarea></label><button type="button" id="selectText">Select text</button></details><div class="actions"><button type="button" class="primary" data-close>Done</button></div></dialog>
+<dialog id="confirmDialog" aria-labelledby="confirmHeading"><h2 id="confirmHeading">Open another notebook?</h2><p>Your current notebook has changes. Choose Keep to save them first, or Replace to open the selected file.</p><div class="actions"><button type="button" id="keep" class="primary" autofocus>Keep current notebook</button><button type="button" id="replace">Replace</button></div></dialog>
+<script>
+(() => { 'use strict';
+const MAX_FILE_BYTES=65536;
+const TUNING=['E','A','D','G','B','E'];
+function exactKeys(value,keys){return !!value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).length===keys.length&&keys.every(key=>Object.prototype.hasOwnProperty.call(value,key));}
+function whole(value,min,max){return Number.isInteger(value)&&value>=min&&value<=max;}
+function validText(value,max){
+  if(typeof value!=='string'||value.length>max)return false;
+  for(const c of value){const n=c.codePointAt(0);if(n!==9&&n!==10&&n!==13&&(n<32||n>=0xd800&&n<=0xdfff||n===0xfffe||n===0xffff))return false;}
+  return true;
+}
+function validateChord(raw){
+  if(!exactKeys(raw,['id','name','note','base','positions'])||typeof raw.id!=='string'||!/^c[1-9][0-9]{0,5}$/.test(raw.id))throw Error('A chord has an invalid identity or structure.');
+  if(!validText(raw.name,50)||!validText(raw.note,240))throw Error('Chord names can use 50 characters and notes can use 240. Remove unsupported control characters.');
+  if(!whole(raw.base,1,18)||!Array.isArray(raw.positions)||raw.positions.length!==6||raw.positions.some(value=>!whole(value,-1,5)))throw Error('A chord has an invalid fret or string position.');
+  return{id:raw.id,name:raw.name,note:raw.note,base:raw.base,positions:[...raw.positions]};
+}
+function validateState(raw){
+  if(!exactKeys(raw,['title','selected','leftHanded','chords']))throw Error('The saved notebook has an unexpected structure.');
+  if(!validText(raw.title,100)||typeof raw.leftHanded!=='boolean')throw Error('The notebook title or handedness setting is invalid.');
+  if(!Array.isArray(raw.chords)||raw.chords.length<1||raw.chords.length>8)throw Error('A notebook needs between one and eight chords.');
+  const chords=raw.chords.map(validateChord),ids=new Set(chords.map(c=>c.id));
+  if(ids.size!==chords.length||typeof raw.selected!=='string'||!ids.has(raw.selected))throw Error('The selected chord or chord identities are invalid.');
+  return{title:raw.title,selected:raw.selected,leftHanded:raw.leftHanded,chords};
+}
+function makeDefault(){return{title:'A few shapes to keep',selected:'c1',leftHanded:false,chords:[
+  {id:'c1',name:'C',note:'An open C shape. Leave the lowest string silent.',base:1,positions:[-1,3,2,0,1,0]},
+  {id:'c2',name:'G',note:'Keep the three middle strings open.',base:1,positions:[3,2,0,0,0,3]},
+  {id:'c3',name:'Am',note:'An open A minor shape.',base:1,positions:[-1,0,2,2,1,0]}
+]};}
+function addChord(work,duplicate=false){
+  const next=validateState(work);if(next.chords.length===8)throw Error('This notebook already has eight chords.');
+  const used=new Set(next.chords.map(c=>c.id));let n=1;while(used.has('c'+n))n++;
+  const source=next.chords.find(c=>c.id===next.selected);
+  const chord=duplicate?{...source,id:'c'+n,positions:[...source.positions]}:{id:'c'+n,name:'Untitled chord',note:'',base:1,positions:[-1,-1,-1,-1,-1,-1]};
+  next.chords.push(chord);next.selected=chord.id;return next;
+}
+function removeChord(work){
+  const next=validateState(work);if(next.chords.length===1)throw Error('Keep at least one chord in the notebook.');
+  const i=next.chords.findIndex(c=>c.id===next.selected);next.chords.splice(i,1);next.selected=next.chords[Math.min(i,next.chords.length-1)].id;return next;
+}
+function checkFileSize(text){
+  if(typeof text!=='string'||text.length>MAX_FILE_BYTES)throw Error('Choose a Stringmark JSON file of 64 KB or less.');
+  let bytes=0;for(const c of text){const n=c.codePointAt(0);bytes+=n<128?1:n<2048?2:n<65536?3:4;if(bytes>MAX_FILE_BYTES)throw Error('Choose a Stringmark JSON file of 64 KB or less.');}
+}
+function serializeSession(work){return JSON.stringify({app:'stringmark',version:1,workspace:validateState(work)},null,2);}
+function readSession(text){
+  checkFileSize(text);let data;try{data=JSON.parse(text.replace(/^\uFEFF/,''));}catch{throw Error('This is not valid JSON. Choose a saved Stringmark notebook.');}
+  if(!exactKeys(data,['app','version','workspace'])||data.app!=='stringmark')throw Error('This file is not a Stringmark notebook.');
+  if(data.version!==1)throw Error('This Stringmark file version is not supported.');
+  return validateState(data.workspace);
+}
+function escapeXML(value){return String(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');}
+function wrapText(value,width){
+  const words=String(value).trim().split(/\s+/u).filter(Boolean),lines=[];let line='';
+  for(const word of words){let chars=Array.from(word);while(chars.length>width){if(line){lines.push(line);line='';}lines.push(chars.splice(0,width).join(''));}const tail=chars.join('');if(!tail)continue;if(Array.from(line).length+chars.length+(line?1:0)>width){lines.push(line);line=tail;}else line+=(line?' ':'')+tail;}
+  if(line)lines.push(line);return lines.length?lines:[''];
+}
+function textFit(value,fontSize,maxWidth){
+  const estimate=Array.from(value).reduce((width,c)=>width+(c.codePointAt(0)<128?.65:1.2)*fontSize,0);
+  return estimate>maxWidth||/[^\x00-\x7f]/u.test(value)?` textLength="${Math.min(maxWidth,Math.round(estimate*100)/100)}" lengthAdjust="spacingAndGlyphs"`:'';
+}
+function chordDescription(chord,leftHanded){return(chord.name.trim()||'Untitled chord')+'. '+(leftHanded?'Mirrored view. ':'')+chord.positions.map((p,i)=>'String '+(6-i)+' '+TUNING[i]+': '+(p<0?'muted':p===0?'open':'fret '+(chord.base+p-1))).join('; ')+'.';}
+function chordSVG(raw,leftHanded=false){
+  const chord=validateChord(raw);if(typeof leftHanded!=='boolean')throw Error('Choose a valid handedness setting.');
+  const e=escapeXML,ink='#302c25',accent='#a94c2c',left=105,dx=54,top=150,dy=44,bottom=370;
+  const title=wrapText(chord.name.trim()||'Untitled chord',24),label=chordDescription(chord,leftHanded);
+  let svg=`<svg xmlns="http://www.w3.org/2000/svg" width="480" height="500" viewBox="0 0 480 500" role="img" aria-label="${e(label)}"><title>${e(label)}</title><rect width="480" height="500" rx="9" fill="#faf7ed"/><g fill="${ink}" font-family="system-ui, sans-serif">`;
+  svg+=title.map((line,i)=>`<text x="240" y="${40+i*24}" text-anchor="middle" font-family="ui-monospace, monospace" font-size="22" font-weight="700"${textFit(line,22,400)}>${e(line)}</text>`).join('');
+  for(let fret=0;fret<=5;fret++)svg+=`<line x1="${left}" y1="${top+fret*dy}" x2="375" y2="${top+fret*dy}" stroke="${ink}" stroke-width="${fret===0&&chord.base===1?7:1.5}"/>`;
+  for(let fret=1;fret<=5;fret++)svg+=`<text x="77" y="${top+(fret-.5)*dy+5}" text-anchor="end" font-size="16" fill="#6e675a">${chord.base+fret-1}</text>`;
+  for(let i=0;i<6;i++){
+    const visual=leftHanded?5-i:i,x=left+visual*dx,p=chord.positions[i];
+    svg+=`<line x1="${x}" y1="${top}" x2="${x}" y2="${bottom}" stroke="${ink}" stroke-width="${2.5-i*.22}"/>`;
+    if(p===-1)svg+=`<path d="M ${x-6} 116 L ${x+6} 128 M ${x+6} 116 L ${x-6} 128" stroke="${ink}" stroke-width="2.5" fill="none"/>`;
+    else if(p===0)svg+=`<circle cx="${x}" cy="122" r="7" fill="none" stroke="${ink}" stroke-width="2.5"/>`;
+    else svg+=`<circle cx="${x}" cy="${top+(p-.5)*dy}" r="15" fill="${accent}"/>`;
+    svg+=`<text x="${x}" y="408" text-anchor="middle" font-size="19" font-weight="650">${6-i}</text><text x="${x}" y="434" text-anchor="middle" font-size="15" fill="#6e675a">${TUNING[i]}</text>`;
+  }
+  svg+=`<text x="240" y="474" text-anchor="middle" font-size="13" fill="#6e675a">${leftHanded?'MIRRORED VIEW · LOW E AT RIGHT':'STANDARD VIEW · LOW E AT LEFT'}</text></g></svg>`;return svg;
+}
+function sheetSVG(work){
+  const next=validateState(work),e=escapeXML,rows=Math.ceil(next.chords.length/2),lines=wrapText(next.title.trim()||'Chord notebook',50);
+  const metadataY=45+(lines.length-1)*34+36,firstRowY=metadataY+35,notes=next.chords.map(chord=>wrapText(chord.note,46)),rowY=[];
+  let height=firstRowY;
+  for(let row=0;row<rows;row++){
+    rowY.push(height);
+    const maxLines=Math.max(notes[row*2].length,notes[row*2+1]?.length||0);
+    height+=Math.max(620,550+19*maxLines)+30;
+  }
+  height+=20;
+  let svg=`<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="${height}" viewBox="0 0 1080 ${height}" role="img" aria-label="${e(next.title.trim()||'Chord notebook')}"><title>${e(next.title.trim()||'Chord notebook')}</title><rect width="1080" height="${height}" fill="#fffdf8"/><g fill="#302c25" font-family="ui-monospace, monospace">`;
+  svg+=lines.map((line,i)=>`<text x="40" y="${45+i*34}" font-size="27" font-weight="700"${textFit(line,27,1000)}>${e(line)}</text>`).join('');
+  svg+=`<text x="40" y="${metadataY}" font-family="system-ui, sans-serif" font-size="16" fill="#6e675a">STRINGMARK · ${next.chords.length} CHORD${next.chords.length===1?'':'S'} · ${next.leftHanded?'MIRRORED':'STANDARD'} VIEW</text></g>`;
+  next.chords.forEach((chord,i)=>{
+    const x=40+(i%2)*520,y=rowY[Math.floor(i/2)];
+    const diagram=chordSVG(chord,next.leftHanded).replace('<svg ',`<svg x="${x}" y="${y}" `);
+    svg+=diagram;
+    svg+=`<g fill="#50493e" font-family="ui-monospace, monospace" font-size="15">`+notes[i].map((line,j)=>`<text x="${x+10}" y="${y+530+j*19}"${textFit(line,15,460)}>${e(line)}</text>`).join('')+'</g>';
+  });
+  return svg+'</svg>';
+}
+
+const get=id=>document.getElementById(id);
+let state=makeDefault(),baseline=JSON.stringify(state),history=[],pending=null,prepared=null,reading=false;
+const current=()=>state.chords.find(chord=>chord.id===state.selected);
+function say(message){get('status').textContent=message;}
+get('base').innerHTML=Array.from({length:18},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join('');
+get('strings').innerHTML=TUNING.map((tone,i)=>`<fieldset class="stringRow"><legend>String ${6-i} · ${tone}<span>${i===0?'thickest / low E':i===5?'thinnest / high E':''}</span></legend><div class="positions">${[-1,0,1,2,3,4,5].map(p=>`<label class="position"><input type="radio" name="string${i}" id="string${i}pos${p}" data-string="${i}" data-position="${p}" value="${p}"><span aria-hidden="true"></span></label>`).join('')}</div></fieldset>`).join('');
+function paint(fields=true){
+  const chord=current();
+  if(fields){get('title').value=state.title;get('name').value=chord.name;get('note').value=chord.note;get('base').value=chord.base;get('leftHanded').checked=state.leftHanded;}
+  get('cards').innerHTML=state.chords.map((c,i)=>`<button type="button" class="cardTab" data-card="${c.id}" aria-pressed="${c.id===state.selected}" aria-label="Card ${i+1}: ${escapeXML(c.name.trim()||'Untitled chord')}"><small>${String(i+1).padStart(2,'0')}</small>${escapeXML(c.name.trim()||'Untitled chord')}</button>`).join('');
+  get('diagram').innerHTML=chordSVG(chord,state.leftHanded);
+  get('count').textContent=state.chords.length+' / 8 shapes';get('cardNumber').textContent='Editing card '+String(state.chords.indexOf(chord)+1).padStart(2,'0');
+  get('fretCaption').textContent='Frets '+chord.base+'–'+(chord.base+4);
+  get('add').disabled=get('duplicate').disabled=state.chords.length>=8;get('remove').disabled=state.chords.length===1;get('undo').disabled=history.length===0;
+  for(const input of get('strings').querySelectorAll('input')){const i=Number(input.dataset.string),p=Number(input.dataset.position),label=p<0?'Mute':p===0?'Open':'Fret '+(chord.base+p-1);input.checked=chord.positions[i]===p;input.setAttribute('aria-label','String '+(6-i)+' '+TUNING[i]+': '+label);input.nextElementSibling.textContent=p<0?'×':p===0?'○':chord.base+p-1;}
+}
+function commit(next,fields=true,remember=true){
+  next=validateState(next);if(JSON.stringify(next)===JSON.stringify(state))return false;
+  if(remember){history.push(JSON.stringify(state));if(history.length>30)history.shift();}
+  state=next;paint(fields);say('');return true;
+}
+function clone(){return JSON.parse(JSON.stringify(state));}
+function cleanText(value,max){let out='';for(const c of value){const n=c.codePointAt(0);if(n!==9&&n!==10&&n!==13&&(n<32||n>=0xd800&&n<=0xdfff||n===0xfffe||n===0xffff))continue;if(out.length+c.length>max)break;out+=c;}return out;}
+for(const [id,max] of [['title',100],['name',50],['note',240]]){
+  const edit=event=>{if(event.isComposing)return;const input=get(id),value=cleanText(input.value,max),changed=value!==input.value,next=clone();if(id==='title')next.title=value;else next.chords.find(c=>c.id===next.selected)[id]=value;commit(next,false);if(changed){input.value=value;say('Unsupported characters were removed to keep your file readable.');}};
+  get(id).addEventListener('input',edit);get(id).addEventListener('compositionend',edit);
+}
+get('base').addEventListener('change',()=>{const next=clone();next.chords.find(c=>c.id===next.selected).base=Number(get('base').value);commit(next,false);});
+get('leftHanded').addEventListener('change',()=>{const next=clone();next.leftHanded=get('leftHanded').checked;commit(next,false);});
+get('strings').addEventListener('change',event=>{const input=event.target;if(!input.matches('input[data-string]')||!input.checked)return;const next=clone();next.chords.find(c=>c.id===next.selected).positions[Number(input.dataset.string)]=Number(input.dataset.position);commit(next,false);});
+get('cards').addEventListener('click',event=>{const button=event.target.closest('[data-card]');if(!button)return;const next=clone();next.selected=button.dataset.card;commit(next,true,false);get('cards').querySelector('[data-card="'+state.selected+'"]').focus();});
+function add(duplicate){if(state.chords.length>=8)return;commit(addChord(state,duplicate));get('name').focus();get('name').select();say(duplicate?'Shape duplicated. Give this variation its own name.':'New shape added. All strings start muted.');}
+get('add').addEventListener('click',()=>add(false));get('duplicate').addEventListener('click',()=>add(true));
+get('remove').addEventListener('click',()=>{if(state.chords.length===1)return;commit(removeChord(state));get('name').focus();say('Shape removed. Undo edit brings it back.');});
+get('undo').addEventListener('click',()=>{if(!history.length)return;state=validateState(JSON.parse(history.pop()));paint();say('Previous edit restored.');if(get('undo').disabled)get('name').focus();});
+
+const origins=new Map();
+function show(id,origin){origins.set(id,origin);get(id).showModal();}
+for(const dialog of document.querySelectorAll('dialog'))dialog.addEventListener('close',()=>{if(dialog.id==='confirmDialog')pending=null;if(dialog.id==='fileDialog'){prepared=null;get('fileText').value='';}const origin=get(origins.get(dialog.id));if(origin&&!origin.disabled)origin.focus();});
+for(const button of document.querySelectorAll('[data-close]'))button.addEventListener('click',()=>button.closest('dialog').close());
+get('help').addEventListener('click',()=>show('guideDialog','help'));
+function loadWork(next){state=next;baseline=JSON.stringify(state);history=[];paint();say('Notebook opened. All shapes, notes and settings are restored.');}
+function offerWork(next){if(JSON.stringify(state)===baseline){loadWork(next);return;}pending=next;show('confirmDialog','open');get('keep').focus();}
+get('keep').addEventListener('click',()=>{pending=null;get('confirmDialog').close();say('Current notebook kept.');});
+get('confirmDialog').addEventListener('cancel',()=>{pending=null;});
+get('replace').addEventListener('click',()=>{const next=pending;pending=null;get('confirmDialog').close();if(next)loadWork(next);});
+function readLocal(file){if(typeof file.text==='function')return file.text();if(typeof FileReader==='undefined')throw Error('This browser could not read the local file.');return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reader.onabort=()=>reject(Error('The file could not be read.'));reader.readAsText(file);});}
+get('open').addEventListener('click',()=>{if(reading)return;get('file').value='';try{get('file').click();}catch{say('The local file picker could not open.');}});
+get('file').addEventListener('cancel',()=>say('Open canceled. Your notebook is unchanged.'));
+get('file').addEventListener('change',async()=>{const file=get('file').files?.[0];if(!file||reading)return;reading=true;get('open').disabled=true;try{if(file.size>MAX_FILE_BYTES)throw Error('Choose a Stringmark JSON file of 64 KB or less.');const next=readSession(await readLocal(file));if(document.querySelector('dialog[open]'))throw Error('Finish the current dialog, then choose your file again.');offerWork(next);}catch(error){say(error.message+' Your notebook is unchanged.');}finally{reading=false;get('open').disabled=false;get('file').value='';}});
+function download(){if(!prepared)return;let url;const anchor=document.createElement('a');try{try{if(prepared.blob)url=URL.createObjectURL(prepared.blob);}catch{}anchor.href=url||'data:'+prepared.type+';charset=utf-8,'+encodeURIComponent(prepared.text);anchor.download=prepared.name;document.body.append(anchor);anchor.click();get('fileInfo').textContent='Download requested: '+prepared.name+'. On iPhone, Share may also offer Save to Files.';}catch{get('fileInfo').textContent='Copy the complete text below and save it as '+prepared.name+'.';}finally{anchor.remove();if(url)setTimeout(()=>URL.revokeObjectURL(url),60000);}}
+function prepare(text,type,extension,origin){const slug=state.title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,60)||'chord-notebook',name='stringmark-'+slug+'.'+extension;prepared={text,type,name,blob:null,file:null};try{prepared.blob=new Blob([text],{type});const file=new File([prepared.blob],name,{type});if(navigator.share&&navigator.canShare?.({files:[file]}))prepared.file=file;}catch{}get('fileHeading').textContent=extension==='json'?'Save your notebook':'Export your chord sheet';get('fileText').value=text;get('share').hidden=!prepared.file;download();show('fileDialog',origin);}
+get('save').addEventListener('click',()=>{try{prepare(serializeSession(state),'application/json','json','save');}catch(error){say('Could not prepare your notebook. '+error.message);}});
+get('export').addEventListener('click',()=>{try{prepare(sheetSVG(state),'image/svg+xml','svg','export');}catch(error){say('Could not prepare your sheet. '+error.message);}});
+get('again').addEventListener('click',download);get('selectText').addEventListener('click',()=>{get('fileText').focus();get('fileText').select();});
+get('share').addEventListener('click',async()=>{const item=prepared;if(!item?.file)return;try{await navigator.share({files:[item.file]});if(prepared===item)get('fileInfo').textContent='Share sheet completed.';}catch(error){if(prepared===item)get('fileInfo').textContent=error.name==='AbortError'?'Sharing canceled. Your notebook is still open.':'Use Download again or the complete file text.';}});
+paint();
+
+})();
+</script>
+</body></html>

@@ -408,10 +408,10 @@
       var velocity = 0;           // angular velocity while spinning
       var spinning = false;
       var winnerIndex = -1;       // slice highlighted in gold after a win
-      var spinStart = 0;          // rotation when the current spin began
-      var spinDir = 1;            // direction of the current spin (+1 / -1)
-      var catchingUp = false;     // true while topping the spin up to its minimum turns
-      var minRevs = 3;            // guaranteed full turns per spin
+      var spinFrom = 0;           // rotation at the start of the current spin
+      var spinTotal = 0;          // total radians the current spin will cover
+      var spinDur = 5.5;          // spin duration in seconds
+      var spinT0 = 0;             // performance.now() at spin start
       var pointerFlex = 0;        // flapper bend in px; springs back to 0
       var lastTickIndex = -1;     // slice under the pointer at the last tick
 
@@ -678,6 +678,21 @@
         wctx.strokeStyle = "#3d2766";
         wctx.stroke();
 
+        // Pegs on the rim, one per slice boundary — the flapper clicks past
+        // each one, and they mark the boundaries so the wheel never stops on a line.
+        for (var p = 0; p < bounds.length; p++) {
+          var pa = -Math.PI / 2 + rotation + bounds[p].start;
+          var px = cx + Math.cos(pa) * (radius - 5);
+          var py = cy + Math.sin(pa) * (radius - 5);
+          wctx.beginPath();
+          wctx.arc(px, py, Math.max(3, radius * 0.012), 0, Math.PI * 2);
+          wctx.fillStyle = "#f2ecff";
+          wctx.fill();
+          wctx.lineWidth = 1.5;
+          wctx.strokeStyle = "#14092b";
+          wctx.stroke();
+        }
+
         // Coral pointer at the top (flexes as each peg snaps past)
         wctx.beginPath();
         wctx.moveTo(cx - 15, 0);
@@ -708,44 +723,38 @@
 
       /* ================= Spin physics ================= */
       var lastFrame = 0;
+      /* ================= Spin: Winwheel-style spinToStop =================
+         How the established wheels do it (Winwheel.js, the standard canvas
+         wheel library, and the prize-wheel tutorials built on it):
+         - the target is fixed BEFORE the spin: current angle + N full turns
+           + one random stop angle. The winner is only discovered from the
+           final angle once the wheel stops — it is never picked in advance.
+         - N is 5-8 turns (Winwheel's power levels use 3 / 8 / 15) over
+           5-7 seconds, eased with Power3.easeOut, its default for
+           spinToStop: fast launch, long smooth slowdown, clean stop.
+         A flick just sets the power: harder flick = more turns. */
       function spinLoop(ts) {
         if (!spinning) return;
         var dt = Math.min((ts - lastFrame) / 1000, 0.05);
         lastFrame = ts;
-        rotation += velocity * dt;
-        if (catchingUp) {
-          // Gentle glide to finish the guaranteed turns, then brake.
-          velocity *= Math.exp(-0.12 * dt);
-          if (Math.abs(rotation - spinStart) >= minRevs * Math.PI * 2) {
-            catchingUp = false;
-            velocity *= 0.5;
-          }
-        } else {
-          // Real-wheel friction: a steady drag plus exponential decay, so the
-          // wheel slows clearly and stops cleanly instead of crawling forever.
-          var drag = 2.5 * dt;
-          if (Math.abs(velocity) <= drag) velocity = 0;
-          else velocity -= Math.sign(velocity) * drag;
-          velocity *= Math.exp(-0.35 * dt);
-        }
-        pointerFlex *= Math.exp(-9 * dt); // flapper springs back
+        var t = Math.min((ts - spinT0) / (spinDur * 1000), 1);
+        var eased = 1 - Math.pow(1 - t, 3); // Power3.easeOut
+        rotation = spinFrom + spinTotal * eased;
+        velocity = spinTotal * 3 * Math.pow(1 - t, 2) / spinDur; // instantaneous angular velocity
+        pointerFlex *= Math.exp(-9 * dt); // flapper springs back between pegs
         var idx = winnerAt(rotation); // a peg just snapped past the pointer
         if (idx !== lastTickIndex) {
           lastTickIndex = idx;
           playTick(velocity);
-          pointerFlex = Math.max(-12, Math.min(12, velocity * 1.1));
+          pointerFlex = Math.max(-12, Math.min(12, velocity * 0.7));
         }
         drawWheel();
-        if (Math.abs(velocity) < 0.06) {
-          if (Math.abs(rotation - spinStart) < minRevs * Math.PI * 2) {
-            // Not yet around enough times — top it up with a gentle push.
-            catchingUp = true;
-            velocity = spinDir * (reducedMotion ? 2 : 3.5);
-            requestAnimationFrame(spinLoop);
-            return;
-          }
-          spinning = false;
+        if (t >= 1) {
+          rotation = spinFrom + spinTotal; // exact landing, no drift
           velocity = 0;
+          pointerFlex = 0;
+          drawWheel();
+          spinning = false;
           spinBtn.disabled = false;
           finishSpin();
           return;
@@ -756,12 +765,26 @@
         if (spinning || state.options.length < 2) return;
         winnerIndex = -1;
         banner.classList.remove("won");
-        spinStart = rotation;
-        spinDir = v >= 0 ? 1 : -1;
-        catchingUp = false;
-        minRevs = reducedMotion ? 1.5 : 3;
-        if (reducedMotion) v = spinDir * 4; // slow, gentle spin — never an instant jump
-        velocity = v;
+        var dir = (typeof v === "number" && v < 0) ? -1 : 1;
+        var spins, dur;
+        if (reducedMotion) {
+          spins = 2; dur = 6; // slow, gentle spin — never an instant jump
+        } else if (typeof v === "number") {
+          spins = Math.max(3, Math.min(8, Math.round(Math.abs(v) / 2))); // harder flick = more turns
+          dur = 4.5 + spins * 0.25;
+        } else {
+          spins = 5 + Math.floor(Math.random() * 3); // 5-7 full turns
+          dur = 5 + Math.random(); // 5-6 s
+        }
+        var stopAngle = Math.random() * Math.PI * 2; // random landing, winner read off at the end
+        var cur = ((rotation % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+        var delta = dir > 0 ? (stopAngle - cur + Math.PI * 2) % (Math.PI * 2)
+                            : -((cur - stopAngle + Math.PI * 2) % (Math.PI * 2));
+        spinFrom = rotation;
+        spinTotal = dir * spins * Math.PI * 2 + delta;
+        spinDur = dur;
+        spinT0 = performance.now();
+        velocity = 0;
         pointerFlex = 0;
         lastTickIndex = winnerAt(rotation);
         if (!reducedMotion) playWhoosh();
@@ -770,7 +793,7 @@
         lastFrame = performance.now();
         requestAnimationFrame(spinLoop);
       }
-      function spin() { beginSpin(16 + Math.random() * 4); }
+      function spin() { beginSpin(); }
 
       function finishSpin() {
         var idx = winnerAt(rotation);

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>Starlight Score</title>
+<style>
+:root { --bg:#0a0e1a; --fg:#e8f0ff; --acc:#7cf; --panel:rgba(10,20,40,.75); --star:#fff; --line:#4af; }
+body.light { --bg:#c8d8f0; --fg:#1a2a40; --acc:#36a; --panel:rgba(200,220,255,.85); --star:#ffd; --line:#68c; }
+* { box-sizing:border-box; margin:0; padding:0; }
+html,body { height:100%; background:var(--bg); color:var(--fg); font:15px/1.4 system-ui,sans-serif; overflow:hidden; touch-action:none; }
+#c { display:block; width:100%; height:100%; cursor:crosshair; }
+.controls { position:fixed; bottom:0; left:0; right:0; display:flex; flex-wrap:wrap; gap:6px; padding:10px 12px calc(10px + env(safe-area-inset-bottom)); background:var(--panel); backdrop-filter:blur(8px); z-index:10; }
+button,label { flex:1 1 auto; min-width:72px; padding:10px 8px; border:0; border-radius:8px; background:var(--acc); color:#fff; font-weight:600; cursor:pointer; font-size:14px; }
+button:active { transform:scale(.96); }
+#help { position:fixed; inset:0; background:rgba(0,0,0,.82); color:#fff; display:none; place-items:center; z-index:20; padding:20px; }
+#help.on { display:grid; }
+#help div { max-width:520px; background:#122; padding:24px; border-radius:16px; }
+#help h2 { margin-bottom:12px; }
+#help kbd { background:#333; padding:2px 6px; border-radius:4px; }
+body.light #help { background:rgba(255,255,255,.9); color:#123; }
+body.light #help div { background:#eef; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="controls">
+  <button id="bStar">Place Star</button>
+  <button id="bConnect">Connect</button>
+  <button id="bPlay">Play</button>
+  <button id="bClear">Clear</button>
+  <button id="bSave">Save</button>
+  <label>Open<input id="bOpen" type="file" accept=".json" hidden></label>
+  <button id="bTheme">Theme</button>
+  <button id="bHelp">Help</button>
+</div>
+<div id="help"><div>
+  <h2>Starlight Score</h2>
+  <p>Place stars (pitch = height). Connect them to build sequences. Play to send light along the paths and hear the melody.</p>
+  <p><kbd>1</kbd> Place mode &nbsp; <kbd>2</kbd> Connect mode &nbsp; <kbd>Space</kbd> Play/Stop<br>
+  <kbd>C</kbd> Clear &nbsp; <kbd>S</kbd> Save &nbsp; <kbd>O</kbd> Open &nbsp; <kbd>T</kbd> Theme &nbsp; <kbd>H</kbd> Help</p>
+  <p>Touch/click to place or select. Drag not required. Works offline.</p>
+  <button id="bClose">Close</button>
+</div></div>
+<script>
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+let stars=[],conns=[],mode='star',sel=null,playing=false,lights=[],audio,theme=localStorage.getItem('theme')||'dark';
+document.body.className=theme;
+const notes=[261.63,293.66,329.63,349.23,392,440,493.88,523.25]; // C4–C5
+function id(){return Math.random().toString(36).slice(2,9);}
+function resize(){canvas.width=innerWidth;canvas.height=innerHeight;draw();}
+function norm(s){return{...s,x:s.x/canvas.width,y:s.y/canvas.height};}
+function denorm(s){return{...s,x:s.x*canvas.width,y:s.y*canvas.height};}
+function loadDemo(){
+  const w=800,h=500;
+  stars=[
+    {id:'a',x:.3,y:.3,p:0},{id:'b',x:.5,y:.2,p:2},{id:'c',x:.7,y:.35,p:4},
+    {id:'d',x:.6,y:.55,p:3},{id:'e',x:.4,y:.6,p:1},{id:'f',x:.25,y:.45,p:5}
+  ];
+  conns=[{f:'a',t:'b'},{f:'b',t:'c'},{f:'c',t:'d'},{f:'d',t:'e'},{f:'e',t:'f'},{f:'f',t:'a'}];
+}
+function getStar(i){return stars.find(s=>s.id===i);}
+function pitch(y){const i=Math.min(7,Math.max(0,Math.floor((1-y)*8)));return notes[i];}
+function draw(){
+  ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--bg');
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  // stars background twinkle
+  for(let i=0;i<40;i++){
+    ctx.fillStyle=`rgba(255,255,255,${.1+Math.random()*.3})`;
+    ctx.fillRect(Math.random()*canvas.width,Math.random()*canvas.height,1.5,1.5);
+  }
+  ctx.strokeStyle=getComputedStyle(document.body).getPropertyValue('--line');
+  ctx.lineWidth=2;
+  conns.forEach(c=>{
+    const a=getStar(c.f),b=getStar(c.t); if(!a||!b)return;
+    const A=denorm(a),B=denorm(b);
+    ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(B.x,B.y);ctx.stroke();
+  });
+  stars.forEach(s=>{
+    const p=denorm(s);
+    ctx.fillStyle=sel===s.id?'#ff0':getComputedStyle(document.body).getPropertyValue('--star');
+    ctx.beginPath();ctx.arc(p.x,p.y,8,0,6.28);ctx.fill();
+    ctx.fillStyle='#000';ctx.font='10px sans-serif';ctx.fillText(s.p,p.x-3,p.y+3);
+  });
+  lights.forEach(l=>{
+    const a=getStar(l.f),b=getStar(l.t); if(!a||!b)return;
+    const A=denorm(a),B=denorm(b);
+    const x=A.x+(B.x-A.x)*l.t,y=A.y+(B.y-A.y)*l.t;
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x,y,5,0,6.28);ctx.fill();
+  });
+}
+function place(e){
+  const r=canvas.getBoundingClientRect();
+  const x=(e.clientX||e.touches[0].clientX)-r.left, y=(e.clientY||e.touches[0].clientY)-r.top;
+  const nx=x/canvas.width,ny=y/canvas.height;
+  if(mode==='star'){
+    stars.push({id:id(),x:nx,y:ny,p:Math.floor((1-ny)*8)});
+  }else{
+    const hit=stars.find(s=>{const p=denorm(s);return Math.hypot(p.x-x,p.y-y)<20;});
+    if(hit){
+      if(!sel)sel=hit.id;
+      else if(sel!==hit.id){conns.push({f:sel,t:hit.id});sel=null;}
+    }
+  }
+  draw();
+}
+canvas.addEventListener('pointerdown',place);
+function togglePlay(){
+  if(!audio)audio=new (window.AudioContext||window.webkitAudioContext)();
+  playing=!playing;
+  if(playing){
+    lights=[];
+    conns.forEach((c,i)=>{
+      const a=getStar(c.f); if(!a)return;
+      const len=Math.hypot(denorm(getStar(c.t)).x-denorm(a).x,denorm(getStar(c.t)).y-denorm(a).y);
+      const dur=Math.max(0.3,len/400);
+      setTimeout(()=>{
+        if(!playing)return;
+        const osc=audio.createOscillator(),g=audio.createGain();
+        osc.frequency.value=pitch(a.y);osc.type='sine';
+        g.gain.setValueAtTime(0.15,audio.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001,audio.currentTime+dur);
+        osc.connect(g);g.connect(audio.destination);osc.start();osc.stop(audio.currentTime+dur);
+        lights.push({f:c.f,t:c.t,t:0,dur});
+      },i*400);
+    });
+    if(conns.length===0)playing=false;
+  }else lights=[];
+  document.getElementById('bPlay').textContent=playing?'Stop':'Play';
+}
+function anim(){
+  if(playing){
+    lights.forEach(l=>l.t=Math.min(1,l.t+0.016/l.dur));
+    lights=lights.filter(l=>l.t<1);
+    if(lights.length===0&&playing)playing=false;
+  }
+  draw();
+  requestAnimationFrame(anim);
+}
+function clearAll(){stars=[];conns=[];sel=null;lights=[];playing=false;draw();}
+function save(){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify({stars,conns})],{type:'application/json'}));
+  a.download='starlight-score.json';a.click();
+}
+function openFile(e){
+  const f=e.target.files[0]; if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{try{const d=JSON.parse(r.result);stars=d.stars||[];conns=d.conns||[];draw();}catch(err){alert('Invalid file');}};
+  r.readAsText(f);
+}
+function toggleTheme(){theme=theme==='dark'?'light':'dark';document.body.className=theme;localStorage.setItem('theme',theme);draw();}
+function toggleHelp(){document.getElementById('help').classList.toggle('on');}
+document.getElementById('bStar').onclick=()=>mode='star';
+document.getElementById('bConnect').onclick=()=>mode='connect';
+document.getElementById('bPlay').onclick=togglePlay;
+document.getElementById('bClear').onclick=clearAll;
+document.getElementById('bSave').onclick=save;
+document.getElementById('bOpen').onchange=openFile;
+document.getElementById('bTheme').onclick=toggleTheme;
+document.getElementById('bHelp').onclick=toggleHelp;
+document.getElementById('bClose').onclick=toggleHelp;
+document.addEventListener('keydown',e=>{
+  const k=e.key.toLowerCase();
+  if(k==='h'||k==='?'){e.preventDefault();toggleHelp();}
+  else if(k===' '){e.preventDefault();togglePlay();}
+  else if(k==='c')clearAll();
+  else if(k==='s')save();
+  else if(k==='o')document.getElementById('bOpen').click();
+  else if(k==='t')toggleTheme();
+  else if(k==='1')mode='star';
+  else if(k==='2')mode='connect';
+});
+loadDemo();resize();anim();
+window.addEventListener('resize',resize);
+</script>
+</body>
+</html>

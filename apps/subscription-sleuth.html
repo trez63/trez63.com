@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light" />
+    <link rel="icon" href="data:," />
+    <title>Subscription Sleuth</title>
+    <style>
+      /* ============ Palette & base ============ */
+      :root {
+        --paper: #FBF7F0;
+        --card: #FFFFFF;
+        --ink: #22303E;
+        --ink-soft: #5A6B7A;
+        --accent: #E85D2A;      /* tangerine */
+        --accent-dark: #C74A1E;
+        --teal: #2A9D8F;
+        --line: #E7DFD2;
+        --keep: #2A9D8F;
+        --keep-bg: #E3F3F0;
+        --cancel: #C0392B;
+        --cancel-bg: #FBE9E6;
+        --undecided: #B7791F;
+        --undecided-bg: #FBF2DC;
+        --urgent: #C0392B;
+      }
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.45;
+      }
+      main { max-width: 760px; margin: 0 auto; padding: 20px 16px 64px; }
+      h1 { font-size: 28px; margin: 4px 0 4px; letter-spacing: -0.01em; }
+      .lede { color: var(--ink-soft); margin: 0 0 20px; font-size: 15px; }
+      h2 { font-size: 18px; margin: 28px 0 12px; }
+
+      /* Touch targets: 44px minimum everywhere tappable. */
+      button, select, input, .chip { min-height: 44px; }
+      button { cursor: pointer; font: inherit; }
+
+      /* ============ Stats row ============ */
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-bottom: 8px;
+      }
+      .stat {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 12px 12px 10px;
+      }
+      .stat .num { font-size: 22px; font-weight: 700; line-height: 1.15; }
+      .stat .num.save { color: var(--teal); }
+      .stat .label { font-size: 12.5px; color: var(--ink-soft); margin-top: 2px; }
+      @media (max-width: 560px) {
+        .stats { grid-template-columns: repeat(2, 1fr); }
+      }
+
+      /* ============ Toolbar (filters + sort) ============ */
+      .toolbar {
+        display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+        margin: 18px 0 14px;
+      }
+      .chips { display: flex; flex-wrap: wrap; gap: 8px; flex: 1 1 auto; }
+      .chip {
+        border: 1px solid var(--line);
+        background: var(--card);
+        color: var(--ink);
+        border-radius: 999px;
+        padding: 6px 14px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .chip[aria-pressed="true"] {
+        background: var(--ink); color: #fff; border-color: var(--ink);
+      }
+      .sort-wrap { display: flex; align-items: center; gap: 6px; }
+      .sort-wrap label { font-size: 13.5px; color: var(--ink-soft); }
+      select, input[type="text"], input[type="number"], input[type="date"] {
+        font: inherit; color: var(--ink);
+        background: #fff; border: 1px solid var(--line);
+        border-radius: 8px; padding: 8px 10px;
+      }
+
+      /* ============ Subscription cards ============ */
+      .cards { display: flex; flex-direction: column; gap: 12px; }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 14px 16px;
+      }
+      .card-top { display: flex; align-items: flex-start; gap: 10px; }
+      .card-name { font-size: 17px; font-weight: 700; flex: 1 1 auto; min-width: 0; }
+      .cat-chip {
+        flex: 0 0 auto;
+        background: #F1E9DA; color: var(--ink);
+        font-size: 12px; font-weight: 700;
+        border-radius: 999px; padding: 3px 10px; margin-top: 2px;
+      }
+      .amount { font-size: 15px; margin-top: 2px; }
+      .amount .per { color: var(--ink-soft); font-size: 13.5px; }
+      .meta { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; font-size: 14px; }
+      .renewal { color: var(--ink-soft); }
+      .renewal.urgent { color: var(--urgent); font-weight: 700; }
+      .cpu { color: var(--ink); }
+      .tag {
+        display: inline-block; font-size: 12px; font-weight: 700;
+        border-radius: 999px; padding: 2px 9px; margin-left: 6px; vertical-align: 1px;
+      }
+      .tag.good { background: var(--keep-bg); color: var(--teal); }
+      .tag.pricey { background: var(--cancel-bg); color: var(--cancel); }
+      .card-actions {
+        display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+        margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line);
+      }
+      .card-actions label { font-size: 13.5px; color: var(--ink-soft); }
+      .status-btn {
+        border: none; border-radius: 8px; padding: 8px 16px;
+        font-weight: 700; font-size: 14.5px; min-width: 118px;
+      }
+      .status-btn.keep { background: var(--keep-bg); color: var(--teal); }
+      .status-btn.cancel { background: var(--cancel-bg); color: var(--cancel); }
+      .status-btn.undecided { background: var(--undecided-bg); color: var(--undecided); }
+      .remove-btn {
+        margin-left: auto;
+        background: none; border: 1px solid var(--line); border-radius: 8px;
+        color: var(--ink-soft); padding: 8px 14px; font-size: 14px; font-weight: 600;
+      }
+      .remove-btn.armed { background: var(--cancel); border-color: var(--cancel); color: #fff; }
+
+      .empty {
+        background: var(--card); border: 1px dashed var(--line);
+        border-radius: 12px; padding: 28px 20px; text-align: center;
+        color: var(--ink-soft); font-size: 15px;
+      }
+
+      /* ============ Add form ============ */
+      .panel {
+        background: var(--card); border: 1px solid var(--line);
+        border-radius: 12px; padding: 16px;
+      }
+      .form-grid {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+      }
+      .form-grid .full { grid-column: 1 / -1; }
+      .field label { display: block; font-size: 13.5px; font-weight: 600; margin-bottom: 4px; }
+      .field input, .field select { width: 100%; }
+      @media (max-width: 520px) { .form-grid { grid-template-columns: 1fr; } }
+      .form-msg { min-height: 20px; font-size: 14px; color: var(--cancel); margin: 10px 0 0; font-weight: 600; }
+      .form-msg.ok { color: var(--teal); }
+
+      /* ============ Buttons ============ */
+      .btn {
+        border-radius: 8px; padding: 8px 18px; font-weight: 700; font-size: 15px;
+        border: 1px solid transparent;
+      }
+      .btn-primary { background: var(--accent); color: #fff; }
+      .btn-primary:active { background: var(--accent-dark); }
+      .btn-ghost { background: var(--card); border-color: var(--line); color: var(--ink); }
+      .file-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+      .hint { font-size: 13px; color: var(--ink-soft); margin-top: 10px; }
+      kbd {
+        background: #fff; border: 1px solid var(--line); border-bottom-width: 2px;
+        border-radius: 5px; padding: 0 5px; font-family: inherit; font-size: 12.5px;
+      }
+
+      /* ============ Toast ============ */
+      .toast {
+        position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
+        background: var(--ink); color: #fff; font-size: 14.5px; font-weight: 600;
+        border-radius: 10px; padding: 12px 18px; max-width: calc(100vw - 32px);
+        text-align: center; opacity: 0; pointer-events: none;
+        transition: opacity 0.2s ease;
+        z-index: 10;
+      }
+      .toast.show { opacity: 1; }
+      @media (prefers-reduced-motion: reduce) {
+        .toast { transition: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Subscription Sleuth</h1>
+      <p class="lede">Every recurring charge in one place — what it costs you each month, what each use really costs, and what you'd save by cancelling.</p>
+
+      <!-- Stats -->
+      <section class="stats" aria-label="Summary">
+        <div class="stat"><div class="num" id="stat-total">$0.00</div><div class="label">Monthly total</div></div>
+        <div class="stat"><div class="num" id="stat-kept">$0.00</div><div class="label">Monthly kept</div></div>
+        <div class="stat"><div class="num save" id="stat-save">$0.00</div><div class="label">Save per year if cancelled</div></div>
+        <div class="stat"><div class="num" id="stat-soon">0</div><div class="label">Renewing within 30 days</div></div>
+      </section>
+
+      <!-- Filters + sort -->
+      <div class="toolbar">
+        <div class="chips" role="group" aria-label="Filter subscriptions">
+          <button type="button" class="chip" data-filter="all" aria-pressed="true">All</button>
+          <button type="button" class="chip" data-filter="Keep" aria-pressed="false">Keep</button>
+          <button type="button" class="chip" data-filter="Cancel" aria-pressed="false">Cancel</button>
+          <button type="button" class="chip" data-filter="Undecided" aria-pressed="false">Undecided</button>
+          <button type="button" class="chip" data-filter="soon" aria-pressed="false">Renewing soon</button>
+        </div>
+        <div class="sort-wrap">
+          <label for="sort">Sort</label>
+          <select id="sort">
+            <option value="cost">Cost (high first)</option>
+            <option value="renewal">Renewal soonest</option>
+            <option value="name">Name A–Z</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Subscription list -->
+      <section class="cards" id="cards" aria-live="polite"></section>
+      <div class="empty" id="empty" hidden>Nothing matches this filter. Try another one — or add a subscription below.</div>
+
+      <!-- Add form -->
+      <h2>Add a subscription</h2>
+      <form class="panel" id="add-form" novalidate>
+        <div class="form-grid">
+          <div class="field full">
+            <label for="f-name">Name</label>
+            <input type="text" id="f-name" maxlength="80" autocomplete="off" placeholder="e.g. Netflix" />
+          </div>
+          <div class="field">
+            <label for="f-amount">Amount ($)</label>
+            <input type="number" id="f-amount" min="0" step="0.01" inputmode="decimal" placeholder="15.49" />
+          </div>
+          <div class="field">
+            <label for="f-frequency">Billed</label>
+            <select id="f-frequency">
+              <option value="Weekly">Weekly</option>
+              <option value="Monthly" selected>Monthly</option>
+              <option value="Quarterly">Quarterly</option>
+              <option value="Yearly">Yearly</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="f-category">Category</label>
+            <select id="f-category">
+              <option>Streaming</option><option>Music</option><option>Cloud</option>
+              <option>News</option><option>Work</option><option>Food</option>
+              <option>Health</option><option>Books</option><option>Games</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="f-usage">How often you use it</label>
+            <select id="f-usage">
+              <option>Daily</option><option selected>Weekly</option>
+              <option>Monthly</option><option>Rarely</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="f-renewal">Next renewal</label>
+            <input type="date" id="f-renewal" />
+          </div>
+        </div>
+        <p class="form-msg" id="form-msg" role="alert"></p>
+        <button type="submit" class="btn btn-primary">Add subscription</button>
+      </form>
+
+      <!-- Save / open -->
+      <h2>Your list</h2>
+      <div class="panel">
+        <div class="file-row" style="margin-top:0">
+          <button type="button" class="btn btn-primary" id="btn-save">Save</button>
+          <button type="button" class="btn btn-ghost" id="btn-open">Open</button>
+          <button type="button" class="btn btn-ghost" id="btn-reset">Reset to sample</button>
+          <input type="file" id="file-input" accept=".json,application/json" hidden />
+        </div>
+        <p class="hint">Save downloads <strong>subscriptions.json</strong>; Open restores it. Your list also autosaves in this browser as you work. Press <kbd>S</kbd> to save, <kbd>O</kbd> to open.</p>
+      </div>
+    </main>
+
+    <div class="toast" id="toast" role="status"></div>
+
+    <script>
+      "use strict";
+
+      /* ============ Constants ============ */
+      var STORAGE_KEY = "subscription-sleuth-v1";
+      var FREQUENCIES = ["Weekly", "Monthly", "Quarterly", "Yearly"];
+      var USAGES = ["Daily", "Weekly", "Monthly", "Rarely"];
+      var STATUSES = ["Keep", "Cancel", "Undecided"];
+      var USES_PER_MONTH = { Daily: 30, Weekly: 4.33, Monthly: 1, Rarely: 0.25 };
+
+      /* ============ Date helpers ============ */
+      function pad2(n) { return (n < 10 ? "0" : "") + n; }
+      function toISODate(d) {
+        return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+      }
+      function todayPlus(days) {
+        var d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + days);
+        return toISODate(d);
+      }
+      // Whole days from today until an ISO date (negative = past).
+      function daysUntil(iso) {
+        var t = new Date(); t.setHours(0, 0, 0, 0);
+        var parts = iso.split("-");
+        var r = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+        return Math.round((r - t) / 86400000);
+      }
+      function isValidISODate(s) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+        var p = s.split("-"), y = +p[0], m = +p[1], d = +p[2];
+        var dt = new Date(y, m - 1, d);
+        return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d;
+      }
+
+      /* ============ Money helpers ============ */
+      function monthlyEquivalent(sub) {
+        switch (sub.frequency) {
+          case "Weekly": return sub.amount * 52 / 12;
+          case "Quarterly": return sub.amount / 3;
+          case "Yearly": return sub.amount / 12;
+          default: return sub.amount; // Monthly
+        }
+      }
+      function costPerUse(sub) {
+        return monthlyEquivalent(sub) / USES_PER_MONTH[sub.usage];
+      }
+      function money(n) { return "$" + n.toFixed(2); }
+
+      /* ============ Sample data (dates relative to today) ============ */
+      function sampleData() {
+        return [
+          { name: "Netflix", amount: 15.49, frequency: "Monthly", category: "Streaming", usage: "Weekly", renewal: todayPlus(9), status: "Keep" },
+          { name: "Spotify", amount: 11.99, frequency: "Monthly", category: "Music", usage: "Daily", renewal: todayPlus(21), status: "Keep" },
+          { name: "Anytime Fitness", amount: 45.00, frequency: "Monthly", category: "Health", usage: "Rarely", renewal: todayPlus(4), status: "Undecided" },
+          { name: "iCloud+ 200 GB", amount: 2.99, frequency: "Monthly", category: "Cloud", usage: "Daily", renewal: todayPlus(17), status: "Keep" },
+          { name: "New York Times", amount: 17.00, frequency: "Monthly", category: "News", usage: "Weekly", renewal: todayPlus(12), status: "Keep" },
+          { name: "Adobe Creative Cloud", amount: 59.99, frequency: "Monthly", category: "Work", usage: "Weekly", renewal: todayPlus(27), status: "Undecided" },
+          { name: "HelloFresh", amount: 69.99, frequency: "Weekly", category: "Food", usage: "Weekly", renewal: todayPlus(2), status: "Cancel" },
+          { name: "Audible", amount: 14.95, frequency: "Monthly", category: "Books", usage: "Rarely", renewal: todayPlus(6), status: "Cancel" }
+        ];
+      }
+
+      /* ============ Validation (shared by Open + autosave restore) ============ */
+      function validateData(data) {
+        if (!data || typeof data !== "object" || Array.isArray(data)) return null;
+        if (data.version !== 1) return null;
+        var list = data.subscriptions;
+        if (!Array.isArray(list) || list.length < 1 || list.length > 100) return null;
+        var seen = {}, out = [], i, s;
+        for (i = 0; i < list.length; i++) {
+          s = list[i];
+          if (!s || typeof s !== "object") return null;
+          if (typeof s.name !== "string" || !s.name.trim() || s.name.length > 80) return null;
+          if (typeof s.amount !== "number" || !isFinite(s.amount) || s.amount <= 0 || s.amount > 100000) return null;
+          if (FREQUENCIES.indexOf(s.frequency) === -1) return null;
+          if (typeof s.category !== "string" || !s.category.trim() || s.category.length > 40) return null;
+          if (USAGES.indexOf(s.usage) === -1) return null;
+          if (typeof s.renewal !== "string" || !isValidISODate(s.renewal)) return null;
+          if (STATUSES.indexOf(s.status) === -1) return null;
+          var key = s.name.trim().toLowerCase();
+          if (seen[key]) return null;
+          seen[key] = true;
+          out.push({
+            name: s.name, amount: s.amount, frequency: s.frequency,
+            category: s.category, usage: s.usage, renewal: s.renewal, status: s.status
+          });
+        }
+        return out;
+      }
+
+      /* ============ State ============ */
+      var subscriptions = loadInitial();
+      var activeFilter = "all";
+      var armedRemove = null;   // name awaiting a confirming second tap
+      var armedTimer = null;
+
+      function loadInitial() {
+        try {
+          var raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            var parsed = validateData(JSON.parse(raw));
+            if (parsed) return parsed;
+          }
+        } catch (e) { /* corrupt storage falls through to samples */ }
+        return sampleData();
+      }
+      function persist() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, subscriptions: subscriptions }));
+        } catch (e) { /* storage unavailable; page still works in-memory */ }
+      }
+
+      /* ============ Toast ============ */
+      var toastEl = document.getElementById("toast");
+      var toastTimer = null;
+      function toast(msg) {
+        toastEl.textContent = msg;
+        toastEl.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { toastEl.classList.remove("show"); }, 2600);
+      }
+
+      /* ============ Rendering ============ */
+      var cardsEl = document.getElementById("cards");
+      var emptyEl = document.getElementById("empty");
+
+      function renewalText(sub) {
+        var d = daysUntil(sub.renewal);
+        if (d === 0) return "Renews today";
+        if (d > 0) return "Renews in " + d + "d";
+        return "Renewed " + (-d) + "d ago";
+      }
+
+      function renderStats() {
+        var total = 0, kept = 0, saveMonthly = 0, soon = 0, i, m, d;
+        for (i = 0; i < subscriptions.length; i++) {
+          m = monthlyEquivalent(subscriptions[i]);
+          total += m;
+          if (subscriptions[i].status === "Keep") kept += m;
+          if (subscriptions[i].status === "Cancel") saveMonthly += m;
+          d = daysUntil(subscriptions[i].renewal);
+          if (d >= 0 && d <= 30) soon++;
+        }
+        document.getElementById("stat-total").textContent = money(total);
+        document.getElementById("stat-kept").textContent = money(kept);
+        document.getElementById("stat-save").textContent = money(saveMonthly * 12);
+        document.getElementById("stat-soon").textContent = String(soon);
+      }
+
+      function visibleSubs() {
+        var list = subscriptions.filter(function (s) {
+          if (activeFilter === "all") return true;
+          if (activeFilter === "soon") {
+            var d = daysUntil(s.renewal);
+            return d >= 0 && d <= 30;
+          }
+          return s.status === activeFilter;
+        });
+        var mode = document.getElementById("sort").value;
+        list.sort(function (a, b) {
+          if (mode === "cost") return monthlyEquivalent(b) - monthlyEquivalent(a);
+          if (mode === "renewal") return daysUntil(a.renewal) - daysUntil(b.renewal);
+          return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+        });
+        return list;
+      }
+
+      function render() {
+        renderStats();
+        var list = visibleSubs();
+        cardsEl.innerHTML = "";
+        emptyEl.hidden = list.length > 0;
+        list.forEach(function (sub) { cardsEl.appendChild(buildCard(sub)); });
+        persist();
+      }
+
+      function buildCard(sub) {
+        var card = document.createElement("article");
+        card.className = "card";
+
+        // Top row: name + category chip
+        var top = document.createElement("div");
+        top.className = "card-top";
+        var name = document.createElement("div");
+        name.className = "card-name";
+        name.textContent = sub.name;
+        var chip = document.createElement("span");
+        chip.className = "cat-chip";
+        chip.textContent = sub.category;
+        top.appendChild(name);
+        top.appendChild(chip);
+        card.appendChild(top);
+
+        // Amount + monthly equivalent
+        var amt = document.createElement("div");
+        amt.className = "amount";
+        var perLabel = { Weekly: "/week", Monthly: "/month", Quarterly: "/quarter", Yearly: "/year" }[sub.frequency];
+        amt.innerHTML = "";
+        amt.appendChild(document.createTextNode(money(sub.amount) + " "));
+        var per = document.createElement("span");
+        per.className = "per";
+        per.textContent = perLabel + " · " + money(monthlyEquivalent(sub)) + "/mo";
+        amt.appendChild(per);
+        card.appendChild(amt);
+
+        // Renewal + cost per use
+        var meta = document.createElement("div");
+        meta.className = "meta";
+        var ren = document.createElement("span");
+        var d = daysUntil(sub.renewal);
+        ren.className = "renewal" + (d >= 0 && d <= 7 ? " urgent" : "");
+        ren.textContent = renewalText(sub);
+        meta.appendChild(ren);
+
+        var cpu = document.createElement("span");
+        cpu.className = "cpu";
+        var cpuVal = costPerUse(sub);
+        cpu.appendChild(document.createTextNode(money(cpuVal) + " per use"));
+        if (cpuVal <= 1) {
+          var good = document.createElement("span");
+          good.className = "tag good"; good.textContent = "Good value";
+          cpu.appendChild(good);
+        } else if (cpuVal >= 5) {
+          var pricey = document.createElement("span");
+          pricey.className = "tag pricey"; pricey.textContent = "Pricey per use";
+          cpu.appendChild(pricey);
+        }
+        meta.appendChild(cpu);
+        card.appendChild(meta);
+
+        // Actions: usage select, status cycle button, remove
+        var actions = document.createElement("div");
+        actions.className = "card-actions";
+
+        var uLabel = document.createElement("label");
+        uLabel.textContent = "Use";
+        var uSel = document.createElement("select");
+        uSel.setAttribute("aria-label", "Usage for " + sub.name);
+        USAGES.forEach(function (u) {
+          var opt = document.createElement("option");
+          opt.value = u; opt.textContent = u;
+          if (u === sub.usage) opt.selected = true;
+          uSel.appendChild(opt);
+        });
+        uSel.addEventListener("change", function () {
+          sub.usage = uSel.value;
+          render();
+          toast(sub.name + " usage set to " + sub.usage);
+        });
+        actions.appendChild(uLabel);
+        actions.appendChild(uSel);
+
+        var statusBtn = document.createElement("button");
+        statusBtn.type = "button";
+        statusBtn.className = "status-btn " + sub.status.toLowerCase();
+        statusBtn.textContent = sub.status;
+        statusBtn.setAttribute("aria-label", "Status for " + sub.name + ": " + sub.status + ". Tap to change.");
+        statusBtn.addEventListener("click", function () {
+          // Cycle order: Keep -> Cancel -> Undecided -> Keep
+          var order = ["Keep", "Cancel", "Undecided"];
+          sub.status = order[(order.indexOf(sub.status) + 1) % 3];
+          render();
+          toast(sub.name + " marked " + sub.status);
+        });
+        actions.appendChild(statusBtn);
+
+        var removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.className = "remove-btn" + (armedRemove === sub.name ? " armed" : "");
+        removeBtn.textContent = armedRemove === sub.name ? "Sure?" : "Remove";
+        removeBtn.addEventListener("click", function () {
+          if (armedRemove === sub.name) {
+            subscriptions = subscriptions.filter(function (s) { return s !== sub; });
+            armedRemove = null;
+            clearTimeout(armedTimer);
+            render();
+            toast(sub.name + " removed");
+          } else {
+            armedRemove = sub.name;
+            clearTimeout(armedTimer);
+            armedTimer = setTimeout(function () { armedRemove = null; render(); }, 3000);
+            render();
+          }
+        });
+        actions.appendChild(removeBtn);
+
+        card.appendChild(actions);
+        return card;
+      }
+
+      /* ============ Filters & sort ============ */
+      var chipEls = document.querySelectorAll(".chip");
+      chipEls.forEach(function (chip) {
+        chip.addEventListener("click", function () {
+          activeFilter = chip.getAttribute("data-filter");
+          chipEls.forEach(function (c) {
+            c.setAttribute("aria-pressed", c === chip ? "true" : "false");
+          });
+          render();
+        });
+      });
+      document.getElementById("sort").addEventListener("change", render);
+
+      /* ============ Add form ============ */
+      var form = document.getElementById("add-form");
+      var formMsg = document.getElementById("form-msg");
+      var renewalInput = document.getElementById("f-renewal");
+      renewalInput.value = todayPlus(30);
+
+      function formError(msg) {
+        formMsg.textContent = msg;
+        formMsg.classList.remove("ok");
+      }
+      form.addEventListener("submit", function (ev) {
+        ev.preventDefault();
+        var name = document.getElementById("f-name").value.trim();
+        var amount = parseFloat(document.getElementById("f-amount").value);
+        var frequency = document.getElementById("f-frequency").value;
+        var category = document.getElementById("f-category").value;
+        var usage = document.getElementById("f-usage").value;
+        var renewal = renewalInput.value;
+
+        if (!name) return formError("Give the subscription a name.");
+        if (name.length > 80) return formError("Name is too long (80 characters max).");
+        var dup = subscriptions.some(function (s) {
+          return s.name.trim().toLowerCase() === name.toLowerCase();
+        });
+        if (dup) return formError("You already have a subscription called “" + name + "”.");
+        if (!isFinite(amount) || amount <= 0) return formError("Enter an amount greater than $0.");
+        if (amount > 100000) return formError("That amount looks too large — check it and try again.");
+        if (!renewal || !isValidISODate(renewal)) return formError("Pick a valid renewal date.");
+
+        subscriptions.push({
+          name: name, amount: Math.round(amount * 100) / 100, frequency: frequency,
+          category: category, usage: usage, renewal: renewal, status: "Undecided"
+        });
+        form.reset();
+        renewalInput.value = todayPlus(30);
+        document.getElementById("f-frequency").value = "Monthly";
+        document.getElementById("f-usage").value = "Weekly";
+        formMsg.textContent = name + " added as Undecided.";
+        formMsg.classList.add("ok");
+        render();
+        toast(name + " added");
+      });
+
+      /* ============ Save / Open / Reset ============ */
+      function saveFile() {
+        var blob = new Blob([JSON.stringify({ version: 1, subscriptions: subscriptions }, null, 2)], { type: "application/json" });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = "subscriptions.json";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+        toast("Saved subscriptions.json");
+      }
+
+      var fileInput = document.getElementById("file-input");
+      function openFile() { fileInput.click(); }
+      fileInput.addEventListener("change", function () {
+        var file = fileInput.files && fileInput.files[0];
+        fileInput.value = "";
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function () {
+          var parsed;
+          try {
+            parsed = validateData(JSON.parse(String(reader.result)));
+          } catch (e) {
+            parsed = null;
+          }
+          if (!parsed) {
+            toast("That file isn't a valid subscription list — nothing changed.");
+            return;
+          }
+          subscriptions = parsed;
+          armedRemove = null;
+          render();
+          toast("Loaded " + parsed.length + " subscriptions");
+        };
+        reader.onerror = function () { toast("Couldn't read that file — nothing changed."); };
+        reader.readAsText(file);
+      });
+
+      document.getElementById("btn-save").addEventListener("click", saveFile);
+      document.getElementById("btn-open").addEventListener("click", openFile);
+      document.getElementById("btn-reset").addEventListener("click", function () {
+        subscriptions = sampleData();
+        armedRemove = null;
+        render();
+        toast("Reset to the sample list");
+      });
+
+      /* ============ Keyboard shortcuts (S = save, O = open) ============ */
+      document.addEventListener("keydown", function (ev) {
+        if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
+        var t = ev.target;
+        var typing = t && (t.tagName === "INPUT" || t.tagName === "SELECT" ||
+                           t.tagName === "TEXTAREA" || t.isContentEditable);
+        if (typing) return;
+        var key = ev.key.toLowerCase();
+        if (key === "s") { ev.preventDefault(); saveFile(); }
+        else if (key === "o") { ev.preventDefault(); openFile(); }
+      });
+
+      /* ============ Go ============ */
+      render();
+    </script>
+  </body>
+</html>

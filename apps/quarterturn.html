@@ -1,0 +1,131 @@
+<!doctype html>
+<!-- Quarterturn | Created 2026-11-25 (America/Los_Angeles)
+Purpose: Practice recognizing a shape after a rotation, with an explanation after each answer.
+Main interaction: Choose one of four rotated shapes, then inspect the sequence of quarter turns.
+Visual approach: A midnight puzzle table with white specimen tiles, citron feedback, large directional arrows and a compact score rail.
+Distinct from Crosslight's mirror routing, Moonpost's launches and recent drawing tools: this is a discrete spatial-recognition game with deterministic challenges and a portable saved position. One offline HTML contains all code and artwork. -->
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#171f2d"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"><title>Quarterturn · A different point of view</title>
+<style>
+:root{font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;color:#edf1f8;background:#171f2d;--lime:#d6f577;--muted:#aab6ca;--line:#435169}*{box-sizing:border-box}body{margin:0}button,select,textarea{font:inherit}button,select{min-height:46px;border:1px solid #65718a;border-radius:7px;padding:10px 17px;color:inherit;background:transparent;cursor:pointer;touch-action:manipulation}button:disabled{opacity:.45;cursor:default}.primary{background:var(--lime);border-color:var(--lime);color:#202d17;font-weight:750}button:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid #d6f577;outline-offset:4px}button.quiet{border-color:transparent}h1,h2,h3,p{margin:0}[hidden]{display:none!important}.app{max-width:1180px;margin:auto;padding:28px max(24px,env(safe-area-inset-right)) max(35px,env(safe-area-inset-bottom)) max(24px,env(safe-area-inset-left));padding-top:max(28px,env(safe-area-inset-top))}.mast{display:flex;align-items:center;justify-content:space-between;gap:14px;padding-bottom:24px;border-bottom:1px solid var(--line)}.brand{display:flex;gap:12px;align-items:center;font-weight:750;letter-spacing:.04em}.mark{width:34px;height:34px;border:8px solid var(--lime);border-right-color:transparent;border-radius:4px;transform:rotate(-12deg)}.actions{display:flex;gap:7px;flex-wrap:wrap}.hero{display:flex;justify-content:space-between;gap:22px;align-items:end;padding:30px 0 26px}h1{font-size:clamp(2.7rem,6vw,5.2rem);letter-spacing:-.06em;line-height:1.05;font-weight:780}h1 span{color:var(--lime)}.hero p{color:var(--muted);max-width:29ch;font-size:.96rem}.eyebrow{font:500 .7rem/1.5 ui-monospace,Consolas,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}.rail{display:flex;flex-wrap:wrap;gap:24px;align-items:center;background:#242e40;padding:17px 22px;border-radius:8px;margin-bottom:24px}.stat strong{display:block;font-size:1.25rem}.settings{display:flex;align-items:center;gap:9px;margin-left:auto}.settings label{font-size:.83rem;color:var(--muted)}select{appearance:none;-webkit-appearance:none;background:#242e40;color:#edf1f8;font-size:16px;padding-right:32px;background-image:linear-gradient(45deg,transparent 50%,#edf1f8 50%),linear-gradient(135deg,#edf1f8 50%,transparent 50%);background-position:calc(100% - 16px) 50%,calc(100% - 11px) 50%;background-size:5px 5px;background-repeat:no-repeat}select option{color:#edf1f8;background:#242e40}.playground{display:grid;grid-template-columns:minmax(240px,.85fr) minmax(0,1.35fr);gap:35px;align-items:start}.source{padding:25px;border:1px solid var(--line);border-radius:9px;background:#202a3b}.source h2{font-size:1.15rem;margin:4px 0 17px}.sourceTile{background:#f7f8fb;border-radius:7px;padding:15px;max-width:280px;margin:auto}.sourceTile svg{display:block;width:100%;height:auto}.turn{display:flex;align-items:center;gap:13px;margin-top:22px;padding-top:20px;border-top:1px solid var(--line)}.turnGlyph{font-size:3rem;color:var(--lime);line-height:1}.turn strong{display:block;font-size:1.2rem}.turn p{color:var(--muted);font-size:.86rem}.question{font-size:1.23rem;margin:0 0 16px}.choices{display:grid;grid-template-columns:1fr 1fr;gap:15px}.choice{padding:12px;background:#f7f8fb;color:#25334d;border:3px solid transparent;min-width:0;border-radius:9px;text-align:left;box-shadow:0 4px 0 #0e1420}.choice svg{display:block;width:100%;height:auto;max-width:190px;margin:auto}.choice .choiceLabel{display:flex;justify-content:space-between;gap:6px;font-size:.8rem;font-weight:700;min-height:22px;margin:6px 3px 0}.choice.correct{border-color:var(--lime);background:#eef8d5}.choice.wrong{border-color:#f3ab9e;background:#fce3de}.choice:disabled{opacity:1}.choice:focus-visible{outline-color:var(--lime)}.answerArea{margin-top:24px;padding:22px;border:1px solid var(--line);border-radius:8px;display:flex;gap:16px;align-items:center;justify-content:space-between}.answerArea h3{font-size:1.2rem}.answerArea p{color:var(--muted);font-size:.9rem;margin-top:4px;max-width:62ch}.answerArea button{flex:none}.steps{margin-top:25px;border-top:1px solid var(--line);padding-top:22px}.steps h3{font-size:1.1rem;margin-bottom:7px}.steps>p{font-size:.88rem;color:var(--muted)}.stepStrip{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:15px}.stepTile{background:#f7f8fb;border-radius:5px;padding:6px;color:#25334d;flex:1;min-width:85px;max-width:150px;text-align:center}.stepTile svg{width:100%;display:block}.stepTile p{font-size:.68rem;padding:4px}.between{color:var(--lime);font-size:1.3rem}.status{color:var(--lime);font-size:.9rem;overflow-wrap:anywhere}.status:not(:empty){margin:0 0 18px}.footer{display:flex;justify-content:space-between;gap:20px;border-top:1px solid var(--line);padding-top:19px;margin-top:28px;font-size:.77rem;color:var(--muted)}dialog{width:min(470px,calc(100% - 28px));max-height:calc(100vh - 28px);max-height:calc(100dvh - 28px);overflow:auto;border:1px solid #65718a;border-radius:10px;background:#242e40;color:#edf1f8;padding:26px;box-shadow:0 18px 70px #0006}dialog::backdrop{background:#080e19b8}dialog h2{font-size:1.7rem;line-height:1.15;letter-spacing:-.03em;margin-bottom:14px}dialog p,dialog li{font-size:.95rem;line-height:1.6;overflow-wrap:anywhere}dialog li+li{margin-top:9px}dialog p+p{margin-top:10px}dialog .actions{margin-top:18px}details{margin-top:15px}summary{cursor:pointer;min-height:44px;padding-block:11px;font-size:.87rem}textarea{width:100%;font-size:16px;min-height:100px;background:#f7f8fb;color:#25334d;padding:10px;border:0;border-radius:4px}#selectText{margin-top:8px}
+@media(hover:hover){.choice:enabled:hover{border-color:#a5bbdf}button:enabled:hover{filter:brightness(1.06)}}@media(max-width:760px){.app{padding-inline:max(15px,env(safe-area-inset-left)) max(15px,env(safe-area-inset-right))}.hero{display:block;padding-block:23px}.hero p{max-width:none;margin-top:14px}.playground{grid-template-columns:1fr;gap:22px}.source{display:grid;grid-template-columns:minmax(0,1fr) minmax(125px,1fr);gap:12px;padding:18px}.sourceIntro{grid-column:1/-1}.source h2{margin:0}.sourceTile{width:100%;max-width:180px;padding:8px}.turn{margin:0;padding:0;border:0;align-self:center;gap:10px}.turnGlyph{font-size:2.5rem}.rail{gap:18px;padding:14px}.settings{gap:6px}.choice svg{max-width:165px}.answerArea{align-items:flex-start}.footer{display:block}.footer p+p{margin-top:7px}}@media(max-width:480px){.mast{align-items:flex-start;flex-wrap:wrap;padding-bottom:18px}.mast .actions{width:100%}.mast .quiet{margin-left:auto}.rail{gap:13px}.settings{width:100%;margin:0;justify-content:space-between}.settings button{padding-inline:12px}.hero h1{font-size:2.9rem}.choices{gap:10px}.choice{padding:8px}.answerArea{padding:17px;display:block}.answerArea button{margin-top:14px;width:100%}.turn{display:block}.turn strong{font-size:1.05rem}.source{gap:10px}.source h2{font-size:1rem}.stepStrip{gap:6px}.between{display:none}.stepTile{min-width:60px}.stepTile p{font-size:.6rem}dialog{padding:21px}}@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style></head><body><main class="app">
+<header class="mast"><div class="brand"><span class="mark" aria-hidden="true"></span>QUARTERTURN</div><nav class="actions" aria-label="Puzzle files"><button id="open" type="button">Open</button><button id="save" type="button" class="primary">Save</button><button id="help" type="button" class="quiet">Guide</button></nav><input id="file" type="file" accept=".json,application/json" hidden></header>
+<section class="hero"><h1>A different<br><span>point of view.</span></h1><p>Turn the shape in your mind. Find its new position. See how the answer unfolds.</p></section><noscript>Enable JavaScript to play.</noscript><p id="status" class="status" role="status" aria-live="polite"></p>
+<section class="rail" aria-label="Your progress"><div class="stat"><span class="eyebrow">Challenge</span><strong id="roundText"></strong></div><div class="stat"><span class="eyebrow">Correct</span><strong id="score"></strong></div><div class="settings"><label for="size">Board</label><select id="size"><option value="3">3 × 3</option><option value="4">4 × 4</option><option value="5">5 × 5</option></select><button id="newGame" type="button">New game</button></div></section>
+<div class="playground"><section class="source" id="source" tabindex="-1" aria-labelledby="sourceHeading"><div class="sourceIntro"><span class="eyebrow">Start here</span><h2 id="sourceHeading">This is the original.</h2></div><div id="original" class="sourceTile"></div><div class="turn"><span class="turnGlyph" aria-hidden="true">↻</span><div><strong id="turnText"></strong><p>clockwise, around the<br>center of the board</p></div></div></section><section aria-labelledby="question"><h2 id="question" class="question">Which shape is the result?</h2><div id="choices" class="choices"></div></section></div>
+<section class="answerArea"><div id="feedback" tabindex="-1" role="status" aria-live="polite"><h3 id="resultTitle">Take a moment.</h3><p id="resultText">Choose A, B, C or D by tapping its tile. There is one matching rotation.</p></div><button id="next" type="button" class="primary" disabled>Next challenge →</button></section>
+<section id="steps" class="steps" hidden><h3>The turn, one step at a time.</h3><p>Each step is a quarter turn clockwise. The shape stays on the same board.</p><div id="stepStrip" class="stepStrip"></div></section>
+<footer class="footer"><p>No clock. No rush. Save to keep your exact challenge and score.</p><p>Works offline · Nothing is sent anywhere</p></footer></main>
+<dialog id="guideDialog" aria-labelledby="guideTitle"><h2 id="guideTitle">Look. Turn. Recognize.</h2><ol><li>Keep the original shape in mind. Rotate it by the angle shown, clockwise around the board’s center.</li><li>Choose the matching tile. Every option is a different rotation of that same shape.</li><li>After your first answer, inspect the quarter-turn sequence. Then move to the next challenge.</li></ol><p>A 90° turn moves the top edge to the right; 180° turns the board upside down. The larger boards offer more cells to keep track of.</p><p><strong>Save</strong> downloads your board size, challenge, answer and score. <strong>Open</strong> restores it. Use Tab and Enter or Space for buttons; letter keys are not shortcuts.</p><p>New game or changing board size starts a fresh score. On iPhone, the offered Share control can save to Files when available.</p><div class="actions"><button type="button" class="primary" data-close>Let’s turn</button></div></dialog>
+<dialog id="fileDialog" aria-labelledby="fileHeading"><h2 id="fileHeading">Save this game</h2><p id="fileInfo"></p><div class="actions"><button id="share" type="button">Share or save to Files</button><button id="again" type="button">Download again</button></div><details id="manual"><summary>Complete file text</summary><label for="fileText">Copy all this text to save manually</label><textarea id="fileText" rows="5" readonly spellcheck="false"></textarea><button id="selectText" type="button">Select text</button></details><div class="actions"><button type="button" class="primary" data-close>Done</button></div></dialog>
+<dialog id="confirmDialog" aria-labelledby="confirmTitle"><h2 id="confirmTitle">Replace this game?</h2><p id="confText"></p><div class="actions"><button id="keep" type="button" class="primary" autofocus>Keep current game</button><button id="replace" type="button">Replace</button></div></dialog>
+<script>
+(() => { 'use strict';
+const MAX_FILE_BYTES=65536;
+function exactKeys(value,keys){return !!value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).length===keys.length&&keys.every(key=>Object.prototype.hasOwnProperty.call(value,key));}
+function isWhole(value,min,max){return Number.isInteger(value)&&value>=min&&value<=max;}
+function makeDefault(size=4){if(![3,4,5].includes(size))throw Error('Choose a 3, 4 or 5 square board.');return{size,seed:341902,round:0,selection:null,wins:0};}
+function rotate(cells,size,turns=1){
+  if(![3,4,5].includes(size)||!Number.isSafeInteger(turns)||!Array.isArray(cells)||new Set(cells).size!==cells.length||cells.some(cell=>!isWhole(cell,0,size*size-1)))throw Error('The shape cannot be rotated.');
+  const count=((turns%4)+4)%4;
+  return cells.map(cell=>{let x=cell%size,y=Math.floor(cell/size);for(let i=0;i<count;i++){const oldX=x;x=size-1-y;y=oldX;}return y*size+x;}).sort((a,b)=>a-b);
+}
+function puzzle(work){
+  if(![3,4,5].includes(work.size)||!isWhole(work.seed,0,4294967295)||!isWhole(work.round,0,9999))throw Error('The puzzle settings are invalid.');
+  let seed=(work.seed^Math.imul(work.round+1,0x9e3779b9)^Math.imul(work.size,0x85ebca6b))>>>0;
+  const random=()=>{seed=(seed+0x6d2b79f5)>>>0;let t=Math.imul(seed^(seed>>>15),seed|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296;};
+  const n=work.size;let cells=null;
+  for(let attempt=0;attempt<32;attempt++){
+    const wanted=n+1+Math.floor(random()*(Math.floor(n*n/2)-n+1));
+    const shape=new Set([Math.floor(random()*n*n)]);
+    while(shape.size<wanted){
+      const frontier=new Set();
+      for(const cell of shape){const x=cell%n,y=Math.floor(cell/n);if(x>0&&!shape.has(cell-1))frontier.add(cell-1);if(x<n-1&&!shape.has(cell+1))frontier.add(cell+1);if(y>0&&!shape.has(cell-n))frontier.add(cell-n);if(y<n-1&&!shape.has(cell+n))frontier.add(cell+n);}
+      const choices=[...frontier];if(!choices.length)break;shape.add(choices[Math.floor(random()*choices.length)]);
+    }
+    const candidate=[...shape].sort((a,b)=>a-b);
+    if(new Set([0,1,2,3].map(turn=>rotate(candidate,n,turn).join(','))).size===4){cells=candidate;break;}
+  }
+  if(!cells)cells=[0,1,n];
+  const turns=1+Math.floor(random()*3),order=[0,1,2,3];
+  for(let i=3;i>0;i--){const j=Math.floor(random()*(i+1));[order[i],order[j]]=[order[j],order[i]];}
+  return{cells,options:order.map(turn=>({turns:turn,cells:rotate(cells,n,turn)})),turns,correct:order.indexOf(turns)};
+}
+function validateState(raw){
+  if(!exactKeys(raw,['size','seed','round','selection','wins']))throw Error('The saved game has an unexpected structure.');
+  if(![3,4,5].includes(raw.size)||!isWhole(raw.seed,0,4294967295)||!isWhole(raw.round,0,9999))throw Error('The saved board or puzzle number is invalid.');
+  if(raw.selection!==null&&!isWhole(raw.selection,0,3))throw Error('The saved answer is invalid.');
+  const completed=raw.round+(raw.selection!==null?1:0);
+  if(!isWhole(raw.wins,0,completed))throw Error('The saved score is invalid.');
+  if(raw.selection!==null){const correct=puzzle(raw).correct;if(raw.selection===correct&&raw.wins<1||raw.selection!==correct&&raw.wins>raw.round)throw Error('The saved score does not match this answer.');}
+  return{size:raw.size,seed:raw.seed,round:raw.round,selection:raw.selection,wins:raw.wins};
+}
+function choose(work,index){
+  const next=validateState(work);if(!isWhole(index,0,3))throw Error('Choose one of the four answers.');
+  if(next.selection!==null)return next;
+  next.selection=index;if(index===puzzle(next).correct)next.wins++;
+  return next;
+}
+function nextRound(work){
+  const next=validateState(work);if(next.selection===null)throw Error('Choose an answer before continuing.');
+  if(next.round===9999)throw Error('This set is complete. Start a new game to continue.');
+  next.round++;next.selection=null;return next;
+}
+function checkFileSize(text){
+  if(typeof text!=='string'||text.length>MAX_FILE_BYTES)throw Error('Choose a Quarterturn file of 64 KB or less.');
+  let bytes=0;for(const c of text){const n=c.codePointAt(0);bytes+=n<128?1:n<2048?2:n<65536?3:4;if(bytes>MAX_FILE_BYTES)throw Error('Choose a Quarterturn file of 64 KB or less.');}
+}
+function serializeSession(work){return JSON.stringify({app:'quarterturn',version:1,workspace:validateState(work)},null,2);}
+function readSession(text){
+  checkFileSize(text);let data;try{data=JSON.parse(text.replace(/^\uFEFF/,''));}catch{throw Error('This is not valid JSON. Choose a saved Quarterturn game.');}
+  if(!exactKeys(data,['app','version','workspace'])||data.app!=='quarterturn')throw Error('This file is not a Quarterturn game.');
+  if(data.version!==1)throw Error('This Quarterturn file version is not supported.');
+  return validateState(data.workspace);
+}
+
+function cellDescription(cells,n){return cells.map(i=>String.fromCharCode(65+i%n)+(Math.floor(i/n)+1)).join(', ');}
+function board(cells,n,label){const set=new Set(cells),step=156/n;let out='';for(let y=0;y<n;y++)for(let x=0;x<n;x++){const on=set.has(y*n+x);out+=`<rect x="${12+x*step}" y="${12+y*step}" width="${step-3}" height="${step-3}" rx="3" fill="${on?'#334a70':'#e3e8f0'}"/>`;}return `<svg viewBox="0 0 180 180" role="img" aria-label="${label}. Filled cells: ${cellDescription(cells,n)}. Columns run left to right; rows run top to bottom.">${out}</svg>`;}
+
+const get=id=>document.getElementById(id);
+let state=makeDefault(),baseline=JSON.stringify(state),pending=null,prepared=null,reading=false;
+function say(text){get('status').textContent=text;}
+function paint(){
+  const p=puzzle(state),answered=state.selection!==null,won=state.selection===p.correct,completed=state.round+(answered?1:0);
+  get('roundText').textContent=String(state.round+1).padStart(2,'0');get('score').textContent=state.wins+' / '+completed;get('size').value=state.size;
+  get('original').innerHTML=board(p.cells,state.size,'Original shape');get('turnText').textContent=(p.turns*90)+'° turn';
+  get('choices').innerHTML=p.options.map((option,i)=>`<button type="button" class="choice${answered&&i===p.correct?' correct':''}${answered&&i===state.selection&&!won?' wrong':''}" data-choice="${i}" aria-label="Answer ${'ABCD'[i]}, filled cells ${cellDescription(option.cells,state.size)}"${answered?' disabled':''}>${board(option.cells,state.size,'Option '+ 'ABCD'[i])}<span class="choiceLabel"><span>${'ABCD'[i]}</span><span>${answered?(i===p.correct?'✓ Match':i===state.selection?'Your choice':''):''}</span></span></button>`).join('');
+  get('resultTitle').textContent=answered?(won?'That’s the turn.':'A different turn.'):'Take a moment.';
+  get('resultText').textContent=answered?(won?'You found the '+p.turns*90+'° clockwise rotation.':(p.options[state.selection].turns===0?'Your choice kept the original position.':'Your choice turned '+p.options[state.selection].turns*90+'° clockwise.')+' The requested '+p.turns*90+'° turn is '+ 'ABCD'[p.correct]+'.'):'Choose a tile. There is one matching rotation.';
+  get('next').disabled=!answered||state.round>=9999;get('next').textContent=state.round>=9999?'Start a new game':'Next challenge →';
+  if(state.round>=9999&&answered)get('resultText').textContent+=' This game is complete. New game starts a fresh score.';
+  get('steps').hidden=!answered;get('stepStrip').innerHTML=answered?Array.from({length:p.turns+1},(_,t)=>(t?'<span class="between" aria-hidden="true">→</span>':'')+`<div class="stepTile">${board(rotate(p.cells,state.size,t),state.size,t*90+' degrees clockwise')}<p>${t?t*90+'° clockwise':'Original'}</p></div>`).join(''):'';
+}
+get('choices').addEventListener('click',event=>{const b=event.target.closest('[data-choice]');if(!b||state.selection!==null)return;state=choose(state,Number(b.dataset.choice));say('');paint();get('feedback').focus();});
+get('next').addEventListener('click',()=>{if(state.selection===null||state.round>=9999)return;state=nextRound(state);say('');paint();get('source').focus();});
+function fresh(size,origin){const next=makeDefault(size);next.seed=Math.floor(Math.random()*4294967296)>>>0;offerWork(next,origin,'New game ready. Your score starts fresh.');}
+get('newGame').addEventListener('click',()=>fresh(state.size,'newGame'));
+get('size').addEventListener('change',()=>{const size=Number(get('size').value);get('size').value=state.size;fresh(size,'size');});
+
+const origins=new Map();
+function show(id,origin){origins.set(id,origin);get(id).showModal();}
+for(const d of document.querySelectorAll('dialog'))d.addEventListener('close',()=>{if(d.id==='confirmDialog')pending=null;if(d.id==='fileDialog'){prepared=null;get('fileText').value='';}const b=get(origins.get(d.id));if(b&&!b.disabled)b.focus();});
+for(const b of document.querySelectorAll('[data-close]'))b.addEventListener('click',()=>b.closest('dialog').close());
+get('help').addEventListener('click',()=>show('guideDialog','help'));
+function loadWork(next,message){state=next;baseline=JSON.stringify(next);paint();say(message);}
+function offerWork(next,origin,message='Game ready. Your saved position and score are restored.'){if(JSON.stringify(state)===baseline){loadWork(next,message);return;}pending={next,message};get('confText').textContent='Replace this challenge and score? Choose Keep to save your current game first.';show('confirmDialog',origin);get('keep').focus();}
+get('keep').addEventListener('click',()=>{pending=null;get('confirmDialog').close();say('Current game kept.');});
+get('confirmDialog').addEventListener('cancel',()=>{pending=null;});
+get('replace').addEventListener('click',()=>{const work=pending;pending=null;get('confirmDialog').close();if(work)loadWork(work.next,work.message);});
+function readLocal(file){if(typeof file.text==='function')return file.text();if(typeof FileReader==='undefined')throw Error('This browser could not read the local file.');return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=r.onabort=()=>reject(Error('The file could not be read.'));r.readAsText(file);});}
+get('open').addEventListener('click',()=>{if(reading)return;get('file').value='';try{get('file').click();}catch{say('The local file picker could not open.');}});
+get('file').addEventListener('cancel',()=>say('Open canceled. Your game is unchanged.'));
+get('file').addEventListener('change',async()=>{const file=get('file').files?.[0];if(!file||reading)return;reading=true;get('open').disabled=true;try{if(file.size>MAX_FILE_BYTES)throw Error('Choose a Quarterturn JSON file of 64 KB or less.');const next=readSession(await readLocal(file));if(['guideDialog','fileDialog','confirmDialog'].some(id=>get(id).open))throw Error('Finish the current dialog, then choose your game again.');offerWork(next,'open');}catch(e){say(e.message+' Your game is unchanged.');}finally{reading=false;get('open').disabled=false;get('file').value='';}});
+function download(){if(!prepared)return;let url;const a=document.createElement('a');try{try{if(prepared.blob)url=URL.createObjectURL(prepared.blob);}catch{}a.href=url||'data:application/json;charset=utf-8,'+encodeURIComponent(prepared.text);a.download=prepared.name;document.body.append(a);a.click();get('fileInfo').textContent='Download requested: '+prepared.name+'. On iPhone, Share may also offer Save to Files.';}catch{get('fileInfo').textContent='Copy the complete file text below and save it as '+prepared.name+'.';}finally{a.remove();if(url)setTimeout(()=>URL.revokeObjectURL(url),60000);}}
+get('save').addEventListener('click',()=>{try{const text=serializeSession(state),name='quarterturn-round-'+(state.round+1)+'.json';prepared={text,name,blob:null,file:null};try{prepared.blob=new Blob([text],{type:'application/json'});const f=new File([prepared.blob],name,{type:'application/json'});if(navigator.share&&navigator.canShare?.({files:[f]}))prepared.file=f;}catch{}get('fileText').value=text;get('share').hidden=!prepared.file;download();show('fileDialog','save');}catch(e){say('Could not prepare the file. '+e.message);}});
+get('again').addEventListener('click',download);get('selectText').addEventListener('click',()=>{get('fileText').focus();get('fileText').select();});
+get('share').addEventListener('click',async()=>{const p=prepared;if(!p?.file)return;try{await navigator.share({files:[p.file]});if(p===prepared)get('fileInfo').textContent='Share sheet completed.';}catch(e){if(p===prepared)get('fileInfo').textContent=e.name==='AbortError'?'Sharing canceled. Your game is still open.':'Use Download again or the complete file text.';}});
+paint();
+
+})();
+</script>
+</body></html>
